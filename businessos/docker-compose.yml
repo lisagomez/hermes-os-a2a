@@ -1,0 +1,151 @@
+name: businessos
+
+# BusinessOS — Hermes Agent multi-vertical sobre Docker
+# Patron oficial de Nous Research: UN contenedor por vertical (no multi-profile).
+# Regla de oro: nunca dos gateways sobre el mismo volumen (corrompe el estado).
+#
+# Acceso al dashboard: SOLO por tunel SSH. No hay Caddy ni puertos publicos.
+#   ssh -L 9119:localhost:9119 hermes@LA_IP   →   http://localhost:9119
+#
+# Antes de levantar:
+#   1) mkdir -p ~/businessos/{personal,negocio,clientes}/.hermes
+#   2) Corre el wizard UNA vez por vertical:
+#        docker run -it --rm -v ~/businessos/personal/.hermes:/opt/data nousresearch/hermes-agent:v2026.6.19 setup
+#        docker run -it --rm -v ~/businessos/negocio/.hermes:/opt/data  nousresearch/hermes-agent:v2026.6.19 setup
+#        docker run -it --rm -v ~/businessos/clientes/.hermes:/opt/data nousresearch/hermes-agent:v2026.6.19 setup
+#      En cada wizard: elige proveedor (OpenRouter o Nous Portal), pega el token del
+#      bot de Telegram correspondiente (uno por vertical), y define el modelo.
+#   3) Copia tu SOUL.md y AGENTS.md a cada carpeta .hermes. En negocio, copia
+#      tambien MEMORY.md (define el presupuesto mensual de tokens).
+#   4) Pon tus llaves en un archivo .env junto a este compose (ver claves abajo).
+#   5) docker compose up -d
+#
+# NOTA DE RUTAS: Compose NO expande "~" en los volumenes (es feature del shell, no
+# de Compose). Por eso aqui usamos ${HOME}. Define HOME o corre compose desde una
+# shell de login normal (siempre lo trae).
+#
+# PIN DE VERSION: pineado a :v2026.6.19 (tag estable mas reciente verificado en
+# Docker Hub a 2026-06-26). Revisa github.com/NousResearch/hermes-agent/releases
+# para versiones nuevas. No uses ":latest"/":main" en produccion (apuntan a builds
+# de minutos atras, sin garantia de estabilidad).
+#
+# RAM (verificado contra la doc oficial): Nous recomienda 2+ vCPU y 8 GB RAM.
+# Con TRES verticales, el Droplet de 2 GB se queda corto. Usa 4 GB como minimo
+# realista (~$28/mes) y 8 GB si quieres holgura con el grafo encima. Ademas, los
+# limits de abajo (3 x 2G) estan sobre-suscritos: en 4 GB solo sobreviven gracias
+# al swap del paso 3 de FASE0. Si bajas a un solo box chico, reduce estos limits.
+#
+# PUERTOS: las verticales hablan por Telegram (conexiones salientes), NO necesitan
+# puertos entrantes. Los mapeos 'ports:' van COMENTADOS para no exponer la API
+# (8642). El dashboard se publica SOLO en 127.0.0.1 (accesible por tunel SSH).
+#
+# SUPABASE: las tres verticales registran token_usage y leen cifras desde Supabase
+# (fuente de verdad, ver AGENTS.md). Pon SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY
+# en .env. El service_role bypassea RLS: es una llave de SERVIDOR, nunca la
+# expongas a un cliente. Llega a los contenedores via env_file (.env).
+
+x-hermes-common: &hermes-common
+  image: nousresearch/hermes-agent:v2026.6.19
+  restart: unless-stopped
+  command: gateway run
+  shm_size: 1g
+  networks: [hermes-net]
+
+services:
+
+  # ---------- VERTICAL: PERSONAL ----------
+  hermes-personal:
+    <<: *hermes-common
+    container_name: hermes-personal
+    # ports:                      # cerrado: habla por Telegram, no necesita entrante
+    #   - "127.0.0.1:8642:8642"
+    volumes:
+      - ${HOME}/businessos/personal/.hermes:/opt/data
+      # Boveda Obsidian montada de lectura/escritura para captura de notas
+      - ${HOME}/businessos/obsidian:/opt/data/obsidian:rw
+    env_file: [.env]
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_PERSONAL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: 2G }
+
+  # ---------- VERTICAL: NEGOCIO ----------
+  hermes-negocio:
+    <<: *hermes-common
+    container_name: hermes-negocio
+    # ports:                      # cerrado: habla por Telegram
+    #   - "127.0.0.1:8643:8642"
+    volumes:
+      - ${HOME}/businessos/negocio/.hermes:/opt/data
+    env_file: [.env]
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_NEGOCIO}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: 2G }
+
+  # ---------- VERTICAL: CLIENTES ----------
+  hermes-clientes:
+    <<: *hermes-common
+    container_name: hermes-clientes
+    # ports:                      # cerrado: habla por Telegram
+    #   - "127.0.0.1:8644:8642"
+    volumes:
+      - ${HOME}/businessos/clientes/.hermes:/opt/data
+    env_file: [.env]
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_CLIENTES}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: 2G }
+
+  # ---------- DASHBOARD (Mission Control) ----------
+  # La deteccion de liveness del gateway necesita PID + red compartidos con el
+  # gateway que vigila. Apuntamos el dashboard al de negocio (donde vive el
+  # tracking de presupuesto de tokens). Si quieres una sola vista de los tres,
+  # el dashboard A2ABot consume los tres por su API y lee Supabase.
+  #
+  # ATENCION (riesgo de corrupcion): la doc oficial advierte que NUNCA dos
+  # contenedores deben escribir el mismo volumen .hermes a la vez (corrompe
+  # sesiones y memoria). El dashboard monta el volumen de negocio en modo SOLO
+  # LECTURA (:ro) para mitigarlo. Si el dashboard necesitara escribir y diera
+  # error, la alternativa correcta es usar el dashboard de A2ABot (que lee via
+  # API + Supabase, sin tocar el volumen) en vez de este.
+  #
+  # ACCESO: publicado SOLO en 127.0.0.1. Desde tu maquina:
+  #   ssh -L 9119:localhost:9119 hermes@LA_IP   →   http://localhost:9119
+  # El '--host 0.0.0.0' es para que escuche dentro del contenedor; el binding
+  # 127.0.0.1 del host es lo que impide que se vea desde internet.
+  dashboard:
+    image: nousresearch/hermes-agent:v2026.6.19
+    container_name: hermes-dashboard
+    restart: unless-stopped
+    command: dashboard --host 0.0.0.0
+    ports:
+      - "127.0.0.1:9119:9119"
+    volumes:
+      - ${HOME}/businessos/negocio/.hermes:/opt/data:ro
+    environment:
+      - GATEWAY_HEALTH_URL=http://hermes-negocio:8642
+      - HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${DASH_USER}
+      - HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${DASH_PASS}
+      - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${DASH_SECRET}
+    depends_on: [hermes-negocio]
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+
+networks:
+  hermes-net:
+    driver: bridge
