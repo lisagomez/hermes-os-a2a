@@ -1,170 +1,163 @@
-# SaaS Factory V4
+# BusinessOS
 
-Template production-ready para crear aplicaciones SaaS con desarrollo asistido por IA. Filosofia Agent-First: el usuario dice que quiere, el agente construye todo.
+> Una mente con tres bocas. Un agente (Hermes) que opera tu vida **personal**,
+> tu **negocio** y tus **clientes** desde tres contenedores aislados, hablando
+> por Telegram y voz, con un grafo de conocimiento como cerebro
+> regulatorio/fiscal/contable multi-país y un dashboard "Mission Control" encima.
 
-## Que incluye
-
-- Next.js 16 (App Router) + TypeScript
-- Supabase (Database + Auth + RLS)
-- Tailwind CSS + shadcn/ui
-- 19 Skills de Claude Code (V4 Skills 2.0)
-- Playwright CLI para QA automatizado
-- AI Templates (Vercel AI SDK v5 + OpenRouter)
-- 5 Design Systems listos para usar
-- Arquitectura Feature-First optimizada para IA
-- Auto-Blindaje: el sistema aprende de cada error
-
-## Quick Start
-
-### 1. Instalar
-
-```bash
-npm install
-```
-
-### 2. Variables de Entorno
-
-```bash
-cp .env.example .env.local
-# Editar con credenciales de Supabase
-```
-
-### 3. MCPs (Opcional)
-
-```bash
-cp .claude/example.mcp.json .mcp.json
-# Editar con project ref de Supabase
-```
-
-### 4. Desarrollar
-
-```bash
-npm run dev
-# Auto-detecta puerto disponible (3000-3006)
-```
-
-## Tech Stack
-
-```yaml
-Runtime: Node.js + TypeScript
-Framework: Next.js 16 (App Router)
-Database: PostgreSQL/Supabase
-Styling: Tailwind CSS 3.4
-Components: shadcn/ui
-State: Zustand
-Validation: Zod
-AI Engine: Vercel AI SDK v5 + OpenRouter
-Testing: Playwright CLI + MCP
-Deploy: Vercel
-```
-
-## Arquitectura Feature-First
-
-```
-src/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Rutas auth
-│   ├── (main)/              # Rutas principales
-│   └── layout.tsx
-│
-├── features/                 # Organizadas por funcionalidad
-│   └── [feature]/
-│       ├── components/
-│       ├── hooks/
-│       ├── services/
-│       ├── types/
-│       └── store/
-│
-└── shared/                   # Codigo reutilizable
-    ├── components/
-    ├── hooks/
-    ├── lib/
-    └── types/
-```
-
-## Skills (19 total)
-
-### Para el usuario
-
-| Skill | Que hace |
-|-------|----------|
-| `/new-app` | Entrevista de negocio → BUSINESS_LOGIC.md |
-| `/landing` | Landing page de alta conversion |
-| `/add-login` | Auth completo (Email + Google OAuth + profiles + RLS) |
-| `/bucle-agentico` | Implementar features complejas por fases |
-| `/sprint` | Tareas rapidas sin planificacion |
-| `/prp` | Planificar features complejas antes de implementar |
-| `/ai [template]` | Agregar IA: chat, RAG, vision, tools |
-| `/qa` | QA automatizado con Playwright CLI |
-| `/primer` | Inicializar contexto del proyecto |
-| `/update-sf` | Actualizar a ultima version |
-| `/eject-sf` | Remover SaaS Factory (destructivo) |
-| `/skill-creator` | Crear nuevos skills |
-
-### Automaticos (Claude los activa segun la tarea)
-
-backend, frontend, supabase-admin, codebase-analyst, vercel-deployer, documentacion, calidad
-
-## AI Templates
-
-Bloques LEGO para construir features de IA con Vercel AI SDK v5 + OpenRouter:
-
-| Template | Que hace |
-|----------|----------|
-| setup-base | Configuracion inicial |
-| chat | Chat streaming con useChat |
-| web-search | Busqueda con :online |
-| historial | Persistencia en Supabase |
-| vision | Analisis de imagenes |
-| tools | Funciones/herramientas |
-| rag | pgvector + embeddings |
-| single-call | generateText() puntual |
-| structured-outputs | generateObject() con Zod |
-| generative-ui | LLM decide que componente renderizar |
-
-## Design Systems
-
-5 sistemas visuales listos en `.claude/design-systems/`:
-
-- **Liquid Glass** - iOS-like, transparencias
-- **Gradient Mesh** - Degradados fluidos
-- **Neumorphism** - Soft UI, sombras suaves
-- **Bento Grid** - Grids asimetricos
-- **Neobrutalism** - Bold, bordes duros
-
-## Comandos
-
-```bash
-npm run dev          # Desarrollo (auto-port 3000-3006)
-npm run build        # Build produccion
-npm run typecheck    # TypeScript check
-npm run lint         # ESLint
-```
-
-## Deploy
-
-```bash
-# Vercel (recomendado)
-npm install -g vercel
-vercel
-```
-
-Variables en Vercel Dashboard:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-## Estructura .claude/
-
-```
-.claude/
-├── skills/              # 19 Skills (V4 Skills 2.0)
-├── PRPs/                # Product Requirements Proposals
-│   │   └── references/  # AI Templates (11 bloques)
-├── design-systems/      # 5 sistemas de diseno
-├── hooks/               # Scripts en eventos
-└── example.mcp.json     # Config de MCPs
-```
+BusinessOS es un sistema de agentes operativos autoalojados. No es una app que
+abres: es una infraestructura que vive en un servidor, te responde por Telegram,
+y crece por fases — de un cimiento mínimo a un sistema que razona sobre
+regulación, cobra, contrata y (a futuro) transacciona valor entre agentes.
 
 ---
 
-**SaaS Factory V4** | Agent-First. Todo es un Skill.
+## Arquitectura en una frase
+
+Una mente (**Hermes**) con tres bocas (**verticales**: personal, negocio,
+clientes), cada una en su propio contenedor Docker, sobre un Droplet de
+DigitalOcean, hablando por Telegram y voz, con un grafo de conocimiento como
+cerebro regulatorio multi-país y un dashboard encima.
+
+```
+                    ┌─────────────────────────────┐
+                    │   Mission Control (A2ABot)  │   ← dashboard, túnel SSH
+                    └──────────────┬──────────────┘
+                                   │
+        ┌──────────────────────────┼──────────────────────────┐
+        │              hermes-net (Docker bridge)              │
+        │  ┌───────────┐   ┌───────────┐   ┌───────────┐       │
+        │  │  PERSONAL │   │  NEGOCIO  │   │ CLIENTES  │       │
+        │  │  Hermes   │   │  Hermes   │   │  Hermes   │       │
+        │  │  + bot TG │   │  + bot TG │   │  + bot TG │       │
+        │  └───────────┘   └───────────┘   └───────────┘       │
+        │         cada una: SOUL.md · AGENTS.md · MEMORY.md    │
+        └──────────────────────────────────────────────────────┘
+                                   │
+              Supabase (datos)  ·  Grafo (cerebro regulatorio, Fase 2+)
+```
+
+Cada vertical es un servicio independiente con su propia persona (`SOUL.md`),
+sus reglas (`AGENTS.md`) y su memoria estable (`MEMORY.md`). Se aíslan, no se
+funden: ese es el primer principio del proyecto.
+
+---
+
+## Stack confirmado
+
+| Capa | Tecnología |
+|------|------------|
+| Servidor | Droplet DigitalOcean (4 GB / 2 vCPU; sube a 8 GB con el grafo) |
+| Orquestación | Docker + docker-compose (un contenedor por vertical) |
+| Agente | Hermes Agent (Nous Research) — memory, skills, soul, crons, loop |
+| Canales | Telegram (3 bots) + voz (TTS salida, transcripción entrada) |
+| Modelos | OpenRouter (routing por tarea) o Nous Portal (OAuth) |
+| Conocimiento personal | Obsidian (bóveda montada como volumen) |
+| Cerebro regulatorio | Grafo multi-país (Fase 2+) |
+| Datos / dashboard | Supabase + A2ABot (Mission Control) |
+| Pago tradicional | Polar (Merchant of Record) — Fase 3 |
+| Pago agéntico (futuro) | Circle / USDC (Agent Wallets) — Fase 5 |
+| Conexión de herramientas | MCP · CLIs agente-nativos (Printing Press) |
+| Conexión entre agentes (futuro) | Protocolo A2A — Fase 5 |
+
+> Tag de Hermes pineado: **`v2026.6.19`** (verificado en Docker Hub a 2026-06-26).
+> No usar `:latest` / `:main` — apuntan a builds inestables.
+
+---
+
+## Estado actual
+
+**FASE 0 — Infraestructura.** El cimiento técnico: Droplet endurecido + Docker +
+los tres contenedores Hermes respondiendo por Telegram + sync nocturno a GitHub.
+El plan completo, paso a paso, está en **[`businessos/FASE0.md`](businessos/FASE0.md)**.
+
+El mapa de todas las fases (de la infra al grafo, cobro, contratos y economía
+agéntica) está en **[`businessos/ROADMAP.md`](businessos/ROADMAP.md)**.
+
+---
+
+## Empezar (Fase 0)
+
+Todo vive en `businessos/`. El arranque está automatizado en dos scripts; el
+resto son wizards interactivos de Hermes.
+
+**1. Crea los 3 bots de Telegram** con [@BotFather](https://t.me/BotFather)
+(`/newbot` tres veces) y averigua tu `chat_id` con
+[@userinfobot](https://t.me/userinfobot) para el allowlist.
+
+**2. Provisiona el servidor** (como root, una vez):
+
+```bash
+ssh root@LA_IP_DEL_DROPLET
+bash prep-servidor.sh    # usuario hermes, firewall, fail2ban, swap, Docker
+```
+
+> El lockdown de SSH (cerrar root + password) se hace a mano DESPUÉS de
+> confirmar que entras como `hermes` con tu llave — para no auto-bloquearte.
+> Ver paso 2 de `FASE0.md`.
+
+**3. Copia los archivos y configura el `.env`** (como `hermes`, desde
+`~/businessos`):
+
+```bash
+cp .env.example .env
+nano .env                # OpenRouter, 3 tokens de Telegram, Supabase, dashboard
+```
+
+> El `.env` y los volúmenes `.hermes/` con credenciales **nunca** se suben a git
+> (ya están en `.gitignore`). El `service_role` de Supabase bypassa RLS: es
+> llave de servidor, solo vive en este `.env`.
+
+**4. Levanta las verticales:**
+
+```bash
+bash init-verticales.sh  # wizard por vertical + copia SOUL/AGENTS/MEMORY
+docker compose up -d
+docker compose ps        # 3 hermes + dashboard en "running"
+```
+
+**5. Verifica** (checklist completo en `FASE0.md` §10): los 3 bots responden con
+su personalidad, el dashboard abre por túnel SSH
+(`ssh -L 9119:localhost:9119 hermes@IP`), y los contenedores vuelven solos tras
+`sudo reboot`.
+
+---
+
+## Estructura del repo
+
+```
+businessos/
+├── ROADMAP.md            # Mapa de todas las fases (0 → 5) y principios
+├── FASE0.md              # Guía paso a paso de la infraestructura
+├── docker-compose.yml    # 3 verticales Hermes + dashboard en hermes-net
+├── prep-servidor.sh      # Fase 0 pasos 2-3: endurece el Droplet + Docker
+├── init-verticales.sh    # Fase 0 pasos 6-7: wizards + copia de personas
+├── supabase-init.sql     # Esquema inicial de Supabase
+├── .env.example          # Plantilla de variables (sin secretos)
+├── personal/             # SOUL.md · AGENTS.md · MEMORY.md
+├── negocio/              # SOUL.md · AGENTS.md · MEMORY.md
+└── clientes/             # SOUL.md · AGENTS.md · MEMORY.md
+```
+
+El resto del repositorio (carpeta `.claude/`, `src/`, configs de Next.js) es el
+**toolkit SaaS Factory** con el que se construye y opera BusinessOS: skills de
+Claude Code, design systems y plantillas. Es herramienta interna, no el producto.
+
+---
+
+## Principios que cruzan todo el proyecto
+
+1. **Aislar, no fundir.** Cada componente nuevo es un servicio en `hermes-net`.
+2. **Acotar antes de escalar.** Un país-dimensión antes de diez.
+3. **Citar fuentes, no inventar.** En lo regulatorio/fiscal: cada afirmación
+   trae fuente y vigencia. El sistema señala, el profesional decide.
+4. **Eficiencia por routing, no por recorte.** Lo barato a modelos baratos, lo
+   importante a modelos capaces.
+5. **Arreglar lo compartido, no el caso aislado.** Por defecto, el arreglo va en
+   el componente común (Hermes, grafo, skill).
+6. **Verificar antes de confiar.** Nada que mueva dinero, datos o reglas se usa
+   sin verificación y aprobación humana en lo irreversible.
+
+---
+
+**BusinessOS** — Aislar, no fundir. Acotar antes de escalar. Citar, no inventar.

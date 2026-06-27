@@ -141,7 +141,8 @@ curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER
 ```
 
-Añade swap (red de seguridad de memoria para el box de 2 GB):
+Añade swap (red de seguridad de memoria que absorbe los picos del box de 4 GB,
+cuyos límites de compose están a propósito sobre-suscritos — ver paso 1):
 
 ```bash
 sudo fallocate -l 2G /swapfile

@@ -17,7 +17,8 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ## Stack confirmado
 
-- **Servidor:** Droplet DigitalOcean (2 GB para arrancar; 4 GB al sumar el grafo)
+- **Servidor:** Droplet DigitalOcean (4 GB / 2 vCPU para arrancar; 8 GB al sumar
+  el grafo). No bajar de 4 GB: en 2 GB el stack hace OOM-kill (ver FASE0.md §1).
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
 - **Canales:** Telegram (3 bots) + voz (TTS de salida, transcripción de entrada)
