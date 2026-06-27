@@ -36,13 +36,20 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ---
 
-## FASE 0 — Infraestructura  ← EN CURSO
+## FASE 0 — Infraestructura  ← EN CURSO (1 de 3 verticales vivas)
 
-Cimiento técnico. Ver FASE0.md y los scripts.
-- Droplet + endurecimiento + Docker
-- Tres contenedores Hermes con sus SOUL.md / AGENTS.md
-- Tres bots de Telegram + voz
-- Sync nocturno a GitHub
+Cimiento técnico. Ver FASE0.md y los scripts. Estado detallado en
+`.claude/memory/project/fase0-estado.md`. Procedimiento + gotchas para levantar una
+vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
+
+- [ ] Droplet + endurecimiento + Docker  *(la vertical personal corre por ahora en WSL2 local, no en el Droplet)*
+- [~] Tres contenedores Hermes con sus SOUL.md / AGENTS.md
+  - [x] **personal (iris)** — viva, servicio persistente `hermes-personal`, bot Kiris `@hermes_khmcih2cwjdulkbq_bot`, modelo nemotron-3-super-120b vía OpenRouter, persona instalada, round-trip verificado (2026-06-27)
+  - [ ] negocio — token Telegram placeholder
+  - [ ] clientes — token Telegram placeholder
+- [~] Tres bots de Telegram + voz  *(1 bot propio listo; voz pendiente)*
+- [ ] Sync nocturno a GitHub
+- [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
 - **Salida:** las tres verticales vivas y respondiendo.
 
 ## FASE 1 — Eficiencia de tokens
