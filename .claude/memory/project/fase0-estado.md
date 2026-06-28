@@ -23,9 +23,21 @@ persona + respaldo nocturno. Progreso: **3 de 3 verticales vivas y respondiendo
   salida instaladas. Mismo setup no interactivo. Round-trip confirmado.
 
 ## Pendiente de Fase 0
-- ⬜ Llevar las verticales al **Droplet** con `docker compose` (esto fue prueba en WSL2).
-- ⬜ **Respaldo nocturno** a GitHub (un repo privado por vertical, crons escalonados).
+- ⏸️ **Droplet DIFERIDO (decisión 2026-06-28, por costo).** Se sigue en **WSL2 local**
+  mientras es fase de construcción. Levantarlo cuando haya un disparador real de "always-on":
+  (1) onboarding del equipo de 4, o (2) querer que corran solos los crons (digests + respaldo
+  nocturno). Todo listo para hacerlo en ~20-30 min (FASE0.md + volúmenes ya configurados; se
+  transfieren en vez de re-correr wizards). `doctl` ya instalado en `~/.local/bin`. NO se creó
+  ningún Droplet (sin gasto). Plan: 2 GB primero (s-1vcpu-2gb) con swap + `mem_limit` ~512MB.
+- ⏸️ **Respaldo nocturno** a GitHub — acoplado al Droplet (un cron 2:00/2:10/2:20 no sirve sin
+  24/7). Diferido junto con el Droplet.
 - ⬜ Voz (TTS salida / transcripción entrada).
+
+## Gotcha credencial (2026-06-28)
+- En `~/.config/claude/secrets.env` se pegó por error una **SSH key pública** en el slot de
+  `DIGITALOCEAN_ACCESS_TOKEN` (la SSH key tiene espacios → rompe el `source` del archivo y deja
+  el token inválido). El API token de DO es distinto: empieza con `dop_v1_`, sale de DO → API →
+  Tokens (NO de SSH Keys). Pendiente: corregir esa línea cuando se retome el Droplet.
 
 ## Cómo levantar las que faltan
 Mismo patrón que personal → ver [[hermes-vertical-setup]]. Cada una con su propio bot.
