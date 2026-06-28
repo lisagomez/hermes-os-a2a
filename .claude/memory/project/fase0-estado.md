@@ -17,15 +17,24 @@ persona + respaldo nocturno. Progreso: **2 de 3 verticales vivas.**
 - ✅ **Supabase** (proyecto A2ABot): tablas `token_usage` y `facturas` aplicadas y
   verificadas. Ver [[supabase-acceso]].
 
+- 🟡 **Vertical clientes** levantada (`hermes-clientes`, bot **@a2aClientbot** id
+  8949942204, nemotron vía OpenRouter, persona + regla de higiene de salida instaladas).
+  Mismo setup no interactivo. **Falta el round-trip de la usuaria** para darla por viva.
+
 ## Pendiente de Fase 0
-- ⬜ Vertical **clientes** (bot @a2aClientbot id 8949942204 ya creado y token real en
-  `.env`; falta levantarla con el mismo procedimiento que negocio).
+- 🟡 Confirmar round-trip de **clientes** (escribirle a @a2aClientbot).
 - ⬜ Llevar las verticales al **Droplet** con `docker compose` (esto fue prueba en WSL2).
 - ⬜ **Respaldo nocturno** a GitHub (un repo privado por vertical, crons escalonados).
 - ⬜ Voz (TTS salida / transcripción entrada).
 
 ## Cómo levantar las que faltan
 Mismo patrón que personal → ver [[hermes-vertical-setup]]. Cada una con su propio bot.
+
+## Incidente token (2026-06-28)
+- Personal dejó de responder con `telegram.error.InvalidToken: Unauthorized`. Causa: el
+  token de Kiris en el **volumen** (`~/businessos/personal/.hermes/.env`) era viejo (rotado);
+  el válido estaba en el `.env` del repo. **Fix**: sincronizar el `TELEGRAM_BOT_TOKEN` del
+  volumen con el válido y reiniciar. Gotcha en [[hermes-vertical-setup]].
 
 ## Deuda / seguridad
 - 🔒 Tokens expuestos en texto plano durante las sesiones del 2026-06-27/28 (Kiris,

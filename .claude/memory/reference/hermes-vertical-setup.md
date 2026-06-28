@@ -73,3 +73,10 @@ que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
   Droplet sí se usa `docker compose`.
 - **Warning inofensivo**: `Auxiliary Nous client unavailable / payment-credit error` —
   es el cliente auxiliar Nous Portal; con OpenRouter como proveedor principal no afecta.
+- **Token rotado → actualizar el `.env` del VOLUMEN, no solo el del repo** (2026-06-28):
+  el gateway lee `TELEGRAM_BOT_TOKEN` del `.env` del volumen (`~/businessos/<v>/.hermes/.env`).
+  Si rotas el token del bot, el repo `.env` puede tener el nuevo pero el volumen sigue con el
+  viejo → `telegram.error.InvalidToken: Unauthorized` y la vertical deja de responder
+  (el contenedor sigue "Up"; el error está en logs). Fix: `sed -i` del `TELEGRAM_BOT_TOKEN`
+  en el `.env` del volumen + `docker restart`. Verifica el token exacto con `getMe` (no
+  `getUpdates`, que choca con el long-poll del gateway).

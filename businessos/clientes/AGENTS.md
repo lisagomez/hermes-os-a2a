@@ -45,9 +45,21 @@ hechos estables (plantilla de propuestas, datos de clientes) en MEMORY.md.
   SU propio repo; horarios escalonados (personal 2:00, negocio 2:10, clientes
   2:20) para no chocar. No incluyas `.env` ni ningún secreto.
 
+## Higiene de salida (no volcar secretos ni comandos)
+- **Nunca** muestres en el chat credenciales, tokens ni variables de entorno:
+  prohibido imprimir/echo de `SUPABASE_SERVICE_ROLE_KEY`, `apikey`, `Authorization`,
+  `OPENROUTER_API_KEY`, ni correr `printenv`/`env`/`set` para mostrarlos.
+- Ejecuta las consultas y comandos **en silencio**; reporta SOLO el resultado, no el
+  comando ni el script. Las credenciales se referencian desde `.env` por su nombre de
+  variable, jamás con el valor literal a la vista.
+- El service_role bypassa RLS: es llave de servidor, nunca la expongas (ni al cliente
+  ni en el chat). Cita la fuente como "Supabase `facturas`" sin volcar la conexión.
+
 ## Límites
 - Tope de palabras en los crons.
 - Aprobación obligatoria para todo lo que toque al cliente.
+- Nada de credenciales, tokens, variables de entorno ni comandos crudos en el chat:
+  solo el resultado. Ver "Higiene de salida".
 
 ---
 
