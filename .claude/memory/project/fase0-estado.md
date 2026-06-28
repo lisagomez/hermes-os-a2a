@@ -1,7 +1,7 @@
 # Estado de Fase 0 (al 2026-06-27)
 
 KPI de Fase 0: las **3 verticales vivas** respondiendo por Telegram, cada una con su
-persona + respaldo nocturno. Progreso: **1 de 3 verticales vivas.**
+persona + respaldo nocturno. Progreso: **2 de 3 verticales vivas.**
 
 ## Hecho
 - ✅ **Vertical personal (iris)** viva como servicio persistente `hermes-personal`
@@ -9,12 +9,17 @@ persona + respaldo nocturno. Progreso: **1 de 3 verticales vivas.**
   (no en el Droplet todavía). Bot propio **Kiris** `@hermes_khmcih2cwjdulkbq_bot`.
   Modelo `nvidia/nemotron-3-super-120b-a12b` vía OpenRouter. Persona BusinessOS
   instalada. Round-trip verificado: le escribes → responde.
+- ✅ **Vertical negocio** viva como servicio `hermes-negocio` (2026-06-28). Bot
+  **@a2aTeamBot** (id 8718725089). Mismo modelo nemotron vía OpenRouter, persona negocio
+  instalada. Round-trip verificado (consultó `token_usage` del mes y pidió aprobación
+  manual del query — gate "copiloto no autopiloto" funcionando). Levantada con **setup NO
+  interactivo** (ver [[hermes-vertical-setup]]). Corre en WSL2 local, falta Droplet.
 - ✅ **Supabase** (proyecto A2ABot): tablas `token_usage` y `facturas` aplicadas y
   verificadas. Ver [[supabase-acceso]].
 
 ## Pendiente de Fase 0
-- ⬜ Vertical **negocio** (token Telegram placeholder en `businessos/.env`).
-- ⬜ Vertical **clientes** (token Telegram placeholder).
+- ⬜ Vertical **clientes** (bot @a2aClientbot id 8949942204 ya creado y token real en
+  `.env`; falta levantarla con el mismo procedimiento que negocio).
 - ⬜ Llevar las verticales al **Droplet** con `docker compose` (esto fue prueba en WSL2).
 - ⬜ **Respaldo nocturno** a GitHub (un repo privado por vertical, crons escalonados).
 - ⬜ Voz (TTS salida / transcripción entrada).

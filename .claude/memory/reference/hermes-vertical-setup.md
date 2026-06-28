@@ -29,6 +29,29 @@ Cómo poner viva una vertical de BusinessOS sin repetir el viacrucis del 2026-06
    nousresearch/hermes-agent:v2026.6.19 gateway run`
 4. **Verificar**: escribirle al bot desde tu cuenta → iris responde con su persona.
 
+## Setup NO interactivo (sin TTY) — funciona (2026-06-28, negocio)
+
+El wizard interactivo NO es obligatorio. La imagen detecta "no TTY" y siembra el config
+base igual (migración, skills, profiles) y sale 0. Lo "de wizard" (modelo, telegram) se
+completa a mano. Camino que levantó `hermes-negocio` sin terminal interactiva:
+
+1. **Sembrar el volumen** (no interactivo, stdin cerrado):
+   `docker run --rm -i -v $HOME/businessos/<v>/.hermes:/opt/data <IMG> setup < /dev/null`
+   (imprime "Non-interactive mode" y crea `config.yaml` con `model.default` en un **default
+   caro: `anthropic/claude-opus-4.6`** — ¡hay que cambiarlo!).
+2. **Fijar modelo** (el setup lo deja en Opus y `provider: auto`):
+   `docker run --rm -v $VOL:/opt/data <IMG> config set model.default "nvidia/nemotron-3-super-120b-a12b"`
+   `docker run --rm -v $VOL:/opt/data <IMG> config set model.provider "openrouter"`
+3. **Crear el `.env` del volumen a mano** (el setup no interactivo NO lo escribe). 5 claves:
+   `OPENROUTER_API_KEY`, `TERMINAL_ENV=docker`, `TELEGRAM_BOT_TOKEN=<token vertical>`,
+   `TELEGRAM_ALLOWED_USERS=7022378429`, `TELEGRAM_HOME_CHANNEL=7022378429`. Escribir vía
+   contenedor (uid 10000), pasando los secretos con `-e VAR` (sin valor) para no exponerlos:
+   `docker run --rm -e OPENROUTER_API_KEY -e TELEGRAM_BOT_TOKEN_<V> -v $VOL:/opt/data alpine sh -c 'cat > /opt/data/.env <<EOF ... EOF; chown 10000:10000 /opt/data/.env; chmod 600 ...'`
+4. Copiar persona (paso 2 de "Procedimiento") y levantar gateway (paso 3).
+
+La config de plataforma `telegram:` del `config.yaml` ya viene igual que en personal (no hay
+que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
+
 ## Gotchas (cada uno costó tiempo el 2026-06-27)
 - **El volumen `.hermes` es uid 10000, modo 0700.** Un `ls` del host da "Permission
   denied" → NO concluir "está vacío". Inspeccionar con un contenedor alpine.

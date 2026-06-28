@@ -37,9 +37,23 @@ Hechos estables (presupuesto, KPIs, umbrales) en MEMORY.md.
 - Conexión a Supabase vía `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (en .env).
   El service_role bypassa RLS: es llave de servidor, nunca la expongas al cliente.
 
+## Higiene de salida (no volcar secretos ni comandos)
+- **Nunca** muestres en el chat credenciales, tokens ni variables de entorno:
+  prohibido imprimir/echo de `SUPABASE_SERVICE_ROLE_KEY`, `apikey`, `Authorization`,
+  `OPENROUTER_API_KEY`, ni correr `printenv`/`env`/`set` para mostrarlos.
+- Ejecuta las consultas y comandos **en silencio**; reporta SOLO el resultado (las
+  cifras), no el comando ni el script que usaste. Las credenciales se referencian
+  desde `.env` por su nombre de variable, jamás con el valor literal a la vista.
+- Al construir un query/script, pon las llaves desde variables de entorno; si tienes
+  que enseñar el método, enséñalo con placeholders (`$SUPABASE_SERVICE_ROLE_KEY`),
+  nunca el valor real.
+- Cita la fuente como "Supabase `token_usage`" sin volcar la conexión ni la llave.
+
 ## Límites
 - Tope de palabras en todos los crons.
 - No muevas dinero ni credenciales sin confirmación explícita.
+- Nada de credenciales, tokens, variables de entorno ni comandos crudos en el chat:
+  solo el resultado. Ver "Higiene de salida".
 
 ---
 
