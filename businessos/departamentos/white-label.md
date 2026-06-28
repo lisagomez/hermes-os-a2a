@@ -58,6 +58,11 @@ que el aislamiento es la línea de defensa:
 Acotar antes de escalar: un departamento, validado en propio, antes de white-label; un
 cliente bien aislado antes de muchos.
 
+> **Capa humana (equipo + Slack).** Cuando el negocio lo opera un equipo y no un solo dueño,
+> la superficie humana son **canales de Slack** por departamento / cliente / desarrollo, con
+> roles y matriz de aprobación. Un `#cli-*` privado es **este aislamiento white-label hecho
+> visible**. Topología, roles/aprobación y piloto en `equipo-y-slack.md`.
+
 ---
 
 ## 5. Honestidad comercial

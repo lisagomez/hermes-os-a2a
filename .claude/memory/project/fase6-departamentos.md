@@ -40,3 +40,14 @@ se necesita aislamiento por cliente, portabilidad y Agent Card. Es "aislar, no f
 **Entregables (docs creadas):** `businessos/ROADMAP.md` (Fase 6),
 `businessos/departamentos/SPEC-trio.md`, `.../desarrollo-software.md`, `.../white-label.md`,
 y mención en `BUSINESS_LOGIC.md`. Ver [[fase0-estado]] para el estado del cimiento.
+
+**Equipo de 4 + Slack (2026-06-28):** el negocio pasará de 1 operador a un equipo de 4
+humanos. Decisión: **Slack** como capa humana por departamento/cliente/desarrollo (Hermes
+soporta Slack nativo, config consciente de canales con `channel_prompts`/`allowed_channels`).
+Personal sigue en Telegram. Lo grande NO es el chat sino el modelo de **acceso + aprobación**. Equipo de 4 con roles
+reales: **CEO** (autoridad final, config/deploy), **CFO** (dinero/presupuesto, ancla
+negocio), **Project Manager** (cara al cliente, ancla clientes), **Developer** (merge a
+main, ancla desarrollo/trío). Falta el mapa `slack_user_id → rol`. Slack NO es sistema de
+registro (verdad durable sigue en Supabase). Topología, roles y runbook del piloto
+(negocio en `#dep-negocio`, Socket Mode) en `businessos/departamentos/equipo-y-slack.md`.
+Piloto pendiente de que la usuaria cree la Slack App + tokens (`xoxb-`/`xapp-`).
