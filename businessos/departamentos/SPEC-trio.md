@@ -128,7 +128,137 @@ del Ejecutor para que la vigilancia signifique algo.
 
 ---
 
-## 7. Honestidad (riesgos a no esconder)
+## 7. Mecánica detallada
+
+Cómo correría de verdad, pieza por pieza. (Las reglas concretas del departamento están en
+`desarrollo-software.md`; aquí va el *cómo* en runtime.)
+
+### 7.1 Las tres piezas como procesos reales
+
+| Pieza | Qué es en runtime | Stack | Cómo se comunica |
+|-------|-------------------|-------|------------------|
+| **Hermes-Negocio** | Contenedor que ya existe (`hermes-negocio`) | Imagen Nous Hermes | Telegram (humano) + cliente A2A hacia Ejecutor/Supervisor |
+| **Ejecutor** | Servicio nuevo, 1 contenedor (o 1 por cliente) | Claude Agent SDK (motor Claude Code), Python/Node | Servidor A2A (recibe tareas) + corre el repo en un worktree |
+| **Supervisor** | Servicio nuevo, contenedor **aparte** | Claude Agent SDK + runners (build/test/review) | Servidor A2A (recibe resultados, emite veredicto) |
+
+Los tres viven en `hermes-net`. La independencia del Supervisor es **física**: proceso,
+contenedor y contexto de modelo separados del Ejecutor; no comparten memoria ni historial.
+
+### 7.2 Estado y aislamiento
+
+- **Estado de tareas:** Hermes mantiene cada solicitud como una **tarea A2A** con `task_id`,
+  estado (`recibida → en_ejecución → en_revisión → aprobada/rechazada → concretada`) y
+  contador de reintentos. Persistido en Supabase (tabla nueva `tareas`, a futuro) o en el
+  store de Hermes.
+- **Workspace aislado:** el Ejecutor usa un **git worktree** por tarea
+  (`worktree/<task_id>`), nunca trabaja sobre `main`. Por cliente, además, repo y contenedor
+  distintos. Un fallo de una tarea no contamina otra.
+- **Presupuesto:** cada llamada de modelo del Ejecutor y del Supervisor escribe en
+  `token_usage`; negocio sigue vigilando el tope.
+
+### 7.3 Traza de punta a punta — "añade login con Google a la app de recetas"
+
+**1. Hermes entiende y arma la tarea** (con criterios de aceptación explícitos):
+
+```
+task_id: rec-2026-0042
+objetivo: "Auth email+password y Google OAuth, con profiles y RLS"
+contexto: { repo: recetas, business_logic: <resumen>, rag_ambito: recetas, design_system: actual }
+criterios_aceptacion:
+  - build, typecheck y lint verdes
+  - flujo login probado en browser (Playwright)
+  - tablas nuevas con RLS habilitado
+  - sin secretos en código; entradas validadas con Zod
+limites: { intentos_max: 3, modelo_pref: sonnet }
+```
+
+**2. Ejecutor hace** en `worktree/rec-2026-0042`: corre `add-login`, implementa, valida en
+caliente (`build`/`typecheck`). No entrega a Hermes ni al humano: entrega el **resultado al
+Supervisor vía A2A**:
+
+```
+result: { task_id: rec-2026-0042, diff: <patch>, archivos: [...],
+          build: ok, typecheck: ok, notas: "OAuth Google; migración profiles" }
+```
+
+**3. Supervisor valida** (de cero, re-ejecutando — no confía en lo que dice el Ejecutor):
+
+| Gate | Comando | Resultado |
+|------|---------|-----------|
+| Compila | `npm run build` | ✅ |
+| Tipos | `npm run typecheck` (y sin `any`) | ✅ |
+| Lint | `npm run lint` | ✅ |
+| Tests | Playwright del flujo login | ❌ callback OAuth da 500 |
+| Calidad | `/code-review` | — (no llega) |
+| Seguridad | `security-review` (RLS, secretos, Zod) | — |
+
+Veredicto estructurado:
+
+```
+verdict: rechazado
+hallazgos:
+  - regla: tests_verdes
+    evidencia: "playwright: login-google.spec falla, callback 500"
+    archivo: app/auth/callback/route.ts
+```
+
+**4. Reintento controlado:** Hermes incrementa el contador (1/3) y devuelve la tarea al
+Ejecutor con las observaciones. El Ejecutor corrige y re-entrega. Segunda vuelta: gates
+verdes + `/code-review` limpio + `security-review` OK → **aprobado**.
+
+**5. Gate humano en lo irreversible:** el aprobado vuelve a Hermes. Como sigue **merge a
+`main`**, Hermes no lo hace solo: manda por Telegram el resumen + diff y pide visto bueno.
+
+```
+Telegram: "✅ Login Google listo en recetas (rec-2026-0042).
+Build/test/review OK. ¿Apruebo el merge a main? [Sí / Ver diff / No]"
+```
+
+### 7.4 El motor de reglas del Supervisor (el corazón)
+
+Cada regla es **(comando real → criterio binario → evidencia)**. Tres propiedades no
+negociables:
+
+1. **Re-ejecuta, no confía:** corre los comandos él mismo sobre el worktree; ignora lo que
+   afirme el Ejecutor.
+2. **Si no puede correr un gate, NO lo marca pasado:** un gate no verificado es rechazo, no
+   un "asumimos que sí" (hermano de "citar fuentes, no inventar").
+3. **Reglas auditables y versionadas:** viven como config revisable y diff-eable, no
+   improvisadas — igual que el checklist del grafo.
+
+### 7.5 Lazo de fallo y escalado
+
+```
+Ejecutor → Supervisor → ¿aprobado?
+   ▲           │ no
+   └───────────┘  (Hermes reenvía con hallazgos, intento++)
+                  si intentos == max → Hermes ESCALA al humano:
+                  "3 intentos sin pasar el gate de tests. ¿Reviso yo, ajusto criterios o cancelo?"
+```
+
+El tope de intentos evita el bucle infinito entre dos agentes quemando tokens. El humano
+entra cuando la máquina se atasca, no en cada paso.
+
+### 7.6 Reusado vs. por construir
+
+- **Reusado tal cual:** Hermes-Negocio, todos los skills (`new-app`, `add-*`,
+  `bucle-agentico`), los runners (`build`/`typecheck`/`lint`, Playwright, `/code-review`,
+  `security-review`), `token_usage`, el patrón de aprobación humana de `clientes`.
+- **Por construir (Fase 5→6):** los dos servicios A2A (Ejecutor y Supervisor) con sus Agent
+  Cards, el cliente A2A dentro de Hermes, la tabla `tareas` de estado, y el RAG por ámbito
+  por cliente (hoy solo template en `/ai rag`).
+
+### 7.7 Piloto "lite" posible antes de A2A (nota de secuencia)
+
+El trío completo depende de A2A (Fase 5). Si se quisiera validar la mecánica antes, hay un
+atajo: Ejecutor y Supervisor como dos procesos llamados por **HTTP interno** en vez del
+protocolo A2A formal — misma lógica, menos ceremonia, y luego se migra a A2A. No es lo
+elegido (se optó por Fase 6 completa), pero queda señalado por si adelantar el aprendizaje
+compensa.
+
+---
+
+## 8. Honestidad (riesgos a no esconder)
 
 - Un agente que **escribe y despacha** software es justo el patrón "casi solo" que el
   proyecto ya juzgó **no listo para producción**. El split Ejecutor/Supervisor + el gate
@@ -143,7 +273,7 @@ del Ejecutor para que la vigilancia signifique algo.
 
 ---
 
-## 8. Relación con el resto del sistema
+## 9. Relación con el resto del sistema
 
 - **Orquestador reusado:** `hermes-negocio` ya habla Telegram, mantiene memoria y crons, y
   enruta. No se crea un orquestador nuevo.
