@@ -7,7 +7,7 @@
 - [Elisa](user/elisa.md) — dueña-operadora única; Telegram user_id 7022378429; prefiere el patrón correcto sobre atajos.
 
 ## project/ — Proyectos y decisiones activas
-- [Estado de Fase 0](project/fase0-estado.md) — 2 de 3 verticales vivas (personal/iris + negocio/@a2aTeamBot); Supabase listo; pendientes clientes, Droplet, respaldo nocturno.
+- [Estado de Fase 0](project/fase0-estado.md) — 3 de 3 verticales vivas y respondiendo (personal/Kiris + negocio/@a2aTeamBot + clientes/@a2aClientbot); Supabase listo; pendientes Droplet y respaldo nocturno.
 - [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor (A2A), white-label; primer departamento Desarrollo de Software; solo documentado (sin código), depende de A2A (Fase 5).
 
 ## feedback/ — Correcciones y preferencias

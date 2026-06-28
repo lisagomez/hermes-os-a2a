@@ -1,7 +1,8 @@
 # Estado de Fase 0 (al 2026-06-27)
 
 KPI de Fase 0: las **3 verticales vivas** respondiendo por Telegram, cada una con su
-persona + respaldo nocturno. Progreso: **2 de 3 verticales vivas.**
+persona + respaldo nocturno. Progreso: **3 de 3 verticales vivas y respondiendo
+(round-trip confirmado el 2026-06-28).** Falta llevarlas al Droplet y el respaldo nocturno.
 
 ## Hecho
 - ✅ **Vertical personal (iris)** viva como servicio persistente `hermes-personal`
@@ -17,12 +18,11 @@ persona + respaldo nocturno. Progreso: **2 de 3 verticales vivas.**
 - ✅ **Supabase** (proyecto A2ABot): tablas `token_usage` y `facturas` aplicadas y
   verificadas. Ver [[supabase-acceso]].
 
-- 🟡 **Vertical clientes** levantada (`hermes-clientes`, bot **@a2aClientbot** id
-  8949942204, nemotron vía OpenRouter, persona + regla de higiene de salida instaladas).
-  Mismo setup no interactivo. **Falta el round-trip de la usuaria** para darla por viva.
+- ✅ **Vertical clientes** viva como servicio `hermes-clientes` (2026-06-28). Bot
+  **@a2aClientbot** id 8949942204, nemotron vía OpenRouter, persona + regla de higiene de
+  salida instaladas. Mismo setup no interactivo. Round-trip confirmado.
 
 ## Pendiente de Fase 0
-- 🟡 Confirmar round-trip de **clientes** (escribirle a @a2aClientbot).
 - ⬜ Llevar las verticales al **Droplet** con `docker compose` (esto fue prueba en WSL2).
 - ⬜ **Respaldo nocturno** a GitHub (un repo privado por vertical, crons escalonados).
 - ⬜ Voz (TTS salida / transcripción entrada).
