@@ -306,6 +306,21 @@ npm run lint         # ESLint
 - **Fix**: Siempre usar `npm run dev` (auto-detecta puerto)
 - **Aplicar en**: Todos los proyectos
 
+### 2026-06-28: Nunca imprimir secretos en pantalla
+- **Error**: Pegar el `sbp_`/token literal en comandos (`TOK=sbp_...`, `grep`, `echo`) lo
+  filtra al transcript de la conversación. Además el token estaba triplicado en `.bashrc`
+  (concatenado 3 veces) → inválido → MCP `Unauthorized`.
+- **Fix**: Secretos en archivo dedicado `~/.config/claude/secrets.env` (perms `600`);
+  `.bashrc` solo hace `source`. Para usarlos: cargar la var y referenciarla
+  (`-H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"`), nunca el literal; sin `-v`,
+  `echo $TOKEN` ni `set -x`. El repo usa `${VAR}` en `.mcp.json`, nunca el token.
+- **Aplicar en**: Todo manejo de credenciales en cualquier proyecto.
+
+### 2026-06-28: Mantener docs vivas tras cambios importantes
+- **Regla**: tras un cambio importante, actualizar aprendizajes (este archivo), roadmap
+  (`businessos/ROADMAP.md`), memoria (`.claude/memory/`) y `BUSINESS_LOGIC.md`.
+  Detalle y criterio en `.claude/memory/feedback/mantener-docs-vivas.md`.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

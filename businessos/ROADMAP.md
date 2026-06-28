@@ -154,6 +154,33 @@ Contratos-blockchain (capa 2 de contratos):
 **Salida de la capa económica:** el sistema no solo razona y contrata, también
 transacciona — con respaldo regulado y verificación formal.
 
+## FASE 6 (FUTURA) — Departamentos operados por el trío Hermes→Ejecutor→Supervisor
+
+La evolución natural de A2A: en vez de "un agente por departamento", **dos agentes
+con roles fijos** —un Ejecutor y un Supervisor— atienden muchos departamentos, con
+Hermes-Negocio como **orquestador** (reparte, no ejecuta). Los departamentos no son
+agentes: son **paquetes de competencias** (tareas + reglas de validación + fuentes de
+conocimiento) que el par carga según la tarea. Depende de A2A (Fase 5): el Ejecutor y el
+Supervisor se hablan como pares formales, y el Supervisor debe ser independiente para que
+la vigilancia signifique algo. Detalle en `departamentos/` (SPEC-trio, el paquete del
+primer departamento, y el modelo white-label).
+
+- **Tres niveles:** Hermes-Negocio orquesta (entiende, arma contexto, reparte) →
+  Ejecutor hace (servicio A2A propio sobre Claude Agent SDK, en workspace aislado) →
+  Supervisor valida por reglas antes de que algo tenga efecto (servicio A2A independiente).
+- **Primer departamento: Desarrollo de Software** — encaja con la fábrica de skills que ya
+  existe y NO depende del grafo (sus fuentes son el código y los skills, no lo fiscal).
+- **Dos capas de control:** Supervisor (automático, regla a regla) + humano (en lo
+  irreversible: merge a main, deploy, cara al cliente, dinero). Es "copiloto, no autopiloto".
+- **White-label = configuración:** el trío es idéntico para todos; por cliente cambia qué
+  departamentos activa, sus reglas, su marca y sus datos/workspace aislados. Arranca en uso
+  propio (construir los SaaS de la dueña) y luego se vende como "departamento con IA".
+- **Orden:** especificar y validar UN departamento en uso propio antes de white-label
+  (acotar antes de escalar). El Supervisor es tan bueno como sus reglas: auditables, no
+  improvisadas.
+- **Salida:** un departamento de software operado por el trío, validado de punta a punta en
+  uso propio, listo para replicarse por configuración a nuevos clientes.
+
 ---
 
 ## Corriente transversal — CLIs agente-nativos (Printing Press)

@@ -143,6 +143,8 @@ businessos/
 4. [ ] **Fase 3** — Expansión grafo + cobro (Polar) + contratos-documento
 5. [ ] **Fase 4** — Dashboard Mission Control (A2ABot)
 6. [ ] **Fase 5 (futura)** — Interoperabilidad A2A + economía agéntica (Circle, Lean 4)
+7. [ ] **Fase 6 (futura)** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor,
+   white-label (ver `businessos/departamentos/`). Primer departamento: Desarrollo de Software.
 
 ---
 

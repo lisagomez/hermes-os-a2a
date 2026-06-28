@@ -8,6 +8,7 @@
 
 ## project/ — Proyectos y decisiones activas
 - [Estado de Fase 0](project/fase0-estado.md) — 1 de 3 verticales vivas (personal/iris con bot Kiris); Supabase listo; pendientes negocio, clientes, Droplet, respaldo nocturno.
+- [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor (A2A), white-label; primer departamento Desarrollo de Software; solo documentado (sin código), depende de A2A (Fase 5).
 
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
