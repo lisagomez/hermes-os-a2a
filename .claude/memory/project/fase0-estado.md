@@ -23,8 +23,12 @@ persona + respaldo nocturno. Progreso: **1 de 3 verticales vivas.**
 Mismo patrón que personal → ver [[hermes-vertical-setup]]. Cada una con su propio bot.
 
 ## Deuda / seguridad
-- 🔒 Tokens expuestos en texto plano durante la sesión del 2026-06-27 (Kiris, @liziris,
-  Supabase access token y service_role). **Rotarlos** cuando se pueda.
+- 🔒 Tokens expuestos en texto plano durante las sesiones del 2026-06-27/28 (Kiris,
+  @liziris, Supabase access token `sbp_` y service_role). **Rotarlos** cuando se pueda.
+- ✅ (2026-06-28) Manejo del `sbp_` endurecido: vive solo en `~/.config/claude/secrets.env`
+  (perms 600), `.bashrc` solo hace `source`, `.mcp.json` usa `${VAR}`. Regla nueva: nunca
+  imprimir el literal. Ver [[supabase-acceso]]. Falta rotar el token una última vez (ya
+  viajó al transcript) y reiniciar Claude Code para que el MCP tome el valor corregido.
 - El Hermes "del host" (`~/.hermes`) tiene un `config.yaml` **corrupto** (bloque
   `telegram:` mal inyectado en `platform_toolsets:`, ~línea 660). No se arregló porque
   se decidió usar bot/vertical nuevos. Es ajeno a BusinessOS.

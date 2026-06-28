@@ -11,7 +11,9 @@
 
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
+- [Mantener docs vivas](feedback/mantener-docs-vivas.md) — tras cada cambio importante, actualizar aprendizajes (CLAUDE.md), roadmap, memoria y BUSINESS_LOGIC.md.
 
 ## reference/ — Donde encontrar cosas
 - [Levantar una vertical Hermes](reference/hermes-vertical-setup.md) — procedimiento + gotchas (uid 10000, config telegram en .env, gateway silencioso, no compose en WSL, hermes send).
 - [Acceso a Supabase](reference/supabase-acceso.md) — project-ref A2ABot; service_role vs sbp_ access token; aplicar SQL por management API (gotcha Cloudflare 1010).
+- [Revocar EXECUTE en funciones Postgres](reference/revocar-execute-funciones-postgres.md) — para quitar permiso a anon/authenticated hay que `revoke ... from public`, no de los roles (lo heredan via PUBLIC).
