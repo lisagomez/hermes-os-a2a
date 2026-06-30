@@ -50,13 +50,13 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   `cli-printing-press library list [--json]`.
 - **Catálogo valida el manifiesto:** `digitalocean` y `telegram` SÍ están en el catálogo embebido
   (= `source: catalog`); `supabase` y `polar` NO (= `source: sniff`, sin spec público). Consistente.
-- ⬜ **PENDIENTE:** las **skills** de Printing Press (`/printing-press*` en Claude Code) NO se
-  instalaron: el clasificador de auto-mode bloquea `npx skills add` (carga contenido externo en el
-  agente). Instalarlas fuera de auto-mode:
-  `npx -y skills@latest add mvanhorn/cli-printing-press/skills --skill "*" -g -y -a claude-code`.
-  Sin ellas el binario funciona, pero los comandos slash `/printing-press <api>` aún no existen.
+- ✅ **Skills instaladas** (fuera de auto-mode): 9 en `~/.claude/skills/printing-press*`
+  (`printing-press`, `-polish`, `-publish`, `-reprint`, `-amend`, `-import`, `-retro`, `-score`,
+  `-output-review`). Comando: `npx -y skills@latest add mvanhorn/cli-printing-press/skills
+  --skill "*" -g -y -a claude-code`. Nota: el clasificador de auto-mode bloquea `npx skills add`
+  y `go install` de repos externos por diseño → instalar la prensa requiere modo no-auto.
 
 ## Pendiente
-- ⬜ Instalar las skills `/printing-press*` (ver arriba) fuera de auto-mode.
 - ⬜ Imprimir los primeros CLIs (Nivel 1, manual) para medir el costo real por CLI antes de
-  considerar más automatización.
+  considerar más automatización. Flujo: `./businessos/print-phase.sh 0-1 --emit` → pegar prompts
+  a `/printing-press`; arrancar por `digitalocean` y `telegram` (están en el catálogo).
