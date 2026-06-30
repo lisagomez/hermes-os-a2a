@@ -104,15 +104,26 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   - **Caveat de uso:** es herramienta de **HOST/dev** (Elisa/jobs). El **agente Hermes NO puede
     usarla** (secret-scrubbing: no tiene el service_role). Mismo muro que [[fase1-eficiencia]];
     el path del agente para datos sigue siendo el snapshot que deja `ingest-token-usage.py`.
-  - **Smoke test en vivo PENDIENTE:** el clasificador bloqueó la lectura de prod con service_role
-    (correcto). Para validar end-to-end: `export $(grep -v '^#' businessos/.env | xargs)` y correr
-    `~/printing-press/library/supabase/supabase-pp-cli token-usage list --limit 3 --json` fuera de
-    auto-mode. La construcción de headers ya está probada por inspección + el curl Test B.
+  - ✅ **Smoke test en vivo PASÓ** (2026-06-30): `supabase-pp-cli v-presupuesto-mensual list --json`
+    devolvió el presupuesto del mes (3 verticales + TOTAL $0.1537, fuente "live"). `doctor`: API
+    reachable, base_url correcto, credenciales presentes. Auth dual-header confirmada end-to-end.
+  - **2º fix bakeado — base URL:** el spec PostgREST reporta `basePath "/"`, así que el generador
+    dejó la base sin `/rest/v1` y las queries daban 404. Parcheado el default en `config.go` a
+    `https://<ref>.supabase.co/rest/v1`. (Hand-edit durable, reaplicar si se regenera.)
+  - **Gotcha de uso:** `businessos/.env` NO hace `export`, así que `source` deja las vars como
+    shell-vars; el binario hijo no las ve. Correr con `source businessos/.env; export
+    SUPABASE_SERVICE_ROLE_KEY` (o `export $(grep -v '^#' businessos/.env | xargs)`).
+  - **Quirk del generador:** de las 4 tablas, solo la vista `v_presupuesto_mensual` quedó como
+    comando de recurso top-level (`v-presupuesto-mensual list`); `token_usage`/`facturas`/`profiles`
+    no surgieron como comandos directos (sí vía `sync`/`search`/`api`). Para el caso de uso de
+    negocio (consultar presupuesto/dashboard) la vista es justo lo que se necesita. Si se quiere
+    `token_usage` directo, es trabajo de spec/generación a futuro.
 
 ## Estado: Fase 0-1 + 1-2 completas en CLIs
 Auditor reporta **0 faltantes** para la fase actual: digitalocean (87/A), telegram (83/A),
 supabase (87/A) impresos. Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
 
 ## Pendiente
-- ⬜ Smoke test en vivo de `supabase-pp-cli` (ver arriba), fuera de auto-mode.
 - ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight 0/10` si se va a publicar.
+- ⬜ (Opcional) exponer `token_usage`/`facturas` como comandos directos del supabase-pp-cli
+  (hoy solo la vista de presupuesto es comando top-level; el resto vía sync/search/api).
