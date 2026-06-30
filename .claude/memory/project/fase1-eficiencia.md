@@ -47,8 +47,9 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   inicial: 4 filas, total $0.0217 el 2026-06-30. **Limitación:** solo loop principal (las aux no
   emiten tokens en agent.log); depende de que el log no haya rotado. Escrituras NO van por el MCP
   (read-only) sino por service_role; ver [[supabase-acceso]]. Programación por cron → Droplet.
-- ✅ **Reporte de presupuesto on-demand** (2026-06-30): negocio (haiku-4.5) **lee** el snapshot
-  `/opt/data/workspace/presupuesto.json` y reporta total + desglose por vertical + alerta al 80%.
+- ✅ **Reporte de presupuesto on-demand** (2026-06-30, **round-trip verificado**): negocio
+  (haiku-4.5) hace `skill_view` + `read_file` del snapshot `/opt/data/workspace/presupuesto.json`
+  y reporta total + desglose por vertical + alerta al 80%. Sin `execute_code` ni credenciales.
   - **Presupuesto: $30/mes TOTAL, alerta $24** (bajado de $120; fuente única `negocio/MEMORY.md`).
   - El snapshot lo prepara el job de host `ingest-token-usage.py`; el agente NO consulta Supabase.
   - **Gotcha CLAVE (costó varias iteraciones):** Hermes **scrubbea los secretos** del sandbox del
