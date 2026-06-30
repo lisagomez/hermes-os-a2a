@@ -56,7 +56,28 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   --skill "*" -g -y -a claude-code`. Nota: el clasificador de auto-mode bloquea `npx skills add`
   y `go install` de repos externos por diseño → instalar la prensa requiere modo no-auto.
 
+## Política CLI-first en AGENTS.md (2026-06-30)
+- Añadido a `negocio/AGENTS.md` y `clientes/AGENTS.md` el **orden de resolución CLI-first**:
+  (1) usar CLI existente (`cli-manifest.yaml`) → (2) si falta y se repite/es cara, **señalar**
+  candidato a imprimir (el agente NO imprime; Elisa lo hace en Claude Code; el auditor lleva la
+  cuenta) → (3) escalón A2A reservado Fase 5 → (4) modelo con routing por costo.
+- **Reconciliado** de un borrador (`04-politica-cli-first.md`): se quitó la instrucción "imprime"
+  (Hermes no corre Printing Press → instrucción imposible, mismo muro que el secret-scrubbing).
+- **DIFERIDO (no integrado, requiere tu decisión):**
+  - Autonomía Nivel 3 (agente imprime solo dentro de un tope) — **descartado** en el plan del
+    auditor; reintroducirlo lo revertiría, y el agente no puede imprimir igual.
+  - Presupuesto de impresión $10/mes registrado en `token_usage` con `tarea='print-cli'` — la
+    tabla NO tiene columna `tarea` (es `fecha/vertical/modelo/tokens_in/tokens_out/costo_usd`,
+    única por `fecha,vertical,modelo`); y la impresión ocurre en Claude Code, no en un vertical.
+    Necesita migración + decisión de cómo atribuirlo antes de activarse.
+- `config-routing.yaml` (mismo lote) NO se integró: repetía decisiones de Fase 1 y proponía
+  `haiku-4.5` de default global (regresión vs `gemini-2.5-flash-lite`); su esquema no coincide
+  con el config real de Hermes. Único hilo a futuro: afinar compresión de contexto (verificar
+  claves reales antes de tocar un vertical vivo).
+
 ## Pendiente
 - ⬜ Imprimir los primeros CLIs (Nivel 1, manual) para medir el costo real por CLI antes de
   considerar más automatización. Flujo: `./businessos/print-phase.sh 0-1 --emit` → pegar prompts
   a `/printing-press`; arrancar por `digitalocean` y `telegram` (están en el catálogo).
+  Nota: codex CLI no instalado → la prensa correría en modo estándar (más tokens de Opus) hasta
+  instalar codex.
