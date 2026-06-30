@@ -227,11 +227,18 @@ acción humana en Claude Code (`/printing-press`, `/printing-press-amend`,
 `/code-review`): el cron solo detecta y avisa, nunca imprime (Nivel 3 descartado).
 
 Qué CLI por fase:
-- Fase 0-1: DigitalOcean, Telegram (ambos en catálogo → impresión casi directa)
-- Fase 1-2: Supabase (token_usage, evaluaciones, datos del dashboard)
-- Fase 2:   grafo (apuntando a su spec propio)
-- Fase 3:   Polar (cobros, suscripciones, estado MoR)
+- Fase 0-1: DigitalOcean ✅, Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
+- Fase 1-2: Supabase ✅ (impreso 2026-06-30 desde el OpenAPI de PostgREST del
+  proyecto; auth dual-header service_role cableada a mano; herramienta de host/dev,
+  el agente no la usa por secret-scrubbing)
+- Fase 2:   grafo (apuntando a su spec propio) — pendiente
+- Fase 3:   Polar (cobros, suscripciones, estado MoR) — pendiente
 - Fase 5:   Circle (Agent Wallets, USDC) — solo al llegar ahí
+
+Estado (2026-06-30): los 3 CLIs de las fases vivas están impresos y verificados
+(shipcheck 7/7, Grade A); el auditor reporta 0 faltantes para la fase actual.
+Binarios en `~/printing-press/library/` (artefactos, fuera del repo). Detalle y
+gotchas en `.claude/memory/project/cli-printing-press.md`.
 
 Reglas de seguridad (heredadas del rigor del propio Printing Press):
 - **Verificar anotaciones MCP en los CLIs que mueven dinero** (Polar, Circle):
