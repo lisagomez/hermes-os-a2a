@@ -39,8 +39,24 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
 - **Droplet (futuro):** cron de SO 2:30 (escalonado tras la ingesta de tokens 2:2x); el digest 8:00
   de negocio reporta brechas. Documentado en `businessos/negocio/AGENTS.md` "## Crons".
 
+## Instalación (2026-06-30)
+- **Go 1.26.4** instalado en `~/.local/go` (user-local, sin sudo; es el mínimo que pide la prensa).
+- **Binario `cli-printing-press` 4.27.0** vía `go install github.com/mvanhorn/cli-printing-press/v4/
+  cmd/cli-printing-press@latest` → queda en `~/go/bin/cli-printing-press`.
+- **Ruta de librería CONFIRMADA:** `~/printing-press/library/<slug>` (de `publish --dir
+  ~/printing-press/library/notion`). Runstate de impresiones en curso: `~/printing-press/.runstate/`.
+  `cli-audit.py` ya apunta ahí (override con env `CLI_PRESS_LIBRARY`). Hoy la librería está vacía
+  → `library_path: null` en el snapshot (degrada bien). Verificar impresos con
+  `cli-printing-press library list [--json]`.
+- **Catálogo valida el manifiesto:** `digitalocean` y `telegram` SÍ están en el catálogo embebido
+  (= `source: catalog`); `supabase` y `polar` NO (= `source: sniff`, sin spec público). Consistente.
+- ⬜ **PENDIENTE:** las **skills** de Printing Press (`/printing-press*` en Claude Code) NO se
+  instalaron: el clasificador de auto-mode bloquea `npx skills add` (carga contenido externo en el
+  agente). Instalarlas fuera de auto-mode:
+  `npx -y skills@latest add mvanhorn/cli-printing-press/skills --skill "*" -g -y -a claude-code`.
+  Sin ellas el binario funciona, pero los comandos slash `/printing-press <api>` aún no existen.
+
 ## Pendiente
-- ⬜ Instalar Printing Press (Go + Claude Code) y confirmar la **ruta real de la librería** de CLIs
-  impresos (hoy `cli-audit.py` prueba candidatos vía env `CLI_PRESS_LIBRARY` y rutas por defecto).
+- ⬜ Instalar las skills `/printing-press*` (ver arriba) fuera de auto-mode.
 - ⬜ Imprimir los primeros CLIs (Nivel 1, manual) para medir el costo real por CLI antes de
   considerar más automatización.

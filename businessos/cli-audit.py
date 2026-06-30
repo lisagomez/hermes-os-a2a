@@ -35,12 +35,12 @@ EMIT = "--emit" in sys.argv[1:]
 
 # Servicios internos del propio BusinessOS: no son APIs externas que requieran CLI.
 INTERNAL_SERVICES = {"hermes-personal", "hermes-negocio", "hermes-clientes", "dashboard"}
-# Rutas donde Printing Press podria dejar los CLIs impresos (degradar si no existe).
+# Donde Printing Press deja los CLIs publicados: ~/printing-press/library/<slug>
+# (confirmado con cli-printing-press 4.27.0: `publish ... --dir ~/printing-press/library/notion`).
+# Degrada con gracia si aun no existe (nada impreso todavia).
 LIBRARY_CANDIDATES = [
     os.environ.get("CLI_PRESS_LIBRARY", ""),
-    str(Path.home() / ".cli-printing-press" / "library"),
-    str(Path.home() / ".local" / "share" / "cli-printing-press"),
-    str(HERE / "printing-press" / "library"),
+    str(Path.home() / "printing-press" / "library"),
 ]
 COST_BY_SOURCE = {
     "catalog": "bajo (en catalogo, impresion casi directa)",
