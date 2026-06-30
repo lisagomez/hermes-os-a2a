@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Ingesta de consumo de tokens (Fase 1) -> tabla Supabase `token_usage`.
+
+Lee las líneas `API call #` del agent.log de cada contenedor Hermes (el loop
+principal; las llamadas auxiliares no emiten tokens en ese log todavía), calcula
+el costo real con tarifas de OpenRouter (incluida la lectura de caché), agrega por
+(fecha, vertical, modelo) y hace UPSERT idempotente vía PostgREST + service_role.
+
+Uso:
+    source businessos/.env            # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+    python3 businessos/ingest-token-usage.py [YYYY-MM-DD]   # default: hoy (UTC)
+
+Idempotente: re-correr el mismo día recalcula desde el log y sobrescribe (constraint
+única fecha,vertical,modelo). Requiere que el agent.log aún contenga ese día (si rota,
+re-correr pierde lo anterior). Pensado para correr on-demand o por cron en el Droplet.
+"""
+import os, re, json, subprocess, urllib.request, datetime, sys
+
+URL = os.environ["SUPABASE_URL"].rstrip("/")
+KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+DATE = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.utcnow().date().isoformat()
+CONTAINERS = {"hermes-personal": "personal", "hermes-negocio": "negocio", "hermes-clientes": "clientes"}
+
+LINE = re.compile(r"API call #\d+: model=(\S+) provider=\S+ in=(\d+) out=(\d+) total=\d+ "
+                  r"latency=[\d.]+s(?: cache=(\d+)/\d+)?")
+
+def pricing():
+    d = json.load(urllib.request.urlopen("https://openrouter.ai/api/v1/models", timeout=30))["data"]
+    return {m["id"]: (float((m.get("pricing") or {}).get("prompt", 0) or 0),
+                      float((m.get("pricing") or {}).get("completion", 0) or 0),
+                      float((m.get("pricing") or {}).get("input_cache_read", 0) or 0)) for m in d}
+
+PM = pricing()
+agg = {}
+for cont, vert in CONTAINERS.items():
+    out = subprocess.run(["docker", "exec", cont, "sh", "-c",
+                          f"grep 'API call #' /opt/data/logs/agent.log 2>/dev/null | grep '{DATE}'"],
+                         capture_output=True, text=True).stdout
+    for ln in out.splitlines():
+        mo = LINE.search(ln)
+        if not mo:
+            continue
+        model = mo.group(1).split(":")[0]  # normaliza :nitro/:floor/:free
+        tin, tout, cached = int(mo.group(2)), int(mo.group(3)), int(mo.group(4) or 0)
+        pin, pout, pcache = PM.get(model, (0.0, 0.0, 0.0))
+        cost = max(tin - cached, 0) * pin + cached * pcache + tout * pout
+        a = agg.setdefault((vert, model), [0, 0, 0.0])
+        a[0] += tin; a[1] += tout; a[2] += cost
+
+if not agg:
+    print("No hay líneas 'API call' para", DATE)
+    sys.exit(0)
+
+rows = [{"fecha": DATE, "vertical": v, "modelo": m,
+         "tokens_in": a[0], "tokens_out": a[1], "costo_usd": round(a[2], 6)}
+        for (v, m), a in sorted(agg.items())]
+
+print(f"=== {DATE} ===")
+for r in rows:
+    print(f"  {r['vertical']:<9}{r['modelo']:<40} in={r['tokens_in']:>7} out={r['tokens_out']:>5} ${r['costo_usd']:.5f}")
+print(f"  TOTAL ${sum(r['costo_usd'] for r in rows):.5f}")
+
+req = urllib.request.Request(
+    f"{URL}/rest/v1/token_usage?on_conflict=fecha,vertical,modelo",
+    data=json.dumps(rows).encode(),
+    headers={"apikey": KEY, "Authorization": "Bearer " + KEY,
+             "Content-Type": "application/json",
+             "Prefer": "resolution=merge-duplicates,return=minimal"})
+try:
+    urllib.request.urlopen(req, timeout=30)
+    print("UPSERT ok (%d filas)" % len(rows))
+except urllib.error.HTTPError as e:
+    print("UPSERT ERROR", e.code, e.read().decode()[:300]); sys.exit(1)

@@ -40,10 +40,14 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
 - ⬜ **Validación end-to-end de los modelos nuevos**: gpt-oss y Sonnet se aplicaron por config
   pero aún no se han INVOCADO de verdad. Falta ejercitar: tema/sesión nueva → `title_generation`
   (gpt-oss); foto estática → `vision` (Sonnet). Confirmar por `agent.log` que resuelven sin error.
-- ⬜ **Ingesta a `token_usage`** (hoy 0 filas). Fuente lista: `agent.log` trae por llamada
-  `API call #N: model=.. in=.. out=.. total=.. latency=..`. Falta el mecanismo que lo escribe
-  a Supabase (tabla: fecha, vertical, modelo, tokens_in, tokens_out, costo_usd).
-- ⬜ **Reporte de presupuesto on-demand** (funciona hoy en WSL2).
+- ✅ **Ingesta a `token_usage`** (2026-06-30): script `businessos/ingest-token-usage.py`
+  parsea las líneas `API call #` del agent.log de las 3, calcula costo con tarifas OpenRouter
+  (incluida lectura de caché), agrega por (fecha,vertical,modelo) y hace UPSERT idempotente vía
+  PostgREST + service_role (constraint única `token_usage_fecha_vertical_modelo_key`). Corrida
+  inicial: 4 filas, total $0.0217 el 2026-06-30. **Limitación:** solo loop principal (las aux no
+  emiten tokens en agent.log); depende de que el log no haya rotado. Escrituras NO van por el MCP
+  (read-only) sino por service_role; ver [[supabase-acceso]]. Programación por cron → Droplet.
+- ⬜ **Reporte de presupuesto on-demand** (consulta `token_usage`; funciona hoy en WSL2).
 - ⏸️ **Alerta 80% por cron** y **auto-tuner con eval (autoresearch)** → DIFERIDOS al Droplet
   (necesitan 24/7, igual que el respaldo nocturno). El cerebro principal nunca se auto-cambia
   por precio sin eval + aprobación humana ("copiloto no autopiloto").

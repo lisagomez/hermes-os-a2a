@@ -70,7 +70,9 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
   nemotron NO la soporta (estaba efectivamente apagada); con gemini-flash-lite quedó activa
   (97% hit). Mantener SOUL/memoria estables para no invalidarla.
 - [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el Droplet)
-- [ ] Ingesta real a `token_usage` (hoy 0 filas; el dato sale de `agent.log`: `in/out/model`)
+- [x] Ingesta real a `token_usage` (2026-06-30): `businessos/ingest-token-usage.py` parsea
+  agent.log → costo con tarifas OpenRouter (caché incluida) → UPSERT idempotente vía service_role.
+  Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al Droplet.
 - [ ] Alerta de presupuesto al 80% — la entrega por cron se DIFIERE al Droplet (WSL2 no 24/7);
   por ahora reporte on-demand
 - [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
