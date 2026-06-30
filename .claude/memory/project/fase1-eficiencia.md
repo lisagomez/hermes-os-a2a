@@ -47,12 +47,23 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   inicial: 4 filas, total $0.0217 el 2026-06-30. **Limitación:** solo loop principal (las aux no
   emiten tokens en agent.log); depende de que el log no haya rotado. Escrituras NO van por el MCP
   (read-only) sino por service_role; ver [[supabase-acceso]]. Programación por cron → Droplet.
-- ✅ **Reporte de presupuesto on-demand** (2026-06-30): vista `v_presupuesto_mensual`
-  (agregado mes×vertical + fila TOTAL) + skill Hermes `budget-report` en **negocio**
-  (`businessos/negocio/skills/budget-report/`). Cuando Elisa pregunta "¿cuánto llevo?",
-  negocio hace GET a la vista vía PostgREST+service_role y reporta total + desglose + alerta
-  al 80% ($24 de ~$30). Esquema (constraint+vista) en `businessos/supabase-init.sql`.
-  Gotcha: tras crear vista, PostgREST necesita `notify pgrst, 'reload schema'` (PGRST205).
+- ✅ **Reporte de presupuesto on-demand** (2026-06-30): negocio (haiku-4.5) **lee** el snapshot
+  `/opt/data/workspace/presupuesto.json` y reporta total + desglose por vertical + alerta al 80%.
+  - **Presupuesto: $30/mes TOTAL, alerta $24** (bajado de $120; fuente única `negocio/MEMORY.md`).
+  - El snapshot lo prepara el job de host `ingest-token-usage.py`; el agente NO consulta Supabase.
+  - **Gotcha CLAVE (costó varias iteraciones):** Hermes **scrubbea los secretos** del sandbox del
+    agente por diseño → el agente NUNCA recibe `SUPABASE_SERVICE_ROLE_KEY`/env, y `/opt/data/.env`
+    está bloqueado. El `AGENTS.md` de las 3 verticales decía "registra/consulta `token_usage` vía
+    service_role" — instrucción IMPOSIBLE que, al estar siempre en contexto, vencía al skill y hacía
+    que el agente persiguiera credenciales. **Fix:** reescribir AGENTS.md/MEMORY.md → "el job del host
+    escribe `token_usage` y deja el snapshot; tú LO LEES, no tocas Supabase". Patrón general:
+    cualquier write a Supabase lo hace un job/sidecar de confianza, no el agente.
+  - También existe la vista `v_presupuesto_mensual` (PostgREST) + skill `budget-report` v2; pero el
+    lever real fue el AGENTS.md (siempre en contexto), no el skill (requiere `skill_view`).
+  - Vista: tras crearla, PostgREST necesita `notify pgrst, 'reload schema'` (PGRST205).
+- 🔴 **DEUDA (clientes/facturas):** `clientes/AGENTS.md` también pedía escribir `facturas` a Supabase
+  vía service_role → mismo muro. Corregido el texto (extrae+presenta, registro pendiente) pero
+  FALTA construir el job de host que haga ese write. Pendiente para una tarea futura.
 - ⏸️ **Alerta 80% por cron** y **auto-tuner con eval (autoresearch)** → DIFERIDOS al Droplet
   (necesitan 24/7, igual que el respaldo nocturno). El cerebro principal nunca se auto-cambia
   por precio sin eval + aprobación humana ("copiloto no autopiloto").

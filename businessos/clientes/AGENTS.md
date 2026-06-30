@@ -12,17 +12,21 @@ hechos estables (plantilla de propuestas, datos de clientes) en MEMORY.md.
 - Al recibir una factura (imagen o PDF por Telegram), extrae: cliente, folio,
   fecha, conceptos, subtotal, impuestos, total.
 - Si algún campo no es legible o falta, NO lo adivines: márcalo y pregunta.
-- Registra la factura en la tabla `facturas` de Supabase con:
-  `cliente, folio, fecha, conceptos, subtotal, impuestos, total` (+ una clave de
-  deducibilidad que queda pendiente hasta tener `grafo`, ver Fase futura).
-  Conexión vía `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (en .env).
-- Avisa el resultado del registro.
+- Extrae y **presenta** los datos estructurados (`cliente, folio, fecha, conceptos,
+  subtotal, impuestos, total`) para revisión de tu persona.
+- ⚠️ **El registro a la tabla `facturas` de Supabase aún NO está conectado.** Tú no tienes
+  el `service_role` (Hermes scrubbea los secretos por diseño), igual que con `token_usage`.
+  Falta construir el job de confianza del host que haga ese write (DEUDA pendiente, mismo
+  patrón que la ingesta de tokens). Por ahora: deja los datos extraídos listos y marca el
+  registro como **pendiente**; no intentes escribir a Supabase tú.
 
 ## Presupuesto de tokens (registro)
-- Registra cada llamada relevante en la tabla `token_usage` de Supabase con:
-  `fecha, vertical='clientes', modelo, tokens_in, tokens_out, costo_usd`.
-- No defines ni vigilas el presupuesto (eso lo hace negocio); tú solo APORTAS
-  tus filas para que el desglose por vertical de negocio cuadre.
+- **TÚ no escribes a `token_usage` ni consultas Supabase.** El registro de tu gasto
+  lo hace un job de confianza del host (`businessos/ingest-token-usage.py`) leyendo tus
+  logs; no tienes el `service_role` (Hermes scrubbea los secretos por diseño). No intentes
+  acceder a `.env` ni a Supabase: fallará.
+- No defines ni vigilas el presupuesto (eso lo hace negocio, que lee el snapshot que el
+  job deja preparado).
 
 ## Propuestas
 - Redacta borradores a partir de la plantilla en MEMORY.md. Precios y plazos solo

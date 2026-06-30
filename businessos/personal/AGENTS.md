@@ -11,11 +11,12 @@ mecánica.
   `---\nfecha:\norigen: telegram-voz | telegram-texto\ntags: []\n---`.
 
 ## Presupuesto de tokens (registro)
-- Registra cada llamada relevante en la tabla `token_usage` de Supabase con:
-  `fecha, vertical='personal', modelo, tokens_in, tokens_out, costo_usd`.
-- No defines ni vigilas el presupuesto (eso lo hace negocio); tú solo APORTAS
-  tus filas para que el desglose por vertical de negocio cuadre.
-- Conexión vía `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (en .env).
+- **TÚ no escribes a `token_usage` ni consultas Supabase.** El registro de tu gasto
+  lo hace un job de confianza del host (`businessos/ingest-token-usage.py`) leyendo tus
+  logs; no tienes el `service_role` (Hermes scrubbea los secretos por diseño). No intentes
+  acceder a `.env` ni a Supabase: fallará.
+- No defines ni vigilas el presupuesto (eso lo hace negocio, que lee el snapshot que el
+  job deja preparado).
 
 ## Voz
 - Entrada: las notas de voz de Telegram se transcriben automáticamente; trata la

@@ -321,6 +321,29 @@ npm run lint         # ESLint
   (`businessos/ROADMAP.md`), memoria (`.claude/memory/`) y `BUSINESS_LOGIC.md`.
   Detalle y criterio en `.claude/memory/feedback/mantener-docs-vivas.md`.
 
+### 2026-06-30: El agente Hermes NO maneja secretos → patrón host-job + snapshot
+- **Error**: instruir al agente (en `AGENTS.md`) a consultar/escribir Supabase con
+  `SUPABASE_SERVICE_ROLE_KEY`. Hermes **scrubbea los secretos del sandbox del agente por
+  diseño**: su `execute_code`/bash NO recibe esas env vars y `/opt/data/.env` está bloqueado.
+  El agente persigue credenciales que no puede tener y falla. Peor: `AGENTS.md` está SIEMPRE
+  en contexto y **vence a un skill** (que requiere `skill_view`).
+- **Fix**: cualquier acceso a datos con credenciales lo hace un **job de confianza del host**
+  (que sí tiene la llave); deja el resultado en un archivo del volumen y el agente lo **LEE**
+  (`read_file` accede a `/opt/data/...` salvo `.env`). Las instrucciones de `AGENTS.md` deben
+  reflejar la arquitectura real. Tras cambiar el enfoque, probar en **sesión nueva** (`/new`).
+  Detalle en `.claude/memory/reference/hermes-vertical-setup.md`.
+- **Aplicar en**: todo lo que el agente necesite de un servicio con credenciales (Supabase,
+  pagos, etc.). Deuda abierta: clientes escribir `facturas` (falta su job de host).
+
+### 2026-06-30: Routing y cerebro de Hermes (eficiencia de tokens, Fase 1)
+- **Aprendizaje**: el ruteo de proveedor por defecto de OpenRouter es no-determinista (cuelga
+  si pega en un host muerto) → usar `:nitro` (rápido) o `:floor` (barato) + cadena de fallback.
+  La caché de prefijo solo aplica con proveedor compatible (Gemini/Anthropic/OpenAI/DeepSeek);
+  nemotron no cacheaba. Cerebro actual: `gemini-2.5-flash-lite` (caché 97%, ~3s); negocio en
+  `haiku-4.5` por su rol agéntico/analista. Editar config en vivo con
+  `docker exec -u hermes <c> hermes config set`, NO `docker run` sobre el volumen.
+- **Aplicar en**: configuración de modelos de cualquier vertical Hermes. Ver `fase1-eficiencia.md`.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

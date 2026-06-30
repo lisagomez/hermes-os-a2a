@@ -160,6 +160,23 @@ que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
 - Mantener SOUL/MEMORY/tools ESTABLES: cualquier cambio en el prefijo invalida la caché y el
   siguiente turno paga el prefijo completo de nuevo (caché es por prefijo idéntico).
 
+## El agente NO puede usar secretos (secret-scrubbing) → patrón host-job + snapshot (2026-06-30)
+- Hermes **scrubbea los secretos del sandbox del agente por diseño** (defense-in-depth):
+  el código que corre el agente (`execute_code`/bash) **NO recibe** las env vars con
+  credenciales (`SUPABASE_SERVICE_ROLE_KEY`, etc.), y `read_file` de `/opt/data/.env` está
+  bloqueado ("credential store"). Un `docker exec` del host SÍ ve esas vars (engaña), pero el
+  agente no. Síntoma: el bot dice "no tengo las credenciales / no puedo acceder a .env".
+- **Implicación:** el agente NO debe consultar ni escribir Supabase directo. Lo hace un **job
+  de confianza del host** (que sí tiene la credencial) y deja el dato listo donde el agente lo
+  LEE. Ej: `ingest-token-usage.py` escribe `token_usage` y deja `/opt/data/workspace/presupuesto.json`;
+  el skill/AGENTS.md dicen "lee ese snapshot". (`read_file` sí accede a `/opt/data/...` salvo `.env`.)
+- **AGENTS.md gana al skill:** AGENTS.md/MEMORY.md están SIEMPRE en el prompt; un skill requiere
+  `skill_view`. Si AGENTS.md ordena algo (p.ej. "consulta Supabase con service_role"), el agente lo
+  sigue aunque sea imposible, e ignora el skill. Las instrucciones de AGENTS.md deben reflejar la
+  arquitectura REAL. Si cambias el enfoque, prueba en **sesión nueva** (`/new`): la sesión vieja
+  ancla al agente en su intento previo fallido.
+- Pendiente del mismo tipo: clientes escribir `facturas` a Supabase (falta su job de host).
+
 ## Telemetría de tokens — ya existe en logs (para Fase 1 ingesta)
 - El `agent.log` del volumen ya trae el consumo exacto por llamada:
   `API call #N: model=<m> provider=openrouter in=<tok> out=<tok> total=<tok> latency=<s>`.

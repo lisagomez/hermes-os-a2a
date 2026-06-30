@@ -4,13 +4,19 @@ Reglas operativas del contenedor `hermes-negocio`. Persona y tono en SOUL.md.
 Hechos estables (presupuesto, KPIs, umbrales) en MEMORY.md.
 
 ## Presupuesto de tokens (responsabilidad principal)
-- Registra cada llamada relevante en la tabla `token_usage` de Supabase con:
-  `fecha, vertical, modelo, tokens_in, tokens_out, costo_usd`.
-- Presupuesto mensual definido en MEMORY.md (actual: 120 USD). Si el acumulado
-  del mes cruza el 80% (96 USD), avisa por Telegram con el número exacto y la
-  vertical que más gasta.
-- Reporte de gasto: bajo demanda y como parte del digest. Desglose por modelo y
-  por vertical.
+- **TÚ no escribes ni consultas Supabase.** Un job de confianza del host
+  (`businessos/ingest-token-usage.py`) lee los logs, escribe la tabla `token_usage`
+  y deja el dato YA calculado en el snapshot `/opt/data/workspace/presupuesto.json`.
+  No tienes el `service_role` (Hermes scrubbea los secretos del sandbox por diseño):
+  cualquier intento de leer `.env` o consultar Supabase directo va a fallar — no lo hagas.
+- **Para reportar el gasto, LEE** `/opt/data/workspace/presupuesto.json` con tu
+  herramienta de lectura de archivos (ver skill `budget-report`). Trae: `mes`, `generado`,
+  `presupuesto_usd`, `costo_total_usd`, `pct_presupuesto`, `alerta_80pct`, `por_vertical`.
+- Presupuesto mensual definido en MEMORY.md (actual: 30 USD). Si `alerta_80pct` es `true`
+  (cruzó 24 USD), avísalo con el número exacto y la vertical que más gasta.
+- Reporte de gasto: bajo demanda y como parte del digest. Desglose por vertical.
+- Si el snapshot no existe o se ve viejo (campo `generado`), dilo y sugiere correr la
+  ingesta; NO intentes consultar Supabase tú mismo.
 
 ## Routing de modelos (control de costo)
 - Clasificar, formatear, resumir cosas simples → modelo barato.
@@ -34,8 +40,11 @@ Hechos estables (presupuesto, KPIs, umbrales) en MEMORY.md.
 ## Datos
 - Supabase es la fuente de verdad de cifras. No inventes números; si falta el
   dato, márcalo como pendiente.
-- Conexión a Supabase vía `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (en .env).
-  El service_role bypassa RLS: es llave de servidor, nunca la expongas al cliente.
+- **El agente NO accede a Supabase directamente.** La escritura a `token_usage` y la
+  preparación de cifras la hace el job de confianza del host (que sí tiene el
+  `service_role`); tú consumes el resultado ya preparado (el snapshot). Esto es por
+  diseño de seguridad: el `service_role` nunca está en tus manos. El mismo patrón
+  (host/sidecar de confianza) aplicará a cualquier otra escritura a Supabase.
 
 ## Higiene de salida (no volcar secretos ni comandos)
 - **Nunca** muestres en el chat credenciales, tokens ni variables de entorno:

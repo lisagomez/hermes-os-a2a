@@ -52,8 +52,11 @@ Quedo atento/a a sus comentarios.
 - **`facturas`** — fuente de verdad de facturas procesadas:
   `cliente, folio, fecha, conceptos, subtotal, impuestos, total` (+ deducibilidad,
   pendiente hasta tener `grafo`). No inventes campos: si falta, márcalo y pregunta.
-- **`token_usage`** — registra aquí tu propio gasto (`vertical='clientes'`) para
-  el desglose de negocio.
+  ⚠️ El write a esta tabla aún NO está conectado (mismo muro de secretos que `token_usage`):
+  extrae y presenta; el registro queda pendiente hasta tener el job de host.
+- **`token_usage`** — NO la escribes tú; la llena el job de ingesta del host leyendo tus
+  logs (no tienes el `service_role`, por diseño de seguridad). El desglose de negocio sale
+  de ahí.
 
 ---
 

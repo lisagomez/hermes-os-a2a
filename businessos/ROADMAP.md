@@ -36,7 +36,7 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ---
 
-## FASE 0 — Infraestructura  ← EN CURSO (1 de 3 verticales vivas)
+## FASE 0 — Infraestructura  ← 3/3 verticales vivas (Droplet + sync nocturno diferidos)
 
 Cimiento técnico. Ver FASE0.md y los scripts. Estado detallado en
 `.claude/memory/project/fase0-estado.md`. Procedimiento + gotchas para levantar una
@@ -79,7 +79,9 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
   al Droplet (WSL2 no 24/7); por ahora es on-demand (preguntándole a negocio)
 - [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
   aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
-- **Salida:** gasto mensual controlado (~$25-30 en uso personal).
+- **Salida:** gasto mensual controlado. Presupuesto **$30/mes TOTAL** (las 3 verticales),
+  alerta al 80% ($24); fijado el 2026-06-30 (antes 120; bajado tras la eficiencia de Fase 1).
+  Fuente única del número: `negocio/MEMORY.md`.
 
 ## FASE 2 — Cerebro regulatorio (grafo), acotado
 

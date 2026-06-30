@@ -67,9 +67,17 @@ funden: ese es el primer principio del proyecto.
 
 ## Estado actual
 
-**FASE 0 — Infraestructura.** El cimiento técnico: Droplet endurecido + Docker +
-los tres contenedores Hermes respondiendo por Telegram + sync nocturno a GitHub.
-El plan completo, paso a paso, está en **[`businessos/FASE0.md`](businessos/FASE0.md)**.
+**FASE 0 — Infraestructura: ✅ las 3 verticales vivas y respondiendo** (personal/Kiris,
+negocio/@a2aTeamBot, clientes/@a2aClientbot), round-trip verificado. Corren como servicios
+Docker persistentes en **WSL2 local**; el Droplet y el sync nocturno a GitHub están
+**diferidos por costo** hasta que haya un disparador real de "always-on". Detalle:
+**[`businessos/FASE0.md`](businessos/FASE0.md)**.
+
+**FASE 1 — Eficiencia de tokens: ✅ esencialmente cerrada** (2026-06-30). Routing por modelo
+(cerebro `gemini-2.5-flash-lite` con caché de prefijo 97%, ~3s/turno; negocio en `haiku-4.5`
+por su rol agéntico), cadena de fallback por fiabilidad, ingesta de gasto a Supabase
+(`token_usage`) y reporte de presupuesto on-demand ($30/mes, alerta al 80%). Detalle en
+`.claude/memory/project/fase1-eficiencia.md`.
 
 El mapa de todas las fases (de la infra al grafo, cobro, contratos y economía
 agéntica) está en **[`businessos/ROADMAP.md`](businessos/ROADMAP.md)**.

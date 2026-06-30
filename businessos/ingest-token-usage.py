@@ -18,7 +18,7 @@ import os, re, json, subprocess, urllib.request, datetime, sys
 
 URL = os.environ["SUPABASE_URL"].rstrip("/")
 KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-DATE = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.utcnow().date().isoformat()
+DATE = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now(datetime.timezone.utc).date().isoformat()
 CONTAINERS = {"hermes-personal": "personal", "hermes-negocio": "negocio", "hermes-clientes": "clientes"}
 
 LINE = re.compile(r"API call #\d+: model=(\S+) provider=\S+ in=(\d+) out=(\d+) total=\d+ "
@@ -71,3 +71,30 @@ try:
     print("UPSERT ok (%d filas)" % len(rows))
 except urllib.error.HTTPError as e:
     print("UPSERT ERROR", e.code, e.read().decode()[:300]); sys.exit(1)
+
+# --- Snapshot de presupuesto para el skill budget-report ---
+# Hermes scrubbea los secretos del sandbox del agente: NO puede usar el service_role.
+# Por eso este job de confianza (que SÍ tiene la credencial) deja el dato ya calculado
+# dentro del volumen de negocio, y el skill solo lo LEE (el agente nunca toca el secreto).
+MES = DATE[:7]
+PRESUPUESTO = 30.0
+porv = {}
+for (v, m), a in agg.items():
+    porv[v] = porv.get(v, 0.0) + a[2]
+total = round(sum(porv.values()), 4)
+snapshot = {
+    "mes": MES,
+    "generado": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ"),
+    "presupuesto_usd": PRESUPUESTO,
+    "costo_total_usd": total,
+    "pct_presupuesto": round(total / PRESUPUESTO * 100, 1),
+    "alerta_80pct": total > PRESUPUESTO * 0.8,
+    "por_vertical": {v: round(c, 4) for v, c in sorted(porv.items(), key=lambda x: -x[1])},
+    "nota": "Solo loop principal (las aux aun no emiten tokens al log). Dato al corte de 'generado'.",
+}
+snap_json = json.dumps(snapshot, ensure_ascii=False, indent=2)
+r = subprocess.run(["docker", "exec", "-i", "-u", "hermes", "hermes-negocio",
+                    "sh", "-c", "mkdir -p /opt/data/workspace && cat > /opt/data/workspace/presupuesto.json"],
+                   input=snap_json, text=True)
+print("Snapshot a negocio:/opt/data/workspace/presupuesto.json",
+      "ok" if r.returncode == 0 else "FALLO")

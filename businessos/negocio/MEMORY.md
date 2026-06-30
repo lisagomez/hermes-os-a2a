@@ -9,27 +9,30 @@ corto y actualizado; si un dato cambia, edita la linea, no acumules historia.
 
 ## Presupuesto de tokens (lo lee AGENTS.md)
 
-- **Presupuesto mensual total:** 120 USD.
-- **Umbral de alerta:** 80%  →  avisar por Telegram al cruzar **96 USD** en el
+- **Presupuesto mensual total:** 30 USD.
+- **Umbral de alerta:** 80%  →  avisar por Telegram al cruzar **24 USD** en el
   mes en curso, con el numero exacto y la vertical que mas gasta.
 - **Corte del mes:** dia 1, hora de Mexico (zona del servidor: America/Mexico_City).
 - Reparto orientativo por vertical (no es tope duro, solo referencia del digest):
-  - personal: ~30 USD
-  - negocio: ~60 USD
-  - clientes: ~30 USD
+  - personal: ~12 USD
+  - negocio: ~12 USD
+  - clientes: ~6 USD
 
-> El gasto real es la suma de `costo_usd` en `token_usage` del mes en curso.
-> Supabase es la fuente de verdad; estos numeros son el objetivo, no el dato.
+> El gasto real es la suma de `costo_usd` en `token_usage` del mes en curso, que
+> queda calculado en el snapshot `/opt/data/workspace/presupuesto.json` (lo prepara
+> el job de ingesta del host). Tú LEES el snapshot; no consultas Supabase.
 
 ---
 
 ## Tabla `token_usage` (Supabase — fuente de verdad)
 
-Una fila por llamada relevante. Columnas:
-`fecha, vertical, modelo, tokens_in, tokens_out, costo_usd`.
+Agregado diario por `(fecha, vertical, modelo)`. Columnas:
+`fecha, vertical, modelo, tokens_in, tokens_out, costo_usd`. La **escribe el job de
+ingesta del host** (`businessos/ingest-token-usage.py`), NO el agente.
 
 - No inventes cifras. Si falta un dato, marcalo como **pendiente**.
-- El gasto del dia / del mes siempre sale de un query a esta tabla, no de memoria.
+- El gasto del dia / del mes sale del **snapshot** que prepara la ingesta
+  (`/opt/data/workspace/presupuesto.json`), no de un query directo ni de memoria.
 
 ---
 
@@ -49,7 +52,7 @@ Rellena con los KPIs reales del negocio. Plantilla:
 |-----|------|--------|------------|
 | (ej. MRR)            | (ej. +10% m/m) | Supabase | semanal |
 | (ej. clientes activos) | (definir)    | Supabase | diaria  |
-| (ej. gasto tokens mes) | < 120 USD    | token_usage | diaria |
+| (ej. gasto tokens mes) | < 30 USD     | snapshot presupuesto | diaria |
 
 > Mientras no haya KPIs definidos, el digest reporta solo gasto de tokens y lo
 > marca explicitamente como "KPIs pendientes de definir".
@@ -77,4 +80,6 @@ Rellena con los KPIs reales del negocio. Plantilla:
 ## Decisiones registradas
 
 - 2026-06-26 — Presupuesto inicial fijado en 120 USD/mes con alerta al 80%.
-  *(Ajusta esta linea cuando cambie el presupuesto.)*
+- 2026-06-30 — Presupuesto **bajado a 30 USD/mes** (alerta 24 USD). Tras la Fase 1
+  (gemini-flash-lite + caché de prefijo) el gasto real quedó casi nulo; 30 USD es un
+  techo realista. *(Ajusta esta linea cuando cambie el presupuesto.)*
