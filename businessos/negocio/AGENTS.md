@@ -36,6 +36,14 @@ Hechos estables (presupuesto, KPIs, umbrales) en MEMORY.md.
   propio** (`businessos-negocio`). Cada vertical respalda SU propio workspace a
   SU propio repo; horarios escalonados (personal 2:00, negocio 2:10, clientes
   2:20) para no chocar. No incluyas `.env` ni ningún secreto.
+- Auditoría de CLIs (Printing Press) **2:30**: un **job de confianza del host**
+  (`businessos/cli-audit.py`, cron de SO en el Droplet, escalonado tras la ingesta
+  de tokens) detecta qué CLIs faltan imprimir para la fase actual y deja el snapshot
+  `/opt/data/workspace/cli-audit.json`. **TÚ solo LEES ese snapshot** (skill
+  `cli-audit`); no corres el auditor, no imprimes CLIs y no tocas docker. Si hay
+  `faltantes`, inclúyelos en el digest 8:00 con el comando exacto que Elisa debe
+  correr **en Claude Code** (Printing Press no corre en el Droplet ni en ti).
+  Máximo 150 palabras para esta sección del digest.
 
 ## Datos
 - Supabase es la fuente de verdad de cifras. No inventes números; si falta el
