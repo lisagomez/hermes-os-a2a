@@ -73,8 +73,10 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
 - [x] Ingesta real a `token_usage` (2026-06-30): `businessos/ingest-token-usage.py` parsea
   agent.log → costo con tarifas OpenRouter (caché incluida) → UPSERT idempotente vía service_role.
   Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al Droplet.
-- [ ] Alerta de presupuesto al 80% — la entrega por cron se DIFIERE al Droplet (WSL2 no 24/7);
-  por ahora reporte on-demand
+- [x] Reporte de presupuesto on-demand (2026-06-30): vista `v_presupuesto_mensual` + skill
+  negocio `budget-report` (negocio reporta gasto del mes por Telegram, alerta al 80%).
+- [ ] Alerta de presupuesto al 80% AUTOMÁTICA (push proactivo) — la entrega por cron se DIFIERE
+  al Droplet (WSL2 no 24/7); por ahora es on-demand (preguntándole a negocio)
 - [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
   aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
 - **Salida:** gasto mensual controlado (~$25-30 en uso personal).

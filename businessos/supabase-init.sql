@@ -67,3 +67,31 @@ create index if not exists facturas_deduc_idx     on public.facturas (deducibili
 
 alter table public.facturas enable row level security;
 -- (sin politicas: solo service_role accede)
+
+-- ============================================================
+-- Fase 1 — Eficiencia de tokens (2026-06-30)
+-- ============================================================
+
+-- Idempotencia de la ingesta: un renglon por (dia, vertical, modelo).
+-- Lo usa businessos/ingest-token-usage.py para el UPSERT.
+alter table public.token_usage
+  add constraint token_usage_fecha_vertical_modelo_key
+  unique (fecha, vertical, modelo);
+
+-- Reporte de presupuesto: agregado mensual por vertical + fila TOTAL.
+-- Lo consume el skill negocio 'budget-report' via PostgREST.
+create or replace view public.v_presupuesto_mensual as
+  select to_char(fecha,'YYYY-MM')          as mes,
+         coalesce(vertical,'TOTAL')        as vertical,
+         sum(tokens_in)::bigint            as tokens_in,
+         sum(tokens_out)::bigint           as tokens_out,
+         round(sum(costo_usd),4)           as costo_usd
+  from public.token_usage
+  group by grouping sets (
+    (to_char(fecha,'YYYY-MM'), vertical),
+    (to_char(fecha,'YYYY-MM'))
+  )
+  order by mes desc, vertical;
+
+comment on view public.v_presupuesto_mensual is
+  'Gasto de tokens agregado por mes y vertical (con fila TOTAL). Fuente del skill budget-report.';

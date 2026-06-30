@@ -47,7 +47,12 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   inicial: 4 filas, total $0.0217 el 2026-06-30. **Limitación:** solo loop principal (las aux no
   emiten tokens en agent.log); depende de que el log no haya rotado. Escrituras NO van por el MCP
   (read-only) sino por service_role; ver [[supabase-acceso]]. Programación por cron → Droplet.
-- ⬜ **Reporte de presupuesto on-demand** (consulta `token_usage`; funciona hoy en WSL2).
+- ✅ **Reporte de presupuesto on-demand** (2026-06-30): vista `v_presupuesto_mensual`
+  (agregado mes×vertical + fila TOTAL) + skill Hermes `budget-report` en **negocio**
+  (`businessos/negocio/skills/budget-report/`). Cuando Elisa pregunta "¿cuánto llevo?",
+  negocio hace GET a la vista vía PostgREST+service_role y reporta total + desglose + alerta
+  al 80% ($24 de ~$30). Esquema (constraint+vista) en `businessos/supabase-init.sql`.
+  Gotcha: tras crear vista, PostgREST necesita `notify pgrst, 'reload schema'` (PGRST205).
 - ⏸️ **Alerta 80% por cron** y **auto-tuner con eval (autoresearch)** → DIFERIDOS al Droplet
   (necesitan 24/7, igual que el respaldo nocturno). El cerebro principal nunca se auto-cambia
   por precio sin eval + aprobación humana ("copiloto no autopiloto").
