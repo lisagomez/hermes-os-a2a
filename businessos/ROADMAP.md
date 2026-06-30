@@ -52,14 +52,29 @@ vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
 - **Salida:** las tres verticales vivas y respondiendo.
 
-## FASE 1 — Eficiencia de tokens
+## FASE 1 — Eficiencia de tokens  ← EN CURSO (routing aplicado en las 3)
 
-Activar el ahorro una vez que el cimiento corre.
-- config.yaml de routing por modelo (barato para lo ligero, Sonnet para lo
-  pesado, Opus casi nunca)
-- Caché de prefijo (ya activo en Hermes; mantener SOUL/memoria estables)
-- Topes de palabras en crons
-- Tabla token_usage en Supabase + alertas de presupuesto al 80%
+Activar el ahorro una vez que el cimiento corre. Estado detallado en
+`.claude/memory/project/fase1-eficiencia.md`; gotchas en `hermes-vertical-setup.md`.
+- [x] config.yaml de routing por modelo (2026-06-30): 13 profiles de apoyo enrutados en
+  las 3 verticales — 10 ligeros a `openai/gpt-oss-120b:floor` (OpenRouter elige el
+  proveedor más barato), 3 pesados (curator, kanban_decomposer, vision) a
+  `anthropic/claude-sonnet-4.6`. Los 3 aux de ruta crítica (triage, compression, title) en
+  `:nitro`. Opus en ninguno.
+- [x] **Loop principal → `google/gemini-2.5-flash-lite`** (2026-06-30): migrado de nemotron
+  porque su proveedor no cacheaba el prefijo (reprocesaba ~17k tokens/turno). Con gemini:
+  caché 97%, latencia 3.3s (vs ~12s), ~9× más barato/turno. Fallback chain en las 3:
+  gemini → mistral-small:nitro → sonnet (3 proveedores distintos). `:nitro` resolvió un
+  incidente de cuelgue por proveedor muerto.
+- [x] Caché de prefijo: REQUIERE proveedor compatible (Anthropic/OpenAI/Gemini/DeepSeek).
+  nemotron NO la soporta (estaba efectivamente apagada); con gemini-flash-lite quedó activa
+  (97% hit). Mantener SOUL/memoria estables para no invalidarla.
+- [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el Droplet)
+- [ ] Ingesta real a `token_usage` (hoy 0 filas; el dato sale de `agent.log`: `in/out/model`)
+- [ ] Alerta de presupuesto al 80% — la entrega por cron se DIFIERE al Droplet (WSL2 no 24/7);
+  por ahora reporte on-demand
+- [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
+  aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
 - **Salida:** gasto mensual controlado (~$25-30 en uso personal).
 
 ## FASE 2 — Cerebro regulatorio (grafo), acotado

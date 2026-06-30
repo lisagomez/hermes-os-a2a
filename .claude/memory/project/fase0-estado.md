@@ -30,7 +30,12 @@ persona + respaldo nocturno. Progreso: **3 de 3 verticales vivas y respondiendo
   transfieren en vez de re-correr wizards). `doctl` ya instalado en `~/.local/bin`. NO se creó
   ningún Droplet (sin gasto). Plan: 2 GB primero (s-1vcpu-2gb) con swap + `mem_limit` ~512MB.
 - ⏸️ **Respaldo nocturno** a GitHub — acoplado al Droplet (un cron 2:00/2:10/2:20 no sirve sin
-  24/7). Diferido junto con el Droplet.
+  24/7). Diferido junto con el Droplet. **Reafirmado 2026-06-30**: se reevaluó (propuesta de
+  "skill+cron+backup de un prompt") y se mantuvo diferido. Motivos: (1) WSL2 no es 24/7 → el cron
+  no dispara fiable; (2) GitHub ya es remote (`origin → lisagomez/businessos`), no falta "conectar";
+  (3) lo que vale respaldar son los volúmenes `.hermes` (config+memoria viva), pero están gitignored
+  por contener secretos → el backup real debe capturarlos scrubbed/cifrados, no un `git push`. Entra
+  como una sola pieza junto con el Droplet.
 - ⬜ Voz (TTS salida / transcripción entrada).
 
 ## Gotcha credencial (2026-06-28)
