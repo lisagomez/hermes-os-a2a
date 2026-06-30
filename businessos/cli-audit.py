@@ -102,6 +102,18 @@ def printed_clis(library: Path | None) -> dict[str, dict]:
     return found
 
 
+def match_printed(sl: str, printed: dict[str, dict]) -> dict | None:
+    """Entrada impresa que corresponde al slug del manifiesto, o None. Tolera el
+    sufijo descriptivo que Printing Press agrega desde el display name
+    (p.ej. 'telegram' -> dir 'telegram-bot')."""
+    if sl in printed:
+        return printed[sl]
+    for name, info in printed.items():
+        if name.startswith(sl + "-") or sl.startswith(name + "-"):
+            return info
+    return None
+
+
 def compose_services() -> list[str]:
     if not COMPOSE.exists():
         return []
@@ -153,10 +165,11 @@ def main() -> None:
                 no_due_aun.append({**entry, "nota": f"aplica desde fase {key}"})
                 continue
             due_keys.append(key)
-            if sl not in printed:
+            pr = match_printed(sl, printed)
+            if pr is None:
                 faltantes.append(entry)
             else:
-                grade = printed[sl].get("grade")
+                grade = pr.get("grade")
                 if grade and grade.rstrip("+-") > min_grade.rstrip("+-"):
                     desactualizados.append({**entry, "grado": grade,
                                             "motivo": f"grado {grade} < minimo {min_grade}",

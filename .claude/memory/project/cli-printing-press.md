@@ -75,9 +75,24 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   con el config real de Hermes. Único hilo a futuro: afinar compresión de contexto (verificar
   claves reales antes de tocar un vertical vivo).
 
+## Primeros CLIs impresos (2026-06-30)
+- ✅ **digitalocean** (spec oficial, 660 endpoints) → shipcheck 7/7, scorecard **87/100 Grade A**.
+  En `~/printing-press/library/digitalocean/` (binario `digitalocean-pp-cli` v1.0.0).
+- ✅ **telegram** (apis.guru, 74 endpoints) → shipcheck 7/7, scorecard **83/100 Grade A** (2 bajo
+  el 85 del manifiesto; drag = `insight 0/10`). Slug de librería = `telegram-bot` (del display name).
+  En `~/printing-press/library/telegram-bot/` (binario `telegram-bot-pp-cli`).
+- **Alcance usado:** spec-driven (generate + shipcheck + promote), SIN el tratamiento publish-grade
+  "GOAT" (research profunda + 5+ features de transcendencia a mano). Suficiente para dogfood interno
+  (`publish: false`). Para publicar: `/printing-press-polish <api>` levanta `insight`.
+- Sin codex CLI → corrió en modo estándar (Opus); aun así el costo de tokens fue bajo porque
+  `generate`/`shipcheck` son trabajo del binario Go, no del modelo.
+- **Fix del auditor:** `cli-audit.py` ahora tolera el sufijo descriptivo de Printing Press
+  (`telegram` ↔ dir `telegram-bot`) en `match_printed`; antes reportaba telegram como faltante.
+  Verificado: auditor detecta la librería (`library_path` poblado), digitalocean+telegram salen de
+  `faltantes`; queda solo `supabase` (fase 1-2, `sniff`, sin imprimir).
+
 ## Pendiente
-- ⬜ Imprimir los primeros CLIs (Nivel 1, manual) para medir el costo real por CLI antes de
-  considerar más automatización. Flujo: `./businessos/print-phase.sh 0-1 --emit` → pegar prompts
-  a `/printing-press`; arrancar por `digitalocean` y `telegram` (están en el catálogo).
-  Nota: codex CLI no instalado → la prensa correría en modo estándar (más tokens de Opus) hasta
-  instalar codex.
+- ⬜ Imprimir **supabase** (fase 1-2, `source: sniff` → sin spec público, hay que husmear docs;
+  es la más cara). Considerar si el proyecto Supabase expone OpenAPI (PostgREST) → cambiar a
+  `source: spec` en el manifiesto y abaratar la impresión.
+- ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight` si se va a publicar.
