@@ -210,19 +210,35 @@ No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se
 imprime su CLI para que los agentes lo usen gastando ~100x menos tokens que un
 MCP pesado. Es otra palanca de eficiencia, hermana del routing y el caché.
 
-Cómo funciona (ver carpeta printing-press/):
+Cómo funciona (archivos en la raíz de `businessos/`):
 - cli-manifest.yaml mapea cada CLI a su fase, fuente y vertical
 - print-phase.sh prepara/dispara la impresión de los CLIs de una fase
-- Tres niveles de automatización; empezar por el manual asistido (Nivel 1)
+- GENERACION-AUTOMATICA.md explica los tres niveles de automatización
+- cli-audit.py (job de confianza del host) audita qué CLIs faltan para la fase
+  actual y deja el snapshot que lee la vertical negocio (skill `cli-audit`)
 - Printing Press corre en Claude Code en tu máquina de desarrollo, no en el
   Droplet (necesita Go 1.26.4+ y Claude Code)
 
+Detector + aviso (Nivel 2-prep, decidido 2026-06-30): `cli-audit.py` corre por
+cron de SO en el Droplet (2:30, escalonado tras la ingesta de tokens) y deja
+`/opt/data/workspace/cli-audit.json`; el digest 8:00 de negocio reporta las
+brechas con el comando exacto. La impresión y la mejora de un CLI siguen siendo
+acción humana en Claude Code (`/printing-press`, `/printing-press-amend`,
+`/code-review`): el cron solo detecta y avisa, nunca imprime (Nivel 3 descartado).
+
 Qué CLI por fase:
-- Fase 0-1: DigitalOcean, Telegram (ambos en catálogo → impresión casi directa)
-- Fase 1-2: Supabase (token_usage, evaluaciones, datos del dashboard)
-- Fase 2:   grafo (apuntando a su spec propio)
-- Fase 3:   Polar (cobros, suscripciones, estado MoR)
+- Fase 0-1: DigitalOcean ✅, Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
+- Fase 1-2: Supabase ✅ (impreso 2026-06-30 desde el OpenAPI de PostgREST del
+  proyecto; auth dual-header service_role cableada a mano; herramienta de host/dev,
+  el agente no la usa por secret-scrubbing)
+- Fase 2:   grafo (apuntando a su spec propio) — pendiente
+- Fase 3:   Polar (cobros, suscripciones, estado MoR) — pendiente
 - Fase 5:   Circle (Agent Wallets, USDC) — solo al llegar ahí
+
+Estado (2026-06-30): los 3 CLIs de las fases vivas están impresos y verificados
+(shipcheck 7/7, Grade A); el auditor reporta 0 faltantes para la fase actual.
+Binarios en `~/printing-press/library/` (artefactos, fuera del repo). Detalle y
+gotchas en `.claude/memory/project/cli-printing-press.md`.
 
 Reglas de seguridad (heredadas del rigor del propio Printing Press):
 - **Verificar anotaciones MCP en los CLIs que mueven dinero** (Polar, Circle):

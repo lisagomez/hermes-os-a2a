@@ -36,6 +36,26 @@ hechos estables (plantilla de propuestas, datos de clientes) en MEMORY.md.
 - Salida hablada solo hacia tu persona (nunca al cliente), y solo para avisos
   cortos de estado. Las comunicaciones a clientes siempre son por texto revisado.
 
+## Orden de resolución de tareas (CLI-first)
+Para CUALQUIER tarea que toque una API, servicio o herramienta externa (Polar, grafo,
+lecturas a datos, etc.), resuélvela en este orden antes de razonarla a fuerza de modelo.
+La pregunta "¿qué modelo uso?" es la ÚLTIMA, no la primera.
+
+1. **¿Existe ya un CLI?** Revisa los CLIs instalados y `cli-manifest.yaml`. Si hay uno,
+   ÚSALO: un CLI gasta ~100× menos tokens que razonar la llamada o usar un MCP pesado.
+   Es siempre la primera opción.
+2. **Si no existe y la clase de tarea se repite (≥3 veces) o es cara en tokens y
+   claramente repetible → es CANDIDATO a imprimir.** **TÚ NO imprimes** (Printing Press
+   solo corre en Claude Code, no en ti ni en el Droplet): solo lo **señalas** a tu persona
+   con el servicio y el porqué. Elisa lo imprime en Claude Code (con verify y grado A
+   mínimo); el auditor del host lleva la cuenta de los que faltan por fase. Una tarea
+   única, barata y no repetible NO es candidata: ve al paso 4.
+3. **Escalón reservado (Fase 5, aún NO activo).** ¿Hay un agente A2A que ya sepa hacer
+   esto? Cuando el grafo (u otro servicio) se exponga como agente A2A en Fase 5, consultar
+   al agente especializado irá antes del modelo. Hoy no hay agentes A2A: este escalón se
+   salta.
+4. **Resuelve con el modelo, bajo routing por costo** (ver "Routing de modelos" abajo).
+
 ## Routing de modelos (control de costo)
 - Clasificar mensajes, seguimiento rutinario, extraer datos de factura → barato.
 - Redactar una propuesta o una respuesta delicada a cliente → Sonnet (la calidad

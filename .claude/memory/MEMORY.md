@@ -10,6 +10,7 @@
 - [Estado de Fase 0](project/fase0-estado.md) — 3 de 3 verticales vivas y respondiendo (personal/Kiris + negocio/@a2aTeamBot + clientes/@a2aClientbot); Supabase listo; pendientes Droplet y respaldo nocturno.
 - [Fase 1 — eficiencia de tokens](project/fase1-eficiencia.md) — routing aplicado en las 3 verticales (10 ligeros a gpt-oss:floor, 3 pesados a Sonnet, loop principal en nemotron); fix de idioma (regla dura en SOUL); pendiente ingesta a token_usage + validar modelos nuevos.
 - [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor (A2A), white-label; primer departamento Desarrollo de Software; solo documentado (sin código), depende de A2A (Fase 5).
+- [CLIs Printing Press + auditor](project/cli-printing-press.md) — CLIs agente-nativos por fase; `cli-audit.py` (host-job) detecta brechas y deja snapshot que lee el skill `cli-audit`; Printing Press solo corre en Claude Code, el cron solo detecta+avisa (Nivel 2-prep, Nivel 3 descartado).
 
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.

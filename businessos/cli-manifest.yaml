@@ -1,0 +1,80 @@
+# cli-manifest.yaml — Qué CLIs necesita BusinessOS y cuándo imprimirlos.
+#
+# Este manifiesto es la fuente de verdad del sistema de generación automática.
+# El script print-phase.sh lee este archivo e imprime (vía Printing Press en
+# Claude Code) los CLIs de la fase que le indiques.
+#
+# Printing Press NO se ejecuta solo: requiere Claude Code y el comando
+# /printing-press <app>. Este sistema PREPARA y ORDENA el trabajo; el último
+# paso (correr la prensa) lo dispara un agente o tú, en Claude Code.
+#
+# source:
+#   catalog  → ya está en el catálogo de Printing Press (impresión casi directa)
+#   sniff    → no tiene spec pública; la prensa husmea su web/docs
+#   spec     → tienes una URL a su OpenAPI spec
+#   own      → API propia (grafo); apuntas a su spec local
+#
+# Campo "name" = como lo entiende /printing-press. Para sniff/own usa la URL.
+
+phases:
+
+  "0-1":
+    label: "Infraestructura y canales"
+    clis:
+      - name: digitalocean
+        source: catalog
+        why: "Gestionar Droplet, snapshots y backups desde los agentes."
+        verticales: [negocio]
+      - name: telegram
+        source: catalog
+        why: "Operar los 3 bots, mensajes, allowlist."
+        verticales: [personal, negocio, clientes]
+
+  "1-2":
+    label: "Datos y presupuesto"
+    clis:
+      - name: supabase
+        source: spec
+        why: "Consultar token_usage, evaluaciones, datos del dashboard."
+        verticales: [negocio]
+        note: >-
+          Impreso 2026-06-30 desde el OpenAPI de PostgREST del proyecto
+          ($SUPABASE_URL/rest/v1/, Swagger 2.0 -> convertido). Auth: el service_role
+          va en DOS headers (apikey + Authorization: Bearer) — cableado a mano en
+          config.go leyendo SUPABASE_SERVICE_ROLE_KEY (el generador no detecta auth
+          en specs PostgREST). Es herramienta de HOST/dev: el agente Hermes NO la usa
+          (secret-scrubbing). Si se reimprime, reaplicar ese bloque de auth.
+
+  "2":
+    label: "Cerebro regulatorio"
+    clis:
+      - name: "http://grafo:3000/openapi.json"
+        source: own
+        why: "Consultar evaluaciones de impacto regulatorio/fiscal/contable."
+        verticales: [negocio, clientes]
+        note: "Ajusta la ruta del spec a la real que exponga grafo."
+
+  "3":
+    label: "Pago y contratos-documento"
+    clis:
+      - name: "https://polar.sh"
+        source: sniff
+        why: "Cobros, suscripciones, facturas, estado MoR."
+        verticales: [negocio, clientes]
+        note: "Polar es open-source; si publica OpenAPI, usa source: spec."
+
+  "5":
+    label: "Economía agéntica (futuro)"
+    clis:
+      - name: "https://developers.circle.com"
+        source: sniff
+        why: "Agent Wallets y USDC para pagos agénticos."
+        verticales: [negocio, clientes]
+        note: "Solo cuando llegues a Fase 5. Pasar por grafo antes de activar."
+
+# Convenciones de impresión (se aplican a todos):
+defaults:
+  mode: codex          # usa 'codex' para ~60% menos tokens de Opus en Fase 3 de la prensa
+  publish: false       # primero dogfood; publicar a la library solo lo que uses
+  verify: true         # correr shipcheck (dogfood + verify + scorecard) siempre
+  min_grade: A         # no aceptar CLIs por debajo de grado A (85+) en el scorecard

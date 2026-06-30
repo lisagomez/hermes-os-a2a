@@ -344,6 +344,18 @@ npm run lint         # ESLint
   `docker exec -u hermes <c> hermes config set`, NO `docker run` sobre el volumen.
 - **Aplicar en**: configuración de modelos de cualquier vertical Hermes. Ver `fase1-eficiencia.md`.
 
+### 2026-06-30: Printing Press operativo + primeros CLIs (auditor Nivel 2-prep)
+- **Aprendizaje**: Printing Press corre SOLO en Claude Code (Go 1.26.4+ + skills), NUNCA en el
+  Droplet ni dentro de Hermes → ningún cron imprime; el host-job `cli-audit.py` solo **detecta y
+  avisa** (Nivel 2-prep; Nivel 3 autónomo descartado). Impresos digitalocean (87/A), telegram
+  (83/A) y supabase (87/A) — spec-driven (generate+shipcheck+promote), barato en tokens porque el
+  trabajo lo hace el binario Go, no el modelo. Una vez impreso, ejecutar el CLI = ~0 tokens.
+  Gotchas de specs PostgREST: el generador NO detecta auth (cablear a mano `apikey` +
+  `Authorization: Bearer` con service_role) ni el prefijo `/rest/v1` (basePath "/"); el CLI de datos
+  es herramienta de host/dev (el agente no lo usa por secret-scrubbing). El instalador externo
+  (`go install`/`npx skills add`) lo bloquea el clasificador de auto-mode: requiere modo no-auto.
+- **Aplicar en**: cualquier impresión de CLI agente-nativo. Ver `.claude/memory/project/cli-printing-press.md`.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
