@@ -91,8 +91,28 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   Verificado: auditor detecta la librería (`library_path` poblado), digitalocean+telegram salen de
   `faltantes`; queda solo `supabase` (fase 1-2, `sniff`, sin imprimir).
 
+- ✅ **supabase** (2026-06-30) → shipcheck 7/7, **87/100 Grade A**. En `~/printing-press/library/
+  supabase/` (binario `supabase-pp-cli`). NO se husmeó: se usó el **OpenAPI de PostgREST del
+  proyecto** (`$SUPABASE_URL/rest/v1/`, Swagger 2.0 → convertido a OpenAPI 3); manifiesto cambiado
+  a `source: spec`. Tablas tipadas: `token_usage`, `facturas`, `profiles`, `v_presupuesto_mensual`.
+  - **Auth cableada a mano** (el generador no detecta auth en specs PostgREST): PostgREST/Supabase
+    exige el service_role en DOS headers (`apikey` + `Authorization: Bearer`, mismo valor).
+    Verificado con curl: solo `apikey` → 0 filas (anon, RLS); ambos → filas (service_role).
+    Patch en `internal/config/config.go` (Load lee `SUPABASE_SERVICE_ROLE_KEY` → setea
+    `AuthHeaderVal="Bearer "+key` y `Headers["apikey"]=key`; el client ya aplica ambos). Si se
+    reimprime, reaplicar ese bloque (no es durable a regen). Documentado en el `note` del manifiesto.
+  - **Caveat de uso:** es herramienta de **HOST/dev** (Elisa/jobs). El **agente Hermes NO puede
+    usarla** (secret-scrubbing: no tiene el service_role). Mismo muro que [[fase1-eficiencia]];
+    el path del agente para datos sigue siendo el snapshot que deja `ingest-token-usage.py`.
+  - **Smoke test en vivo PENDIENTE:** el clasificador bloqueó la lectura de prod con service_role
+    (correcto). Para validar end-to-end: `export $(grep -v '^#' businessos/.env | xargs)` y correr
+    `~/printing-press/library/supabase/supabase-pp-cli token-usage list --limit 3 --json` fuera de
+    auto-mode. La construcción de headers ya está probada por inspección + el curl Test B.
+
+## Estado: Fase 0-1 + 1-2 completas en CLIs
+Auditor reporta **0 faltantes** para la fase actual: digitalocean (87/A), telegram (83/A),
+supabase (87/A) impresos. Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
+
 ## Pendiente
-- ⬜ Imprimir **supabase** (fase 1-2, `source: sniff` → sin spec público, hay que husmear docs;
-  es la más cara). Considerar si el proyecto Supabase expone OpenAPI (PostgREST) → cambiar a
-  `source: spec` en el manifiesto y abaratar la impresión.
-- ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight` si se va a publicar.
+- ⬜ Smoke test en vivo de `supabase-pp-cli` (ver arriba), fuera de auto-mode.
+- ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight 0/10` si se va a publicar.

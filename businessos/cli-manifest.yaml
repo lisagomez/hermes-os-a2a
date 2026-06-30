@@ -33,11 +33,17 @@ phases:
   "1-2":
     label: "Datos y presupuesto"
     clis:
-      - name: "https://supabase.com"
-        source: sniff
+      - name: supabase
+        source: spec
         why: "Consultar token_usage, evaluaciones, datos del dashboard."
         verticales: [negocio]
-        note: "Si tu proyecto Supabase expone OpenAPI (PostgREST), cámbialo a source: spec con esa URL."
+        note: >-
+          Impreso 2026-06-30 desde el OpenAPI de PostgREST del proyecto
+          ($SUPABASE_URL/rest/v1/, Swagger 2.0 -> convertido). Auth: el service_role
+          va en DOS headers (apikey + Authorization: Bearer) — cableado a mano en
+          config.go leyendo SUPABASE_SERVICE_ROLE_KEY (el generador no detecta auth
+          en specs PostgREST). Es herramienta de HOST/dev: el agente Hermes NO la usa
+          (secret-scrubbing). Si se reimprime, reaplicar ese bloque de auth.
 
   "2":
     label: "Cerebro regulatorio"
