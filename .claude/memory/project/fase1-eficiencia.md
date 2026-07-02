@@ -62,9 +62,15 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   - También existe la vista `v_presupuesto_mensual` (PostgREST) + skill `budget-report` v2; pero el
     lever real fue el AGENTS.md (siempre en contexto), no el skill (requiere `skill_view`).
   - Vista: tras crearla, PostgREST necesita `notify pgrst, 'reload schema'` (PGRST205).
-- 🔴 **DEUDA (clientes/facturas):** `clientes/AGENTS.md` también pedía escribir `facturas` a Supabase
-  vía service_role → mismo muro. Corregido el texto (extrae+presenta, registro pendiente) pero
-  FALTA construir el job de host que haga ese write. Pendiente para una tarea futura.
+- ✅ **DEUDA (clientes/facturas) — job de host construido** (2026-07-01): patrón espejo INVERSO del
+  snapshot de tokens. El agente no tiene service_role → escribe cada factura extraída+confirmada como
+  JSON en `/opt/data/workspace/facturas_pending/*.json` (con `write_file`, permitido al volumen salvo
+  `.env`); el job de host `businessos/ingest-facturas.py` lo lee vía `docker exec`, hace UPSERT a
+  `facturas` (unique cliente,folio → idempotente, deducibilidad queda DEFAULT 'pendiente') y mueve el
+  archivo a `facturas_procesadas/`. Valida sin adivinar (rechaza si faltan campos), chequeo suave de
+  cuadre (subtotal+impuestos≈total: avisa, no bloquea), `--dry-run`. `clientes/AGENTS.md` actualizado con
+  la convención drop-file. **Sin probar en runtime** (esta sesión no tiene Docker); correr cuando los
+  contenedores estén arriba, igual que `ingest-token-usage.py`. Cron → Droplet.
 - ⏸️ **Alerta 80% por cron** y **auto-tuner con eval (autoresearch)** → DIFERIDOS al Droplet
   (necesitan 24/7, igual que el respaldo nocturno). El cerebro principal nunca se auto-cambia
   por precio sin eval + aprobación humana ("copiloto no autopiloto").
