@@ -146,6 +146,57 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 512M }
 
+  # ---------- GRAFO (cerebro regulatorio fiscal, Fase 2) ----------
+  # Evalua deducibilidad con fuente citada. Las verticales lo consultan DENTRO
+  # de la red como http://grafo:3000 (los agentes no necesitan secretos para
+  # leerlo). Los host-jobs (evaluar-facturas.py) entran por 127.0.0.1:3000.
+  # NO tiene puerto publico: mismo postura que el dashboard (tunel SSH si hace
+  # falta inspeccionarlo desde fuera del Droplet).
+  grafo:
+    build: ./grafo
+    container_name: grafo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"     # solo host-jobs locales; nunca 0.0.0.0
+    environment:
+      - GRAFO_DATABASE_URL=postgresql://grafo:${GRAFO_DB_PASSWORD}@grafo-db:5432/grafo
+    depends_on:
+      grafo-db:
+        condition: service_healthy
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+
+  # Postgres propio del grafo. El seed corre via initdb SOLO con volumen virgen:
+  # reseed = docker compose down && docker volume rm businessos_grafo-db-data
+  # && docker compose up -d grafo-db grafo   (ver grafo/README.md).
+  grafo-db:
+    image: postgres:16-alpine
+    container_name: grafo-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=grafo
+      - POSTGRES_PASSWORD=${GRAFO_DB_PASSWORD}
+      - POSTGRES_DB=grafo
+    volumes:
+      - grafo-db-data:/var/lib/postgresql/data
+      # initdb ejecuta los .sql en orden alfabetico (01-schema, 02-seed);
+      # ignora .json y .py del mismo directorio.
+      - ./grafo/seed:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grafo -d grafo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+
 networks:
   hermes-net:
     driver: bridge
+
+volumes:
+  grafo-db-data:

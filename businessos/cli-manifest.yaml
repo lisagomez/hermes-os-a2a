@@ -52,7 +52,11 @@ phases:
         source: own
         why: "Consultar evaluaciones de impacto regulatorio/fiscal/contable."
         verticales: [negocio, clientes]
-        note: "Ajusta la ruta del spec a la real que exponga grafo."
+        note: >-
+          Spec REAL desde Fase 2 (2026-07): FastAPI la genera sin DB (pool lazy),
+          rutas /evaluaciones y /health. Sin auth dentro de hermes-net (nada que
+          cablear a mano). Imprimir cuando la prensa esté disponible (Claude Code
+          con Go); desde el host tambien sirve http://127.0.0.1:3000/openapi.json.
 
   "3":
     label: "Pago y contratos-documento"

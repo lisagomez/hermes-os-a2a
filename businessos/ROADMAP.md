@@ -96,15 +96,28 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
   alerta al 80% ($24); fijado el 2026-06-30 (antes 120; bajado tras la eficiencia de Fase 1).
   Fuente única del número: `negocio/MEMORY.md`.
 
-## FASE 2 — Cerebro regulatorio (grafo), acotado
+## FASE 2 — Cerebro regulatorio (grafo), acotado ✅ (núcleo completo 2026-07-02; residuales visibles)
 
 Empezar por UN país + UNA dimensión, no los diez de golpe.
-- grafo como servicio Docker en hermes-net con su PostgreSQL
-- Rediseño del modelo: proyecto → jurisdicción → dimensión → regla → impacto
-- Primer país-dimensión (sugerido: México + fiscal, o tu mercado principal)
-- Validar el flujo completo de evaluación end-to-end
-- Regla de oro: el sistema SEÑALA riesgos y cita fuentes; NO da asesoría legal
-- **Salida:** una evaluación real con banderas rojas, checklist y fuentes.
+- [x] grafo como servicio Docker en hermes-net con su PostgreSQL (`businessos/grafo/`:
+  FastAPI + postgres:16-alpine, puerto solo 127.0.0.1:3000, seed vía initdb)
+- [x] Rediseño del modelo: proyecto → jurisdicción → dimensión → regla → impacto
+  ("proyecto" = contexto de la request, persistido en `evaluaciones.contexto`; KISS)
+- [x] Primer país-dimensión: México + fiscal (11 reglas / 13 impactos citando LISR/CFF/SAT,
+  7 categorías de gasto, régimen PM Título II; gate de procedencia en `gen_seed_sql.py --check`)
+- [x] Flujo completo de evaluación end-to-end validado (motor puro + API, 31 tests pytest;
+  evaluación real con veredicto por concepto + fuente citada)
+- [x] Regla de oro cumplida por diseño: fail-safe `dudoso` "sin regla aplicable", disclaimer
+  SIEMPRE, cero afirmación sin fuente (invariante testeado)
+- [x] Integración facturas: host-job `evaluar-facturas.py` (pendiente → veredicto en Supabase);
+  AGENTS.md de clientes/negocio actualizados (agente consulta grafo por HTTP sin secretos)
+- [ ] **RESIDUAL (Droplet)** — `docker compose up` real + `--dry-run` contra Supabase productivo
+  (aquí el daemon Docker está apagado y no hay `.env`; validado local con uvicorn + mock)
+- [ ] **RESIDUAL (toolchain)** — CLI del grafo impreso con Printing Press grado ≥A (sin Go/prensa
+  en esta máquina; el manifiesto ya apunta a `http://grafo:3000/openapi.json`)
+- [ ] (Fase 3) Cotejo DOF de cifras con `verificar:true` + cron de vigencias
+- **Salida:** ✅ evaluación real con banderas rojas, checklist y 7 fuentes citadas
+  (consultoría=deducible LISR 27-V; hotel=dudoso LISR 28-V; MacBook=dudoso LISR 34-VII).
 
 ## FASE 3 — Expansión del grafo + cobro + contratos-documento
 
