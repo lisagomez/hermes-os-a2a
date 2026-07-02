@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
-SEED_JSON = AQUI / "reglas_mx.json"
+SEED_JSON = AQUI / "reglas.json"
 SEED_SQL = AQUI / "02-seed.sql"
 
 VEREDICTOS = {"deducible", "no_deducible", "dudoso"}
@@ -85,10 +85,22 @@ def validar(seed: dict) -> list[str]:
                 err(e, f"keyword {kw!r} repetida en {kw_global[kw]} y {clave} (clasificacion ambigua)")
             kw_global[kw] = clave
 
+    jurs = {j.get("codigo") for j in seed.get("jurisdicciones", [])}
+    dims = {d.get("codigo") for d in seed.get("dimensiones", [])}
     claves_regla: set[str] = set()
     n_impactos = 0
     for regla in seed.get("reglas", []):
         clave = regla.get("clave", "?")
+        # v2: con catalogo multiple, el ambito de cada regla debe ser explicito y valido
+        jur, dim = regla.get("jurisdiccion"), regla.get("dimension")
+        if len(jurs) > 1 and jur is None:
+            err(e, f"regla {clave}: falta jurisdiccion (hay {len(jurs)} en el catalogo)")
+        if len(dims) > 1 and dim is None:
+            err(e, f"regla {clave}: falta dimension (hay {len(dims)} en el catalogo)")
+        if jur is not None and jur not in jurs:
+            err(e, f"regla {clave}: jurisdiccion desconocida {jur!r}")
+        if dim is not None and dim not in dims:
+            err(e, f"regla {clave}: dimension desconocida {dim!r}")
         if clave in claves_regla:
             err(e, f"regla duplicada {clave!r}")
         claves_regla.add(clave)

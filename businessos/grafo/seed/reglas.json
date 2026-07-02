@@ -1,0 +1,834 @@
+{
+  "_meta": {
+    "descripcion": "Seed del grafo v2 (Fase 3): fiscal MX + fiscal CO + contable MX + contractual MX. FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
+    "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
+    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion",
+    "regimen_default": "PM_TITULO_II"
+  },
+  "jurisdicciones": [
+    {
+      "codigo": "MX",
+      "nombre": "Mexico"
+    },
+    {
+      "codigo": "CO",
+      "nombre": "Colombia"
+    }
+  ],
+  "dimensiones": [
+    {
+      "codigo": "fiscal",
+      "nombre": "Fiscal (deducibilidad de gastos)"
+    },
+    {
+      "codigo": "contable",
+      "nombre": "Contable (registro y normas de informacion financiera)"
+    },
+    {
+      "codigo": "contractual",
+      "nombre": "Contractual (clausulas de acuerdos comerciales)"
+    }
+  ],
+  "categorias": [
+    {
+      "clave": "VIATICOS",
+      "nombre": "Viaticos y gastos de viaje",
+      "descripcion": "Hospedaje, alimentacion, transporte y kilometraje fuera de la faja de 50 km",
+      "keywords": [
+        "viatico",
+        "viaticos",
+        "hospedaje",
+        "hotel",
+        "vuelo",
+        "avion",
+        "boleto de avion",
+        "viaje",
+        "peaje",
+        "taxi",
+        "uber",
+        "transporte foraneo",
+        "kilometraje"
+      ]
+    },
+    {
+      "clave": "SERVICIOS_PROFESIONALES",
+      "nombre": "Servicios profesionales y honorarios",
+      "descripcion": "Honorarios, consultoria y servicios independientes",
+      "keywords": [
+        "honorarios",
+        "consultoria",
+        "asesoria",
+        "servicios profesionales",
+        "servicio profesional",
+        "abogado",
+        "contador",
+        "notario",
+        "diseno",
+        "desarrollo de software",
+        "freelance"
+      ]
+    },
+    {
+      "clave": "EQUIPO_DE_COMPUTO",
+      "nombre": "Equipo de computo",
+      "descripcion": "Computadoras, servidores, perifericos (inversion, no gasto)",
+      "keywords": [
+        "computadora",
+        "laptop",
+        "servidor",
+        "monitor",
+        "impresora",
+        "teclado",
+        "equipo de computo",
+        "macbook",
+        "pc de escritorio",
+        "disco duro",
+        "memoria ram"
+      ]
+    },
+    {
+      "clave": "DONATIVOS",
+      "nombre": "Donativos",
+      "descripcion": "Donativos a donatarias autorizadas",
+      "keywords": [
+        "donativo",
+        "donativos",
+        "donacion",
+        "donaciones"
+      ]
+    },
+    {
+      "clave": "INTERESES",
+      "nombre": "Intereses y financiamiento",
+      "descripcion": "Intereses de prestamos y creditos del negocio",
+      "keywords": [
+        "interes",
+        "intereses",
+        "interes moratorio",
+        "financiamiento",
+        "credito",
+        "prestamo"
+      ]
+    },
+    {
+      "clave": "COMBUSTIBLES",
+      "nombre": "Combustibles",
+      "descripcion": "Gasolina y diesel para vehiculos del negocio",
+      "keywords": [
+        "gasolina",
+        "diesel",
+        "combustible",
+        "magna",
+        "premium",
+        "carga de combustible"
+      ]
+    },
+    {
+      "clave": "ARRENDAMIENTO",
+      "nombre": "Arrendamiento",
+      "descripcion": "Rentas de inmuebles, autos y equipos",
+      "keywords": [
+        "renta",
+        "arrendamiento",
+        "alquiler",
+        "renta de oficina",
+        "renta de local",
+        "renta de auto",
+        "leasing"
+      ]
+    },
+    {
+      "clave": "CLAUSULA_PAGO",
+      "nombre": "Clausula de pago y contraprestacion",
+      "descripcion": "Forma, calendario y condiciones de pago pactadas en el contrato",
+      "keywords": [
+        "forma de pago",
+        "condiciones de pago",
+        "contraprestacion",
+        "precio pactado",
+        "calendario de pagos",
+        "anticipo"
+      ]
+    },
+    {
+      "clave": "CLAUSULA_CONFIDENCIALIDAD",
+      "nombre": "Clausula de confidencialidad",
+      "descripcion": "Obligaciones de no divulgacion y proteccion de informacion",
+      "keywords": [
+        "confidencialidad",
+        "confidencial",
+        "no divulgacion",
+        "nda",
+        "secreto industrial"
+      ]
+    },
+    {
+      "clave": "CLAUSULA_TERMINACION",
+      "nombre": "Clausula de terminacion y vigencia",
+      "descripcion": "Vigencia, renovacion, preaviso y causales de terminacion",
+      "keywords": [
+        "terminacion",
+        "rescision",
+        "vigencia del contrato",
+        "renovacion automatica",
+        "preaviso",
+        "causales de terminacion"
+      ]
+    },
+    {
+      "clave": "CLAUSULA_PENAL",
+      "nombre": "Clausula penal / pena convencional",
+      "descripcion": "Penalizaciones pactadas por incumplimiento",
+      "keywords": [
+        "pena convencional",
+        "clausula penal",
+        "penalizacion",
+        "mora"
+      ]
+    }
+  ],
+  "reglas": [
+    {
+      "clave": "MX-LISR-27-I",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Estricta indispensabilidad y donativos",
+      "texto_resumen": "Las deducciones deben ser estrictamente indispensables para los fines de la actividad del contribuyente, salvo donativos no onerosos ni remunerativos a donatarias autorizadas, deducibles hasta el 7% de la utilidad fiscal del ejercicio anterior.",
+      "fuente_cita": "LISR Art. 27, fraccion I",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "veredicto_base": null,
+          "requisitos": [
+            "El gasto es estrictamente indispensable para la actividad del negocio"
+          ],
+          "banderas": [],
+          "parametros": {}
+        },
+        {
+          "categoria": "DONATIVOS",
+          "veredicto_base": "dudoso",
+          "tope_pct": 7.0,
+          "requisitos": [
+            "La donataria esta en el listado de autorizadas del SAT vigente",
+            "CFDI de donativo",
+            "No excede 7% de la utilidad fiscal del ejercicio anterior"
+          ],
+          "banderas": [],
+          "parametros": {
+            "base_tope": "utilidad fiscal del ejercicio anterior",
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-27-III",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "CFDI y medios de pago electronicos",
+      "texto_resumen": "Deducciones amparadas con CFDI; pagos cuyo monto exceda $2,000 MXN deben efectuarse mediante transferencia, cheque nominativo, tarjeta o monedero electronico. Los combustibles para vehiculos deben pagarse con esos medios AUNQUE no excedan $2,000.",
+      "fuente_cita": "LISR Art. 27, fraccion III",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "veredicto_base": null,
+          "requisitos": [
+            "Existe CFDI valido que ampara el gasto",
+            "Si el pago excede $2,000 MXN, se pago con medio electronico (transferencia/cheque/tarjeta/monedero)"
+          ],
+          "banderas": [],
+          "parametros": {
+            "umbral_pago_electronico_mxn": 2000,
+            "verificar": true
+          }
+        },
+        {
+          "categoria": "COMBUSTIBLES",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Pagado con medio electronico SIN importar el monto (efectivo = no deducible)",
+            "CFDI con complemento correspondiente"
+          ],
+          "banderas": [
+            "Combustible: si se pago en efectivo NO es deducible (LISR 27-III)"
+          ],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-27-V",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Retenciones a terceros (honorarios)",
+      "texto_resumen": "Cumplir obligaciones de retencion y entero de impuestos a cargo de terceros. Honorarios pagados a personas fisicas: retencion del 10% de ISR.",
+      "fuente_cita": "LISR Art. 27, fraccion V (y Art. 106 ultimo parrafo)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "SERVICIOS_PROFESIONALES",
+          "veredicto_base": "deducible",
+          "requisitos": [
+            "CFDI de honorarios",
+            "Si el prestador es persona fisica: retencion de 10% ISR efectuada y enterada",
+            "Pago efectivamente erogado en el ejercicio (Art. 27 fracc. VIII)"
+          ],
+          "banderas": [],
+          "parametros": {
+            "retencion_isr_pf_pct": 10,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-27-VII",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Intereses por capitales tomados en prestamo",
+      "texto_resumen": "Intereses deducibles cuando el capital tomado en prestamo se invierta en los fines del negocio.",
+      "fuente_cita": "LISR Art. 27, fraccion VII",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "INTERESES",
+          "veredicto_base": "deducible",
+          "requisitos": [
+            "El capital del prestamo se destino a los fines del negocio (documentar destino)",
+            "CFDI o estado de cuenta que ampare los intereses"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-28-V",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Viaticos: topes y faja de 50 km",
+      "texto_resumen": "Viaticos no deducibles salvo que se destinen a hospedaje, alimentacion, transporte, uso de automovil y kilometraje, aplicados fuera de una faja de 50 km del establecimiento, y el beneficiario tenga relacion de trabajo o preste servicios profesionales. Topes diarios: alimentacion $750 nacional / $1,500 extranjero; hospedaje extranjero $3,850; renta de autos $850.",
+      "fuente_cita": "LISR Art. 28, fraccion V",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "VIATICOS",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Erogado fuera de la faja de 50 km del establecimiento",
+            "Beneficiario con relacion laboral o de servicios profesionales",
+            "CFDI de cada erogacion",
+            "Dentro de los topes diarios por concepto"
+          ],
+          "banderas": [],
+          "parametros": {
+            "tope_alimentacion_nacional_dia": 750,
+            "tope_alimentacion_extranjero_dia": 1500,
+            "tope_hospedaje_extranjero_dia": 3850,
+            "tope_renta_auto_dia": 850,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-28-XIII",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Renta de automoviles, aviones y casas habitacion",
+      "texto_resumen": "Renta de automoviles deducible hasta $200 diarios por unidad ($285 si es electrico/hibrido); renta de aviones/embarcaciones y casas habitacion solo con requisitos reglamentarios.",
+      "fuente_cita": "LISR Art. 28, fraccion XIII",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2017-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "ARRENDAMIENTO",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Si es renta de automovil: dentro del tope diario y el vehiculo es estrictamente indispensable",
+            "Si es inmueble de uso del negocio (oficina/local): CFDI de arrendamiento con retenciones aplicables",
+            "Si es casa habitacion/avion/embarcacion: cumplir requisitos del RLISR (alta probabilidad de NO deducible)"
+          ],
+          "banderas": [],
+          "parametros": {
+            "tope_renta_auto_dia": 200,
+            "tope_renta_auto_electrico_dia": 285,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-28-XXVII",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Capitalizacion delgada (partes relacionadas extranjeras)",
+      "texto_resumen": "No deducibles los intereses de deudas con partes relacionadas residentes en el extranjero que excedan la proporcion deuda/capital de 3:1.",
+      "fuente_cita": "LISR Art. 28, fraccion XXVII",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "INTERESES",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Si el acreedor es parte relacionada extranjera: verificar que la deuda no excede 3 veces el capital contable"
+          ],
+          "banderas": [],
+          "parametros": {
+            "ratio_deuda_capital": "3:1",
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-28-XXXII",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Limitacion de intereses netos (30% utilidad fiscal ajustada)",
+      "texto_resumen": "Intereses netos del ejercicio que excedan el 30% de la utilidad fiscal ajustada no son deducibles; aplica cuando los intereses netos exceden $20,000,000.",
+      "fuente_cita": "LISR Art. 28, fraccion XXXII",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2020-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "INTERESES",
+          "veredicto_base": null,
+          "tope_pct": 30.0,
+          "requisitos": [
+            "Si los intereses netos anuales exceden $20M MXN: revisar limite del 30% de utilidad fiscal ajustada"
+          ],
+          "banderas": [],
+          "parametros": {
+            "umbral_intereses_netos_mxn": 20000000,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISR-34-VII",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Equipo de computo: inversion con depreciacion 30%",
+      "texto_resumen": "El equipo de computo es INVERSION, no gasto: se deduce via depreciacion con tasa maxima anual del 30% (computadoras, servidores, impresoras).",
+      "fuente_cita": "LISR Arts. 31-34; Art. 34, fraccion VII",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "EQUIPO_DE_COMPUTO",
+          "veredicto_base": "dudoso",
+          "tope_pct": 30.0,
+          "requisitos": [
+            "Registrar como inversion (activo fijo), no como gasto del ejercicio",
+            "Deducir via depreciacion: maximo 30% anual",
+            "CFDI a nombre del contribuyente"
+          ],
+          "banderas": [
+            "Equipo de computo: no es deducible al 100% como gasto directo; es inversion con depreciacion 30% anual (LISR 34-VII)"
+          ],
+          "parametros": {
+            "tasa_depreciacion_anual_pct": 30,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CFF-29A",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Requisitos de los CFDI",
+      "texto_resumen": "Todo comprobante debe ser CFDI con los requisitos del 29-A (RFC emisor/receptor, uso de CFDI, forma y metodo de pago). Sin CFDI valido no hay deduccion.",
+      "fuente_cita": "CFF Arts. 29 y 29-A",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "veredicto_base": null,
+          "requisitos": [
+            "CFDI vigente (no cancelado) con requisitos del Art. 29-A CFF",
+            "Uso de CFDI congruente con el gasto"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-SAT-CRIT-VIATICOS",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "titulo": "Criterio SAT: relacion laboral en viaticos",
+      "texto_resumen": "Para la deducibilidad, los viaticos deben corresponder a personas con relacion laboral o que presten servicios profesionales a la empresa.",
+      "fuente_cita": "Criterio Normativo SAT (viaticos)",
+      "fuente_url": "https://www.sat.gob.mx/normatividad/criterios-normativos#viaticos",
+      "vigente_desde": "2026-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "VIATICOS",
+          "veredicto_base": null,
+          "requisitos": [
+            "Acreditar relacion laboral o de servicios del beneficiario del viatico (criterio SAT)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CFF-28-CONTABILIDAD",
+      "jurisdiccion": "MX",
+      "dimension": "contable",
+      "titulo": "Integracion de la contabilidad y contabilidad electronica",
+      "texto_resumen": "La contabilidad se integra por libros, registros, papeles de trabajo, CFDI y demas documentacion; los registros deben cumplir los requisitos del reglamento y la contabilidad electronica se ingresa mensualmente a traves del portal del SAT.",
+      "fuente_cita": "CFF Art. 28",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Registro contable del gasto con la documentacion soporte integrada (CFF 28)",
+            "Contabilidad electronica enviada al SAT en los plazos aplicables"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CFF-30-CONSERVACION",
+      "jurisdiccion": "MX",
+      "dimension": "contable",
+      "titulo": "Conservacion de la contabilidad (5 anos)",
+      "texto_resumen": "La contabilidad y documentacion soporte deben conservarse durante 5 anos contados desde la fecha en que se presentaron o debieron presentarse las declaraciones relacionadas.",
+      "fuente_cita": "CFF Art. 30",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Conservar el soporte documental del registro durante 5 anos (CFF 30)"
+          ],
+          "banderas": [],
+          "parametros": {
+            "plazo_conservacion_anios": 5,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-NIF-C6-ACTIVO-FIJO",
+      "jurisdiccion": "MX",
+      "dimension": "contable",
+      "titulo": "Propiedades, planta y equipo (NIF C-6)",
+      "texto_resumen": "El equipo (incluido el de computo) se reconoce como activo fijo y se deprecia contablemente segun su vida util estimada y valor residual; la tasa contable puede diferir de la fiscal (LISR 34).",
+      "fuente_cita": "NIF C-6 (CINIF), Propiedades, planta y equipo",
+      "fuente_url": "https://www.cinif.org.mx/",
+      "vigente_desde": "2011-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "EQUIPO_DE_COMPUTO",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Reconocer como propiedades, planta y equipo (activo), no como gasto",
+            "Depreciar segun vida util estimada y valor residual (NIF C-6)",
+            "Conciliar la depreciacion contable con la fiscal (LISR 34: 30%) en la conciliacion contable-fiscal"
+          ],
+          "banderas": [
+            "La depreciacion contable (NIF C-6, vida util) puede diferir de la fiscal (LISR 34): registrar la diferencia temporal"
+          ],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-NIF-D5-ARRENDAMIENTOS",
+      "jurisdiccion": "MX",
+      "dimension": "contable",
+      "titulo": "Arrendamientos (NIF D-5)",
+      "texto_resumen": "Los contratos de arrendamiento se reconocen con un activo por derecho de uso y un pasivo por arrendamiento, salvo plazo corto (<=12 meses) o bajo valor.",
+      "fuente_cita": "NIF D-5 (CINIF), Arrendamientos",
+      "fuente_url": "https://www.cinif.org.mx/",
+      "vigente_desde": "2019-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "ARRENDAMIENTO",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Evaluar si el contrato califica como arrendamiento bajo NIF D-5",
+            "Reconocer activo por derecho de uso y pasivo, salvo corto plazo o bajo valor"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "CO-ET-107-EXPENSAS",
+      "jurisdiccion": "CO",
+      "dimension": "fiscal",
+      "titulo": "Expensas necesarias: causalidad, necesidad y proporcionalidad",
+      "texto_resumen": "Son deducibles las expensas realizadas durante el ano gravable en desarrollo de la actividad productora de renta, siempre que tengan relacion de causalidad con ella y sean necesarias y proporcionadas.",
+      "fuente_cita": "Estatuto Tributario (CO), Art. 107",
+      "fuente_url": "http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html",
+      "vigente_desde": "1989-03-30",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Relacion de causalidad con la actividad productora de renta",
+            "Gasto necesario y proporcionado segun criterio comercial (ET 107)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        },
+        {
+          "categoria": "SERVICIOS_PROFESIONALES",
+          "regimen": "GENERAL",
+          "veredicto_base": "deducible",
+          "requisitos": [
+            "Factura electronica valida del prestador",
+            "Retencion en la fuente por honorarios practicada y consignada (tarifa segun norma vigente)"
+          ],
+          "banderas": [],
+          "parametros": {
+            "retencion_honorarios_pct": 11,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "CO-ET-771-2-FACTURA",
+      "jurisdiccion": "CO",
+      "dimension": "fiscal",
+      "titulo": "Procedencia de costos y deducciones: factura",
+      "texto_resumen": "Para la procedencia de costos, deducciones e impuestos descontables se requiere factura (electronica) o documento equivalente con los requisitos de los articulos 617 y 618 del ET.",
+      "fuente_cita": "Estatuto Tributario (CO), Art. 771-2",
+      "fuente_url": "http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html",
+      "vigente_desde": "1997-07-14",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Factura electronica o documento equivalente con requisitos ET 617/618 (validada ante DIAN)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "CO-ET-104-REALIZACION",
+      "jurisdiccion": "CO",
+      "dimension": "fiscal",
+      "titulo": "Realizacion de las deducciones",
+      "texto_resumen": "Las deducciones se entienden realizadas cuando se paguen efectivamente o, para obligados a llevar contabilidad, cuando se devenguen (causacion).",
+      "fuente_cita": "Estatuto Tributario (CO), Art. 104",
+      "fuente_url": "http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html",
+      "vigente_desde": "1989-03-30",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Deduccion imputada al periodo correcto: pago efectivo o devengo si se lleva contabilidad (ET 104)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-1794-1796-ELEMENTOS",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Elementos y obligatoriedad del contrato",
+      "texto_resumen": "El contrato existe con consentimiento y objeto; es valido si hay capacidad, ausencia de vicios, objeto licito y la forma que la ley exija. Desde su perfeccionamiento obliga a lo expresamente pactado y a las consecuencias de la buena fe, el uso o la ley.",
+      "fuente_cita": "Codigo Civil Federal, Arts. 1794-1796",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1932-10-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Identificacion y capacidad de las partes acreditadas",
+            "Objeto del contrato licito y determinado (alcance del servicio/entregables)",
+            "Consentimiento documentado (firma de ambas partes)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-1843-PENA",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Clausula penal: limite",
+      "texto_resumen": "La clausula penal no puede exceder ni en valor ni en cuantia a la obligacion principal; el exceso es nulo.",
+      "fuente_cita": "Codigo Civil Federal, Art. 1843",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1932-10-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CLAUSULA_PENAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "La pena convencional no excede el valor de la obligacion principal (CCF 1843)",
+            "Supuestos de incumplimiento que activan la pena definidos con precision"
+          ],
+          "banderas": [
+            "Clausula penal: si excede la obligacion principal, el exceso es nulo (CCF 1843) — revisar cuantia"
+          ],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCO-78-FORMA",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Libertad de forma en materia mercantil",
+      "texto_resumen": "En las convenciones mercantiles cada parte se obliga en la manera y terminos que aparezca que quiso obligarse, sin que la validez dependa de formalidades, salvo los casos en que la ley exija forma especifica.",
+      "fuente_cita": "Codigo de Comercio, Art. 78",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCom.pdf",
+      "vigente_desde": "1890-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": null,
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Terminos pactados por escrito aunque la ley no exija formalidad (evidencia mercantil, CCo 78)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CFF-29A-CONTRACTUAL",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Pagos del contrato y facturacion CFDI",
+      "texto_resumen": "Los pagos pactados en el contrato deben ampararse con CFDI que cumpla los requisitos del CFF 29-A; definir moneda, plazos, y retenciones aplicables segun el tipo de contraparte.",
+      "fuente_cita": "CFF Arts. 29 y 29-A",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+      "vigente_desde": "2014-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CLAUSULA_PAGO",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Cada pago pactado se factura con CFDI valido (CFF 29-A)",
+            "Moneda, calendario y condiciones de pago definidos sin ambiguedad",
+            "Retenciones aplicables identificadas segun el tipo de contraparte"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPDPPP-21-CONFIDENCIALIDAD",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Deber de confidencialidad (datos personales)",
+      "texto_resumen": "Quien trate datos personales debe guardar confidencialidad respecto de ellos; la obligacion subsiste aun despues de terminada la relacion con el titular o el responsable.",
+      "fuente_cita": "LFPDPPP Art. 21",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+      "vigente_desde": "2010-07-06",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CLAUSULA_CONFIDENCIALIDAD",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Informacion confidencial delimitada (que incluye y que no)",
+            "Plazo de la obligacion definido; si hay datos personales, la confidencialidad subsiste tras terminar la relacion (LFPDPPP 21)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-1797-TERMINACION",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "titulo": "Terminacion: no al arbitrio de una sola parte",
+      "texto_resumen": "La validez y el cumplimiento de los contratos no puede dejarse al arbitrio de uno de los contratantes; las causales y mecanica de terminacion deben ser claras y bilaterales.",
+      "fuente_cita": "Codigo Civil Federal, Art. 1797",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1932-10-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CLAUSULA_TERMINACION",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Causales de terminacion claras y no potestativas de una sola parte (CCF 1797)",
+            "Preaviso y efectos de la terminacion definidos (pagos devengados, entregables, devolucion de informacion)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    }
+  ]
+}

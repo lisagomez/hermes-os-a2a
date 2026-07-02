@@ -363,7 +363,9 @@ npm run lint         # ESLint
   `http://grafo:3000` en hermes-net). Regla de oro cumplida por diseño: fail-safe `dudoso`
   "sin regla aplicable", disclaimer siempre, y TODO lo que aporta al output cita su fuente
   (incluso impactos sin veredicto que solo dan requisitos). El seed se edita SOLO en
-  `seed/reglas_mx.json` (+ `gen_seed_sql.py`, con gate de procedencia); `02-seed.sql` es generado.
+  `seed/reglas.json` (+ `gen_seed_sql.py`, con gate de procedencia); `02-seed.sql` es generado.
+  Fase 3: ámbitos fiscal MX/CO, contable MX y contractual MX; regimen GENERAL = wildcard;
+  la clasificación no cruza dominios (solo categorías del ámbito).
   Gotchas de esta máquina: venv de python3.14 nace sin pip (bootstrap con get-pip.py) y
   `docker compose config` exige un `.env` aunque sea copia temporal del example.
 - **Aplicar en**: consultas de deducibilidad (via grafo, nunca opinar sin fuente), edición de

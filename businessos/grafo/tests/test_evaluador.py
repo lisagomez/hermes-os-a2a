@@ -8,7 +8,7 @@ import pytest
 from evaluador import DISCLAIMER, RAZON_SIN_REGLA, clasificar, evaluar
 
 SEED = json.loads(
-    (Path(__file__).resolve().parent.parent / "seed" / "reglas_mx.json").read_text(encoding="utf-8")
+    (Path(__file__).resolve().parent.parent / "seed" / "reglas.json").read_text(encoding="utf-8")
 )
 REGLAS = SEED["reglas"]
 CATEGORIAS = SEED["categorias"]
