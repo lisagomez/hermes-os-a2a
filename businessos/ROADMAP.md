@@ -52,7 +52,14 @@ vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
 - **Salida:** las tres verticales vivas y respondiendo.
 
-## FASE 1 — Eficiencia de tokens  ← EN CURSO (routing aplicado en las 3)
+## FASE 1 — Eficiencia de tokens  ← ✅ COMPLETA en su núcleo (residuales diferidos al Droplet)
+
+> **Cierre (2026-07-01):** la salida —gasto mensual controlado— está lograda en código:
+> routing en las 3 verticales, loop en gemini-flash-lite (caché 97%), ingesta a
+> `token_usage`, reporte de presupuesto y registro de facturas. Lo que queda NO bloquea
+> la fase: la alerta 80% por cron y el auto-tuner **dependen del Droplet** (Fase 0, aún
+> diferido), y falta **ejercitar en vivo** los modelos nuevos (gpt-oss/Sonnet aplicados
+> por config, no invocados). Ver residuales marcados abajo.
 
 Activar el ahorro una vez que el cimiento corre. Estado detallado en
 `.claude/memory/project/fase1-eficiencia.md`; gotchas en `hermes-vertical-setup.md`.
@@ -75,8 +82,14 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
   Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al Droplet.
 - [x] Reporte de presupuesto on-demand (2026-06-30): vista `v_presupuesto_mensual` + skill
   negocio `budget-report` (negocio reporta gasto del mes por Telegram, alerta al 80%).
-- [ ] Alerta de presupuesto al 80% AUTOMÁTICA (push proactivo) — la entrega por cron se DIFIERE
-  al Droplet (WSL2 no 24/7); por ahora es on-demand (preguntándole a negocio)
+- [x] Registro de `facturas` (2026-07-01): job de host `businessos/ingest-facturas.py` (patrón
+  inverso al snapshot de tokens; el agente deja JSON en el volumen, el job hace UPSERT vía
+  service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al Droplet.
+- [ ] **RESIDUAL — validación en vivo de modelos nuevos**: `title_generation` (gpt-oss) y `vision`
+  (Sonnet) están aplicados por config pero NO se han invocado de verdad. Ejercitar y confirmar por
+  `agent.log`. No bloquea la fase; local, no depende del Droplet.
+- [ ] **RESIDUAL (Droplet)** — Alerta de presupuesto al 80% AUTOMÁTICA (push proactivo): la entrega
+  por cron se DIFIERE al Droplet (WSL2 no 24/7); por ahora es on-demand (preguntándole a negocio)
 - [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
   aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
 - **Salida:** gasto mensual controlado. Presupuesto **$30/mes TOTAL** (las 3 verticales),

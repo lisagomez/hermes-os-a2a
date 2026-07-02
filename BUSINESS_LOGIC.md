@@ -138,7 +138,8 @@ businessos/
 
 ### Próximos Pasos (roadmap)
 1. [ ] **Fase 0** — Infra: Droplet + Docker + 3 verticales vivas (EN CURSO)
-2. [ ] **Fase 1** — Eficiencia de tokens: routing, `token_usage`, alertas 80%
+2. [x] **Fase 1** — Eficiencia de tokens: routing, `token_usage`, reporte + facturas (núcleo
+   completo 2026-07-01; residuales —alerta 80% por cron, validación en vivo de modelos— diferidos)
 3. [ ] **Fase 2** — Grafo acotado: 1 país + 1 dimensión, evaluación end-to-end
 4. [ ] **Fase 3** — Expansión grafo + cobro (Polar) + contratos-documento
 5. [ ] **Fase 4** — Dashboard Mission Control (A2ABot)
