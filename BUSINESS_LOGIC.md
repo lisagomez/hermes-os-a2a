@@ -80,8 +80,10 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
   impuestos, total` + deducibilidad pendiente hasta el grafo).
 - Volumen `.hermes` por vertical: config, credenciales, sesiones, skills, memoria.
 - Bóveda Obsidian (`/opt/data/obsidian`): conocimiento personal versionado.
-- Grafo (Fase 2+): PostgreSQL propio con el modelo
-  proyecto → jurisdicción → dimensión → regla → impacto.
+- Grafo (Fase 2, construido): PostgreSQL propio con el modelo
+  proyecto → jurisdicción → dimensión → regla → impacto; MX + fiscal, 11 reglas
+  citadas (LISR/CFF/SAT). Veredictos de facturas: `deducibilidad_estado` +
+  `deducibilidad_detalle` los escribe el host-job `evaluar-facturas.py`.
 
 ---
 
@@ -140,7 +142,8 @@ businessos/
 1. [ ] **Fase 0** — Infra: Droplet + Docker + 3 verticales vivas (EN CURSO)
 2. [x] **Fase 1** — Eficiencia de tokens: routing, `token_usage`, reporte + facturas (núcleo
    completo 2026-07-01; residuales —alerta 80% por cron, validación en vivo de modelos— diferidos)
-3. [ ] **Fase 2** — Grafo acotado: 1 país + 1 dimensión, evaluación end-to-end
+3. [x] **Fase 2** — Grafo acotado: MX + fiscal, evaluación end-to-end con fuente citada (núcleo
+   completo 2026-07-02; residuales —up en Droplet, dry-run contra Supabase, CLI impreso— diferidos)
 4. [ ] **Fase 3** — Expansión grafo + cobro (Polar) + contratos-documento
 5. [ ] **Fase 4** — Dashboard Mission Control (A2ABot)
 6. [ ] **Fase 5 (futura)** — Interoperabilidad A2A + economía agéntica (Circle, Lean 4)

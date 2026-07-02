@@ -358,6 +358,18 @@ npm run lint         # ESLint
   (`go install`/`npx skills add`) lo bloquea el clasificador de auto-mode: requiere modo no-auto.
 - **Aplicar en**: cualquier impresión de CLI agente-nativo. Ver `.claude/memory/project/cli-printing-press.md`.
 
+### 2026-07-02: Grafo (Fase 2) construido + gotchas de toolchain local
+- **Aprendizaje**: el cerebro regulatorio vive en `businessos/grafo/` (FastAPI + postgres propio,
+  `http://grafo:3000` en hermes-net). Regla de oro cumplida por diseño: fail-safe `dudoso`
+  "sin regla aplicable", disclaimer siempre, y TODO lo que aporta al output cita su fuente
+  (incluso impactos sin veredicto que solo dan requisitos). El seed se edita SOLO en
+  `seed/reglas_mx.json` (+ `gen_seed_sql.py`, con gate de procedencia); `02-seed.sql` es generado.
+  Gotchas de esta máquina: venv de python3.14 nace sin pip (bootstrap con get-pip.py) y
+  `docker compose config` exige un `.env` aunque sea copia temporal del example.
+- **Aplicar en**: consultas de deducibilidad (via grafo, nunca opinar sin fuente), edición de
+  reglas fiscales, y cualquier venv/validación de compose local. Ver
+  `.claude/memory/project/fase2-grafo.md`.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

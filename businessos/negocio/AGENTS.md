@@ -95,17 +95,20 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
 
 ---
 
-## Fase futura (cuando exista el servicio `grafo`)
+## Deducibilidad fiscal (servicio `grafo`, Fase 2)
 
-> ⚠️ El servicio `grafo` NO está desplegado en Fase 0 (no está en
-> docker-compose.yml; ver "Siguiente fase" de FASE0.md). Hasta que
-> `http://grafo:3000` responda, NO ejecutes nada de esta sección — el cron de
-> cierre fallaría con connection-refused.
+El grafo (`http://grafo:3000`, misma red Docker, HTTP sin credenciales) es la
+**autoridad** sobre reglas fiscales: devuelve veredicto con fuente citada
+(LISR/CFF/SAT), banderas y checklist. Tú solo reportas lo que determina; no
+interpretas la regla por tu cuenta. Si no responde, repórtalo y omite la sección
+de deducciones (no adivines).
 
-### Deducibilidad fiscal (servicio grafo)
-- Para el cierre mensual, consulta el servicio `grafo` en `http://grafo:3000`
-  para clasificar gastos del periodo como deducibles / no deducibles.
-- El cron de cierre incluye un resumen de deducciones del mes con el monto
-  deducible total y los conceptos marcados como dudosos por grafo.
-- grafo es la autoridad sobre las reglas fiscales; tú solo reportas lo que
-  determina. No interpretas la regla por tu cuenta.
+- Para preguntas puntuales ("¿esto es deducible?"), consúltalo directo:
+  `POST http://grafo:3000/evaluaciones` con
+  `{"contexto":{"fecha":"YYYY-MM-DD"},"conceptos":[{"descripcion":"...","importe":0}]}`.
+  Presenta veredicto + `fuente.cita` + banderas + `disclaimer`, siempre.
+- Los veredictos por factura ya viven en Supabase (`facturas.deducibilidad_estado`
+  y `deducibilidad_detalle`): los escribe el host-job `businessos/evaluar-facturas.py`
+  (tú no tienes secretos de Supabase; consumes cifras vía snapshot, como siempre).
+- El cierre mensual incluye: monto deducible total del periodo y la lista de
+  conceptos `dudoso` con sus banderas, para que tu persona los revise con su contador.

@@ -98,18 +98,25 @@ La pregunta "¿qué modelo uso?" es la ÚLTIMA, no la primera.
 
 ---
 
-## Fase futura (cuando exista el servicio `grafo`)
+## Deducibilidad fiscal (servicio `grafo`, Fase 2)
 
-> ⚠️ El servicio `grafo` NO está desplegado en Fase 0 (no está en
-> docker-compose.yml; ver "Siguiente fase" de FASE0.md). Hasta que
-> `http://grafo:3000` responda, NO ejecutes nada de esta sección. En Fase 0 las
-> facturas SÍ se extraen y se guardan en `facturas`, pero la deducibilidad queda
-> como **pendiente** en cada fila; no la determines tú.
+El grafo es el cerebro regulatorio: evalúa deducibilidad con **fuente citada**
+(LISR/CFF/SAT). Vive en `http://grafo:3000` dentro de la red Docker y se consulta
+por HTTP **sin credenciales** (por eso TÚ sí puedes llamarlo). Si no responde,
+dilo y sigue: la deducibilidad queda `pendiente` y el host-job la pondrá al día.
 
-### Deducibilidad fiscal (servicio grafo)
-- Tras extraer los datos de una factura, consulta el servicio `grafo` en
-  `http://grafo:3000` (vía MCP/HTTP) para validar si cada concepto es deducible.
-- Registra el veredicto y su razón junto a la factura en Supabase.
-- Si grafo marca un concepto como no deducible o dudoso, NO lo decidas tú:
-  señálalo en el resumen para que tu persona revise. No das asesoría fiscal,
-  presentas lo que el grafo determina.
+- Cuando tu persona pregunte si un gasto es deducible, consúltalo directo:
+
+  ```bash
+  curl -s http://grafo:3000/evaluaciones -X POST -H 'content-type: application/json' \
+    -d '{"contexto":{"fecha":"2026-07-01"},"conceptos":[{"descripcion":"Hospedaje hotel Monterrey","importe":2400}]}'
+  ```
+
+- Presenta SIEMPRE: veredicto por concepto + la fuente que grafo cita (`fuente.cita`),
+  banderas rojas, checklist y el `disclaimer`. **Cero afirmación fiscal sin fuente.**
+- El veredicto en Supabase NO lo escribes tú (no tienes secretos): el host-job
+  `businessos/evaluar-facturas.py` toma cada factura `pendiente`, consulta a grafo y
+  escribe `deducibilidad_estado` + `deducibilidad_detalle`. Tu flujo de extracción no
+  cambia: sigue dejando el JSON en `facturas_pending/` con la deducibilidad sin tocar.
+- `dudoso` o `no_deducible` → escálalo a tu persona con las banderas del grafo. Tú no
+  decides ni das asesoría fiscal: presentas lo que el grafo determina y cita.
