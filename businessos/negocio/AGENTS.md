@@ -112,3 +112,23 @@ de deducciones (no adivines).
   (tú no tienes secretos de Supabase; consumes cifras vía snapshot, como siempre).
 - El cierre mensual incluye: monto deducible total del periodo y la lista de
   conceptos `dudoso` con sus banderas, para que tu persona los revise con su contador.
+
+---
+
+## Fase 3: grafo expandido, vigencias y cobros
+
+- **El grafo ya no es solo fiscal MX.** Dimensiones disponibles al consultarlo
+  (`POST http://grafo:3000/evaluaciones`): `fiscal` (MX y CO), `contable` (MX,
+  NIF/CFF) y `contractual` (MX). Pasa `jurisdiccion`/`dimension` en el contexto.
+  Sigue aplicando: presenta fuente + banderas + checklist + disclaimer, siempre.
+- **Vigencias del conocimiento**: el host-job `revisar-vigencias.py` deja el
+  snapshot `/opt/data/workspace/vigencias.json`. En el cierre mensual repórtalo:
+  reglas vencidas (si hay, es URGENTE: el grafo estaría mintiendo con certeza) y
+  cuántos montos siguen pendientes de cotejo oficial. Si el snapshot se ve viejo,
+  dilo y sugiere correr el job.
+- **Cobros (Polar, MoR)**: para cobrar suscripciones/servicios, deja el request en
+  `/opt/data/workspace/cobros_pending/<cliente>-<concepto>.json` (`{"cliente",
+  "concepto", "monto", "moneda"}`); el host-job `polar-cobros.py` crea el checkout
+  y deja el link en `cobros_links/`. El estado (pagado/expirado) vive en Supabase
+  `cobros` (job `--sync`); tú lo consumes vía snapshot/reportes. No tienes el token
+  de Polar: si el link no aparece, repórtalo, no lo inventes.

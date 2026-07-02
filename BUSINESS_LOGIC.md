@@ -80,7 +80,9 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
   impuestos, total` + deducibilidad pendiente hasta el grafo).
 - Volumen `.hermes` por vertical: config, credenciales, sesiones, skills, memoria.
 - Bóveda Obsidian (`/opt/data/obsidian`): conocimiento personal versionado.
-- Grafo (Fase 2, construido): PostgreSQL propio con el modelo
+- `cobros` y `contratos` (Fase 3): checkouts Polar y acuerdos validados por el grafo
+  (host-jobs `polar-cobros.py` / `validar-contratos.py`; aprobar/firmar = solo humano).
+- Grafo (Fase 2-3, construido): PostgreSQL propio con el modelo
   proyecto → jurisdicción → dimensión → regla → impacto; MX + fiscal, 11 reglas
   citadas (LISR/CFF/SAT). Veredictos de facturas: `deducibilidad_estado` +
   `deducibilidad_detalle` los escribe el host-job `evaluar-facturas.py`.
@@ -144,7 +146,9 @@ businessos/
    completo 2026-07-01; residuales —alerta 80% por cron, validación en vivo de modelos— diferidos)
 3. [x] **Fase 2** — Grafo acotado: MX + fiscal, evaluación end-to-end con fuente citada (núcleo
    completo 2026-07-02; residuales —up en Droplet, dry-run contra Supabase, CLI impreso— diferidos)
-4. [ ] **Fase 3** — Expansión grafo + cobro (Polar) + contratos-documento
+4. [x] **Fase 3** — Expansión grafo (fiscal MX/CO + contable + contractual, cron de vigencias)
+   + cobro Polar (payouts MX verificados) + contratos validados por grafo (núcleo completo
+   2026-07-02; residuales —cuenta Polar, SQL/jobs en Droplet— diferidos)
 5. [ ] **Fase 4** — Dashboard Mission Control (A2ABot)
 6. [ ] **Fase 5 (futura)** — Interoperabilidad A2A + economía agéntica (Circle, Lean 4)
 7. [ ] **Fase 6 (futura)** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor,

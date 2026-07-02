@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import Depends, FastAPI, HTTPException
 
 import evaluador
-from schemas import EvaluacionRequest, EvaluacionResponse, Salud
+from schemas import EvaluacionRequest, EvaluacionResponse, Salud, SaludConocimiento
 
 app = FastAPI(
     title="grafo",
@@ -49,6 +49,16 @@ def health() -> Salud:
         return Salud(status="ok", db="ok", reglas=n)
     except Exception as exc:
         return Salud(status="ok", db=str(exc), reglas=None)
+
+
+@app.get("/salud-conocimiento", response_model=SaludConocimiento, tags=["salud"])
+def salud_conocimiento(conocimiento: dict = Depends(dep_conocimiento)) -> SaludConocimiento:
+    """Radiografia del conocimiento: reglas vencidas, montos sin cotejo, ambitos.
+
+    La consume el cron `revisar-vigencias.py` (un grafo desactualizado miente
+    con certeza — ROADMAP Fase 3).
+    """
+    return SaludConocimiento(**evaluador.salud_conocimiento(conocimiento["reglas"]))
 
 
 @app.post("/evaluaciones", response_model=EvaluacionResponse, tags=["evaluaciones"])

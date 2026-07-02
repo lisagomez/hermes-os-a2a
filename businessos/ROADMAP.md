@@ -119,33 +119,39 @@ Empezar por UN país + UNA dimensión, no los diez de golpe.
 - **Salida:** ✅ evaluación real con banderas rojas, checklist y 7 fuentes citadas
   (consultoría=deducible LISR 27-V; hotel=dudoso LISR 28-V; MacBook=dudoso LISR 34-VII).
 
-## FASE 3 — Expansión del grafo + cobro + contratos-documento
+## FASE 3 — Expansión del grafo + cobro + contratos-documento ✅ (núcleo completo 2026-07-02; residuales visibles)
 
 El grafo crece, y encima de él se montan las dos capas que dependen de él:
 cobrar y contratar. Ambas usan el grafo como validador.
 
 Grafo:
-- Resto de dimensiones (contable apoyándose en NIIF; regulatorio por sector)
-- Resto de países LATAM
-- Cron de revisión de vigencias (un grafo desactualizado miente con certeza)
+- [x] Dimensión **contable** MX (NIF C-6/D-5 + CFF 28/30) y dimensión **contractual** MX
+  (CCF 1794-1797/1843, CCo 78, LFPDPPP 21, CFF 29-A) — seed v2: 24 reglas / 27 impactos
+- [x] Segundo país: **Colombia fiscal** (ET 107/771-2/104, regimen GENERAL wildcard).
+  Resto de LATAM: se agrega país por país al mismo seed (citado o no entra)
+- [x] Clasificación por ámbito (una cláusula no clasifica en una consulta fiscal y viceversa)
+- [x] Cron de vigencias: `GET /salud-conocimiento` + host-job `revisar-vigencias.py`
+  (snapshot a negocio; exit 1 si hay reglas vencidas sirviendo)
 
 Pasarela de pago tradicional (Polar):
-- Polar como Merchant of Record: cobra tarjetas/fiat en 100+ mercados y asume
-  la carga de IVA/GST/sales-tax internacional (resuelve en la práctica parte de
-  lo que el grafo evalúa en teoría)
-- Verificar ANTES: que Polar soporte payouts a tu país de cobro en LATAM
-  (paga vía Stripe Connect Express, ~120 países; hay huecos)
-- Costo a considerar: Starter 5% + 50¢ por transacción; planes de pago bajan la
-  tarifa (Pro $20/mes, Growth $100/mes, Scale $400/mes)
-- Lo usan Negocio (suscripciones, facturación) y Clientes (cobro a clientes)
+- [x] Verificado (2026-07-02): **payouts a México soportados** vía Stripe Connect Express
+  (Colombia también). Costo Starter 5% + 50¢; sandbox disponible
+- [x] Host-job `polar-cobros.py`: el agente deja request en `cobros_pending/` → checkout
+  session en Polar → link a `cobros_links/` + fila en `cobros`; `--sync` refresca estados
+- [ ] **RESIDUAL (cuenta)** — crear organización en Polar + Organization Access Token +
+  producto pay-what-you-want; llenar `POLAR_ACCESS_TOKEN`/`POLAR_PRODUCT_ID` en `.env`
+  y probar un cobro real (primero en sandbox)
 
 Contratos-documento (capa 1):
-- Generar/gestionar acuerdos comerciales (propuesta → contrato, términos,
-  vencimientos, renovaciones)
-- Cada contrato pasa por el grafo: valida cláusulas según el país del cliente,
-  marca banderas con su fuente
-- Aprobación humana obligatoria antes de cerrar (igual que el resto de Clientes)
-- **Salida:** cobertura multi-país del grafo + cobro real + contratos validados.
+- [x] Tabla `contratos` + plantilla (`clientes/contrato-template.md`) + host-job
+  `validar-contratos.py`: cláusulas → grafo (dimensión contractual, país del cliente) →
+  banderas con fuente → `en_revision`/`validado`. Aprobar/firmar = SOLO Elisa
+- [x] SQL de Fase 3 en `supabase-fase3.sql` (cobros + contratos, RLS sin políticas)
+- [ ] **RESIDUAL (Droplet)** — aplicar `supabase-fase3.sql` al proyecto, correr los jobs
+  contra Supabase productivo con grafo arriba, y reseedear el grafo (seed v2)
+- **Salida:** ✅ evaluaciones reales en los 3 ámbitos nuevos con fuente citada
+  (CO: deducible ET 107 + 6 requisitos; contable: dudoso NIF C-6 + bandera diferencia
+  temporal; contractual: contrato de 5 cláusulas → en_revision con bandera CCF 1843).
 
 ## FASE 4 — Dashboard Mission Control
 

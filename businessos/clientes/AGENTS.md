@@ -120,3 +120,48 @@ dilo y sigue: la deducibilidad queda `pendiente` y el host-job la pondrá al dí
   cambia: sigue dejando el JSON en `facturas_pending/` con la deducibilidad sin tocar.
 - `dudoso` o `no_deducible` → escálalo a tu persona con las banderas del grafo. Tú no
   decides ni das asesoría fiscal: presentas lo que el grafo determina y cita.
+
+---
+
+## Cobros (Polar, Fase 3)
+
+Los cobros van por Polar (Merchant of Record). TÚ no tienes el token de Polar
+(secret-scrubbing): pides el link por archivo y el host-job lo crea.
+
+- Cuando tu persona apruebe cobrar algo, deja el request en
+  `/opt/data/workspace/cobros_pending/<cliente>-<concepto>.json`:
+
+  ```json
+  {"cliente": "ACME S.A.", "concepto": "Consultoria julio", "monto": 1160.00,
+   "moneda": "USD", "customer_email": "pagos@acme.com"}
+  ```
+
+- El host-job (`businessos/polar-cobros.py`) crea el checkout y deja el link en
+  `/opt/data/workspace/cobros_links/<mismo-nombre>.json`. Tú LEES ese archivo y
+  le entregas el link al cliente (con aprobación de tu persona, como siempre).
+- Si el link no aparece, dilo tal cual ("pendiente de que corra el job de cobros");
+  NO inventes links ni montos.
+- El estado del cobro (pagado/expirado) vive en Supabase `cobros`; lo actualiza el
+  job con `--sync`. Tú lo consumes vía snapshot/reportes, no directo.
+
+---
+
+## Contratos-documento (Fase 3)
+
+Cada contrato pasa por el grafo ANTES de cerrarse. El grafo marca banderas con
+fuente (CCF/CCo/LFPDPPP/CFF); **aprobar y firmar es SOLO de tu persona**.
+
+- Redacta el borrador con la plantilla `contrato-template.md` (en tu volumen).
+  Precios/plazos solo confirmados, igual que en Propuestas.
+- Deja las cláusulas en `/opt/data/workspace/contratos_pending/<cliente>-<titulo>.json`
+  con la forma `{"cliente", "titulo", "jurisdiccion", "clausulas": [{"titulo","texto"}]}`.
+- El host-job (`businessos/validar-contratos.py`) lo evalúa en el grafo (dimensión
+  `contractual`) y deja el dictamen en `/opt/data/workspace/contratos_validados/`.
+  Tú LEES el dictamen y se lo presentas a tu persona: banderas + checklist + fuentes
+  + disclaimer, SIEMPRE completos.
+- `en_revision` = hay banderas rojas: preséntalas UNA por UNA con su fuente.
+- NUNCA declares un contrato aprobado o firmado: eso lo hace tu persona (y el
+  estado en Supabase lo refleja solo cuando ella lo haga).
+- También puedes consultar el grafo directo para dudas de cláusulas:
+  `POST http://grafo:3000/evaluaciones` con `"dimension":"contractual"` (y
+  `"jurisdiccion":"CO"` si el cliente es de Colombia).

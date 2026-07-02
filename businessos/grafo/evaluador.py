@@ -89,13 +89,17 @@ def _dedup(items: list) -> list:
 def _impactos_vivos(
     reglas: list[dict], fecha: date, regimen: str
 ) -> list[tuple[dict, dict]]:
-    """[(regla, impacto)] de reglas vigentes a la fecha, filtrado por regimen."""
+    """[(regla, impacto)] de reglas vigentes a la fecha, filtrado por regimen.
+
+    'GENERAL' en el impacto es wildcard: aplica a cualquier regimen del contexto
+    (lo usan las jurisdicciones/dimensiones sin regimenes diferenciados, Fase 3).
+    """
     pares = []
     for regla in reglas:
         if not _vigente(regla, fecha):
             continue
         for imp in regla.get("impactos", []):
-            if imp.get("regimen", "PM_TITULO_II") == regimen:
+            if imp.get("regimen", "PM_TITULO_II") in (regimen, "GENERAL"):
                 pares.append((regla, imp))
     return pares
 
@@ -168,6 +172,49 @@ def evaluar_concepto(
     }
 
 
+def salud_conocimiento(reglas: list[dict], hoy: date | None = None) -> dict:
+    """Radiografia del conocimiento (Fase 3): un grafo desactualizado miente con certeza.
+
+    Reporta reglas vencidas (derogadas que siguen en el seed), montos con
+    parametros.verificar=true (pendientes de cotejo contra fuente oficial) y el
+    tamano por ambito. La consume GET /salud-conocimiento y el cron
+    revisar-vigencias.py.
+    """
+    hoy = hoy or date.today()
+    vencidas = []
+    verificar_pendientes = []
+    ambitos: dict[tuple[str, str], int] = {}
+    for r in reglas:
+        llave = (r.get("jurisdiccion", "MX"), r.get("dimension", "fiscal"))
+        ambitos[llave] = ambitos.get(llave, 0) + 1
+        hasta = r.get("vigente_hasta")
+        if hasta is not None and date.fromisoformat(str(hasta)) < hoy:
+            vencidas.append({"clave": r["clave"], "vigente_hasta": str(hasta)})
+        for imp in r.get("impactos", []):
+            if imp.get("parametros", {}).get("verificar") is True:
+                verificar_pendientes.append({
+                    "regla": r["clave"],
+                    "cita": r["fuente_cita"],
+                    "categoria": imp.get("categoria"),
+                    "parametros": {k: v for k, v in imp["parametros"].items() if k != "verificar"},
+                })
+    return {
+        "generado": hoy.isoformat(),
+        "source_versions": sorted({r.get("source_version", "?") for r in reglas}),
+        "reglas_total": len(reglas),
+        "reglas_vencidas": vencidas,
+        "verificar_pendientes": verificar_pendientes,
+        "ambitos": [
+            {"jurisdiccion": j, "dimension": d, "reglas": n}
+            for (j, d), n in sorted(ambitos.items())
+        ],
+        "advertencia": (
+            f"{len(verificar_pendientes)} montos/topes sin cotejo contra fuente oficial"
+            if verificar_pendientes else None
+        ),
+    }
+
+
 def evaluar(
     conceptos: list[dict],
     reglas: list[dict],
@@ -187,7 +234,20 @@ def evaluar(
         and r.get("dimension", "fiscal") == contexto.get("dimension", "fiscal")
     ]
 
-    resultados = [evaluar_concepto(c, ambito, categorias, fecha, regimen) for c in conceptos]
+    # Clasificacion por ambito (Fase 3): solo categorias que alguna regla del
+    # ambito referencia. Evita cruces de dominio (una clausula contractual no
+    # debe clasificar en una consulta fiscal y viceversa).
+    claves_ambito = {
+        imp["categoria"]
+        for r in ambito
+        for imp in r.get("impactos", [])
+        if imp.get("categoria")
+    }
+    categorias_ambito = [c for c in categorias if c["clave"] in claves_ambito]
+
+    resultados = [
+        evaluar_concepto(c, ambito, categorias_ambito, fecha, regimen) for c in conceptos
+    ]
 
     estados = {r["estado"] for r in resultados}
     estado_global = estados.pop() if len(estados) == 1 else "dudoso"

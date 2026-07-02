@@ -78,3 +78,35 @@ class Salud(BaseModel):
     status: Literal["ok"]
     db: str = Field(..., description="'ok' o motivo de no-conexion (la API responde igual)")
     reglas: int | None = Field(None, description="Reglas cargadas; null si DB no disponible")
+
+
+class ReglaVencida(BaseModel):
+    clave: str
+    vigente_hasta: date
+
+
+class VerificarPendiente(BaseModel):
+    regla: str
+    cita: str
+    categoria: str | None = None
+    parametros: dict
+
+
+class AmbitoConocimiento(BaseModel):
+    jurisdiccion: str
+    dimension: str
+    reglas: int
+
+
+class SaludConocimiento(BaseModel):
+    """Radiografia del seed: lo que consume el cron de vigencias (Fase 3)."""
+
+    generado: date
+    source_versions: list[str]
+    reglas_total: int
+    reglas_vencidas: list[ReglaVencida] = Field(..., description="Derogadas que siguen en el seed")
+    verificar_pendientes: list[VerificarPendiente] = Field(
+        ..., description="Montos/topes con verificar:true (cotejo contra fuente oficial pendiente)"
+    )
+    ambitos: list[AmbitoConocimiento]
+    advertencia: str | None = None

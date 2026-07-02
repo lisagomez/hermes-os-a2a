@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from app import app, dep_conocimiento, dep_guardar
 
 SEED = json.loads(
-    (Path(__file__).resolve().parent.parent / "seed" / "reglas_mx.json").read_text(encoding="utf-8")
+    (Path(__file__).resolve().parent.parent / "seed" / "reglas.json").read_text(encoding="utf-8")
 )
 
 app.dependency_overrides[dep_conocimiento] = lambda: {

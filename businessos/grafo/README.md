@@ -1,8 +1,11 @@
 # grafo — cerebro regulatorio fiscal (Fase 2)
 
-Servicio Docker en `hermes-net` que evalúa **deducibilidad fiscal** de conceptos de
-gasto (MX, dimensión fiscal, régimen PM Título II) devolviendo veredicto por concepto
-**con fuente citada**, banderas rojas y checklist. **Señala riesgos; NO asesora.**
+Servicio Docker en `hermes-net` que evalúa conceptos contra reglas citadas y devuelve
+veredicto por concepto **con fuente**, banderas rojas y checklist. **Señala riesgos; NO asesora.**
+Ámbitos (Fase 3): **fiscal MX** (deducibilidad, PM Título II), **fiscal CO** (Estatuto
+Tributario), **contable MX** (NIF/CFF) y **contractual MX** (cláusulas: CCF/CCo/LFPDPPP).
+Pasa `jurisdiccion`/`dimension`/`regimen` en el contexto; `GENERAL` en un impacto aplica
+a cualquier régimen. La clasificación solo considera categorías del ámbito consultado.
 
 Regla de oro: **cero afirmación fiscal sin fuente citada.** Lo no clasificable sale
 `dudoso` con razón `sin regla aplicable` (fail-safe: el grafo nunca adivina).
@@ -12,6 +15,8 @@ Regla de oro: **cero afirmación fiscal sin fuente citada.** Lo no clasificable 
 - Verticales Hermes (dentro de la red): `http://grafo:3000` — sin secretos, solo lectura HTTP.
 - Host-jobs en el Droplet: `http://127.0.0.1:3000` (puerto publicado solo en loopback).
 - Contrato: `GET /openapi.json` (de aquí se imprime el CLI con Printing Press).
+- Salud del seed: `GET /salud-conocimiento` (reglas vencidas + montos sin cotejo);
+  la consume el cron `businessos/revisar-vigencias.py`.
 
 ```bash
 curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application/json' -d '{
@@ -24,7 +29,7 @@ curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application
 
 | Pieza | Qué es |
 |-------|--------|
-| `seed/reglas_mx.json` | FUENTE DE VERDAD del conocimiento: 11 reglas / 13 impactos citando LISR/CFF/SAT |
+| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: 24 reglas / 27 impactos (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo/LFPDPPP) |
 | `seed/gen_seed_sql.py` | Valida el seed (gate de procedencia) y genera `02-seed.sql`. `--check` = solo validar |
 | `seed/01-schema.sql`, `seed/02-seed.sql` | Corren vía initdb de postgres (orden alfabético) |
 | `evaluador.py` | Motor puro (sin DB/LLM/red): clasificación por keywords, vigencia, regla rectora, topes |
@@ -33,7 +38,7 @@ curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application
 
 ## Editar el conocimiento (reglas)
 
-1. Editar `seed/reglas_mx.json` (nunca `02-seed.sql`, es generado).
+1. Editar `seed/reglas.json` (nunca `02-seed.sql`, es generado).
 2. `python3 seed/gen_seed_sql.py` (corre el gate de procedencia y regenera el SQL).
 3. Reseed — initdb **solo corre con volumen virgen**:
 
