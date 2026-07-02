@@ -333,7 +333,9 @@ npm run lint         # ESLint
   reflejar la arquitectura real. Tras cambiar el enfoque, probar en **sesión nueva** (`/new`).
   Detalle en `.claude/memory/reference/hermes-vertical-setup.md`.
 - **Aplicar en**: todo lo que el agente necesite de un servicio con credenciales (Supabase,
-  pagos, etc.). Deuda abierta: clientes escribir `facturas` (falta su job de host).
+  pagos, etc.). ~~Deuda abierta: clientes escribir `facturas`~~ → **cerrada el 2026-07-01**
+  con `businessos/ingest-facturas.py` (patrón inverso: el agente deja un JSON en el volumen,
+  el job de host lo sube a `facturas`). Falta correrlo en runtime (Docker) y cron al Droplet.
 
 ### 2026-06-30: Routing y cerebro de Hermes (eficiencia de tokens, Fase 1)
 - **Aprendizaje**: el ruteo de proveedor por defecto de OpenRouter es no-determinista (cuelga

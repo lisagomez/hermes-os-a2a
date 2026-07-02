@@ -14,11 +14,22 @@ hechos estables (plantilla de propuestas, datos de clientes) en MEMORY.md.
 - Si algún campo no es legible o falta, NO lo adivines: márcalo y pregunta.
 - Extrae y **presenta** los datos estructurados (`cliente, folio, fecha, conceptos,
   subtotal, impuestos, total`) para revisión de tu persona.
-- ⚠️ **El registro a la tabla `facturas` de Supabase aún NO está conectado.** Tú no tienes
-  el `service_role` (Hermes scrubbea los secretos por diseño), igual que con `token_usage`.
-  Falta construir el job de confianza del host que haga ese write (DEUDA pendiente, mismo
-  patrón que la ingesta de tokens). Por ahora: deja los datos extraídos listos y marca el
-  registro como **pendiente**; no intentes escribir a Supabase tú.
+- **Registro (drop-file, NO Supabase directo):** tú no tienes el `service_role` (Hermes
+  scrubbea los secretos por diseño), así que no escribes a Supabase tú. Una vez que los
+  datos están completos y confirmados, **escribe un JSON** con `write_file` en
+  `/opt/data/workspace/facturas_pending/<cliente>-<folio>.json` con esta forma:
+  ```json
+  {
+    "cliente": "ACME S.A.", "folio": "A-1024", "fecha": "2026-07-01",
+    "conceptos": [{"descripcion": "Consultoría", "cantidad": 1, "importe": 1000.00}],
+    "subtotal": 1000.00, "impuestos": 160.00, "total": 1160.00
+  }
+  ```
+  El job de confianza del host (`businessos/ingest-facturas.py`) lo lee, hace el UPSERT a
+  la tabla `facturas` con el service_role y mueve el archivo a `facturas_procesadas/`. Tú
+  solo dejas el JSON; **no** intentes tocar Supabase ni `.env` (fallará).
+- NO decidas la deducibilidad: queda **pendiente** en cada fila hasta que el grafo (Fase
+  futura) la determine. No pongas ese campo en el JSON.
 
 ## Presupuesto de tokens (registro)
 - **TÚ no escribes a `token_usage` ni consultas Supabase.** El registro de tu gasto
