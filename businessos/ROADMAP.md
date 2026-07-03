@@ -32,7 +32,7 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 - **Conexión de herramientas:** MCP
 - **CLIs agente-nativos:** Printing Press (imprime CLI+MCP por API; ahorro de
   tokens ~100x vs MCP pesado; corre en Claude Code, no en el Droplet)
-- **Conexión entre agentes (futuro):** protocolo A2A
+- **Conexión entre agentes:** protocolo A2A (primer agente vivo: `grafo-a2a`, Fase 5)
 
 ---
 
@@ -182,25 +182,41 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
 - **Salida:** ✅ panel único con las 3 vistas funcionando (mock en dev; `real`
   conmutado por env en runtime).
 
-## FASE 5 (FUTURA) — Interoperabilidad A2A
+## FASE 5 — Interoperabilidad A2A ✅ núcleo A2A completo (2026-07-03); capa económica FUTURA
 
-El momento correcto para el protocolo Agent2Agent (a2aproject/A2A, Linux
-Foundation). NO antes: A2A resuelve comunicación entre agentes pares/externos,
-algo que el sistema no necesita hasta tener el grafo funcionando y querer
-abrirlo al exterior.
+PRP: `.claude/PRPs/prp-fase5-a2a.md`. Estado detallado en
+`.claude/memory/project/fase5-a2a.md`. Protocolo Agent2Agent (a2aproject/A2A,
+Linux Foundation), SDK oficial `a2a-sdk` 1.1.0.
 
-**Caso de uso ancla: el grafo como agente A2A independiente.**
-- Exponer el grafo regulatorio con su "Agent Card" que anuncia su capacidad
-  ("evalúo impacto fiscal/contable/regulatorio en LATAM")
-- Cualquier agente —tuyo, de un cliente, de un socio— lo consulta sin conocer
-  su interior (preserva la opacidad: no expone reglas ni datos internos)
-- Se monta como servicio más en hermes-net usando el SDK de Python o JS
-- Complementa MCP, no lo reemplaza: MCP conecta con herramientas; A2A conecta
-  con otros agentes
-- **Salida:** el cerebro regulatorio convertido en servicio reutilizable por un
-  ecosistema de agentes.
+**Caso de uso ancla: el grafo como agente A2A independiente.** ← construido
+- [x] Servicio `businessos/grafo-a2a/`: Agent Card en
+  `/.well-known/agent-card.json` anunciando la capacidad
+  (`evaluar-impacto-regulatorio`: fiscal/contable/contractual LATAM, fuente
+  citada, "señala, no asesora") + `message/send` JSON-RPC
+- [x] Puente DETERMINISTA (sin LLM, cero tokens por consulta): DataPart/texto
+  libre → `POST grafo:3000/evaluaciones` → artifact con la EvaluacionResponse
+  ÍNTEGRA. Regla de oro a través del protocolo: sin disclaimer/fuentes NO se
+  entrega (tarea `failed`); grafo caído → `failed` con razón, nunca inventa
+- [x] Opacidad verificada por test: la superficie es EXACTAMENTE {card, rpc,
+  /health}; `/salud-conocimiento`, listado de evaluaciones, reglas y seed
+  inalcanzables; Starlette puro (sin /docs ni /openapi.json). El grafo quedó
+  byte-idéntico (su openapi.json es el contrato del CLI)
+- [x] Interop real: cliente del SDK (simulando agente de un tercero) descubre
+  por card y evalúa contra el grafo con reglas reales (17 tests verdes:
+  deducible LISR 27-V con fuente; fail-safe `dudoso` en texto libre)
+- [x] Empaquetado: Dockerfile + servicio en compose (127.0.0.1:4000 +
+  hermes-net, sin secretos); AGENTS.md de negocio/clientes con el escalón A2A
+  activo (las verticales siguen en REST directo: A2A complementa, no reemplaza)
+- [ ] **RESIDUAL (Droplet)** — build + `compose up grafo-a2a` real y smoke de
+  card/message-send dentro de hermes-net
+- [ ] **RESIDUAL (futuro, requiere decisión)** — exposición a internet para
+  socios reales: dominio + auth real (`securitySchemes` en la card) + revisar
+  `GRAFO_A2A_PUBLIC_URL`. Nada de auth a medias
+- **Salida:** ✅ el cerebro regulatorio convertido en servicio reutilizable por
+  un ecosistema de agentes, y el patrón A2A (servidor + card + executor +
+  cliente) validado — la base que replica la Fase 6.
 
-Otros casos A2A que habilita esta fase:
+Otros casos A2A que habilita esta fase (aún no construidos):
 - Verticales tratándose como servicios independientes con descubrimiento formal
 - Conexión con agentes de terceros (socios, proveedores) de forma segura
 

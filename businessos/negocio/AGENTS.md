@@ -33,10 +33,12 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
    por fase; si surge un servicio nuevo que no esté en el manifiesto, inclúyelo en el
    digest con el servicio y el porqué. Elisa lo imprime en Claude Code (con verify y grado
    A mínimo). Una tarea única, barata y no repetible NO es candidata: ve al paso 4.
-3. **Escalón reservado (Fase 5, aún NO activo).** ¿Hay un agente A2A que ya sepa hacer
-   esto? Cuando el grafo (u otro servicio) se exponga como agente A2A en Fase 5, consultar
-   al agente especializado irá antes del modelo. Hoy no hay agentes A2A: este escalón se
-   salta.
+3. **¿Hay un agente A2A que ya sepa hacer esto? (Fase 5 activa).** El primero existe:
+   `grafo-a2a` (card en `http://grafo-a2a:4000/.well-known/agent-card.json`) expone la
+   MISMA evaluación que ya consumes por REST directo — para el grafo sigue usando
+   `http://grafo:3000` (más simple y barato); el agente A2A es la puerta para pares y
+   terceros, no te reemplaza el REST. Este escalón aplica cuando exista un agente A2A
+   con una capacidad que NO tengas ya por CLI o REST directo.
 4. **Resuelve con el modelo, bajo routing por costo** (ver "Routing de modelos" abajo).
 
 ## Routing de modelos (control de costo)

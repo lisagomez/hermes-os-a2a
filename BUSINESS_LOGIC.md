@@ -101,6 +101,8 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
 - **Fase 3:** Cobertura multi-país del grafo + cobro real (Polar) + contratos
   validados por el grafo antes de cerrar.
 - **Fase 4:** Panel único (A2ABot) con las 3 verticales, AI Spend y evaluaciones.
+- **Fase 5:** Un agente externo (cliente A2A) descubre el grafo por su Agent Card y
+  completa una evaluación con fuente citada sin conocer su interior.
 
 **Métrica ancla del producto:** cero facturas/pendientes de cliente sin procesar
 y cero afirmación fiscal/contractual sin fuente citada.
@@ -116,7 +118,8 @@ businessos/
 ├── negocio/    .hermes/{SOUL,AGENTS,MEMORY}.md   # KPIs + presupuesto de tokens
 ├── clientes/   .hermes/{SOUL,AGENTS,MEMORY}.md   # facturas + propuestas
 ├── dashboard   (A2ABot Mission Control)          # Fase 4
-└── grafo       (servicio + PostgreSQL)           # Fase 2+, cerebro regulatorio
+├── grafo       (servicio + PostgreSQL)           # Fase 2+, cerebro regulatorio
+└── grafo-a2a   (agente A2A delante del grafo)    # Fase 5, puerta para pares
 ```
 
 ### Stack confirmado (de ROADMAP.md)
@@ -130,7 +133,7 @@ businessos/
 - **Pagos:** Polar (MoR, Fase 3); Circle/USDC agéntico (Fase 5, futuro)
 - **Contratos:** capa documento (validada por grafo) + capa blockchain opcional (Lean 4)
 - **Conexión de herramientas:** MCP; **CLIs agente-nativos:** Printing Press
-- **Conexión entre agentes:** protocolo A2A (Fase 5)
+- **Conexión entre agentes:** protocolo A2A (`grafo-a2a` vivo desde Fase 5; SDK `a2a-sdk` 1.1.0)
 
 ### Decisiones de infra ya tomadas (Fase 0)
 - Acceso al dashboard SOLO por túnel SSH (sin Caddy/puertos públicos).
@@ -149,8 +152,11 @@ businessos/
 4. [x] **Fase 3** — Expansión grafo (fiscal MX/CO + contable + contractual, cron de vigencias)
    + cobro Polar (payouts MX verificados) + contratos validados por grafo (núcleo completo
    2026-07-02; residuales —cuenta Polar, SQL/jobs en Droplet— diferidos)
-5. [ ] **Fase 4** — Dashboard Mission Control (A2ABot)
-6. [ ] **Fase 5 (futura)** — Interoperabilidad A2A + economía agéntica (Circle, Lean 4)
+5. [x] **Fase 4** — Dashboard Mission Control (A2ABot): 3 vistas solo lectura (núcleo completo
+   2026-07-02; residuales —compose up + cron snapshot en runtime, screenshots— diferidos)
+6. [~] **Fase 5** — Interoperabilidad A2A: grafo expuesto como agente A2A (`grafo-a2a`, núcleo
+   completo 2026-07-03; residual: up en Droplet). La economía agéntica (Circle, Lean 4) sigue
+   FUTURA: mismo horizonte, otro PRP
 7. [ ] **Fase 6 (futura)** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor,
    white-label (ver `businessos/departamentos/`). Primer departamento: Desarrollo de Software.
 

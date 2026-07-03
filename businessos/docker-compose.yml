@@ -193,6 +193,32 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 512M }
 
+  # ---------- GRAFO-A2A (el grafo como agente A2A, Fase 5) ----------
+  # Puente determinista (sin LLM, cero tokens por consulta): Agent Card en
+  # /.well-known/agent-card.json y message/send que puentea a POST
+  # grafo:3000/evaluaciones devolviendo la evaluacion INTEGRA (disclaimer +
+  # fuentes). Opacidad: desde aqui NO se alcanza nada mas del grafo.
+  # Las verticales siguen usando el REST directo (http://grafo:3000); esta es
+  # la puerta formal para agentes pares (propios o de terceros). Sin secretos.
+  # Hoy solo hermes-net + 127.0.0.1 (tunel SSH); exponerlo a internet con auth
+  # real es residual futuro y requiere ajustar GRAFO_A2A_PUBLIC_URL en .env.
+  grafo-a2a:
+    build: ./grafo-a2a
+    container_name: grafo-a2a
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4000:4000"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - GRAFO_URL=http://grafo:3000
+      - GRAFO_A2A_PUBLIC_URL=${GRAFO_A2A_PUBLIC_URL:-http://grafo-a2a:4000}
+    depends_on:
+      grafo:
+        condition: service_healthy
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   # Postgres propio del grafo. El seed corre via initdb SOLO con volumen virgen:
   # reseed = docker compose down && docker volume rm businessos_grafo-db-data
   # && docker compose up -d grafo-db grafo   (ver grafo/README.md).

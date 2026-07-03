@@ -382,6 +382,21 @@ npm run lint         # ESLint
   reglas fiscales, y cualquier venv/validación de compose local. Ver
   `.claude/memory/project/fase2-grafo.md`.
 
+### 2026-07-03: a2a-sdk v1.x NO es como los tutoriales (Fase 5, grafo-a2a)
+- **Error**: construir un servicio A2A copiando tutoriales v0.2 (tipos Pydantic,
+  `A2AStarletteApplication`, path `agent.json`). La v1.1.0 real es **proto-first**
+  (`a2a.types` = protobuf), el extra `[http-server]` trae Starlette pero NO FastAPI,
+  el path vigente es `/.well-known/agent-card.json`, y el executor DEBE encolar
+  `new_task(...)` ANTES del primer status update (`InvalidAgentResponseError` si no —
+  y los unit tests con cola espía NO lo cazan; el test de interop con el cliente del
+  SDK sí).
+- **Fix**: introspeccionar SIEMPRE el SDK instalado (`inspect.signature`, DESCRIPTOR
+  de los protos) antes de escribir código; Starlette puro juega a favor de la opacidad
+  (sin /docs ni /openapi.json). Patrón completo en `businessos/grafo-a2a/` (servidor +
+  card + executor determinista + cliente de verificación) — es la base de la Fase 6.
+- **Aplicar en**: todo servicio A2A nuevo (Ejecutor/Supervisor de Fase 6) y en general
+  ante cualquier SDK joven: el instalado manda, no el blog.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
