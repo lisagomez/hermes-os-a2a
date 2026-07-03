@@ -199,6 +199,14 @@ actualizadas (ROADMAP, BUSINESS_LOGIC, memoria).
 
 > Esta sección CRECE con cada error encontrado durante la implementación.
 
+### 2026-07-02: Lockfile huérfano en $HOME rompe el standalone de Next
+- **Error**: `/home/gomez/package-lock.json` (ajeno al proyecto) hizo que Next
+  infiriera el workspace root en $HOME → `.next/standalone` quedó ANIDADO en
+  `standalone/proyectos/a2aboths/businessos/` y el Dockerfile no lo encontraría.
+- **Fix**: `outputFileTracingRoot: __dirname` + `turbopack.root` en next.config.
+  NO borrar archivos ajenos del home del usuario.
+- **Aplicar en**: cualquier build Next en máquinas con lockfiles sueltos.
+
 ### 2026-07-02: Playwright en esta máquina — browsers cacheados pero sin libs de sistema
 - **Error**: `chromium_headless_shell` está en `~/.cache/ms-playwright` pero no lanza:
   `libnspr4.so: cannot open shared object file`. Instalar las libs requiere sudo
