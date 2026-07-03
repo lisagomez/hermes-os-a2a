@@ -358,6 +358,16 @@ npm run lint         # ESLint
   (`go install`/`npx skills add`) lo bloquea el clasificador de auto-mode: requiere modo no-auto.
 - **Aplicar en**: cualquier impresión de CLI agente-nativo. Ver `.claude/memory/project/cli-printing-press.md`.
 
+### 2026-07-02: Cloudflare bloquea el User-Agent de urllib (error 1010) — en CUALQUIER API
+- **Error**: `api.supabase.com` (ya documentado) y ahora también `api.polar.sh`/sandbox
+  devuelven `403 error code: 1010` a peticiones de Python `urllib` con su UA por defecto.
+  El mismo endpoint funciona con curl → confunde el diagnóstico.
+- **Fix**: todo host-job que use `urllib` manda `User-Agent: curl/8.0` explícito (ya
+  cableado en `polar-cobros.py::http()`). Asumir el gotcha en cualquier API nueva detrás
+  de Cloudflare. Verificación de secretos sin filtrarlos: comparar FORMATO y largo
+  (`polar_oat_`/`sbp_`/`eyJ`/UUID) con python, nunca imprimir el valor.
+- **Aplicar en**: todos los host-jobs y cualquier integración HTTP nueva.
+
 ### 2026-07-02: Grafo (Fase 2) construido + gotchas de toolchain local
 - **Aprendizaje**: el cerebro regulatorio vive en `businessos/grafo/` (FastAPI + postgres propio,
   `http://grafo:3000` en hermes-net). Regla de oro cumplida por diseño: fail-safe `dudoso`

@@ -19,9 +19,12 @@ Proyecto Supabase: **A2ABot**, project-ref **hsejpktzcqwkwkwholkw**
 - `SUPABASE_ACCESS_TOKEN` se lee de la **variable de entorno** `${SUPABASE_ACCESS_TOKEN}`
   (no hardcodear el `sbp_` en el archivo: está commiteado en git). Reiniciar Claude Code
   para que el MCP la tome.
-- **Dónde vive el token (2026-06-28)**: SOLO en `~/.config/claude/secrets.env` (perms `600`).
-  `~/.bashrc` ya NO tiene el literal: solo hace `source` de ese archivo. Así no aparece en
-  ningún archivo que se abra/muestre.
+- **Dónde vive el token**: SOLO en `~/.config/claude/secrets.env` (perms `600`), **POR
+  MÁQUINA** (ver [[maquinas-entornos]]): hay 2 máquinas y cada una necesita su copia.
+  En la máquina de desarrollo se creó el 2026-07-02 con un `sbp_` nuevo (los scripts lo
+  cargan directo con `source ~/.config/claude/secrets.env`; el `.bashrc` no lo sourcea).
+  Si falta en una máquina: token nuevo en supabase.com/dashboard/account/tokens y
+  recrear el archivo ahí.
 - **REGLA: nunca imprimir el `sbp_`.** Para consultar por curl, cargar la var y referenciarla,
   nunca pegar el literal: `source ~/.config/claude/secrets.env` y usar
   `-H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"` (el header no sale en la salida de curl;
