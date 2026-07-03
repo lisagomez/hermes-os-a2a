@@ -3,6 +3,15 @@
 BusinessOS vive repartido en DOS máquinas WSL2 distintas. Verificar en qué máquina
 estás ANTES de concluir "esto desapareció" o "esto está roto".
 
+## ESTADO 2026-07-02: original inaccesible (TEMPORAL) → solo desarrollo aquí
+
+Elisa perdió acceso TEMPORAL a la máquina original. Decisión final: NO re-levantar
+verticales en la máquina de desarrollo (se evaluó y se descartó: chocarían los
+gateways de Telegram con los de la original al volver —un long-poll por token— y
+divergirían las memorias de los agentes). Aquí solo se avanza código/fases; al
+recuperar la original: `git pull` allá + sync manual del `.env` (líneas de Polar)
++ ejercitar los tramos `docker exec` pendientes (fase3-expansion).
+
 ## Máquina RUNTIME (la original, 2026-06-27 →)
 - Ahí viven: los contenedores Docker (`hermes-personal/negocio/clientes`, y grafo
   cuando suba), los volúmenes `~/businessos/<vertical>/.hermes`, el usuario en el
