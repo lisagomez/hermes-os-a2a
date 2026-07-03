@@ -26,7 +26,17 @@ PRP: `.claude/PRPs/prp-fase3-expansion.md`. Rama `feat/fase3-expansion`.
   (open/confirmed/succeeded/expired/failed → abierto/confirmado/pagado/expirado/fallido).
 - Env: `POLAR_ACCESS_TOKEN` (scope checkouts:write), `POLAR_PRODUCT_ID` (producto
   pay-what-you-want creado una vez), opcional `POLAR_API` sandbox.
-- **Residual**: crear la cuenta/organización Polar + producto + token (solo Elisa).
+- **SANDBOX PROBADO end-to-end (2026-07-02)**: org sandbox + OAT (products:read/write,
+  checkouts:read/write; SIN organizations:read — no hace falta) + producto PWYW
+  «Cobro de servicios» `192ed732-dfed-4808-a814-bd389ddf63e7`. Flujo real: bandeja local
+  (`COBROS_DIR`) → checkout → link → pago tarjeta 4242… → `--sync` → fila `pagado`.
+- Gotcha corregido: **polar.sh está detrás de Cloudflare y bloquea el UA de urllib**
+  (403 error 1010) — `http()` de `polar-cobros.py` ya manda `User-Agent: curl/8.0`.
+- **Residual (máquina runtime)**: el tramo `docker exec` (bandejas de los contenedores)
+  quedó sin ejercitar — se probó con `COBROS_DIR` en la máquina de desarrollo (ver
+  [[maquinas-entornos]]). En la runtime: `git pull` (trae el fix de UA) + copiar a mano
+  las 3 líneas de Polar al `.env` de esa máquina + prueba con bandeja real del agente.
+- **Residual (producción)**: repetir con cuenta/token/producto de prod y sin `POLAR_API`.
 
 ## Contratos-documento
 
@@ -42,6 +52,11 @@ PRP: `.claude/PRPs/prp-fase3-expansion.md`. Rama `feat/fase3-expansion`.
 
 ## Gotchas nuevos
 
+- **UN solo `.env` de proyecto**: `businessos/businessos/.env` (junto a docker-compose.yml).
+  Un `.env` en la raíz del repo es edición en ruta equivocada (pasó 2026-07-02; se borró
+  tras verificar que era subset idéntico). Al recibir secretos pegados a mano, verificar
+  formato/largo por variable SIN imprimir valores: detecta tokens en el slot equivocado
+  (el `polar_oat_` apareció en `POLAR_PRODUCT_ID` y el `sbp_` en `SUPABASE_ANON_KEY`).
 - Los host-jobs aceptan `COBROS_DIR`/`CONTRATOS_DIR` (bandeja local) para probarlos sin Docker.
 - Un uvicorn de smoke anterior puede quedarse vivo amarrado al puerto (el kill del bloque no
   siempre llega): verificar `ss -tlnp` si un endpoint nuevo da 404 con /health vivo.
