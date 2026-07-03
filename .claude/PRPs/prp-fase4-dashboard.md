@@ -199,7 +199,20 @@ actualizadas (ROADMAP, BUSINESS_LOGIC, memoria).
 
 > Esta sección CRECE con cada error encontrado durante la implementación.
 
-*(vacío — se llena durante la ejecución)*
+### 2026-07-02: Playwright en esta máquina — browsers cacheados pero sin libs de sistema
+- **Error**: `chromium_headless_shell` está en `~/.cache/ms-playwright` pero no lanza:
+  `libnspr4.so: cannot open shared object file`. Instalar las libs requiere sudo
+  (`sudo npx playwright install-deps chromium`), que el agente no tiene.
+- **Fix**: validar vistas por HTML (curl + grep de contenido) durante las fases;
+  consolidar TODOS los screenshots en Fase 6, pidiendo a Elisa el comando sudo una vez.
+- **Aplicar en**: cualquier validación visual en la máquina de desarrollo.
+
+### 2026-07-02: El dev server de Next (turbopack) se puede colgar tras ráfagas de escrituras
+- **Error**: `next dev` aceptaba TCP pero no respondía (HTTP 000, sin GETs en el log)
+  después de escribir varios componentes seguidos; typecheck pasaba.
+- **Fix**: `pkill -f next` y relanzar; verificar con `ss -tlnp | grep :3000` + curl.
+  No diagnosticar el código por un curl colgado: primero confirmar que el server responde.
+- **Aplicar en**: cualquier sesión larga de dev con turbopack en WSL.
 
 ---
 
