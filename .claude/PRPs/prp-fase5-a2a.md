@@ -1,6 +1,6 @@
 # PRP-005: Fase 5 — Interoperabilidad A2A (el grafo como agente A2A independiente)
 
-> **Estado**: PENDIENTE
+> **Estado**: COMPLETADO (núcleo, 2026-07-03) — residuales de runtime en ROADMAP §Fase 5
 > **Fecha**: 2026-07-03
 > **Proyecto**: BusinessOS
 
@@ -30,12 +30,12 @@ con el patrón A2A validado del que depende toda la Fase 6.
 ## Qué
 
 ### Criterios de Éxito
-- [ ] `grafo-a2a` sirve un Agent Card válido en `/.well-known/agent-card.json` que anuncia la capacidad ("evalúa impacto fiscal/contable/contractual LATAM con fuente citada; señala, no asesora") y sus skills con ejemplos
-- [ ] Un cliente A2A (SDK oficial, simulando "agente de un tercero") descubre el agente por su card y completa una evaluación end-to-end vía `message/send`: recibe veredicto + fuentes + checklist + **disclaimer íntegros** en el artifact
-- [ ] Opacidad verificada: la superficie A2A NO expone reglas, seed, DB, `/salud-conocimiento` ni el listado de evaluaciones — solo la capacidad de evaluar (test explícito)
-- [ ] El grafo NO cambia: sus tests siguen verdes y su `openapi.json` (contrato del CLI) queda byte-idéntico
-- [ ] Flujo de cero tokens: el executor es un puente determinista (sin LLM); una consulta A2A no gasta presupuesto de IA
-- [ ] Servicio `grafo-a2a` en `docker-compose.yml`: hermes-net, publicado SOLO en `127.0.0.1`, límites de recursos, sin secretos; pytest del servicio nuevo verde
+- [x] `grafo-a2a` sirve un Agent Card válido en `/.well-known/agent-card.json` que anuncia la capacidad ("evalúa impacto fiscal/contable/contractual LATAM con fuente citada; señala, no asesora") y sus skills con ejemplos
+- [x] Un cliente A2A (SDK oficial, simulando "agente de un tercero") descubre el agente por su card y completa una evaluación end-to-end vía `message/send`: recibe veredicto + fuentes + checklist + **disclaimer íntegros** en el artifact (test_interop: deducible MX-LISR-27-V real)
+- [x] Opacidad verificada: la superficie A2A NO expone reglas, seed, DB, `/salud-conocimiento` ni el listado de evaluaciones — solo la capacidad de evaluar (test_opacidad: inventario de rutas == {card, rpc, health})
+- [x] El grafo NO cambia: sus tests siguen verdes (51) y su `openapi.json` (contrato del CLI) queda byte-idéntico (diff de `businessos/grafo/` vacío en toda la rama)
+- [x] Flujo de cero tokens: el executor es un puente determinista (sin LLM instalado ni invocado); una consulta A2A no gasta presupuesto de IA
+- [x] Servicio `grafo-a2a` en `docker-compose.yml`: hermes-net, publicado SOLO en `127.0.0.1`, límites de recursos, sin secretos; pytest del servicio nuevo verde (17 tests; `compose config` validado + smoke uvicorn)
 
 ### Comportamiento Esperado
 
