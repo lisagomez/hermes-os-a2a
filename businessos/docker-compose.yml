@@ -146,6 +146,31 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 512M }
 
+  # ---------- A2ABOT (Mission Control, Fase 4) ----------
+  # Panel unico de SOLO LECTURA: Pantheon (health de gateways via :8642 +
+  # snapshot de snapshot-pantheon.py), AI Spend (v_presupuesto_mensual) y Grafo
+  # (GET /evaluaciones + salud-conocimiento). NUNCA monta volumenes .hermes:
+  # convive con hermes-dashboard (9119, vista nativa de UNA vertical) y es la
+  # vista de las tres; si hay que ahorrar RAM, el prescindible es el 9119.
+  # Acceso: ssh -L 9200:localhost:9200 hermes@LA_IP  ->  http://localhost:9200
+  a2abot:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: a2abot
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9200:3000"     # solo tunel SSH; nunca 0.0.0.0
+    environment:
+      - DASHBOARD_DATA=real
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - GRAFO_URL=http://grafo:3000
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+
   # ---------- GRAFO (cerebro regulatorio fiscal, Fase 2) ----------
   # Evalua deducibilidad con fuente citada. Las verticales lo consultan DENTRO
   # de la red como http://grafo:3000 (los agentes no necesitan secretos para

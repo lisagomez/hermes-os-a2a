@@ -92,3 +92,52 @@ def test_health_sin_db_no_se_cae():
     body = r.json()
     assert body["status"] == "ok"
     # sin postgres: db reporta el motivo, reglas es null; la API sigue viva
+
+
+# ---- GET /evaluaciones (Fase 4: listado solo lectura para Mission Control) ----
+
+EVAL_PERSISTIDA = {
+    "id": "11111111-2222-4333-8444-555555555555",
+    "created_at": "2026-07-02T20:00:00+00:00",
+    "contexto": {"jurisdiccion": "MX", "dimension": "fiscal",
+                 "regimen": "PM_TITULO_II", "fecha": "2026-07-02"},
+    "salida": {"estado": "deducible", "conceptos": [], "banderas_rojas": [],
+               "checklist": [], "fuentes": [], "disclaimer": "no es asesoria"},
+}
+
+
+def test_openapi_incluye_get_evaluaciones():
+    spec = app.openapi()
+    assert "get" in spec["paths"]["/evaluaciones"]
+
+
+def test_listado_evaluaciones():
+    from app import dep_listar
+
+    app.dependency_overrides[dep_listar] = lambda: (lambda limit: [EVAL_PERSISTIDA] * min(limit, 2))
+    try:
+        r = client.get("/evaluaciones?limit=1")
+        assert r.status_code == 200
+        body = r.json()
+        assert len(body) == 1
+        assert body[0]["id"] == EVAL_PERSISTIDA["id"]
+        # la salida persistida conserva el disclaimer integro (regla de oro)
+        assert body[0]["salida"]["disclaimer"]
+    finally:
+        del app.dependency_overrides[dep_listar]
+
+
+def test_listado_limit_invalido_422():
+    from app import dep_listar
+
+    app.dependency_overrides[dep_listar] = lambda: (lambda limit: [])
+    try:
+        assert client.get("/evaluaciones?limit=0").status_code == 422
+        assert client.get("/evaluaciones?limit=101").status_code == 422
+    finally:
+        del app.dependency_overrides[dep_listar]
+
+
+def test_listado_sin_db_es_503():
+    # sin override: dep_listar importa db real y aqui no hay postgres
+    assert client.get("/evaluaciones?limit=5").status_code == 503

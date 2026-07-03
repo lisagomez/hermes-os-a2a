@@ -70,3 +70,6 @@ businessos/**/.env
 businessos/**/.hermes/
 businessos/obsidian/
 !businessos/.env.example
+
+# TypeScript incremental
+tsconfig.tsbuildinfo

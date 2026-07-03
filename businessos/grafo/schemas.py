@@ -74,6 +74,19 @@ class EvaluacionResponse(BaseModel):
     disclaimer: str = Field(..., description="SIEMPRE presente: esto no es asesoria fiscal")
 
 
+class EvaluacionListada(BaseModel):
+    """Item del listado de evaluaciones persistidas (solo lectura, Mission Control).
+
+    `salida` es la EvaluacionResponse completa tal como se persistio (jsonb):
+    veredictos + fuentes + banderas + checklist + disclaimer.
+    """
+
+    id: str = Field(..., description="UUID de la evaluacion")
+    created_at: str = Field(..., description="Timestamp ISO-8601 de la evaluacion")
+    contexto: dict = Field(..., description="Contexto resuelto {jurisdiccion, dimension, regimen, fecha}")
+    salida: dict = Field(..., description="Respuesta completa persistida (incluye disclaimer y fuentes)")
+
+
 class Salud(BaseModel):
     status: Literal["ok"]
     db: str = Field(..., description="'ok' o motivo de no-conexion (la API responde igual)")

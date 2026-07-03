@@ -156,11 +156,31 @@ Contratos-documento (capa 1):
   (CO: deducible ET 107 + 6 requisitos; contable: dudoso NIF C-6 + bandera diferencia
   temporal; contractual: contrato de 5 cláusulas → en_revision con bandera CCF 1843).
 
-## FASE 4 — Dashboard Mission Control
+## FASE 4 — Dashboard Mission Control ✅ (núcleo completo 2026-07-02; residuales visibles)
 
-- A2ABot conectado a las tres verticales por API + Supabase
-- Vistas: Pantheon (los 3 agentes + skills), AI Spend, evaluaciones del grafo
-- **Salida:** panel único de control del sistema.
+PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
+`.claude/memory/project/fase4-dashboard.md`. A2ABot = el Next.js de la raíz del repo.
+
+- [x] Shell Mission Control (solo lectura, dark) + capa de datos server-only con
+  conmutador real/mock (`DASHBOARD_DATA`); cero secretos en el bundle cliente
+  (verificado en build) y schemas Zod para TODO payload externo
+- [x] Vista **AI Spend**: medidor $30/80% (fuente: `v_presupuesto_mensual`, la misma
+  del skill budget-report), serie diaria SVG con hover, desglose por vertical y
+  por modelo (paleta validada con el método dataviz)
+- [x] Vista **Grafo**: semáforo de vigencias, evaluaciones con veredicto + fuente
+  citada + disclaimer SIEMPRE (regla de oro), facturas/contratos/cobros.
+  El grafo ganó `GET /evaluaciones?limit` (solo lectura; 51 tests verdes)
+- [x] Vista **Pantheon**: tabla `pantheon` (supabase-fase4.sql, APLICADA) + host-job
+  `snapshot-pantheon.py` (lee config/skills de los volúmenes; el dashboard JAMÁS
+  los monta) + health de gateways `:8642`; UPSERT real verificado (3 filas)
+- [x] Empaquetado: Dockerfile standalone + servicio `a2abot` en compose
+  (`127.0.0.1:9200`, túnel SSH); convive con hermes-dashboard 9119
+- [ ] **RESIDUAL (máquina runtime)** — build de la imagen + `compose up a2abot` real,
+  verificar path de health del gateway, y cron de `snapshot-pantheon.py`
+- [ ] **RESIDUAL (dev)** — screenshots Playwright de las 3 vistas (falta
+  `sudo npx playwright install-deps chromium` en esta máquina)
+- **Salida:** ✅ panel único con las 3 vistas funcionando (mock en dev; `real`
+  conmutado por env en runtime).
 
 ## FASE 5 (FUTURA) — Interoperabilidad A2A
 
