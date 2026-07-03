@@ -26,11 +26,11 @@ async def health(_: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
-def build_app() -> Starlette:
-    """Construye la app (env leida aqui: testeable con monkeypatch)."""
+def build_app(executor: GrafoExecutor | None = None) -> Starlette:
+    """Construye la app (env leida aqui; executor inyectable para tests)."""
     agent_card = build_card()
     handler = DefaultRequestHandler(
-        agent_executor=GrafoExecutor(),
+        agent_executor=executor or GrafoExecutor(),
         task_store=InMemoryTaskStore(),
         agent_card=agent_card,
     )

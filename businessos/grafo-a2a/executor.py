@@ -15,10 +15,11 @@ from typing import Any
 
 import httpx
 
-from a2a.helpers import get_data_parts, get_text_parts, new_data_part, new_text_part
+from a2a.helpers import get_data_parts, get_text_parts, new_data_part, new_task, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
+from a2a.types import TaskState
 
 DEFAULT_GRAFO_URL = "http://grafo:3000"
 TIMEOUT_S = 15.0
@@ -71,6 +72,17 @@ class GrafoExecutor(AgentExecutor):
         self._http = http_client
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        # El protocolo exige encolar el Task ANTES de cualquier status update
+        # (gotcha del SDK v1; los tutoriales v0.2 no lo muestran).
+        if context.current_task is None:
+            await event_queue.enqueue_event(
+                new_task(
+                    context.task_id,
+                    context.context_id,
+                    TaskState.TASK_STATE_SUBMITTED,
+                    history=[context.message] if context.message else None,
+                )
+            )
         updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         await updater.start_work()
 

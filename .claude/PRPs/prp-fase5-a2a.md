@@ -173,7 +173,32 @@ gotcha conocido); build local si el daemon está disponible (residual runtime si
 > Esta sección CRECE con cada error encontrado durante la implementación.
 > El mismo error NUNCA ocurre dos veces.
 
-*(vacía — se llena durante la implementación)*
+### 2026-07-03: a2a-sdk v1.x es proto-first y NO trae FastAPI
+- **Error**: los tutoriales (v0.2) muestran tipos Pydantic y `A2AStarletteApplication`;
+  la v1.1.0 real usa mensajes **protobuf** (`a2a.types` = clases proto, sin
+  `model_fields`) y el extra `[http-server]` instala Starlette pero NO FastAPI.
+- **Fix**: construir la app con `create_agent_card_routes` + `create_jsonrpc_routes`
+  sobre **Starlette puro** — además es MEJOR para la opacidad: no existen `/docs` ni
+  `/openapi.json` autogenerados. Introspeccionar SIEMPRE el SDK instalado
+  (`inspect.signature`), nunca copiar de blogs.
+- **Aplicar en**: Fase 6 (Ejecutor/Supervisor A2A) y cualquier servicio A2A nuevo.
+
+### 2026-07-03: el executor v1 debe encolar el Task ANTES del primer status update
+- **Error**: `InvalidAgentResponseError: Agent should enqueue Task before
+  TaskStatusUpdateEvent event` — el patrón v0.2 (TaskUpdater directo) ya no basta.
+- **Fix**: si `context.current_task is None`, encolar
+  `new_task(task_id, context_id, TASK_STATE_SUBMITTED, history=[message])` como primer
+  evento, y LUEGO usar TaskUpdater. Los unit tests con cola espía no detectan esta
+  regla (la valida `active_task` del server): el test de interop con el cliente del
+  SDK es el que la caza.
+- **Aplicar en**: todo AgentExecutor de la Fase 6.
+
+### 2026-07-03: la card servida agrega campos de compat v0.3
+- **Error**: round-trip estricto `json_format.ParseDict(card_json, AgentCard())`
+  falla: el SDK sirve `preferredTransport` (compat v0.3) que el proto v1 no tiene.
+- **Fix**: validar con `ignore_unknown_fields=True` (sigue validando los campos del
+  tipo).
+- **Aplicar en**: tests de cards A2A.
 
 ---
 
