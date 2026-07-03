@@ -58,7 +58,9 @@ def env(nombre):
 
 
 def http(url, data=None, headers=None, method=None):
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+    # Cloudflare (Polar y api.supabase.com) bloquea el UA de urllib con error 1010
+    req = urllib.request.Request(url, data=data, method=method,
+                                 headers={"User-Agent": "curl/8.0", **(headers or {})})
     with urllib.request.urlopen(req, timeout=60) as resp:
         return resp.read().decode()
 

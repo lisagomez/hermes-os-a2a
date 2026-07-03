@@ -138,9 +138,12 @@ Pasarela de pago tradicional (Polar):
   (Colombia también). Costo Starter 5% + 50¢; sandbox disponible
 - [x] Host-job `polar-cobros.py`: el agente deja request en `cobros_pending/` → checkout
   session en Polar → link a `cobros_links/` + fila en `cobros`; `--sync` refresca estados
-- [ ] **RESIDUAL (cuenta)** — crear organización en Polar + Organization Access Token +
-  producto pay-what-you-want; llenar `POLAR_ACCESS_TOKEN`/`POLAR_PRODUCT_ID` en `.env`
-  y probar un cobro real (primero en sandbox)
+- [x] Cuenta Polar + cobro real probado en **sandbox** (2026-07-02): organización + OAT
+  (scopes products/checkouts) + producto PWYW «Cobro de servicios»; flujo completo
+  bandeja → checkout → link → pago con tarjeta de prueba → `--sync` → `pagado` en `cobros`.
+  Gotcha corregido en `polar-cobros.py`: Cloudflare bloquea el UA de urllib (error 1010).
+- [ ] **RESIDUAL (producción)** — repetir en Polar producción cuando haya cobros reales:
+  quitar `POLAR_API` del `.env` y reemplazar token + product_id por los de prod
 
 Contratos-documento (capa 1):
 - [x] Tabla `contratos` + plantilla (`clientes/contrato-template.md`) + host-job
