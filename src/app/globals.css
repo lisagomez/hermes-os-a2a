@@ -1,6 +1,8 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /*
- * Personaliza tu tema aquí
- * Documentación: https://tailwindcss.com/docs/theme
+ * Tema Mission Control. Personalización en tailwind.config.ts, no aquí.
+ * (Directivas v3: el proyecto usa tailwindcss 3.4 + postcss clásico.)
  */
