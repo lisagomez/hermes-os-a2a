@@ -6,10 +6,16 @@ dependencias (lazy): importar `app` nunca abre conexiones.
 """
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 
 import evaluador
-from schemas import EvaluacionRequest, EvaluacionResponse, Salud, SaludConocimiento
+from schemas import (
+    EvaluacionListada,
+    EvaluacionRequest,
+    EvaluacionResponse,
+    Salud,
+    SaludConocimiento,
+)
 
 app = FastAPI(
     title="grafo",
@@ -59,6 +65,31 @@ def salud_conocimiento(conocimiento: dict = Depends(dep_conocimiento)) -> SaludC
     con certeza — ROADMAP Fase 3).
     """
     return SaludConocimiento(**evaluador.salud_conocimiento(conocimiento["reglas"]))
+
+
+def dep_listar():
+    """callable(limit) -> list[dict] (lazy, igual que dep_guardar)."""
+    import db
+
+    return db.listar_evaluaciones
+
+
+@app.get("/evaluaciones", response_model=list[EvaluacionListada], tags=["evaluaciones"])
+def listar_evaluaciones(
+    limit: int = Query(20, ge=1, le=100, description="Cuantas evaluaciones recientes"),
+    listar=Depends(dep_listar),
+) -> list[EvaluacionListada]:
+    """Evaluaciones persistidas, mas reciente primero (solo lectura, Fase 4).
+
+    Sin secretos ni escritura: la consume Mission Control y cualquier agente
+    por HTTP interno. La `salida` conserva fuentes y disclaimer integros.
+    """
+    try:
+        return [EvaluacionListada(**fila) for fila in listar(limit)]
+    except HTTPException:
+        raise
+    except Exception as exc:  # DB caida: el listado no puede operar
+        raise HTTPException(status_code=503, detail=f"evaluaciones no disponibles: {exc}")
 
 
 @app.post("/evaluaciones", response_model=EvaluacionResponse, tags=["evaluaciones"])

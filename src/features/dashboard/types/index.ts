@@ -49,33 +49,57 @@ export const UMBRAL_ALERTA = 0.8
 
 // ---------- Grafo ----------
 
+// Forma REAL de grafo/schemas.py (verificada contra el codigo, no supuesta)
+export const estadoGrafoSchema = z.enum(['deducible', 'no_deducible', 'dudoso'])
+export type EstadoGrafo = z.infer<typeof estadoGrafoSchema>
+
 export const fuenteSchema = z.object({
-  ley: z.string(),
-  articulo: z.string().nullish(),
-  url: z.string().nullish(),
+  clave: z.string(), // ej. MX-LISR-27-V
+  cita: z.string(), // ej. 'LISR Art. 27, fraccion V'
+  url: z.string(),
+  vigencia: z.object({ desde: z.string(), hasta: z.string().nullable() }).partial().nullish(),
 })
 export type Fuente = z.infer<typeof fuenteSchema>
 
 export const conceptoEvaluadoSchema = z.object({
   descripcion: z.string(),
   categoria: z.string().nullable(),
-  estado: z.string(),
+  estado: estadoGrafoSchema,
   razon: z.string(),
   fuente: fuenteSchema.nullable(),
   banderas: z.array(z.string()),
   checklist: z.array(z.string()),
 })
 
-export const evaluacionSchema = z.object({
-  id: z.string().nullable(),
-  creado_at: z.string().nullish(),
-  contexto: z.object({
-    jurisdiccion: z.string(),
-    dimension: z.string(),
-    regimen: z.string(),
-    fecha: z.string(),
+const contextoResueltoSchema = z.object({
+  jurisdiccion: z.string(),
+  dimension: z.string(),
+  regimen: z.string(),
+  fecha: z.string(),
+})
+
+// GET /evaluaciones del grafo devuelve el wrapper persistido {id, created_at,
+// contexto, salida}; la UI lo aplana a Evaluacion.
+export const evaluacionListadaSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  contexto: contextoResueltoSchema,
+  salida: z.object({
+    estado: estadoGrafoSchema,
+    conceptos: z.array(conceptoEvaluadoSchema),
+    banderas_rojas: z.array(z.string()),
+    checklist: z.array(z.string()),
+    fuentes: z.array(fuenteSchema),
+    disclaimer: z.string(),
   }),
-  estado: z.string(),
+})
+export type EvaluacionListada = z.infer<typeof evaluacionListadaSchema>
+
+export const evaluacionSchema = z.object({
+  id: z.string(),
+  creado_at: z.string(),
+  contexto: contextoResueltoSchema,
+  estado: estadoGrafoSchema,
   conceptos: z.array(conceptoEvaluadoSchema),
   banderas_rojas: z.array(z.string()),
   checklist: z.array(z.string()),
@@ -83,6 +107,10 @@ export const evaluacionSchema = z.object({
   disclaimer: z.string(), // regla de oro: SIEMPRE presente y SIEMPRE visible
 })
 export type Evaluacion = z.infer<typeof evaluacionSchema>
+
+export function aplanarEvaluacion(e: EvaluacionListada): Evaluacion {
+  return evaluacionSchema.parse({ id: e.id, creado_at: e.created_at, contexto: e.contexto, ...e.salida })
+}
 
 export const saludConocimientoSchema = z.object({
   generado: z.string(),

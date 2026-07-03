@@ -2,9 +2,10 @@ import 'server-only'
 import { z } from 'zod'
 import {
   aiSpendSchema,
+  aplanarEvaluacion,
   cobroSchema,
   contratoSchema,
-  evaluacionSchema,
+  evaluacionListadaSchema,
   facturaResumenSchema,
   gastoDiarioSchema,
   gastoPorModeloSchema,
@@ -108,7 +109,9 @@ export async function realAiSpend(): Promise<AiSpend> {
 export async function realGrafoVista(): Promise<GrafoVista> {
   const [salud, evaluaciones, facturas, contratos, cobros] = await Promise.all([
     grafo('/salud-conocimiento', saludConocimientoSchema),
-    grafo('/evaluaciones?limit=20', z.array(evaluacionSchema)).then((e) => e ?? []),
+    grafo('/evaluaciones?limit=20', z.array(evaluacionListadaSchema)).then(
+      (e) => (e ?? []).map(aplanarEvaluacion)
+    ),
     sb(
       // PostgREST agrega con select=deducibilidad_estado,cuenta:count
       'facturas?select=deducibilidad_estado,cuenta:id.count()',

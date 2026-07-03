@@ -103,6 +103,25 @@ def contar_reglas() -> int:
         return int(fila["n"])
 
 
+def listar_evaluaciones(limit: int = 20) -> list[dict]:
+    """Ultimas evaluaciones persistidas (solo lectura; las consume Mission Control)."""
+    with _conectar() as conn:
+        filas = conn.execute(
+            "select id, contexto, salida, created_at from evaluaciones"
+            " order by created_at desc limit %s",
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "id": str(f["id"]),
+                "contexto": f["contexto"],
+                "salida": f["salida"],
+                "created_at": f["created_at"].isoformat(),
+            }
+            for f in filas
+        ]
+
+
 def guardar_evaluacion(contexto: dict, entrada: list[dict], salida: dict) -> str | None:
     """Persiste la evaluacion; best-effort (una DB caida no tumba el dictamen)."""
     try:
