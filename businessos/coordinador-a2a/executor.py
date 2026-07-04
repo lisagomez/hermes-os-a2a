@@ -1,17 +1,20 @@
 """executor.py — el AgentExecutor A2A del Coordinador del enjambre (PRP-007).
 
-Fase 2 (esqueleto): TAREA padre (DataPart) → validar contrato → Planner (pluggable)
-→ PLAN (DAG validado) → fila PADRE en `tareas` → artifact {plan} de vuelta al
-caller (Hermes). El fan-out real al Ejecutor, la integración y la verificación
-final llegan en las Fases 3 y 4, detrás de esta misma superficie A2A.
+Flujo completo: TAREA padre (DataPart) → validar contrato → Planner (pluggable) →
+PLAN (DAG) → fila PADRE → scheduler (fan-out acotado + presupuesto, Fase 3) →
+integración de las ramas aprobadas + verificación FINAL del Supervisor sobre el
+todo (Fase 4) → artifact de vuelta al caller (Hermes).
 
 Fronteras (SPEC-trio §2, extendidas): el Coordinador descompone y coordina
-máquinas; NO decide merge/deploy, NO se auto-aprueba. Si algo falla (entrada,
-planner) la tarea A2A queda `failed` con razón clara.
+máquinas; NO decide merge/deploy, NO se auto-aprueba, NO resuelve conflictos con un
+modelo. El gate final rojo o un conflicto de integración = escalada, no "aprobado
+por partes". Si algo falla (entrada, planner, supervisor) la tarea A2A queda
+`failed` con razón clara.
 """
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from a2a.helpers import get_data_parts, new_data_part, new_task, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
@@ -20,13 +23,17 @@ from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 
 import enjambre
-from contrato import ContratoInvalido, validar_tarea
+import integracion
+from contrato import ContratoInvalido, validar_tarea, validar_veredicto
 from ejecutor_cliente import EjecutorCliente
 from estado import EstadoCoordinador
+from integracion import IntegracionError
 from planner import Planner, PlannerError, crear_planner
 from presupuesto import Presupuesto
+from supervisor_cliente import SupervisorCliente, SupervisorError
 
 FAN_OUT_DEFAULT = 3
+DEFAULT_WORKSPACE = "/workspace"
 
 
 def limites_enjambre(tarea: dict) -> tuple[int, float | None]:
@@ -61,11 +68,21 @@ class CoordinadorA2A(AgentExecutor):
         estado: EstadoCoordinador | None = None,
         ejecutor=None,
         presupuesto=None,
+        supervisor=None,
+        integrar=None,
+        repo: Path | None = None,
+        workspace_root: Path | None = None,
     ) -> None:
         self._planner = planner or crear_planner(os.environ.get("COORDINADOR_PLANNER", "mock"))
         self._estado = estado or EstadoCoordinador()
         self._ejecutor = ejecutor or EjecutorCliente()
         self._presupuesto = presupuesto or Presupuesto()
+        self._supervisor = supervisor or SupervisorCliente()
+        self._integrar = integrar or integracion.integrar
+        self._repo = repo or Path(os.environ.get("TRIO_REPO", "/repo"))
+        self._workspace_root = workspace_root or Path(
+            os.environ.get("TRIO_WORKSPACE", DEFAULT_WORKSPACE)
+        )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
@@ -98,21 +115,55 @@ class CoordinadorA2A(AgentExecutor):
             return
 
         await self._estado.registrar_padre(tarea, plan, fan_out_max, presupuesto)
+        task_id = tarea["task_id"]
 
         # Fase 3: reparte el DAG al Ejecutor (fan-out acotado + presupuesto).
         resumen = await enjambre.correr(
-            plan, self._ejecutor, self._presupuesto, fan_out_max, presupuesto, tarea["task_id"]
+            plan, self._ejecutor, self._presupuesto, fan_out_max, presupuesto, task_id
         )
+        if resumen["estado"] != "aprobado":
+            await self._estado.transicionar(task_id, "escalada")
+            await self._entregar(updater, {"plan": plan, "enjambre": resumen})
+            return
 
-        # Fase 3: "aprobado" = todas las sub-tareas pasaron su gate → queda LISTO para
-        # integrar (en_revision). La integración + verificación FINAL del todo es Fase 4.
-        estado_final = "en_revision" if resumen["estado"] == "aprobado" else "escalada"
-        await self._estado.transicionar(tarea["task_id"], estado_final)
+        # Fase 4: integrar las ramas aprobadas (git apply topológico). Un conflicto se
+        # escala con el hallazgo — ningún modelo lo resuelve en v1.
+        try:
+            integrado = self._integrar(
+                self._repo, self._workspace_root, task_id, resumen["orden"], resumen["sub_resultados"]
+            )
+        except IntegracionError as exc:
+            await self._estado.transicionar(task_id, "escalada")
+            await self._entregar(updater, {
+                "plan": plan, "enjambre": resumen,
+                "integracion": {"estado": "conflicto", "hallazgos": exc.hallazgos},
+            })
+            return
 
-        await updater.add_artifact(
-            [new_data_part({"plan": plan, "enjambre": resumen})],
-            name="enjambre",
-        )
+        await self._estado.transicionar(task_id, "en_revision", resultado=integrado)
+
+        # Verificación FINAL del Supervisor sobre el TODO integrado (re-gatea de cero).
+        try:
+            veredicto_final = validar_veredicto(await self._supervisor.evaluar(integrado))
+        except SupervisorError as exc:
+            await self._fallar(updater, f"supervisor final: {exc}")
+            return
+        except ContratoInvalido as exc:
+            await self._fallar(updater, f"veredicto final invalido: {exc}")
+            return
+
+        # Gate final rojo = escalada (no "aprobado por partes"). Verde = listo para el
+        # gate HUMANO de merge, que propone Hermes — el Coordinador nunca mergea.
+        estado_final = "aprobada" if veredicto_final["veredicto"] == "aprobado" else "rechazada"
+        await self._estado.transicionar(task_id, estado_final, veredicto=veredicto_final)
+        await self._entregar(updater, {
+            "plan": plan, "enjambre": resumen,
+            "resultado_integrado": integrado, "veredicto_final": veredicto_final,
+        })
+
+    @staticmethod
+    async def _entregar(updater: TaskUpdater, datos: dict) -> None:
+        await updater.add_artifact([new_data_part(datos)], name="enjambre")
         await updater.complete()
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:

@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY trio-contrato/contrato.py .
 COPY coordinador-a2a/card.py coordinador-a2a/executor.py coordinador-a2a/planner.py \
      coordinador-a2a/estado.py coordinador-a2a/enjambre.py coordinador-a2a/ejecutor_cliente.py \
-     coordinador-a2a/presupuesto.py coordinador-a2a/app.py ./
+     coordinador-a2a/presupuesto.py coordinador-a2a/integracion.py \
+     coordinador-a2a/supervisor_cliente.py coordinador-a2a/app.py ./
 
 EXPOSE 4300
 

@@ -23,7 +23,9 @@ from a2a.types import (
 
 from contrato import ContratoInvalido
 from executor import CoordinadorA2A, limites_enjambre
+from integracion import IntegracionError
 from planner import MockPlanner, PlannerError
+from supervisor_cliente import SupervisorError
 
 
 # ---------- dobles ----------
@@ -95,6 +97,40 @@ class PresupuestoFake:
         return self._gasto
 
 
+class IntegrarFake:
+    """Doble de integracion.integrar (sync callable): resultado integrado o conflicto."""
+
+    def __init__(self, error: Exception | None = None, resultado: dict | None = None) -> None:
+        self._error = error
+        self._resultado = resultado
+        self.llamadas = 0
+
+    def __call__(self, repo, workspace_root, parent_id, orden, sub_resultados) -> dict:
+        self.llamadas += 1
+        if self._error:
+            raise self._error
+        return self._resultado or {
+            "task_id": parent_id, "worktree": f"worktree/{parent_id}",
+            "diff": "--- integrado ---", "archivos": ["app/x.ts"],
+            "artefactos": {"engine": "enjambre"}, "notas": "integrado",
+        }
+
+
+class SupervisorFinalFake:
+    """Doble del cliente A2A al Supervisor para el gate FINAL del todo integrado."""
+
+    def __init__(self, aprobado: bool = True, error: Exception | None = None) -> None:
+        self._aprobado = aprobado
+        self._error = error
+        self.recibidos: list[dict] = []
+
+    async def evaluar(self, resultado) -> dict:
+        self.recibidos.append(resultado)
+        if self._error:
+            raise self._error
+        return _veredicto(resultado["task_id"], self._aprobado)
+
+
 # ---------- helpers ----------
 
 PLAN_MOCK = {"sub_tareas": [
@@ -128,13 +164,16 @@ def contexto_con(mensaje) -> RequestContext:
     )
 
 
-def coordinador_con(planner=None, estado=None, ejecutor=None, presupuesto=None):
+def coordinador_con(planner=None, estado=None, ejecutor=None, presupuesto=None,
+                    supervisor=None, integrar=None):
     estado = estado or EstadoEspia()
     coord = CoordinadorA2A(
         planner=planner or MockPlanner(),
         estado=estado,
         ejecutor=ejecutor or EjecutorFake(),
         presupuesto=presupuesto or PresupuestoFake(),
+        supervisor=supervisor or SupervisorFinalFake(aprobado=True),
+        integrar=integrar or IntegrarFake(),
     )
     return coord, estado
 
@@ -181,9 +220,11 @@ def test_limites_invalidos(lim, frag):
 
 # ---------- happy path ----------
 
-def test_tarea_padre_planifica_reparte_y_registra_fila_padre():
+def test_flujo_completo_planifica_reparte_integra_verifica_y_aprueba():
     ejecutor = EjecutorFake(aprobar=True)
-    coord, estado = coordinador_con(ejecutor=ejecutor)
+    integrar = IntegrarFake()
+    supervisor = SupervisorFinalFake(aprobado=True)
+    coord, estado = coordinador_con(ejecutor=ejecutor, integrar=integrar, supervisor=supervisor)
     cola = ejecutar(coord, new_data_message(tarea_padre()))
 
     # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
@@ -193,30 +234,66 @@ def test_tarea_padre_planifica_reparte_y_registra_fila_padre():
     [artifact] = artifacts(cola)
     assert artifact.name == "enjambre"
     [entregado] = get_data_parts(artifact.parts)
-    plan, resumen = entregado["plan"], entregado["enjambre"]
-    assert [s["task_id"] for s in plan["sub_tareas"]] == ["auth", "emails", "perfil"]
+    assert [s["task_id"] for s in entregado["plan"]["sub_tareas"]] == ["auth", "emails", "perfil"]
 
-    # Se repartieron las 3 sub-tareas y todas pasaron su gate.
+    # Se repartieron las 3 sub-tareas y todas pasaron su gate por parte.
     assert set(ejecutor.llamadas) == {"auth", "emails", "perfil"}
-    assert resumen["estado"] == "aprobado"
-    assert set(resumen["sub_resultados"]) == {"auth", "emails", "perfil"}
+    assert entregado["enjambre"]["estado"] == "aprobado"
 
-    # Fila padre registrada con el plan/limites; y transicionada a en_revision (lista para integrar, Fase 4).
+    # Se integró UNA vez y el Supervisor verificó el TODO integrado (no las partes).
+    assert integrar.llamadas == 1
+    assert supervisor.recibidos[0]["task_id"] == "cuentas-0007"
+    assert entregado["resultado_integrado"]["task_id"] == "cuentas-0007"
+    assert entregado["veredicto_final"]["veredicto"] == "aprobado"
+
+    # Trazabilidad del padre: en_revision (tras integrar) → aprobada (gate final verde).
     padre = estado.padres[0]
-    assert padre["task_id"] == "cuentas-0007"
-    assert padre["fan_out_max"] == 3 and padre["presupuesto_usd"] == 5.0
-    assert estado.transiciones[-1] == ("cuentas-0007", "en_revision")
+    assert padre["task_id"] == "cuentas-0007" and padre["fan_out_max"] == 3
+    assert estado.transiciones == [("cuentas-0007", "en_revision"), ("cuentas-0007", "aprobada")]
 
 
-def test_sub_tarea_que_no_pasa_escala_el_padre():
-    """Si el enjambre escala (una sub-tarea no pasa), la fila padre va a 'escalada'."""
-    coord, estado = coordinador_con(ejecutor=EjecutorFake(aprobar=False))
+def test_sub_tarea_que_no_pasa_escala_el_padre_sin_integrar():
+    """El enjambre escala (una sub-tarea no pasa) → padre 'escalada'; NO se integra."""
+    integrar = IntegrarFake()
+    coord, estado = coordinador_con(ejecutor=EjecutorFake(aprobar=False), integrar=integrar)
     cola = ejecutar(coord, new_data_message(tarea_padre(limites={"fan_out_max": 3})))
 
     assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED  # el A2A completa; el enjambre escala
     [entregado] = get_data_parts(artifacts(cola)[0].parts)
     assert entregado["enjambre"]["estado"] == "escalado"
+    assert integrar.llamadas == 0  # no se integra lo que no pasó por partes
     assert estado.transiciones[-1] == ("cuentas-0007", "escalada")
+
+
+def test_conflicto_de_integracion_escala():
+    """Un diff que no aplica limpio = conflicto → escalada con el hallazgo (sin modelo)."""
+    integrar = IntegrarFake(error=IntegracionError([{"regla": "integracion", "evidencia": "auth y perfil chocan"}]))
+    coord, estado = coordinador_con(integrar=integrar)
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
+    [entregado] = get_data_parts(artifacts(cola)[0].parts)
+    assert entregado["integracion"]["estado"] == "conflicto"
+    assert entregado["integracion"]["hallazgos"][0]["evidencia"] == "auth y perfil chocan"
+    assert estado.transiciones[-1] == ("cuentas-0007", "escalada")
+
+
+def test_gate_final_rojo_rechaza_el_todo():
+    """Partes verdes pero el todo integrado rompe → veredicto final rechazado → 'rechazada'."""
+    coord, estado = coordinador_con(supervisor=SupervisorFinalFake(aprobado=False))
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    [entregado] = get_data_parts(artifacts(cola)[0].parts)
+    assert entregado["veredicto_final"]["veredicto"] == "rechazado"
+    assert estado.transiciones[-1] == ("cuentas-0007", "rechazada")
+
+
+def test_supervisor_final_caido_falla():
+    coord, _ = coordinador_con(supervisor=SupervisorFinalFake(error=SupervisorError("supervisor caido")))
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    assert "supervisor final: supervisor caido" in razon_de_fallo(cola)
 
 
 # ---------- errores → failed con razon clara ----------
