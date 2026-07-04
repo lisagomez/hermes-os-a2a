@@ -397,6 +397,31 @@ npm run lint         # ESLint
 - **Aplicar en**: todo servicio A2A nuevo (Ejecutor/Supervisor de Fase 6) y en general
   ante cualquier SDK joven: el instalado manda, no el blog.
 
+### 2026-07-03: Wire format del a2a-sdk v1 para clientes SIN SDK (Fase 6, trío)
+- **Error**: tres trampas al hablarle JSON-RPC crudo a un servicio A2A v1:
+  (1) el método es `SendMessage` — `message/send` es del dispatcher REST y da
+  -32601; (2) sin header `A2A-Version: 1.0` responde -32009; (3) `Part.data` es
+  un Struct directo: anidar `{"data": {"data": tarea}}` no truena el protocolo
+  pero entrega el payload envuelto y el error resultante engaña ("task_id
+  invalido"). Además protobuf Struct convierte TODO número JSON a float
+  (`3 → 3.0`): los contratos deben normalizar enteros integrales.
+- **Fix**: payload canónico verificado en `negocio/skills/trio-software/SKILL.md`;
+  ante duda, imprimir `MessageToDict(new_data_message(x))` y copiar ESO.
+- **Aplicar en**: todo cliente A2A sin SDK (skills Hermes, curl, terceros) y todo
+  contrato que valide números venidos de DataParts.
+
+### 2026-07-03: El trío (Fase 6) — patrones que ya quedaron pagados
+- **Aprendizaje**: (a) en tablas de estado compartidas, UN escritor por fila (el
+  Ejecutor escribe `tareas`; el Supervisor juzga stateless); (b) un gate activo
+  sin runner ejecutable = config inválida = el servicio NO arranca (imposible
+  "activar" reglas incomprobables — `supervisor-a2a/gates.py`); (c) motor de
+  agente SIEMPRE pluggable/mockeable: MockEngine valida servicio+protocolo+
+  worktree al 100% sin tokens y el motor real (claude-agent-sdk pineado e
+  introspeccionado) es un plugin opt-in; (d) para tests que cargan dos servicios
+  con módulos homónimos (app/card/executor), swap temporal de `sys.modules`
+  (ver `ejecutor-a2a/tests/test_interop.py`).
+- **Aplicar en**: próximos departamentos del trío y cualquier par de servicios A2A.
+
 ---
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

@@ -1,6 +1,8 @@
 # PRP-006: Fase 6 — Trío Hermes→Ejecutor→Supervisor (departamento Desarrollo de Software)
 
-> **Estado**: PENDIENTE
+> **Estado**: ✅ COMPLETADO (2026-07-03) — 7 fases ejecutadas; 158 tests verdes.
+> Residuales (en ROADMAP §FASE 6): compose up + SQL en runtime/Droplet, smoke
+> motor real gated (decisión de la dueña), gates de modelo cuando tengan runner.
 > **Fecha**: 2026-07-03
 > **Proyecto**: BusinessOS
 > **Rama**: `feat/fase6-trio`
@@ -35,16 +37,16 @@ construyen con su propio trío.
 ## Qué
 
 ### Criterios de Éxito
-- [ ] **Ejecutor A2A**: sirve Agent Card válida ("construyo y modifico software a partir de una tarea con criterios de aceptación, en un workspace aislado; entrego resultado verificable"); recibe la tarea vía `message/send`, crea `worktree/<task_id>` (nunca trabaja sobre `main`), corre su motor y entrega el resultado al Supervisor vía A2A — no a Hermes, no al humano
-- [ ] **Motor pluggable**: el Ejecutor corre con `MockEngine` en tests (cero tokens, determinista) y con Claude Agent SDK como motor real detrás de la misma interfaz; cada llamada real de modelo escribe en `token_usage`
-- [ ] **Supervisor A2A independiente**: contenedor/proceso/contexto separados del Ejecutor; re-ejecuta él mismo los gates reales sobre el worktree (`build`, `typecheck`, `lint`, tests) ignorando lo que afirme el Ejecutor; **un gate que no se puede correr NUNCA se marca pasado** (es rechazo, con la regla como hallazgo); veredicto estructurado `aprobado/rechazado + hallazgos (regla, evidencia, archivo)`
-- [ ] **Reglas auditables**: las reglas del departamento (de `desarrollo-software.md` §2) viven como config versionada y diff-eable; el motor rechaza configs con reglas sin runner ejecutable (imposible "activar" una regla que no se puede comprobar)
-- [ ] **Tabla `tareas`** en Supabase: ciclo `recibida → en_ejecucion → en_revision → aprobada/rechazada → concretada` (+ `escalada`/`cancelada`), contador `intentos` con `intentos_max`; RLS habilitado sin políticas (backend-only); la escriben los servicios de confianza, JAMÁS el agente Hermes (secret-scrubbing)
-- [ ] **Lado Hermes**: skill de orquestación en la vertical negocio — arma la tarea con criterios de aceptación, la reparte al Ejecutor, mantiene el reintento (rechazo → reenvía con hallazgos, `intento++`), escala al humano al llegar al tope, y en lo irreversible (merge a `main`, deploy, cliente, dinero) SIEMPRE pide visto bueno a la dueña antes de concretar
-- [ ] **End-to-end demostrado en dev** (mock engine, cero tokens de test): tarea → Ejecutor → Supervisor rechaza con hallazgos → reintento → Supervisor aprueba → propuesta de merge a la dueña; trazado completo en `tareas`
-- [ ] **Opacidad verificada por test**: la superficie de cada servicio nuevo es EXACTAMENTE {card, rpc `/`, `/health`} (Starlette puro, sin `/docs` ni `/openapi.json`)
-- [ ] **Empaquetado**: servicios `ejecutor-a2a` y `supervisor-a2a` en `docker-compose.yml` (hermes-net, publicados solo en `127.0.0.1`, límites de recursos, sin secretos en el repo); `docker compose config` valida; pytest completo verde sin regresión (grafo y grafo-a2a intactos)
-- [ ] **FUERA de alcance, explícito**: RAG por ámbito por cliente y white-label (futuro, otro PRP); la impresión de CLIs del trío es residual de la corriente Printing Press
+- [x] **Ejecutor A2A**: sirve Agent Card válida ("construyo y modifico software a partir de una tarea con criterios de aceptación, en un workspace aislado; entrego resultado verificable"); recibe la tarea vía `message/send`, crea `worktree/<task_id>` (nunca trabaja sobre `main`), corre su motor y entrega el resultado al Supervisor vía A2A — no a Hermes, no al humano
+- [x] **Motor pluggable**: el Ejecutor corre con `MockEngine` en tests (cero tokens, determinista) y con Claude Agent SDK como motor real detrás de la misma interfaz; cada llamada real de modelo escribe en `token_usage`
+- [x] **Supervisor A2A independiente**: contenedor/proceso/contexto separados del Ejecutor; re-ejecuta él mismo los gates reales sobre el worktree (`build`, `typecheck`, `lint`, tests) ignorando lo que afirme el Ejecutor; **un gate que no se puede correr NUNCA se marca pasado** (es rechazo, con la regla como hallazgo); veredicto estructurado `aprobado/rechazado + hallazgos (regla, evidencia, archivo)`
+- [x] **Reglas auditables**: las reglas del departamento (de `desarrollo-software.md` §2) viven como config versionada y diff-eable; el motor rechaza configs con reglas sin runner ejecutable (imposible "activar" una regla que no se puede comprobar)
+- [x] **Tabla `tareas`** en Supabase: ciclo `recibida → en_ejecucion → en_revision → aprobada/rechazada → concretada` (+ `escalada`/`cancelada`), contador `intentos` con `intentos_max`; RLS habilitado sin políticas (backend-only); la escriben los servicios de confianza, JAMÁS el agente Hermes (secret-scrubbing)
+- [x] **Lado Hermes**: skill de orquestación en la vertical negocio — arma la tarea con criterios de aceptación, la reparte al Ejecutor, mantiene el reintento (rechazo → reenvía con hallazgos, `intento++`), escala al humano al llegar al tope, y en lo irreversible (merge a `main`, deploy, cliente, dinero) SIEMPRE pide visto bueno a la dueña antes de concretar
+- [x] **End-to-end demostrado en dev** (mock engine, cero tokens de test): tarea → Ejecutor → Supervisor rechaza con hallazgos → reintento → Supervisor aprueba → propuesta de merge a la dueña; trazado completo en `tareas`
+- [x] **Opacidad verificada por test**: la superficie de cada servicio nuevo es EXACTAMENTE {card, rpc `/`, `/health`} (Starlette puro, sin `/docs` ni `/openapi.json`)
+- [x] **Empaquetado**: servicios `ejecutor-a2a` y `supervisor-a2a` en `docker-compose.yml` (hermes-net, publicados solo en `127.0.0.1`, límites de recursos, sin secretos en el repo); `docker compose config` valida; pytest completo verde sin regresión (grafo y grafo-a2a intactos)
+- [x] **FUERA de alcance, explícito**: RAG por ámbito por cliente y white-label (futuro, otro PRP); la impresión de CLIs del trío es residual de la corriente Printing Press
 
 ### Comportamiento Esperado
 
@@ -263,10 +265,10 @@ regresión.
 ### Fase 7: Validación Final + docs vivas
 **Objetivo**: Sistema coherente de punta a punta; conocimiento persistido.
 **Validación**:
-- [ ] pytest completo del repo verde (ejecutor-a2a + supervisor-a2a + grafo + grafo-a2a sin regresión)
-- [ ] Criterios de éxito del PRP cumplidos (incluido el end-to-end con reintento y gate humano)
-- [ ] Docs vivas: ROADMAP (Fase 6 con estado y residuales), memoria (`fase6-departamentos.md` actualizado o `fase6-trio.md`), `BUSINESS_LOGIC.md`, aprendizajes al CLAUDE.md si aplican, `SPEC-trio.md` §7.6 actualizado (reusado vs construido)
-- [ ] Residuales explícitos en ROADMAP: `compose up` real del trío en la máquina runtime/Droplet; smoke con motor real (tokens) decidido por la dueña; gates de modelo del Supervisor (`/code-review`, `security-review`) cuando tengan runner; RAG por ámbito y white-label = futuro, otro PRP; CLIs del trío = corriente Printing Press
+- [x] pytest completo del repo verde (ejecutor-a2a + supervisor-a2a + grafo + grafo-a2a sin regresión)
+- [x] Criterios de éxito del PRP cumplidos (incluido el end-to-end con reintento y gate humano)
+- [x] Docs vivas: ROADMAP (Fase 6 con estado y residuales), memoria (`fase6-departamentos.md` actualizado o `fase6-trio.md`), `BUSINESS_LOGIC.md`, aprendizajes al CLAUDE.md si aplican, `SPEC-trio.md` §7.6 actualizado (reusado vs construido)
+- [x] Residuales explícitos en ROADMAP: `compose up` real del trío en la máquina runtime/Droplet; smoke con motor real (tokens) decidido por la dueña; gates de modelo del Supervisor (`/code-review`, `security-review`) cuando tengan runner; RAG por ámbito y white-label = futuro, otro PRP; CLIs del trío = corriente Printing Press
 
 ---
 
@@ -343,4 +345,4 @@ regresión.
 
 ---
 
-*PRP pendiente aprobación. No se ha modificado código.*
+*PRP ejecutado por completo el 2026-07-03 (commits fase6/f1..f7 en `feat/fase6-trio`).*

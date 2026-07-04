@@ -157,8 +157,14 @@ businessos/
 6. [~] **Fase 5** — Interoperabilidad A2A: grafo expuesto como agente A2A (`grafo-a2a`, núcleo
    completo 2026-07-03; residual: up en Droplet). La economía agéntica (Circle, Lean 4) sigue
    FUTURA: mismo horizonte, otro PRP
-7. [ ] **Fase 6 (futura)** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor,
-   white-label (ver `businessos/departamentos/`). Primer departamento: Desarrollo de Software.
+7. [~] **Fase 6** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor (núcleo
+   completo 2026-07-03, PRP-006): `ejecutor-a2a` (worktree aislado + motor pluggable
+   Mock/Claude Agent SDK) + `supervisor-a2a` (gates deterministas de `reglas/software.toml`,
+   gate no corrible = rechazo) + skill `trio-software` (Hermes reparte, reintenta con tope,
+   gate humano en lo irreversible) + tabla `tareas`; interop e2e con reintento demostrado en
+   dev con cero tokens. Residuales: compose up en Droplet, dogfood con motor real (decisión
+   de la dueña), gates de modelo con runner. White-label y RAG por ámbito: FUTURO, otro PRP.
+   Primer departamento: Desarrollo de Software (ver `businessos/departamentos/`).
 
 ---
 

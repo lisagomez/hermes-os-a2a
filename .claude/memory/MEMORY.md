@@ -13,7 +13,7 @@
 - [Fase 3 — expansión](project/fase3-expansion.md) — grafo v2 multi-ámbito (fiscal MX/CO, contable, contractual; 24 reglas), cron de vigencias, cobros Polar (payouts MX verificados) y contratos validados por grafo; residuales: cuenta Polar + aplicar SQL/jobs en Droplet.
 - [Fase 4 — dashboard Mission Control](project/fase4-dashboard.md) — A2ABot = Next.js de la raíz; 3 vistas (Pantheon/AI Spend/Grafo) solo lectura, mock/real por env; grafo con GET /evaluaciones; residuales: compose up + cron snapshot en runtime, screenshots.
 - [Fase 5 — A2A](project/fase5-a2a.md) — grafo-a2a: puente determinista (card + message/send → grafo íntegro, opacidad testeada, cero LLM); SDK a2a-sdk 1.1.0 proto-first con gotchas en el PRP; residual: up en Droplet. Economía agéntica (Circle/Lean 4) sigue futura.
-- [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor (A2A), white-label; primer departamento Desarrollo de Software; solo documentado (sin código), depende de A2A (Fase 5) — cuyo patrón base ya existe (grafo-a2a).
+- [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor CONSTRUIDO y validado en dev (2026-07-03, PRP-006): ejecutor-a2a + supervisor-a2a + skill trio-software + tabla tareas; residuales: compose up Droplet + dogfood motor real (decisión de la dueña).
 - [CLIs Printing Press + auditor](project/cli-printing-press.md) — CLIs agente-nativos por fase; `cli-audit.py` (host-job) detecta brechas y deja snapshot que lee el skill `cli-audit`; Printing Press solo corre en Claude Code, el cron solo detecta+avisa (Nivel 2-prep, Nivel 3 descartado).
 
 ## feedback/ — Correcciones y preferencias
