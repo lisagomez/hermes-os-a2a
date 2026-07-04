@@ -357,11 +357,12 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
 - [x] Mergeado a master (PR #13, 2026-07-04); conflicto con el PR #12 (GLM) en
   `filas_token_usage` resuelto de forma aditiva (nota GLM del docstring + parámetro
   `task_id`), verde tras el merge
-- [ ] **RESIDUAL (BD, pendiente — a diferencia de Fase 6)** — `supabase-fase7.sql`
-  NO aplicado aún (verificado 2026-07-04: columnas `token_usage.task_id`,
-  `tareas.parent_id/es_padre/fan_out_max/plan/presupuesto_usd/gasto_usd` ausentes en
-  producción). Idempotente, RLS sin políticas (solo service_role); aplicar con permiso
-  explícito de la dueña antes del runtime del enjambre
+- [x] **BD aplicada (2026-07-04)** — `supabase-fase7.sql` aplicado en producción vía
+  management API con permiso explícito de la dueña (el MCP estaba en read-only).
+  Verificado: columnas `token_usage.task_id` y
+  `tareas.parent_id/es_padre/fan_out_max/plan/presupuesto_usd/gasto_usd` + índices
+  `tareas_parent_idx`/`token_usage_task_idx` presentes; sin alertas de seguridad nuevas
+  (RLS sin políticas = solo service_role, por diseño)
 - [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up coordinador-a2a` en
   hermes-net + smoke card/SendMessage del enjambre end-to-end
 - [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — Planner real opt-in y primer
