@@ -296,6 +296,20 @@ regresión.
 - **Aplicar en**: cualquier tabla de estado compartida entre servicios del trío:
   un dueño de escritura por fila, los demás se comunican por protocolo.
 
+### 2026-07-03 (F5): el JSON-RPC crudo del a2a-sdk v1 tiene TRES trampas de wire format
+- **Error**: un cliente sin SDK (Hermes hace HTTP crudo) falla de tres formas
+  distintas: (1) método `message/send` → -32601 Method not found (ese nombre es
+  del dispatcher REST; el JSON-RPC v1 usa `SendMessage`); (2) sin header
+  `A2A-Version: 1.0` → -32009 "version 0.3 not supported"; (3) anidar el payload
+  como `parts:[{"data":{"data":tarea}}]` NO truena el protocolo — `Part.data` es
+  un Struct directo, así que llega `{"data": tarea}` al executor y el contrato
+  la rechaza con un error engañoso ("task_id invalido").
+- **Fix**: verificado empíricamente contra la app real (TestClient): método
+  `SendMessage`, header `A2A-Version: 1.0`, `parts:[{"data": <tarea directa>}]`.
+  El payload exacto quedó cableado en `negocio/skills/trio-software/SKILL.md`.
+- **Aplicar en**: cualquier cliente A2A sin SDK (skills Hermes, curl de debug,
+  terceros). Ante duda, imprimir `MessageToDict(new_data_message(x))` y copiar ESO.
+
 ## Gotchas
 
 > Críticos ANTES de implementar (los de A2A vienen pagados de PRP-005 — no repagarlos)
