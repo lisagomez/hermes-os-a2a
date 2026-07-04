@@ -323,6 +323,56 @@ el paquete del primer departamento, y el modelo white-label).
 
 ---
 
+## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ construido y validado en dev (2026-07-04, PR #13); SQL + runtime RESIDUAL
+
+PRP: `.claude/PRPs/prp-fase7-swarm.md`. Estado detallado en
+`.claude/memory/project/fase7-swarm.md`.
+
+La evolución natural del trío (Fase 6): de **un Ejecutor por tarea** a un **enjambre
+de Ejecutores coordinados** que trabajan en paralelo sobre las sub-tareas de una
+feature grande. Un servicio A2A nuevo —el **Coordinador**— descompone la feature en un
+DAG de sub-tareas con alcances disjuntos, las reparte en paralelo al Ejecutor (con tope
+de fan-out y presupuesto), integra las ramas aprobadas y pide **una verificación final
+del Supervisor sobre la rama integrada** — o escala. Se reusan el Ejecutor y el
+Supervisor de la Fase 6 SIN tocarlos: cada sub-tarea es una `tarea` válida del contrato
+existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de confiar".
+
+**Construido (2026-07-04, PRP-007, PR #13 → master):**
+- [x] `businessos/coordinador-a2a/` — servicio A2A hermano de ejecutor/supervisor:
+  card honesta ("descompongo/reparto/integro/escalo; NO escribo código, NO apruebo,
+  NO despliego"), `enjambre.py` (fan-out acotado + reintento por sub-tarea),
+  `planner.py` (Planner pluggable; `MockPlanner` determinista cero tokens, real opt-in),
+  `presupuesto.py` (corte por gasto acumulado leído de `token_usage`),
+  `integracion.py` (merge a `tarea/<parent_id>` + verificación final del Supervisor),
+  clientes A2A a Ejecutor y Supervisor
+- [x] `trio-contrato/contrato.py` extendido: `validar_plan` + DAG (ids únicos,
+  dependencias acíclicas, alcances de archivo disjuntos donde se pueda)
+- [x] `ejecutor-a2a/claude_engine.py`: `filas_token_usage(..., task_id=None)` para
+  atribuir el gasto de cada sub-tarea (corte EXACTO de presupuesto); retrocompatible
+- [x] **Un escritor por fila, preservado**: el Coordinador escribe SOLO la fila PADRE
+  (`es_padre=true`: plan, fan_out_max, presupuesto, gasto, estado global); cada Ejecutor
+  SOLO su fila hija (`parent_id`); el Supervisor sigue stateless; Hermes sin credenciales
+- [x] Verificado en dev con cero tokens: **112 tests verdes** en los servicios del
+  enjambre (ejecutor-a2a 35 · coordinador-a2a 41 · trio-contrato 36)
+- [x] Mergeado a master (PR #13, 2026-07-04); conflicto con el PR #12 (GLM) en
+  `filas_token_usage` resuelto de forma aditiva (nota GLM del docstring + parámetro
+  `task_id`), verde tras el merge
+- [ ] **RESIDUAL (BD, pendiente — a diferencia de Fase 6)** — `supabase-fase7.sql`
+  NO aplicado aún (verificado 2026-07-04: columnas `token_usage.task_id`,
+  `tareas.parent_id/es_padre/fan_out_max/plan/presupuesto_usd/gasto_usd` ausentes en
+  producción). Idempotente, RLS sin políticas (solo service_role); aplicar con permiso
+  explícito de la dueña antes del runtime del enjambre
+- [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up coordinador-a2a` en
+  hermes-net + smoke card/SendMessage del enjambre end-to-end
+- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — Planner real opt-in y primer
+  dogfood del enjambre con motor real (`EJECUTOR_ENGINE=claude`); hoy Mock-only a propósito
+- **Salida:** ✅ un enjambre de Ejecutores coordinado, validado de punta a punta en dev
+  (motor y planner mock, cero tokens), con las mismas garantías de la Fase 6 (Supervisor
+  independiente re-gatea el todo + gate humano en lo irreversible) — aplicar el SQL y el
+  dogfood real son los siguientes pasos y son decisión de la dueña.
+
+---
+
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
 No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se

@@ -1,0 +1,52 @@
+---
+name: fase7-swarm
+description: Fase 7 — enjambre (swarm) de Ejecutores coordinado CONSTRUIDO y validado en dev (2026-07-04, PRP-007, PR #13); Coordinador A2A hermano del trío; residuales SQL (no aplicado aún) + runtime + dogfood real.
+metadata:
+  type: project
+---
+
+**CONSTRUIDO Y MERGEADO (2026-07-04, PRP-007, PR #13 → master):** el enjambre completo
+en código, validado end-to-end en dev con cero tokens (**112 tests verdes** en los
+servicios del enjambre: ejecutor-a2a 35 · coordinador-a2a 41 · trio-contrato 36).
+
+La evolución del trío de la [[fase6-departamentos]]: de **un Ejecutor por tarea** a un
+**enjambre de Ejecutores** que corren en paralelo las sub-tareas de una feature grande.
+El **Coordinador** (servicio A2A hermano, no toca Ejecutor/Supervisor) descompone en un
+DAG de sub-tareas con alcances disjuntos, las reparte con tope de fan-out y presupuesto,
+integra lo aprobado y pide una verificación final del Supervisor sobre la rama integrada
+— o escala. Cada sub-tarea es una `tarea` válida del contrato de Fase 6.
+
+- `businessos/coordinador-a2a/` (servicio A2A): `enjambre.py` (fan-out acotado +
+  reintento por sub-tarea), `planner.py` (Planner pluggable/mockeable — MockPlanner
+  determinista cero tokens, real opt-in tras la MISMA interfaz que `Engine`),
+  `presupuesto.py` (corte por gasto acumulado leído de `token_usage`), `integracion.py`
+  (merge a `tarea/<parent_id>` + verificación final del Supervisor), clientes A2A a
+  Ejecutor y Supervisor, card honesta (descompongo/reparto/integro/escalo; NO escribo
+  código, NO apruebo, NO despliego).
+- `trio-contrato/contrato.py` extendido: `validar_plan` + DAG (ids únicos, aciclicidad,
+  alcances de archivo disjuntos donde se pueda) + `test_plan.py`.
+- `ejecutor-a2a/claude_engine.py`: `filas_token_usage(..., task_id=None)` — atribuye el
+  gasto de cada sub-tarea para el corte EXACTO de presupuesto; retrocompatible.
+- **Un escritor por fila (extendido a padre/hija):** el Coordinador escribe SOLO la fila
+  PADRE (`es_padre=true`: plan, fan_out_max, presupuesto, gasto, estado global); cada
+  Ejecutor SOLO su fila hija (`parent_id`); el Supervisor sigue stateless; Hermes sin
+  credenciales.
+
+**Conflicto de merge resuelto (con el PR #12 GLM):** en `filas_token_usage` — GLM añadió
+una nota de costo al docstring, Fase 7 el parámetro `task_id`. Resolución **aditiva**: se
+conservan ambas notas + la firma con `task_id` (default None) + `task_id` en las dos filas.
+Verde tras el merge. Ver [[glm-5.2-transversal]] si existe.
+
+**Residuales:**
+- **BD (pendiente, a diferencia de Fase 6):** `supabase-fase7.sql` NO aplicado aún
+  (verificado 2026-07-04: `token_usage.task_id` y `tareas.parent_id/es_padre/fan_out_max/
+  plan/presupuesto_usd/gasto_usd` ausentes en producción). Idempotente, RLS sin políticas
+  (solo service_role); aplicar con permiso explícito de la dueña antes del runtime.
+- **Droplet/runtime:** build + `compose up coordinador-a2a` en hermes-net + smoke del
+  enjambre end-to-end.
+- **Decisión de la dueña (quema tokens):** Planner real opt-in + primer dogfood del
+  enjambre con `EJECUTOR_ENGINE=claude`; hoy Mock-only a propósito.
+
+**Pytest habilitado en la máquina de desarrollo (2026-07-04):** venv en `businessos/.venv`
+(Python 3.14, bootstrap de pip con get-pip.py por el gotcha de ensurepip). Detalle y comando
+en [[maquinas-entornos]].
