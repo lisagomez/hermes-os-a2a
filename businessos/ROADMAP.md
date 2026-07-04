@@ -21,6 +21,12 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
   el grafo). No bajar de 4 GB: en 2 GB el stack hace OOM-kill (ver FASE0.md §1).
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
+- **Modelos (opt-in GLM-5.2, seam listo 2026-07-04):** `z-ai/glm-5.2` (~1/6 del costo de
+  Opus, hecho para coding agéntico) entra por dos capas pluggables sin arquitectura nueva:
+  (a) motor del trío vía endpoint Anthropic-compatible de z.ai (`ANTHROPIC_BASE_URL` +
+  `modelo_pref="glm-5.2"`); (b) profiles pesados de Hermes vía OpenRouter (no el loop).
+  Gate `businessos/probe-glm.py` (caché+tools) antes de cablear; default intacto sin las
+  env vars. Detalle en la reference de setup y en fase1-eficiencia.
 - **Canales:** Telegram (3 bots) + voz (TTS de salida, transcripción de entrada)
 - **Conocimiento personal:** Obsidian (bóveda montada como volumen)
 - **Cerebro regulatorio:** grafo (de lisagomez/grafo, rediseñado multi-país)

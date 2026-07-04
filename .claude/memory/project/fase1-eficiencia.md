@@ -75,6 +75,13 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   (necesitan 24/7, igual que el respaldo nocturno). El cerebro principal nunca se auto-cambia
   por precio sin eval + aprobación humana ("copiloto no autopiloto").
 - 🚫 "Topes de palabras en crons": N/A, no hay crons aún (diferidos con el Droplet).
+- 🟡 **GLM-5.2 para la capa PESADA** (seam listo 2026-07-04): `z-ai/glm-5.2` (OpenRouter) como
+  opción para `curator`/`kanban_decomposer` (hoy `claude-sonnet-4.6`), ~6× más barato
+  ($0.9/$2.9 vs $3/$15 por M). NO al loop (gemini-lite gana caché+latencia). Gate previo:
+  host-job `businessos/probe-glm.py` (idioma + tool-calling + caché de prefijo). Receta de
+  `config set` + rollback en [[hermes-vertical-setup]]. **Falta**: correr el probe con
+  OPENROUTER_API_KEY y, si pasa, aplicar en las 3 verticales. También candidato de eslabón
+  de fallback. Ver plan de integración GLM en la transversal.
 
 ## Rollback
 Cada profile vuelve a su estado original poniendo `model` y `provider` a `''` (eran vacíos).

@@ -227,7 +227,11 @@ services:
   # Motor: mock por default (cero tokens). EJECUTOR_ENGINE=claude requiere
   # ademas el CLI de Claude Code en la imagen + ANTHROPIC_API_KEY (residual:
   # decision de la dueña, quema tokens — se registra en token_usage 'trio').
-  # El repo objetivo se monta en /repo (TRIO_REPO_HOST en .env).
+  # Modo GLM-5.2 (opt-in, ~1/6 del costo): pon ANTHROPIC_BASE_URL al endpoint
+  # Anthropic-compatible de z.ai + ANTHROPIC_AUTH_TOKEN, y modelo_pref="glm-5.2"
+  # en la tarea. Sin ANTHROPIC_BASE_URL, el SDK va a Anthropic como hoy (default
+  # intacto). El Supervisor re-corre los gates igual → el output se verifica sea
+  # cual sea el motor. El repo objetivo se monta en /repo (TRIO_REPO_HOST en .env).
   ejecutor-a2a:
     build:
       context: .
@@ -245,6 +249,9 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # Modo GLM-5.2 (opt-in): base_url + auth-token del endpoint z.ai. Vacios ⇒ Anthropic.
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+      - ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-}
     volumes:
       - trio-workspace:/workspace
       - ${TRIO_REPO_HOST:-${HOME}/businessos/trio-repo}:/repo
