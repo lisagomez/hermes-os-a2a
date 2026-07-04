@@ -14,6 +14,7 @@
 - [Fase 4 — dashboard Mission Control](project/fase4-dashboard.md) — A2ABot = Next.js de la raíz; 3 vistas (Pantheon/AI Spend/Grafo) solo lectura, mock/real por env; grafo con GET /evaluaciones; residuales: compose up + cron snapshot en runtime, screenshots.
 - [Fase 5 — A2A](project/fase5-a2a.md) — grafo-a2a: puente determinista (card + message/send → grafo íntegro, opacidad testeada, cero LLM); SDK a2a-sdk 1.1.0 proto-first con gotchas en el PRP; residual: up en Droplet. Economía agéntica (Circle/Lean 4) sigue futura.
 - [Fase 6 — departamentos](project/fase6-departamentos.md) — trío Hermes→Ejecutor→Supervisor CONSTRUIDO, mergeado a master (PR #9, 2026-07-03) y SQL aplicado en producción; residuales: compose up Droplet + dogfood motor real (decisión de la dueña).
+- [Fase 7 — enjambre (swarm)](project/fase7-swarm.md) — Coordinador A2A (fan-out acotado + presupuesto + integración con verificación final del Supervisor) sobre el trío, CONSTRUIDO y mergeado a master (PR #13, 2026-07-04, 112 tests verdes); residuales: `supabase-fase7.sql` NO aplicado aún + compose up + dogfood real. Pytest habilitado en dev (`businessos/.venv`).
 - [CLIs Printing Press + auditor](project/cli-printing-press.md) — CLIs agente-nativos por fase; `cli-audit.py` (host-job) detecta brechas y deja snapshot que lee el skill `cli-audit`; Printing Press solo corre en Claude Code, el cron solo detecta+avisa (Nivel 2-prep, Nivel 3 descartado).
 
 ## feedback/ — Correcciones y preferencias

@@ -165,6 +165,14 @@ businessos/
    dev con cero tokens. Residuales: compose up en Droplet, dogfood con motor real (decisión
    de la dueña), gates de modelo con runner. White-label y RAG por ámbito: FUTURO, otro PRP.
    Primer departamento: Desarrollo de Software (ver `businessos/departamentos/`).
+8. [~] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
+   PR #13): `coordinador-a2a` (servicio A2A hermano) descompone una feature grande en un DAG
+   de sub-tareas, las reparte en paralelo al Ejecutor con tope de fan-out + presupuesto
+   (`token_usage.task_id`), integra lo aprobado en `tarea/<parent_id>` y pide una verificación
+   final del Supervisor sobre la rama integrada — o escala; Planner pluggable (Mock/real
+   opt-in), un escritor por fila padre/hija. Validado en dev con cero tokens (112 tests
+   verdes). Residuales: `supabase-fase7.sql` NO aplicado aún, compose up en Droplet, dogfood
+   con Planner/motor real (decisión de la dueña).
 
 ---
 
