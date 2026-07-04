@@ -1,8 +1,37 @@
 ---
 name: fase6-departamentos
-description: Fase 6 (futura) — departamentos operados por el trío Hermes→Ejecutor→Supervisor, white-label; primer departamento Desarrollo de Software.
+description: Fase 6 — trío Hermes→Ejecutor→Supervisor CONSTRUIDO y validado en dev (2026-07-03, PRP-006); primer departamento Desarrollo de Software; residuales runtime/Droplet y dogfood real.
 metadata:
   type: project
+---
+
+**CONSTRUIDO (2026-07-03, PRP-006, rama `feat/fase6-trio`):** el trío completo en
+código, validado end-to-end en dev con cero tokens (158 tests verdes en el repo).
+
+- `trio-contrato/contrato.py` — TAREA/RESULTADO/VEREDICTO + ciclo de estados; el
+  contrato normaliza floats integrales (gotcha: protobuf Struct entrega TODO
+  número JSON como float).
+- `businessos/ejecutor-a2a/` (:4100) — worktree por tarea (nunca main), motor
+  pluggable (Mock default / `ClaudeAgentEngine` real con claude-agent-sdk==0.2.110),
+  diff real desde git, ÚNICO escritor de `tareas`; gasto del motor real →
+  `token_usage` vertical `trio` (check ampliado en `supabase-fase6.sql`).
+- `businessos/supervisor-a2a/` (:4200) — motor de reglas determinista (sin LLM),
+  config versionada `reglas/software.toml`; re-ejecuta gates sobre el volumen
+  compartido `trio-workspace`; gate no corrible = rechazo; regla activa sin
+  runner = no arranca. **Stateless a propósito**: NO escribe `tareas` (un
+  escritor por fila — desviación deliberada del blueprint, documentada en PRP).
+- `negocio/skills/trio-software/SKILL.md` — orquestación Hermes sin secretos;
+  wire format verificado: método JSON-RPC `SendMessage` (no `message/send`) +
+  header `A2A-Version: 1.0` + `parts:[{"data": <tarea directa>}]`.
+- Interop e2e (tests): rechazo→reintento con observaciones→aprobado.
+
+**Residuales:** `compose up` del trío + smoke en el Droplet; aplicar
+`supabase-fase6.sql` actualizado (DDL a producción = acción humana); smoke motor
+real gated (`EJECUTOR_SMOKE_REAL=1`) y dogfood con `EJECUTOR_ENGINE=claude`
+(requiere CLI Claude Code en la imagen — hoy mock-only a propósito) — decisión
+de la dueña; gates de modelo cuando tengan runner. **Futuro (otro PRP):** RAG
+por ámbito y white-label.
+
 ---
 
 Decisión (2026-06-28): se añadió al roadmap la **Fase 6 (futura)** a partir del documento

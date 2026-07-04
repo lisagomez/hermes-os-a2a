@@ -219,6 +219,65 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- EJECUTOR-A2A (trio, Fase 6) ----------
+  # Recibe UNA tarea con criterios de aceptacion (via Hermes-Negocio, skill
+  # trio-software), la hace en worktree/<task_id> del volumen trio-workspace
+  # (nunca main) y entrega el resultado al Supervisor via A2A. Es EL escritor
+  # de la tabla `tareas` (service_role via env; el agente Hermes jamas la toca).
+  # Motor: mock por default (cero tokens). EJECUTOR_ENGINE=claude requiere
+  # ademas el CLI de Claude Code en la imagen + ANTHROPIC_API_KEY (residual:
+  # decision de la dueña, quema tokens — se registra en token_usage 'trio').
+  # El repo objetivo se monta en /repo (TRIO_REPO_HOST en .env).
+  ejecutor-a2a:
+    build:
+      context: .
+      dockerfile: ejecutor-a2a/Dockerfile
+    container_name: ejecutor-a2a
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4100:4100"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - EJECUTOR_ENGINE=${EJECUTOR_ENGINE:-mock}
+      - EJECUTOR_PUBLIC_URL=http://ejecutor-a2a:4100
+      - SUPERVISOR_URL=http://supervisor-a2a:4200
+      - TRIO_REPO=/repo
+      - TRIO_WORKSPACE=/workspace
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - trio-workspace:/workspace
+      - ${TRIO_REPO_HOST:-${HOME}/businessos/trio-repo}:/repo
+    depends_on: [supervisor-a2a]
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
+
+  # ---------- SUPERVISOR-A2A (trio, Fase 6) ----------
+  # Independencia FISICA del Ejecutor (proceso/contenedor/contexto): recibe el
+  # RESULTADO, monta el MISMO volumen trio-workspace y re-ejecuta los gates de
+  # reglas/software.toml sobre el worktree — ignora afirmaciones. Gate que no
+  # puede correr = rechazo con hallazgo. Sin SDK de modelo, sin Supabase, sin
+  # secretos: 100% determinista y stateless (el veredicto es su unico output).
+  supervisor-a2a:
+    build:
+      context: .
+      dockerfile: supervisor-a2a/Dockerfile
+    container_name: supervisor-a2a
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4200:4200"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - SUPERVISOR_PUBLIC_URL=http://supervisor-a2a:4200
+      - TRIO_WORKSPACE=/workspace
+    volumes:
+      - trio-workspace:/workspace
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
+
   # Postgres propio del grafo. El seed corre via initdb SOLO con volumen virgen:
   # reseed = docker compose down && docker volume rm businessos_grafo-db-data
   # && docker compose up -d grafo-db grafo   (ver grafo/README.md).
@@ -251,3 +310,7 @@ networks:
 
 volumes:
   grafo-db-data:
+  # Volumen compartido del trio: el Ejecutor crea worktree/<task_id> y el
+  # Supervisor re-ejecuta los gates ahi mismo. La frontera entre ambos es de
+  # JUICIO (contexto/proceso separados), no de filesystem.
+  trio-workspace:

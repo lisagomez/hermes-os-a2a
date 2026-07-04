@@ -246,16 +246,17 @@ Contratos-blockchain (capa 2 de contratos):
 **Salida de la capa económica:** el sistema no solo razona y contrata, también
 transacciona — con respaldo regulado y verificación formal.
 
-## FASE 6 (FUTURA) — Departamentos operados por el trío Hermes→Ejecutor→Supervisor
+## FASE 6 — Departamentos operados por el trío Hermes→Ejecutor→Supervisor ✅ trío construido y validado en dev (2026-07-03); runtime RESIDUAL
+
+PRP: `.claude/PRPs/prp-fase6-trio.md`. Estado detallado en
+`.claude/memory/project/fase6-departamentos.md`.
 
 La evolución natural de A2A: en vez de "un agente por departamento", **dos agentes
 con roles fijos** —un Ejecutor y un Supervisor— atienden muchos departamentos, con
 Hermes-Negocio como **orquestador** (reparte, no ejecuta). Los departamentos no son
 agentes: son **paquetes de competencias** (tareas + reglas de validación + fuentes de
-conocimiento) que el par carga según la tarea. Depende de A2A (Fase 5): el Ejecutor y el
-Supervisor se hablan como pares formales, y el Supervisor debe ser independiente para que
-la vigilancia signifique algo. Detalle en `departamentos/` (SPEC-trio, el paquete del
-primer departamento, y el modelo white-label).
+conocimiento) que el par carga según la tarea. Detalle en `departamentos/` (SPEC-trio,
+el paquete del primer departamento, y el modelo white-label).
 
 - **Tres niveles:** Hermes-Negocio orquesta (entiende, arma contexto, reparte) →
   Ejecutor hace (servicio A2A propio sobre Claude Agent SDK, en workspace aislado) →
@@ -267,11 +268,50 @@ primer departamento, y el modelo white-label).
 - **White-label = configuración:** el trío es idéntico para todos; por cliente cambia qué
   departamentos activa, sus reglas, su marca y sus datos/workspace aislados. Arranca en uso
   propio (construir los SaaS de la dueña) y luego se vende como "departamento con IA".
-- **Orden:** especificar y validar UN departamento en uso propio antes de white-label
-  (acotar antes de escalar). El Supervisor es tan bueno como sus reglas: auditables, no
-  improvisadas.
-- **Salida:** un departamento de software operado por el trío, validado de punta a punta en
-  uso propio, listo para replicarse por configuración a nuevos clientes.
+
+**Construido (2026-07-03, PRP-006):**
+- [x] Contrato del trío (`trio-contrato/contrato.py`): TAREA/RESULTADO/VEREDICTO +
+  ciclo de estados 1:1 con la SPEC §7.2; stdlib pura, tests propios
+- [x] Tabla `tareas` (`supabase-fase6.sql`, idempotente, RLS sin políticas) +
+  etiqueta `trio` en el check de `token_usage.vertical`
+- [x] `businessos/ejecutor-a2a/` (127.0.0.1:4100): card honesta con fronteras,
+  worktree por tarea (`worktree/<task_id>`, nunca main), motor pluggable
+  (MockEngine default, cero tokens), diff real desde git, cliente A2A saliente
+  al Supervisor, ÚNICO escritor de `tareas`; todo error → `failed` con razón
+- [x] Motor real `ClaudeAgentEngine` (claude-agent-sdk==0.2.110 introspeccionado):
+  respeta límites (modelo_pref/presupuesto_usd/max_turns), registra cada modelo
+  usado en `token_usage` vertical `trio` (también si la corrida falla); smoke
+  real gated `EJECUTOR_SMOKE_REAL=1`
+- [x] `businessos/supervisor-a2a/` (127.0.0.1:4200): motor de reglas determinista
+  SIN SDK de modelo; config versionada `reglas/software.toml` (build/typecheck/
+  lint/tests + sin-any/sin-secretos/≤500-líneas/RLS); re-ejecuta los gates ÉL
+  MISMO sobre el worktree; gate no corrible = rechazo con hallazgo, jamás
+  "asumido"; regla activa sin runner = el servicio NO arranca (`code_review` y
+  `security_review` declarados e inactivos hasta tener runner)
+- [x] Skill `negocio/skills/trio-software/`: armar tarea con criterios, POST
+  JSON-RPC verificado empíricamente (`SendMessage` + header `A2A-Version: 1.0`),
+  reintento con hallazgos y tope, escalado al humano, gate humano SIEMPRE en lo
+  irreversible; Hermes sin secretos (secret-scrubbing respetado)
+- [x] Interop end-to-end con cliente real del SDK (cero tokens): tarea → rechazo
+  con hallazgos → reintento con observaciones → aprobado; trazas completas;
+  opacidad de ambos = exactamente {card, rpc, /health}
+- [x] Empaquetado: Dockerfiles + compose (hermes-net, 127.0.0.1, volumen
+  compartido `trio-workspace`, sin secretos); `docker compose config` valida;
+  158 tests verdes en el repo (grafo y grafo-a2a sin regresión)
+- [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up ejecutor-a2a
+  supervisor-a2a` + smoke de card/SendMessage en hermes-net; aplicar el
+  `supabase-fase6.sql` actualizado (DDL a producción requiere acción humana o
+  permiso explícito; una sola corrida idempotente)
+- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
+  primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
+  imagen del ejecutor; hoy la imagen es mock-only a propósito)
+- [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
+  Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
+- [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del
+  trío = corriente Printing Press
+- **Salida:** ✅ un departamento de software operado por el trío, validado de punta
+  a punta en uso propio (dev, motor mock), listo para replicarse por configuración
+  — el dogfood real con tokens es el siguiente paso y es decisión de la dueña.
 
 ---
 

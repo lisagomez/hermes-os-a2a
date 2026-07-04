@@ -239,14 +239,23 @@ Ejecutor → Supervisor → ¿aprobado?
 El tope de intentos evita el bucle infinito entre dos agentes quemando tokens. El humano
 entra cuando la máquina se atasca, no en cada paso.
 
-### 7.6 Reusado vs. por construir
+### 7.6 Reusado vs. construido (actualizado 2026-07-03, PRP-006)
 
 - **Reusado tal cual:** Hermes-Negocio, todos los skills (`new-app`, `add-*`,
   `bucle-agentico`), los runners (`build`/`typecheck`/`lint`, Playwright, `/code-review`,
   `security-review`), `token_usage`, el patrón de aprobación humana de `clientes`.
-- **Por construir (Fase 5→6):** los dos servicios A2A (Ejecutor y Supervisor) con sus Agent
-  Cards, el cliente A2A dentro de Hermes, la tabla `tareas` de estado, y el RAG por ámbito
-  por cliente (hoy solo template en `/ai rag`).
+- **Construido (PRP-006):** los dos servicios A2A — `businessos/ejecutor-a2a/`
+  (motor pluggable: MockEngine + ClaudeAgentEngine sobre claude-agent-sdk) y
+  `businessos/supervisor-a2a/` (motor de reglas determinista, config
+  `reglas/software.toml`) — con sus Agent Cards; el contrato del trío
+  (`trio-contrato/contrato.py`); la tabla `tareas` (`supabase-fase6.sql`); y el
+  lado Hermes como skill (`negocio/skills/trio-software/`, JSON-RPC crudo sin
+  secretos — no hizo falta un "cliente A2A dentro de Hermes" como pieza aparte).
+  Nota de diseño: el Supervisor quedó stateless (juzga puro); el Ejecutor es el
+  ÚNICO escritor de `tareas` (un escritor por fila, sin carreras).
+- **Sigue pendiente (futuro, otro PRP):** el RAG por ámbito por cliente (hoy solo
+  template en `/ai rag`) y los gates de modelo del Supervisor (declarados en la
+  config, inactivos hasta tener runner real).
 
 ### 7.7 Piloto "lite" posible antes de A2A (nota de secuencia)
 
