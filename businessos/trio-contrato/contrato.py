@@ -93,6 +93,10 @@ def validar_tarea(d: Any) -> dict:
     limites = dict(d.get("limites", {}))
     _exigir(isinstance(limites, dict), "limites debe ser objeto")
     intentos_max = limites.get("intentos_max", INTENTOS_MAX_DEFAULT)
+    # Gotcha A2A: los DataPart viajan como protobuf Struct y TODO numero JSON
+    # llega como float (3 → 3.0). Un entero integral se normaliza, no se rechaza.
+    if isinstance(intentos_max, float) and intentos_max.is_integer():
+        intentos_max = int(intentos_max)
     _exigir(
         isinstance(intentos_max, int) and not isinstance(intentos_max, bool) and intentos_max >= 1,
         "limites.intentos_max: entero >= 1 (sin tope, el lazo Ejecutor↔Supervisor "

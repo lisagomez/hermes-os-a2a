@@ -86,6 +86,14 @@ def test_tarea_intentos_max_default():
     assert t["limites"]["intentos_max"] == INTENTOS_MAX_DEFAULT
 
 
+def test_tarea_intentos_max_float_integral_se_normaliza():
+    """Gotcha A2A: protobuf Struct entrega TODO numero JSON como float (3 → 3.0)."""
+    t = validar_tarea({**TAREA_OK, "limites": {"intentos_max": 3.0}})
+    assert t["limites"]["intentos_max"] == 3
+    with pytest.raises(ContratoInvalido):
+        validar_tarea({**TAREA_OK, "limites": {"intentos_max": 2.5}})
+
+
 @pytest.mark.parametrize(
     "mutacion,fragmento",
     [

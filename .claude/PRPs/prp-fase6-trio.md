@@ -275,8 +275,15 @@ regresión.
 > Esta sección CRECE con cada error encontrado durante la implementación.
 > El conocimiento persiste para futuros PRPs. El mismo error NUNCA ocurre dos veces.
 
-*(vacío — se llena durante la implementación; los aprendizajes A2A previos ya están
-sembrados abajo como Gotchas, heredados de PRP-005)*
+### 2026-07-03 (F2): protobuf Struct convierte TODO número JSON a float
+- **Error**: la TAREA viaja como DataPart (protobuf `Struct`) y `intentos_max: 3`
+  llega como `3.0`; `validar_tarea` exigía `int` y rechazaba TODA tarea real —
+  7 tests del executor en rojo. Habría pasado igual con tráfico real de Hermes.
+- **Fix**: el contrato normaliza floats integrales a int (`3.0 → 3`) y sigue
+  rechazando no-integrales (`2.5`); test dedicado en `trio-contrato`.
+- **Aplicar en**: cualquier campo numérico que viaje en DataPart A2A (límites,
+  contadores en veredictos futuros). Los dicts que salen de `get_data_parts`
+  NUNCA traen ints.
 
 ---
 
