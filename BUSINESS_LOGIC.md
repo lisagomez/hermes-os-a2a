@@ -171,8 +171,8 @@ businessos/
    (`token_usage.task_id`), integra lo aprobado en `tarea/<parent_id>` y pide una verificación
    final del Supervisor sobre la rama integrada — o escala; Planner pluggable (Mock/real
    opt-in), un escritor por fila padre/hija. Validado en dev con cero tokens (112 tests
-   verdes). Residuales: `supabase-fase7.sql` NO aplicado aún, compose up en Droplet, dogfood
-   con Planner/motor real (decisión de la dueña).
+   verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04). Residuales: compose up
+   en Droplet, dogfood con Planner/motor real (decisión de la dueña).
 
 ---
 
