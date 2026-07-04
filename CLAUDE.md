@@ -441,4 +441,33 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier modelo nuevo de terceros — buscar el seam existente (env/config
   pluggable) y verificar caché+tools antes de confiar, no reimplementar.
 
+### 2026-07-04: El enjambre (Fase 7) escala el trío por un servicio HERMANO, no tocándolo
+- **Aprendizaje**: pasar de "un Ejecutor por tarea" a un enjambre paralelo NO se hace
+  modificando el Ejecutor/Supervisor de Fase 6: se añade un servicio A2A **hermano**
+  (`coordinador-a2a`) que descompone en un DAG de sub-tareas y las reparte, porque **cada
+  sub-tarea ya es una `tarea` válida del contrato existente**. "Aislar, no fundir" otra vez.
+  Tres invariantes que se preservaron por diseño: (a) **un escritor por fila** extendido a
+  padre/hija (Coordinador→fila padre `es_padre=true`; Ejecutor→su fila hija `parent_id`;
+  Supervisor sigue stateless); (b) **acotar antes de escalar** = `fan_out_max` + presupuesto
+  acumulado leído de `token_usage.task_id` que corta y escala; (c) **verificar antes de
+  confiar a nivel feature** = tras integrar las ramas, el Supervisor re-gatea la rama
+  integrada COMPLETA (dos ramas que compilan por separado pueden chocar al unirse).
+- **Gotchas operativos de esta integración**:
+  (1) **Merge de rama atrasada respecto a master → conflicto aditivo**: cuando dos cambios
+  tocan la MISMA función por motivos ortogonales (GLM añadió nota al docstring de
+  `filas_token_usage`; Fase 7 añadió el parámetro `task_id`), la resolución correcta es
+  CONSERVAR AMBOS (firma nueva + las dos notas), no elegir un lado. Verificar con los tests
+  del servicio, no solo `py_compile`.
+  (2) **MCP de Supabase en read-only bloquea DDL**: `apply_migration`/`execute_sql` de
+  escritura fallan con "Cannot apply migration in read-only mode". Fallback (igual que Fase 6):
+  management API `POST /v1/projects/{ref}/database/query` con `SUPABASE_ACCESS_TOKEN`, UA
+  `curl/8.0` (Cloudflare 1010), token del env sin imprimirlo. Verificar después con el MCP
+  (los reads sí funcionan): columnas + índices + `get_advisors` sin alertas nuevas.
+  (3) **Pytest en la máquina de desarrollo (py3.14)**: el venv nace sin pip (ensurepip
+  ausente) → `venv --without-pip` + bootstrap `get-pip.py`. venv en `businessos/.venv`
+  (git-ignored); correr `cd businessos/<servicio> && ../.venv/bin/python -m pytest -q`.
+- **Aplicar en**: próximas capas del trío (más departamentos, RAG por ámbito, white-label) y
+  toda extensión de un sistema A2A — sumar un servicio hermano y preservar los invariantes,
+  no engordar los existentes. Ver `.claude/memory/project/fase7-swarm.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
