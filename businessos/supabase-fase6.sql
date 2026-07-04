@@ -32,3 +32,14 @@ comment on table public.tareas is
   'Estado de tareas del trio Hermes→Ejecutor→Supervisor (Fase 6). La escriben los servicios del trio con service_role; el agente Hermes consulta por A2A o snapshot, nunca con credenciales. Contrato y transiciones: businessos/trio-contrato/contrato.py';
 
 alter table public.tareas enable row level security;
+
+-- ============================================================
+-- token_usage: etiqueta 'trio' para el gasto del motor real del Ejecutor
+-- ============================================================
+-- El check original (supabase-init.sql) solo admite las 3 verticales Hermes.
+-- El ClaudeAgentEngine (Fase 4 del PRP-006) registra cada llamada de modelo
+-- con vertical='trio' — el presupuesto lo vigila negocio con lo ya construido.
+-- Idempotente: drop if exists + add.
+alter table public.token_usage drop constraint if exists token_usage_vertical_check;
+alter table public.token_usage add constraint token_usage_vertical_check
+  check (vertical in ('personal','negocio','clientes','trio'));
