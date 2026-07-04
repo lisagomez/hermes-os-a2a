@@ -7,6 +7,12 @@ Jamas lo invoca pytest ni ningun cron — es decision de la dueña.
 Uso (con ANTHROPIC_API_KEY o login del CLI en la maquina):
     EJECUTOR_SMOKE_REAL=1 .venv/bin/python smoke-engine-real.py
 
+Modo GLM-5.2 (motor real apuntando a z.ai en vez de Anthropic):
+    EJECUTOR_SMOKE_REAL=1 EJECUTOR_SMOKE_MODEL=glm-5.2 \
+      ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic ANTHROPIC_AUTH_TOKEN=... \
+      .venv/bin/python smoke-engine-real.py
+(EJECUTOR_SMOKE_MODEL default vacio ⇒ modelo por defecto del CLI/Anthropic.)
+
 Crea un repo temporal + worktree, pide al motor real UNA tarea trivial y muestra
 el diff real y el gasto. No toca Supabase salvo que SUPABASE_URL/KEY esten en env.
 """
@@ -29,11 +35,16 @@ import workspace as ws  # noqa: E402
 from claude_engine import ClaudeAgentEngine  # noqa: E402
 from contrato import validar_tarea  # noqa: E402
 
+_limites = {"intentos_max": 1, "max_turns": 8, "presupuesto_usd": 0.5}
+_modelo = os.environ.get("EJECUTOR_SMOKE_MODEL")
+if _modelo:  # p.ej. "glm-5.2" contra el endpoint z.ai; vacio ⇒ default del CLI
+    _limites["modelo_pref"] = _modelo
+
 TAREA = validar_tarea({
     "task_id": "smoke-0001",
     "objetivo": "Crea un archivo hola.txt en la raiz con el texto exacto: hola trio",
     "criterios_aceptacion": ["existe hola.txt con el contenido 'hola trio'"],
-    "limites": {"intentos_max": 1, "max_turns": 8, "presupuesto_usd": 0.5},
+    "limites": _limites,
 })
 
 

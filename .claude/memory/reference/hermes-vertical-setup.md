@@ -116,6 +116,28 @@ que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
   al Droplet (necesita 24/7, igual que el respaldo nocturno). El cerebro principal nunca se
   auto-cambia por precio sin eval + OK humano ("copiloto no autopiloto").
 
+## GLM-5.2 en profiles PESADOS (2026-07-04, seam listo — falta correr el gate)
+- **Qué:** `z-ai/glm-5.2` (OpenRouter) como reemplazo de `claude-sonnet-4.6` en los profiles
+  pesados (`curator`, `kanban_decomposer`). GLM-5.2 (lanzado 2026-06-13, MoE 744B/40B, 1M ctx,
+  MIT, hecho para coding+tools) cuesta ~$0.9/$2.9 por M vs Sonnet $3/$15 → ~6× más barato.
+  **NO al loop principal** (gemini-2.5-flash-lite gana en caché 97% + 3.3s; GLM es reasoner pesado).
+- **Gate ANTES de aplicar** (host-job `businessos/probe-glm.py`, no quema casi nada):
+  `OPENROUTER_API_KEY=... python3 businessos/probe-glm.py`
+  Verifica (1) responde español, (2) **tool_calling** (imprescindible), (3) **caché de prefijo**
+  `cached_tokens>0` (lección nemotron: sin caché no vale para uso frecuente). Solo si pasa idioma+tools
+  se cablea; si además cachea → apto para pesados; sin caché → solo fallback o profiles poco frecuentes.
+- **Aplicar (por vertical, sobre el volumen vivo; NO `docker run` sobre el volumen):**
+  ```
+  docker exec -u hermes hermes-<v> hermes config set auxiliary.curator.model "z-ai/glm-5.2"
+  docker exec -u hermes hermes-<v> hermes config set auxiliary.kanban_decomposer.model "z-ai/glm-5.2"
+  docker restart hermes-<v>
+  ```
+  Considerar sufijo `:nitro` (proveedor rápido/estable) si el probe muestra varianza de latencia.
+- **Rollback:** `config set auxiliary.<p>.model "anthropic/claude-sonnet-4.6"` (o `""` = default).
+- **Verificar en vivo:** ejercitar un profile pesado (p.ej. `kanban_decomposer` con una tarea real) y
+  confirmar en `agent.log` `API call # ... model=z-ai/glm-5.2 ... cache=NN%` sin error y en español.
+  Aplicar primero en UNA vertical, luego replicar a las 3 (routing idéntico).
+
 ## Proveedor muerto cuelga el bot → `:nitro` en el loop principal (2026-06-30)
 - **Síntoma:** un bot recibe el mensaje (gateway.log: `inbound message`) pero NUNCA responde.
   En agent.log se ve `chat_completion_stream_request` creado y luego NADA (sin `API call #`,

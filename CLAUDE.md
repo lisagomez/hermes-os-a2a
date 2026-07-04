@@ -424,4 +424,21 @@ npm run lint         # ESLint
 
 ---
 
+### 2026-07-04: GLM-5.2 entra por las capas YA pluggables, no por arquitectura nueva
+- **Aprendizaje**: integrar un modelo nuevo en la transversal NO es reescribir; es encontrar
+  el seam pluggable que ya existe. GLM-5.2 (z.ai, coding agéntico, ~1/6 del costo de Opus)
+  entra por DOS caminos sin tocar diseño: (a) **trío/Ejecutor** — `ClaudeAgentEngine` ya toma
+  `modelo_pref` por tarea y corre sobre claude-agent-sdk (Claude Code), que honra
+  `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` → apuntarlos a `https://api.z.ai/api/anthropic`
+  = GLM como motor, gratis de código; el Supervisor re-corre los gates igual → se verifica
+  como Claude. (b) **routing Hermes** — `config set auxiliary.<p>.model "z-ai/glm-5.2"` en los
+  profiles pesados (no el loop: gemini-lite gana caché+latencia).
+- **Gotchas**: (1) antes de cablear GLM al routing frecuente, GATE con `probe-glm.py`
+  (idioma + tool-calling + **caché de prefijo** `cached_tokens>0` — lección nemotron: sin caché
+  no vale). (2) el CLI tarifica ANTHROPIC → el `total_cost_usd` contra z.ai viene 0/erróneo;
+  los tokens sí valen, el costo se recalcula con tarifa z.ai. (3) default 100% intacto: sin las
+  env vars el trío sigue en Anthropic y Hermes en gemini/sonnet; rollback de una línea.
+- **Aplicar en**: cualquier modelo nuevo de terceros — buscar el seam existente (env/config
+  pluggable) y verificar caché+tools antes de confiar, no reimplementar.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

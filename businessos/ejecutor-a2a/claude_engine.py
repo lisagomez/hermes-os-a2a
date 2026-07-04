@@ -86,7 +86,14 @@ def _entero(u: dict, *claves: str) -> int:
 
 
 def filas_token_usage(result: Any, modelo_pedido: str | None) -> list[dict]:
-    """Una fila por modelo de `model_usage`; si no viene, una fila con el total."""
+    """Una fila por modelo de `model_usage`; si no viene, una fila con el total.
+
+    GOTCHA (modo GLM-5.2 vía z.ai): el CLI calcula `costUSD`/`total_cost_usd` con
+    TARIFAS DE ANTHROPIC → contra el endpoint z.ai el costo puede venir 0 o erróneo.
+    Los TOKENS sí son fiables. Para `token_usage` vertical 'trio' con GLM, recalcular
+    el costo aparte con tarifa z.ai (patrón host-job como ingest-token-usage.py) o
+    aceptar tokens-only. No es un bug del motor: es que el precio no es de Anthropic.
+    """
     filas: list[dict] = []
     for modelo, u in (getattr(result, "model_usage", None) or {}).items():
         if not isinstance(u, dict):
