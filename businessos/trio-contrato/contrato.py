@@ -13,7 +13,9 @@ el Supervisor re-ejecuta los gates (SPEC-trio §7.4).
 """
 from __future__ import annotations
 
+import fnmatch
 import re
+from collections import deque
 from typing import Any
 
 DEPARTAMENTOS = ("software",)
@@ -219,3 +221,136 @@ def validar_veredicto(d: Any) -> dict:
         "gates": gates_v,
         "hallazgos": hallazgos_v,
     }
+
+
+# ============================================================
+# PLAN del enjambre (Coordinador → scheduler) — Fase 7 / PRP-007
+# ============================================================
+# Un PLAN es un DAG de sub-tareas. Cada sub-tarea es una TAREA valida del contrato
+# de Fase 6 (su `task_id` ES su id en el DAG y el nombre de su worktree) mas dos
+# campos de coordinacion: `depende_de` (ids que deben terminar antes) y `alcance`
+# (globs de rutas que declara tocar). Invariantes: ids unicos, dependencias
+# aciclicas y hacia ids existentes. El solape de alcances es AVISO, no error: el
+# solape real lo caza la integracion/gate final, no una heuristica optimista
+# (SPEC-trio §7.4, "verificar antes de confiar"). Decision de diseno (PRP-007,
+# Fase 1): el `sub_task_id` de la prosa del PRP == el `task_id` de la sub-tarea;
+# un solo id por nodo (KISS/DRY), ya validado y ya usable como worktree.
+
+_WILDCARD = re.compile(r"[*?\[]")
+
+
+def validar_subtarea(d: Any) -> dict:
+    """Sub-tarea del plan: una TAREA valida + `depende_de` + `alcance`."""
+    tarea = validar_tarea(d)  # reusa TODAS las invariantes de Fase 6 sin cambios
+    depende_de = d.get("depende_de", []) if isinstance(d, dict) else None
+    _exigir(
+        _es_lista_de_str(depende_de) or depende_de == [],
+        "subtarea.depende_de: lista de task_id (sub-tareas que deben terminar antes)",
+    )
+    alcance = d.get("alcance", [])
+    _exigir(
+        _es_lista_de_str(alcance) or alcance == [],
+        "subtarea.alcance: lista de globs de rutas que la sub-tarea declara tocar",
+    )
+    return {**tarea, "depende_de": list(depende_de), "alcance": list(alcance)}
+
+
+def _orden_topologico(ids: list[str], deps: dict[str, list[str]]) -> list[str]:
+    """Orden de ejecucion (prerequisitos primero). ContratoInvalido si hay ciclo."""
+    entrada = {i: 0 for i in ids}
+    hijos: dict[str, list[str]] = {i: [] for i in ids}
+    for nodo, prereqs in deps.items():
+        for p in prereqs:
+            hijos[p].append(nodo)
+            entrada[nodo] += 1
+    cola = deque(sorted(i for i in ids if entrada[i] == 0))
+    orden: list[str] = []
+    while cola:
+        n = cola.popleft()
+        orden.append(n)
+        for h in sorted(hijos[n]):
+            entrada[h] -= 1
+            if entrada[h] == 0:
+                cola.append(h)
+    _exigir(len(orden) == len(ids), "plan: el DAG tiene un ciclo (dependencias circulares)")
+    return orden
+
+
+def _ancestros(ids: list[str], deps: dict[str, list[str]]) -> dict[str, set[str]]:
+    """Cierre transitivo de prerequisitos por nodo (para detectar independencia)."""
+    memo: dict[str, set[str]] = {}
+
+    def anc(n: str) -> set[str]:
+        if n not in memo:
+            acc: set[str] = set()
+            for p in deps[n]:
+                acc.add(p)
+                acc |= anc(p)
+            memo[n] = acc
+        return memo[n]
+
+    return {i: anc(i) for i in ids}
+
+
+def _prefijo_estatico(glob: str) -> str:
+    m = _WILDCARD.search(glob)
+    return glob[: m.start()] if m else glob
+
+
+def _un_par_solapa(x: str, y: str) -> bool:
+    """Heuristica conservadora de solape de globs de ruta (para AVISO, no bloqueo)."""
+    if x == y or fnmatch.fnmatch(x, y) or fnmatch.fnmatch(y, x):
+        return True
+    corto, largo = sorted((_prefijo_estatico(x), _prefijo_estatico(y)), key=len)
+    return bool(corto) and largo.startswith(corto)
+
+
+def _avisos_de_solape(subs: list[dict]) -> list[str]:
+    ids = [s["task_id"] for s in subs]
+    deps = {s["task_id"]: s["depende_de"] for s in subs}
+    anc = _ancestros(ids, deps)
+    por_id = {s["task_id"]: s for s in subs}
+    avisos: list[str] = []
+    for i in range(len(ids)):
+        for j in range(i + 1, len(ids)):
+            a, b = ids[i], ids[j]
+            if a in anc[b] or b in anc[a]:
+                continue  # hay relacion de dependencia → el orden ya las separa
+            pares = [f"{x}~{y}" for x in por_id[a]["alcance"] for y in por_id[b]["alcance"] if _un_par_solapa(x, y)]
+            if pares:
+                avisos.append(
+                    f"alcances solapados entre {a!r} y {b!r} (sin dependencia): {pares}; "
+                    "la integracion/gate final lo verifica"
+                )
+    return avisos
+
+
+def validar_plan(d: Any) -> dict:
+    """PLAN (DAG de sub-tareas). Devuelve {sub_tareas, orden, avisos} normalizado.
+
+    Invariantes duras (ContratoInvalido): ids unicos, sin auto-dependencia,
+    dependencias hacia ids existentes, DAG aciclico. Blando (avisos): alcances
+    solapados entre sub-tareas independientes.
+    """
+    _exigir(isinstance(d, dict), "el plan debe ser un objeto JSON")
+    subs_raw = d.get("sub_tareas")
+    _exigir(
+        isinstance(subs_raw, list) and len(subs_raw) >= 1,
+        "plan.sub_tareas: lista no vacia (un enjambre sin sub-tareas no es un enjambre)",
+    )
+    subs = [validar_subtarea(s) for s in subs_raw]
+    ids = [s["task_id"] for s in subs]
+    _exigir(len(ids) == len(set(ids)), "plan: task_id de sub-tarea repetido (deben ser unicos en el DAG)")
+    idset = set(ids)
+    for s in subs:
+        for dep in s["depende_de"]:
+            _exigir(
+                dep != s["task_id"],
+                f"plan: la sub-tarea {s['task_id']!r} depende de si misma",
+            )
+            _exigir(
+                dep in idset,
+                f"plan: la sub-tarea {s['task_id']!r} depende de un id inexistente {dep!r}",
+            )
+    orden = _orden_topologico(ids, {s["task_id"]: s["depende_de"] for s in subs})
+    return {"sub_tareas": subs, "orden": orden, "avisos": _avisos_de_solape(subs)}
