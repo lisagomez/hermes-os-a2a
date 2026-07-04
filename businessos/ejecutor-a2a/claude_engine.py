@@ -85,14 +85,20 @@ def _entero(u: dict, *claves: str) -> int:
     return 0
 
 
-def filas_token_usage(result: Any, modelo_pedido: str | None) -> list[dict]:
-    """Una fila por modelo de `model_usage`; si no viene, una fila con el total."""
+def filas_token_usage(result: Any, modelo_pedido: str | None, task_id: str | None = None) -> list[dict]:
+    """Una fila por modelo de `model_usage`; si no viene, una fila con el total.
+
+    `task_id` (Fase 7): atribuye el gasto a la sub-tarea para el corte EXACTO de
+    presupuesto del enjambre (columna nullable de token_usage). Sin él (uso suelto
+    de Fase 6) queda null — retrocompatible.
+    """
     filas: list[dict] = []
     for modelo, u in (getattr(result, "model_usage", None) or {}).items():
         if not isinstance(u, dict):
             continue
         filas.append({
             "vertical": VERTICAL_TRIO,
+            "task_id": task_id,
             "modelo": modelo,
             "tokens_in": _entero(u, "inputTokens", "input_tokens"),
             "tokens_out": _entero(u, "outputTokens", "output_tokens"),
@@ -102,6 +108,7 @@ def filas_token_usage(result: Any, modelo_pedido: str | None) -> list[dict]:
         usage = getattr(result, "usage", None) or {}
         filas.append({
             "vertical": VERTICAL_TRIO,
+            "task_id": task_id,
             "modelo": modelo_pedido or "claude-code-default",
             "tokens_in": _entero(usage, "input_tokens", "inputTokens"),
             "tokens_out": _entero(usage, "output_tokens", "outputTokens"),
@@ -146,7 +153,8 @@ class ClaudeAgentEngine:
             raise EngineError("claude-agent-sdk: la corrida no entrego ResultMessage")
 
         # El gasto se registra SIEMPRE (tambien en error): tokens quemados son reales.
-        await self._registro.registrar(filas_token_usage(result, options.model))
+        # task_id atribuye el gasto a la (sub-)tarea → corte exacto de presupuesto (Fase 7).
+        await self._registro.registrar(filas_token_usage(result, options.model, tarea.get("task_id")))
 
         if result.is_error:
             detalle = result.result or "; ".join(result.errors or []) or result.subtype

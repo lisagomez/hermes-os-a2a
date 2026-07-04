@@ -19,9 +19,12 @@ from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 
+import enjambre
 from contrato import ContratoInvalido, validar_tarea
+from ejecutor_cliente import EjecutorCliente
 from estado import EstadoCoordinador
 from planner import Planner, PlannerError, crear_planner
+from presupuesto import Presupuesto
 
 FAN_OUT_DEFAULT = 3
 
@@ -56,9 +59,13 @@ class CoordinadorA2A(AgentExecutor):
         self,
         planner: Planner | None = None,
         estado: EstadoCoordinador | None = None,
+        ejecutor=None,
+        presupuesto=None,
     ) -> None:
         self._planner = planner or crear_planner(os.environ.get("COORDINADOR_PLANNER", "mock"))
         self._estado = estado or EstadoCoordinador()
+        self._ejecutor = ejecutor or EjecutorCliente()
+        self._presupuesto = presupuesto or Presupuesto()
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
@@ -92,10 +99,19 @@ class CoordinadorA2A(AgentExecutor):
 
         await self._estado.registrar_padre(tarea, plan, fan_out_max, presupuesto)
 
-        # Fase 2: entregamos el plan. El fan-out real es Fase 3.
+        # Fase 3: reparte el DAG al Ejecutor (fan-out acotado + presupuesto).
+        resumen = await enjambre.correr(
+            plan, self._ejecutor, self._presupuesto, fan_out_max, presupuesto, tarea["task_id"]
+        )
+
+        # Fase 3: "aprobado" = todas las sub-tareas pasaron su gate → queda LISTO para
+        # integrar (en_revision). La integración + verificación FINAL del todo es Fase 4.
+        estado_final = "en_revision" if resumen["estado"] == "aprobado" else "escalada"
+        await self._estado.transicionar(tarea["task_id"], estado_final)
+
         await updater.add_artifact(
-            [new_data_part({"plan": plan})],
-            name="plan-enjambre",
+            [new_data_part({"plan": plan, "enjambre": resumen})],
+            name="enjambre",
         )
         await updater.complete()
 

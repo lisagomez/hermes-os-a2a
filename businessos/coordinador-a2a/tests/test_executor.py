@@ -63,6 +63,38 @@ class PlannerFake:
         return {"sub_tareas": [], "orden": [], "avisos": []}
 
 
+def _veredicto(tid, aprobado=True):
+    if aprobado:
+        return {"task_id": tid, "veredicto": "aprobado",
+                "gates": [{"regla": "build", "estado": "paso", "evidencia": "ok"}], "hallazgos": []}
+    return {"task_id": tid, "veredicto": "rechazado",
+            "gates": [{"regla": "tests", "estado": "fallo", "evidencia": f"{tid} fallo"}],
+            "hallazgos": [{"regla": "tests", "evidencia": f"{tid} fallo", "archivo": "x.ts"}]}
+
+
+class EjecutorFake:
+    """Doble del cliente A2A al Ejecutor: aprueba todo por defecto."""
+
+    def __init__(self, aprobar: bool = True) -> None:
+        self._aprobar = aprobar
+        self.llamadas: list[str] = []
+
+    async def ejecutar(self, sub_tarea) -> dict:
+        tid = sub_tarea["task_id"]
+        self.llamadas.append(tid)
+        return {"resultado": {"task_id": tid, "worktree": f"worktree/{tid}", "diff": "",
+                              "archivos": [], "artefactos": {}, "notas": ""},
+                "veredicto": _veredicto(tid, self._aprobar)}
+
+
+class PresupuestoFake:
+    def __init__(self, gasto: float = 0.0) -> None:
+        self._gasto = gasto
+
+    async def gasto_acumulado(self, task_ids) -> float:
+        return self._gasto
+
+
 # ---------- helpers ----------
 
 PLAN_MOCK = {"sub_tareas": [
@@ -96,9 +128,14 @@ def contexto_con(mensaje) -> RequestContext:
     )
 
 
-def coordinador_con(planner=None, estado=None):
+def coordinador_con(planner=None, estado=None, ejecutor=None, presupuesto=None):
     estado = estado or EstadoEspia()
-    coord = CoordinadorA2A(planner=planner or MockPlanner(), estado=estado)
+    coord = CoordinadorA2A(
+        planner=planner or MockPlanner(),
+        estado=estado,
+        ejecutor=ejecutor or EjecutorFake(),
+        presupuesto=presupuesto or PresupuestoFake(),
+    )
     return coord, estado
 
 
@@ -144,8 +181,9 @@ def test_limites_invalidos(lim, frag):
 
 # ---------- happy path ----------
 
-def test_tarea_padre_entrega_plan_y_registra_fila_padre():
-    coord, estado = coordinador_con()
+def test_tarea_padre_planifica_reparte_y_registra_fila_padre():
+    ejecutor = EjecutorFake(aprobar=True)
+    coord, estado = coordinador_con(ejecutor=ejecutor)
     cola = ejecutar(coord, new_data_message(tarea_padre()))
 
     # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
@@ -153,20 +191,32 @@ def test_tarea_padre_entrega_plan_y_registra_fila_padre():
     assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
 
     [artifact] = artifacts(cola)
-    assert artifact.name == "plan-enjambre"
+    assert artifact.name == "enjambre"
     [entregado] = get_data_parts(artifact.parts)
-    plan = entregado["plan"]
+    plan, resumen = entregado["plan"], entregado["enjambre"]
     assert [s["task_id"] for s in plan["sub_tareas"]] == ["auth", "emails", "perfil"]
-    assert plan["orden"].index("auth") < plan["orden"].index("perfil")
-    assert plan["avisos"] == []  # alcances disjuntos
 
-    # Fila padre registrada con el plan y los limites.
-    assert len(estado.padres) == 1
+    # Se repartieron las 3 sub-tareas y todas pasaron su gate.
+    assert set(ejecutor.llamadas) == {"auth", "emails", "perfil"}
+    assert resumen["estado"] == "aprobado"
+    assert set(resumen["sub_resultados"]) == {"auth", "emails", "perfil"}
+
+    # Fila padre registrada con el plan/limites; y transicionada a en_revision (lista para integrar, Fase 4).
     padre = estado.padres[0]
     assert padre["task_id"] == "cuentas-0007"
-    assert padre["fan_out_max"] == 3
-    assert padre["presupuesto_usd"] == 5.0
-    assert padre["plan"] == plan
+    assert padre["fan_out_max"] == 3 and padre["presupuesto_usd"] == 5.0
+    assert estado.transiciones[-1] == ("cuentas-0007", "en_revision")
+
+
+def test_sub_tarea_que_no_pasa_escala_el_padre():
+    """Si el enjambre escala (una sub-tarea no pasa), la fila padre va a 'escalada'."""
+    coord, estado = coordinador_con(ejecutor=EjecutorFake(aprobar=False))
+    cola = ejecutar(coord, new_data_message(tarea_padre(limites={"fan_out_max": 3})))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED  # el A2A completa; el enjambre escala
+    [entregado] = get_data_parts(artifacts(cola)[0].parts)
+    assert entregado["enjambre"]["estado"] == "escalado"
+    assert estado.transiciones[-1] == ("cuentas-0007", "escalada")
 
 
 # ---------- errores → failed con razon clara ----------
