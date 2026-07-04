@@ -36,6 +36,16 @@ recuperar la original: `git pull` allá + sync manual del `.env` (líneas de Pol
   solo existen en el .env de desarrollo.
 - **`secrets.env` tampoco viaja**: uno por máquina.
 
+## Pytest en esta máquina de desarrollo (2026-07-04)
+- venv git-ignored en `businessos/.venv` (Python 3.14). Correr tests:
+  `cd businessos/<servicio> && ../.venv/bin/python -m pytest -q`.
+- Gotcha 3.14: `python3 -m venv` falla ("ensurepip is not available"). Bootstrap:
+  `python3 -m venv --without-pip .venv` + `curl -A curl/8.0 -fsSL
+  https://bootstrap.pypa.io/get-pip.py | .venv/bin/python -`. Luego
+  `pip install pytest -r <servicio>/requirements.txt`.
+- Deps A2A pesadas (`a2a-sdk[http-server]`, `claude-agent-sdk`) ya instaladas en ese
+  venv. Verde al 2026-07-04: ejecutor-a2a 35, coordinador-a2a 41, trio-contrato 36.
+
 ## Síntomas de estar en la máquina equivocada
 - `docker ps` → "permission denied … docker.sock" (aquí no hay acceso).
 - `~/businessos` no existe (no confundir con el gotcha de uid 10000/0700, que da
