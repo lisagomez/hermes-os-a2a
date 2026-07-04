@@ -1,8 +1,10 @@
 # PRP-006: Fase 6 — Trío Hermes→Ejecutor→Supervisor (departamento Desarrollo de Software)
 
 > **Estado**: ✅ COMPLETADO (2026-07-03) — 7 fases ejecutadas; 158 tests verdes.
-> Residuales (en ROADMAP §FASE 6): compose up + SQL en runtime/Droplet, smoke
-> motor real gated (decisión de la dueña), gates de modelo cuando tengan runner.
+> Mergeado a master (PR #9) y `supabase-fase6.sql` aplicado+verificado en
+> producción el mismo día. Residuales (en ROADMAP §FASE 6): compose up del trío
+> en runtime/Droplet, smoke motor real gated (decisión de la dueña), gates de
+> modelo cuando tengan runner.
 > **Fecha**: 2026-07-03
 > **Proyecto**: BusinessOS
 > **Rama**: `feat/fase6-trio`

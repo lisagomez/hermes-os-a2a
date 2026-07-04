@@ -5,8 +5,10 @@ metadata:
   type: project
 ---
 
-**CONSTRUIDO (2026-07-03, PRP-006, rama `feat/fase6-trio`):** el trío completo en
-código, validado end-to-end en dev con cero tokens (158 tests verdes en el repo).
+**CONSTRUIDO Y MERGEADO (2026-07-03, PRP-006, PR #9 → master):** el trío completo
+en código, validado end-to-end en dev con cero tokens (158 tests verdes en el
+repo). `supabase-fase6.sql` APLICADO y verificado en producción el mismo día
+(tabla `tareas` con RLS; check de `token_usage.vertical` incluye 'trio').
 
 - `trio-contrato/contrato.py` — TAREA/RESULTADO/VEREDICTO + ciclo de estados; el
   contrato normaliza floats integrales (gotcha: protobuf Struct entrega TODO
@@ -25,8 +27,7 @@ código, validado end-to-end en dev con cero tokens (158 tests verdes en el repo
   header `A2A-Version: 1.0` + `parts:[{"data": <tarea directa>}]`.
 - Interop e2e (tests): rechazo→reintento con observaciones→aprobado.
 
-**Residuales:** `compose up` del trío + smoke en el Droplet; aplicar
-`supabase-fase6.sql` actualizado (DDL a producción = acción humana); smoke motor
+**Residuales:** `compose up` del trío + smoke en el Droplet; smoke motor
 real gated (`EJECUTOR_SMOKE_REAL=1`) y dogfood con `EJECUTOR_ENGINE=claude`
 (requiere CLI Claude Code en la imagen — hoy mock-only a propósito) — decisión
 de la dueña; gates de modelo cuando tengan runner. **Futuro (otro PRP):** RAG

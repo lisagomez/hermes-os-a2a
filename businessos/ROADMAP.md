@@ -298,10 +298,12 @@ el paquete del primer departamento, y el modelo white-label).
 - [x] Empaquetado: Dockerfiles + compose (hermes-net, 127.0.0.1, volumen
   compartido `trio-workspace`, sin secretos); `docker compose config` valida;
   158 tests verdes en el repo (grafo y grafo-a2a sin regresión)
+- [x] Mergeado a master (PR #9, 2026-07-03) y `supabase-fase6.sql` APLICADO y
+  verificado en producción (tabla `tareas` con RLS; check de
+  `token_usage.vertical` incluye 'trio') — vía management API con permiso
+  explícito de la dueña
 - [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up ejecutor-a2a
-  supervisor-a2a` + smoke de card/SendMessage en hermes-net; aplicar el
-  `supabase-fase6.sql` actualizado (DDL a producción requiere acción humana o
-  permiso explícito; una sola corrida idempotente)
+  supervisor-a2a` + smoke de card/SendMessage en hermes-net
 - [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
   primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
   imagen del ejecutor; hoy la imagen es mock-only a propósito)
