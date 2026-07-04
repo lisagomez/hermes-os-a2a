@@ -369,6 +369,34 @@ Reglas de seguridad (heredadas del rigor del propio Printing Press):
 
 ---
 
+## Corriente transversal — Canales de comunicación
+
+No es una fase; atraviesa todas. Tres superficies con papeles distintos:
+
+- **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
+  al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
+- **Slack** (interno, se SUMA a Telegram — piloto en curso): centro de trabajo
+  del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
+  de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos
+  reportan a Hermes y él publica al canal. **Slack es SOLO interno — NO de cara
+  al cliente** (no se marca-blanca bien). Escalera: piloto con el soporte Slack
+  nativo de Hermes (Socket Mode, sin puertos públicos) → Slack App propia cuando
+  se quieran botones de aprobación ("feature lista [Aprobar][Rechazar][Ver PR]").
+  - Diseño completo (topología de canales, matriz de roles del equipo de 4,
+    runbook verificado contra la doc oficial 2026-07-03):
+    `departamentos/equipo-y-slack.md`
+  - Artefactos listos: `negocio/slack-config-fragment.yaml` +
+    `slack-piloto.sh` (host-job runtime)
+  - **PENDIENTE (dueña)**: crear la Slack App (Socket Mode, scopes y eventos del
+    runbook) + pasar tokens al `.env` del volumen de negocio + IDs de canal/miembros
+  - **PENDIENTE (runtime)**: correr `slack-piloto.sh` y verificar la @mención
+    en `#dep-negocio`
+- **Web propia** (producto, futuro): el canal de clientes, con marca propia y
+  aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
+  prefiere.
+
+---
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de

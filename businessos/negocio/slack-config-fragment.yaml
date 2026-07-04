@@ -1,0 +1,38 @@
+# slack-config-fragment.yaml — fragmento a MERGEAR en el config.yaml del volumen
+# de la vertical NEGOCIO (piloto en #dep-negocio; ver departamentos/equipo-y-slack.md).
+#
+# Verificado contra la doc oficial de hermes-agent el 2026-07-03:
+#   https://hermes-agent.nousresearch.com/docs/user-guide/messaging/slack
+#
+# GOTCHAS confirmados:
+# - allowed_channels y channel_prompts usan IDs de canal (C…), NUNCA "#nombre".
+#   El ID sale de Slack: canal → View channel details → abajo ("Channel ID").
+# - Los tokens NO van aquí: van al .env del VOLUMEN (/opt/data/.env), perms 600:
+#     SLACK_BOT_TOKEN=xoxb-…       (Bot Token, tras instalar la app)
+#     SLACK_APP_TOKEN=xapp-…       (App-Level Token, Socket Mode, scope connections:write)
+#     SLACK_ALLOWED_USERS=U…,U…,U…,U…   (Member IDs del equipo de 4 — SIN esto
+#                                        el gateway rechaza TODO por diseño)
+# - Aplicar con businessos/slack-piloto.sh en la máquina runtime (backup + merge
+#   + restart), o a mano; NUNCA `docker run` sobre el volumen (segundo gateway
+#   corrompe el estado — aprendizaje 2026-06-30).
+
+platforms:
+  slack:
+    # El agente solo responde cuando lo @mencionan (canal con tráfico humano);
+    # las respuestas siguientes en el hilo ya no requieren mención (doc oficial).
+    require_mention: true
+    reply_to_mode: "first"
+    extra:
+      reply_in_thread: true      # el trabajo vive en hilos, no ensucia el canal
+      reply_broadcast: false
+    allowed_channels:
+      - "C_REEMPLAZA_DEP_NEGOCIO"          # ID real de #dep-negocio
+    channel_prompts:
+      "C_REEMPLAZA_DEP_NEGOCIO": |
+        Estas en #dep-negocio, el canal del departamento negocio con el equipo
+        de 4 (CEO, CFO, Project Manager, Developer). Ambito: presupuesto de
+        tokens, KPIs, cobros y coordinacion interna. Reglas duras: nunca
+        vuelques credenciales, tokens ni comandos con secretos (esto lo leen
+        4 personas); Slack NO es el sistema de registro (la verdad durable
+        vive en Supabase); mover dinero lo aprueba el CFO, y lo irreversible
+        siempre lleva visto bueno humano segun la matriz de roles del equipo.

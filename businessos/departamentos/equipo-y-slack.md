@@ -89,31 +89,59 @@ irreversible. Encaja directo con las verticales que ya corren.
 
 ## (c) Piloto — runbook (acotar antes de escalar)
 
+> **Verificado contra la doc oficial el 2026-07-03**
+> (hermes-agent.nousresearch.com/docs/user-guide/messaging/slack). Correcciones
+> al borrador original: `SLACK_ALLOWED_USERS` es OBLIGATORIO (sin él el gateway
+> rechaza todo por diseño); `allowed_channels`/`channel_prompts` usan **IDs de
+> canal** (`C…`), nunca `#nombre`; los scopes reales son más que los del
+> borrador; y hay que suscribir eventos aunque sea Socket Mode.
+> **Artefactos listos en el repo:** `businessos/negocio/slack-config-fragment.yaml`
+> (config a mergear) y `businessos/slack-piloto.sh` (host-job runtime que
+> verifica tokens sin imprimirlos, mergea con backup y reinicia).
+
 **Vertical del piloto: `negocio` en `#dep-negocio`.** Es el menor riesgo (interno,
 mayormente consultas de lectura del presupuesto), ya corre y ya tiene la regla de higiene.
 
-**Modo recomendado: Socket Mode** (sin webhook entrante) — encaja con la postura de la infra
+**Modo: Socket Mode** (sin webhook entrante) — encaja con la postura de la infra
 (sin puertos públicos; Docker se salta UFW). Requiere un **App-Level Token** además del Bot
 Token.
 
 ### Lo que hace la usuaria (no lo puedo hacer yo)
 1. Crear un **Slack workspace** (o usar uno) y una **Slack App** en `api.slack.com/apps`.
-2. Activar **Socket Mode** → genera **App Token** `xapp-…`.
-3. Bot Token Scopes: `app_mentions:read`, `chat:write`, `channels:history`,
-   `channels:read`, `groups:history`, `groups:read` (privados), `im:history`, `users:read`.
-   Instalar en el workspace → **Bot Token** `xoxb-…`.
-4. Invitar el bot a **`#dep-negocio`** y añadir a las 4 personas.
-5. Pasar los dos tokens por el archivo de secretos (NO pegarlos en el chat).
+2. Activar **Socket Mode** → generar **App-Level Token** `xapp-…` con scope
+   `connections:write`.
+3. **Bot Token Scopes** (lista verificada): `chat:write`, `app_mentions:read`,
+   `channels:history`, `channels:read`, `groups:history`, `groups:read`,
+   `im:history`, `im:read`, `im:write`, `mpim:history`, `mpim:read`,
+   `users:read`, `files:read`, `files:write`.
+4. **Event Subscriptions** (sí, también con Socket Mode): `message.im`,
+   `message.mpim`, `message.channels`, `message.groups`, `app_mention`.
+5. **Instalar la app** en el workspace → **Bot Token** `xoxb-…`.
+   ⚠️ Si después cambias scopes o eventos, hay que REINSTALAR la app.
+6. En App Home, habilitar **Messages Tab** (sin esto los DMs quedan bloqueados).
+7. Crear `#dep-negocio`, invitar al bot (`/invite @<bot>`) — no se auto-une — y
+   añadir a las 4 personas. Anotar el **Channel ID** (`C…`: canal → View channel
+   details → Channel ID) y los **Member IDs** (`U…`) de las 4 personas.
+8. En la máquina runtime, añadir al `.env` del volumen de negocio
+   (`~/businessos/negocio/.hermes/.env`, perms 600 — NUNCA pegar tokens en un chat):
+   `SLACK_BOT_TOKEN=xoxb-…`, `SLACK_APP_TOKEN=xapp-…`,
+   `SLACK_ALLOWED_USERS=U…,U…,U…,U…` (los 4 Member IDs).
 
-### Lo que hago yo (cuando estén los tokens)
-6. Añadir `SLACK_BOT_TOKEN` / `SLACK_APP_TOKEN` al `.env` **del volumen** de negocio
-   (confirmar nombres exactos contra el plugin al cablear).
-7. Habilitar la plataforma slack en el `config.yaml` de negocio: `require_mention: true`,
-   `allowed_channels: '#dep-negocio'`, y un `channel_prompts` para ese canal.
-8. Mapear `slack_user_id → rol` de las 4 personas (allowlist con rol).
-9. Reiniciar `hermes-negocio`. (Telegram puede seguir en paralelo o apagarse para negocio.)
-10. **Verificar**: alguien @menciona al bot en `#dep-negocio` → responde en hilo, respetando
-    higiene y el gate de aprobación según rol.
+### Lo que hace el host-job (cuando estén los tokens)
+9. Poner el Channel ID real de `#dep-negocio` en
+   `businessos/negocio/slack-config-fragment.yaml` (reemplaza el placeholder).
+10. Correr `businessos/slack-piloto.sh` en la máquina runtime: verifica los 3
+    valores del `.env` sin imprimirlos, mergea `platforms.slack` en el
+    `config.yaml` del volumen (con backup) y reinicia `hermes-negocio`.
+    (Telegram puede seguir en paralelo.)
+11. **Verificar**: @mención al bot en `#dep-negocio` → responde EN HILO,
+    respetando higiene; un usuario fuera de `SLACK_ALLOWED_USERS` es ignorado.
+
+> Nota sobre roles: `SLACK_ALLOWED_USERS` es la allowlist plana (quién puede
+> hablar). El mapa `slack_user_id → rol` de la matriz de aprobación vive como
+> conocimiento del agente (AGENTS.md/MEMORY.md de negocio) hasta que exista un
+> mecanismo de roles nativo; los botones de aprobación son la etapa "Slack App
+> propia" del roadmap de canales.
 
 ### Después del piloto
 Validado el acceso+aprobación con los 4, expandir por departamento (`#dep-clientes`,

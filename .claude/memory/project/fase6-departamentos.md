@@ -80,4 +80,13 @@ negocio), **Project Manager** (cara al cliente, ancla clientes), **Developer** (
 main, ancla desarrollo/trío). Falta el mapa `slack_user_id → rol`. Slack NO es sistema de
 registro (verdad durable sigue en Supabase). Topología, roles y runbook del piloto
 (negocio en `#dep-negocio`, Socket Mode) en `businessos/departamentos/equipo-y-slack.md`.
-Piloto pendiente de que la usuaria cree la Slack App + tokens (`xoxb-`/`xapp-`).
+
+**Piloto Slack preparado (2026-07-03):** runbook verificado contra la doc oficial
+de hermes-agent — gotchas: `SLACK_ALLOWED_USERS` obligatorio (sin él deny-all),
+`allowed_channels`/`channel_prompts` usan Channel IDs `C…` (no `#nombre`), scopes
+completos (incl. `im:*`, `mpim:*`, `files:*`), eventos suscritos aunque sea Socket
+Mode, reinstalar la app si cambian scopes, habilitar Messages Tab. Artefactos:
+`businessos/negocio/slack-config-fragment.yaml` + `businessos/slack-piloto.sh`
+(host-job runtime: verifica tokens sin imprimirlos, mergea config con backup,
+reinicia). Bloqueado en: la usuaria crea la Slack App + tokens al `.env` del
+volumen + Channel/Member IDs; luego correr el script en la máquina runtime.
