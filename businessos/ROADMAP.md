@@ -298,10 +298,12 @@ el paquete del primer departamento, y el modelo white-label).
 - [x] Empaquetado: Dockerfiles + compose (hermes-net, 127.0.0.1, volumen
   compartido `trio-workspace`, sin secretos); `docker compose config` valida;
   158 tests verdes en el repo (grafo y grafo-a2a sin regresión)
+- [x] Mergeado a master (PR #9, 2026-07-03) y `supabase-fase6.sql` APLICADO y
+  verificado en producción (tabla `tareas` con RLS; check de
+  `token_usage.vertical` incluye 'trio') — vía management API con permiso
+  explícito de la dueña
 - [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up ejecutor-a2a
-  supervisor-a2a` + smoke de card/SendMessage en hermes-net; aplicar el
-  `supabase-fase6.sql` actualizado (DDL a producción requiere acción humana o
-  permiso explícito; una sola corrida idempotente)
+  supervisor-a2a` + smoke de card/SendMessage en hermes-net
 - [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
   primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
   imagen del ejecutor; hoy la imagen es mock-only a propósito)
@@ -364,6 +366,34 @@ Reglas de seguridad (heredadas del rigor del propio Printing Press):
   aplicado a código.
 - **Verify antes de confiar:** shipcheck (dogfood + scorecard + proof) y grado A
   mínimo antes de usar un CLI en producción.
+
+---
+
+## Corriente transversal — Canales de comunicación
+
+No es una fase; atraviesa todas. Tres superficies con papeles distintos:
+
+- **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
+  al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
+- **Slack** (interno, se SUMA a Telegram — piloto en curso): centro de trabajo
+  del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
+  de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos
+  reportan a Hermes y él publica al canal. **Slack es SOLO interno — NO de cara
+  al cliente** (no se marca-blanca bien). Escalera: piloto con el soporte Slack
+  nativo de Hermes (Socket Mode, sin puertos públicos) → Slack App propia cuando
+  se quieran botones de aprobación ("feature lista [Aprobar][Rechazar][Ver PR]").
+  - Diseño completo (topología de canales, matriz de roles del equipo de 4,
+    runbook verificado contra la doc oficial 2026-07-03):
+    `departamentos/equipo-y-slack.md`
+  - Artefactos listos: `negocio/slack-config-fragment.yaml` +
+    `slack-piloto.sh` (host-job runtime)
+  - **PENDIENTE (dueña)**: crear la Slack App (Socket Mode, scopes y eventos del
+    runbook) + pasar tokens al `.env` del volumen de negocio + IDs de canal/miembros
+  - **PENDIENTE (runtime)**: correr `slack-piloto.sh` y verificar la @mención
+    en `#dep-negocio`
+- **Web propia** (producto, futuro): el canal de clientes, con marca propia y
+  aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
+  prefiere.
 
 ---
 

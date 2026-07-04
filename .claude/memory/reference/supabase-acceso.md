@@ -34,6 +34,10 @@ Proyecto Supabase: **A2ABot**, project-ref **hsejpktzcqwkwkwholkw**
   "existía" la variable. Corregido a UN solo token. El MCP toma el cambio **solo al
   reiniciar Claude Code** (el proceso MCP en curso conserva el env con el que se lanzó).
   Token válido confirmado contra la management API (`GET /v1/projects`).
+- **GOTCHA (2026-07-03)**: `secrets.env` define las vars SIN `export`, así que un
+  `source` normal las deja como shell-locals y NO llegan a procesos hijos (python
+  truena con `KeyError` aunque `[ -n "$VAR" ]` diga que existe). Para host-jobs:
+  `set -a; source ~/.config/claude/secrets.env; set +a` antes de invocar python.
 
 ## Aplicar SQL sin el MCP (management API)
 `POST https://api.supabase.com/v1/projects/<ref>/database/query`

@@ -5,8 +5,10 @@ metadata:
   type: project
 ---
 
-**CONSTRUIDO (2026-07-03, PRP-006, rama `feat/fase6-trio`):** el trío completo en
-código, validado end-to-end en dev con cero tokens (158 tests verdes en el repo).
+**CONSTRUIDO Y MERGEADO (2026-07-03, PRP-006, PR #9 → master):** el trío completo
+en código, validado end-to-end en dev con cero tokens (158 tests verdes en el
+repo). `supabase-fase6.sql` APLICADO y verificado en producción el mismo día
+(tabla `tareas` con RLS; check de `token_usage.vertical` incluye 'trio').
 
 - `trio-contrato/contrato.py` — TAREA/RESULTADO/VEREDICTO + ciclo de estados; el
   contrato normaliza floats integrales (gotcha: protobuf Struct entrega TODO
@@ -25,8 +27,7 @@ código, validado end-to-end en dev con cero tokens (158 tests verdes en el repo
   header `A2A-Version: 1.0` + `parts:[{"data": <tarea directa>}]`.
 - Interop e2e (tests): rechazo→reintento con observaciones→aprobado.
 
-**Residuales:** `compose up` del trío + smoke en el Droplet; aplicar
-`supabase-fase6.sql` actualizado (DDL a producción = acción humana); smoke motor
+**Residuales:** `compose up` del trío + smoke en el Droplet; smoke motor
 real gated (`EJECUTOR_SMOKE_REAL=1`) y dogfood con `EJECUTOR_ENGINE=claude`
 (requiere CLI Claude Code en la imagen — hoy mock-only a propósito) — decisión
 de la dueña; gates de modelo cuando tengan runner. **Futuro (otro PRP):** RAG
@@ -79,4 +80,13 @@ negocio), **Project Manager** (cara al cliente, ancla clientes), **Developer** (
 main, ancla desarrollo/trío). Falta el mapa `slack_user_id → rol`. Slack NO es sistema de
 registro (verdad durable sigue en Supabase). Topología, roles y runbook del piloto
 (negocio en `#dep-negocio`, Socket Mode) en `businessos/departamentos/equipo-y-slack.md`.
-Piloto pendiente de que la usuaria cree la Slack App + tokens (`xoxb-`/`xapp-`).
+
+**Piloto Slack preparado (2026-07-03):** runbook verificado contra la doc oficial
+de hermes-agent — gotchas: `SLACK_ALLOWED_USERS` obligatorio (sin él deny-all),
+`allowed_channels`/`channel_prompts` usan Channel IDs `C…` (no `#nombre`), scopes
+completos (incl. `im:*`, `mpim:*`, `files:*`), eventos suscritos aunque sea Socket
+Mode, reinstalar la app si cambian scopes, habilitar Messages Tab. Artefactos:
+`businessos/negocio/slack-config-fragment.yaml` + `businessos/slack-piloto.sh`
+(host-job runtime: verifica tokens sin imprimirlos, mergea config con backup,
+reinicia). Bloqueado en: la usuaria crea la Slack App + tokens al `.env` del
+volumen + Channel/Member IDs; luego correr el script en la máquina runtime.
