@@ -287,6 +287,15 @@ regresión.
 
 ---
 
+### 2026-07-03 (F3): el Supervisor NO escribe `tareas` — un solo escritor por fila
+- **Desviación deliberada del blueprint**: la Fase 3 decía "emite veredicto y
+  registra en `tareas`", pero dos escritores (Ejecutor y Supervisor) sobre la
+  misma fila son una carrera. El Ejecutor es EL escritor de confianza (registra
+  `en_revision` antes de pedir veredicto y `aprobada/rechazada` al recibirlo);
+  el Supervisor juzga puro y stateless — su único output es el VEREDICTO A2A.
+- **Aplicar en**: cualquier tabla de estado compartida entre servicios del trío:
+  un dueño de escritura por fila, los demás se comunican por protocolo.
+
 ## Gotchas
 
 > Críticos ANTES de implementar (los de A2A vienen pagados de PRP-005 — no repagarlos)

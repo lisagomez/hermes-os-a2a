@@ -1,0 +1,75 @@
+# reglas/software.toml — reglas del Supervisor para el departamento SOFTWARE.
+#
+# Config VERSIONADA y diff-eable (SPEC-trio §7.4: auditables, no improvisadas).
+# Cada gate es (comando real → criterio binario → evidencia). Derivada de
+# businessos/departamentos/desarrollo-software.md §2.
+#
+# Invariantes que el motor exige al cargar (gates.py):
+# - gate activo con runner inexistente/no implementado = CONFIG INVALIDA
+#   (el servicio NO arranca): es imposible "activar" una regla incomprobable.
+# - runner desconocido (typo) = config invalida aunque el gate este inactivo.
+# - gate activo que no puede correr en runtime = `no_ejecutable` → RECHAZO,
+#   jamas "asumido" (anti-sello-de-goma).
+
+departamento = "software"
+
+# --- gates de comando: se re-ejecutan sobre el worktree, exit 0 = paso ---
+
+[[gate]]
+regla = "build"
+runner = "comando"
+comando = "npm run build"
+timeout_s = 600
+
+[[gate]]
+regla = "typecheck"
+runner = "comando"
+comando = "npm run typecheck"
+timeout_s = 300
+
+[[gate]]
+regla = "lint"
+runner = "comando"
+comando = "npm run lint"
+timeout_s = 300
+
+[[gate]]
+regla = "tests"
+runner = "comando"
+comando = "npx playwright test"
+timeout_s = 900
+
+# --- chequeos estaticos deterministas (sobre los archivos cambiados) ---
+
+[[gate]]
+regla = "sin_any"
+runner = "estatico"
+chequeo = "sin_any"
+
+[[gate]]
+regla = "sin_secretos"
+runner = "estatico"
+chequeo = "sin_secretos"
+
+[[gate]]
+regla = "archivos_max_500"
+runner = "estatico"
+chequeo = "archivos_max_500"
+
+[[gate]]
+regla = "rls_en_migraciones"
+runner = "estatico"
+chequeo = "rls_en_migraciones"
+
+# --- gates de modelo: DECLARADOS pero inactivos hasta tener runner real ---
+# (PRP-006: activarlos sin runner es imposible por diseño — config invalida)
+
+[[gate]]
+regla = "code_review"
+runner = "modelo"
+activo = false
+
+[[gate]]
+regla = "security_review"
+runner = "modelo"
+activo = false
