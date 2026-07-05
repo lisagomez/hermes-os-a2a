@@ -310,8 +310,10 @@ el paquete del primer departamento, y el modelo white-label).
   verificado en producción (tabla `tareas` con RLS; check de
   `token_usage.vertical` incluye 'trio') — vía management API con permiso
   explícito de la dueña
-- [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up ejecutor-a2a
-  supervisor-a2a` + smoke de card/SendMessage en hermes-net
+- [~] **RESIDUAL (Droplet/runtime)** — smoke card/SendMessage VALIDADO en dev
+  (2026-07-04, uvicorn real + TCP real, `businessos/smoke-trio/`): cadena
+  Ejecutor→Supervisor `any`→rechazado→corrección→aprobado. Falta solo el build
+  Docker + `compose up ejecutor-a2a supervisor-a2a` en hermes-net (Droplet)
 - [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
   primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
   imagen del ejecutor; hoy la imagen es mock-only a propósito)
@@ -365,8 +367,10 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
   `tareas.parent_id/es_padre/fan_out_max/plan/presupuesto_usd/gasto_usd` + índices
   `tareas_parent_idx`/`token_usage_task_idx` presentes; sin alertas de seguridad nuevas
   (RLS sin políticas = solo service_role, por diseño)
-- [ ] **RESIDUAL (Droplet/runtime)** — build + `compose up coordinador-a2a` en
-  hermes-net + smoke card/SendMessage del enjambre end-to-end
+- [~] **RESIDUAL (Droplet/runtime)** — smoke del enjambre end-to-end VALIDADO en
+  dev (2026-07-04, `businessos/smoke-trio/`): feature padre → fan-out → integración
+  → verificación final del Supervisor → `veredicto_final=aprobado`, sobre uvicorn+TCP
+  reales. Falta solo el build Docker + `compose up coordinador-a2a` en hermes-net (Droplet)
 - [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — Planner real opt-in y primer
   dogfood del enjambre con motor real (`EJECUTOR_ENGINE=claude`); hoy Mock-only a propósito
 - **Salida:** ✅ un enjambre de Ejecutores coordinado, validado de punta a punta en dev
