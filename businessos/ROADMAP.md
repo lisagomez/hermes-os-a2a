@@ -183,8 +183,10 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
   (`127.0.0.1:9200`, túnel SSH); convive con hermes-dashboard 9119
 - [ ] **RESIDUAL (máquina runtime)** — build de la imagen + `compose up a2abot` real,
   verificar path de health del gateway, y cron de `snapshot-pantheon.py`
-- [ ] **RESIDUAL (dev)** — screenshots Playwright de las 3 vistas (falta
-  `sudo npx playwright install-deps chromium` en esta máquina)
+- [x] **Dev (2026-07-04)** — screenshots Playwright de las 3 vistas en modo mock
+  validados y guardados en `businessos/dashboard-screenshots/` (chromium instaló con
+  `npx playwright install chromium`, sin `install-deps`); las 3 vistas renderizan
+  íntegras (Pantheon, AI Spend, Grafo con fuente citada + disclaimer)
 - **Salida:** ✅ panel único con las 3 vistas funcionando (mock en dev; `real`
   conmutado por env en runtime).
 
