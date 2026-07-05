@@ -27,7 +27,13 @@ repo). `supabase-fase6.sql` APLICADO y verificado en producción el mismo día
   header `A2A-Version: 1.0` + `parts:[{"data": <tarea directa>}]`.
 - Interop e2e (tests): rechazo→reintento con observaciones→aprobado.
 
-**Residuales:** `compose up` del trío + smoke en el Droplet; smoke motor
+**Smoke A2A EN VIVO validado en dev (2026-07-04):** `businessos/smoke-trio/run.sh`
+levanta ejecutor+supervisor con uvicorn real (TCP real, motor mock, cero tokens, sin
+docker) y corre el lazo `any`→rechazado(gate sin_any)→corrección→aprobado sobre el
+cliente real del SDK. Prueba card+SendMessage+opacidad end-to-end fuera de los tests.
+
+**Residuales:** ~~smoke~~ (hecho en dev) → falta `compose up` Docker del trío en el
+Droplet; smoke motor
 real gated (`EJECUTOR_SMOKE_REAL=1`) y dogfood con `EJECUTOR_ENGINE=claude`
 (requiere CLI Claude Code en la imagen — hoy mock-only a propósito) — decisión
 de la dueña; gates de modelo cuando tengan runner. **Futuro (otro PRP):** RAG

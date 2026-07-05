@@ -44,9 +44,16 @@ escritura fallan con "Cannot apply migration in read-only mode"; mismo patrón q
 Verificado: 7 columnas + índices `tareas_parent_idx`/`token_usage_task_idx` presentes; sin
 alertas de seguridad nuevas (RLS sin políticas = solo service_role, por diseño).
 
+**Smoke del enjambre EN VIVO validado en dev (2026-07-04):** `businessos/smoke-trio/run.sh`
+levanta los 3 servicios con uvicorn real y manda una feature padre (mock_plan de 2
+sub-tareas disjuntas) al Coordinador sobre TCP → fan-out → integración → verificación
+final del Supervisor → `veredicto_final=aprobado`. Cero tokens, sin docker. Gotcha para
+que el cliente resuelva sobre TCP real: setear `*_PUBLIC_URL` a 127.0.0.1 (la card anuncia
+esa `url`); sin eso el SDK pega al nombre docker `coordinador-a2a:4300` y no resuelve.
+
 **Residuales:**
-- **Droplet/runtime:** build + `compose up coordinador-a2a` en hermes-net + smoke del
-  enjambre end-to-end.
+- **Droplet/runtime:** ~~smoke end-to-end~~ (hecho en dev) → falta build + `compose up
+  coordinador-a2a` en hermes-net (Docker/Droplet).
 - **Decisión de la dueña (quema tokens):** Planner real opt-in + primer dogfood del
   enjambre con `EJECUTOR_ENGINE=claude`; hoy Mock-only a propósito.
 
