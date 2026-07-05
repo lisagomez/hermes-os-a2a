@@ -7,6 +7,7 @@
 - [Elisa](user/elisa.md) — dueña-operadora única; Telegram user_id 7022378429; prefiere el patrón correcto sobre atajos.
 
 ## project/ — Proyectos y decisiones activas
+- [Despliegue en Hetzner](project/despliegue-hetzner.md) — decisión 2026-07-04: runtime de bajo presupuesto va a Hetzner Cloud (CX32 8GB ~€6.80/mes corre todo incl. grafo, más barato que DO 4GB); runbook delta en `businessos/FASE0-hetzner.md`; Cloud Firewall a nivel de red resuelve el gotcha Docker/UFW.
 - [Estado de Fase 0](project/fase0-estado.md) — 3 de 3 verticales vivas y respondiendo (personal/Kiris + negocio/@a2aTeamBot + clientes/@a2aClientbot); Supabase listo; pendientes Droplet y respaldo nocturno.
 - [Fase 1 — eficiencia de tokens](project/fase1-eficiencia.md) — routing en las 3 (10 ligeros a gpt-oss:floor, 3 pesados a Sonnet, loop principal en gemini-flash-lite, caché 97%); ingesta token_usage + reporte de presupuesto OK; job de facturas (ingest-facturas.py) construido; pendiente: validar modelos nuevos en runtime + alerta 80% por cron (Droplet).
 - [Fase 2 — grafo](project/fase2-grafo.md) — cerebro regulatorio fiscal COMPLETO en código (seed citado LISR/CFF/SAT, motor puro, FastAPI, Docker, host-job evaluar-facturas.py, 31 tests); residuales: up real en Droplet, dry-run contra Supabase, CLI impreso.
