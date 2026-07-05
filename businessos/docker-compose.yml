@@ -20,6 +20,20 @@ name: businessos
 #   4) Pon tus llaves en un archivo .env junto a este compose (ver claves abajo).
 #   5) docker compose up -d
 #
+# PROFILES (arranque escalonado, para caber en cajas chicas — CX22/CX32):
+#   El 'docker compose up -d' por DEFAULT levanta SOLO el nucleo minimo:
+#       hermes-negocio + grafo + grafo-db + a2abot   (~3.5 GB de techo)
+#   Negocio es la vertical de arranque: los dashboards apuntan a ella y lleva el
+#   tracking de presupuesto. Los demas servicios estan bajo profile y se suman a
+#   demanda (Compose tambien los enciende solo si otro servicio activo depende de
+#   ellos):
+#       docker compose --profile verticales up -d   # + personal + clientes
+#       docker compose --profile trio       up -d   # + ejecutor + supervisor
+#       docker compose --profile a2a        up -d   # + grafo-a2a (pares externos)
+#       docker compose --profile dashboard-nativo up -d  # + dashboard 9119 (redundante con a2abot)
+#   Combina: docker compose --profile verticales --profile trio up -d
+#   Al bajar todo:  docker compose --profile "*" down
+#
 # NOTA DE RUTAS: Compose NO expande "~" en los volumenes (es feature del shell, no
 # de Compose). Por eso aqui usamos ${HOME}. Define HOME o corre compose desde una
 # shell de login normal (siempre lo trae).
@@ -57,6 +71,7 @@ services:
   hermes-personal:
     <<: *hermes-common
     container_name: hermes-personal
+    profiles: ["verticales"]
     # ports:                      # cerrado: habla por Telegram, no necesita entrante
     #   - "127.0.0.1:8642:8642"
     volumes:
@@ -95,6 +110,7 @@ services:
   hermes-clientes:
     <<: *hermes-common
     container_name: hermes-clientes
+    profiles: ["verticales"]
     # ports:                      # cerrado: habla por Telegram
     #   - "127.0.0.1:8644:8642"
     volumes:
@@ -129,6 +145,7 @@ services:
   dashboard:
     image: nousresearch/hermes-agent:v2026.6.19
     container_name: hermes-dashboard
+    profiles: ["dashboard-nativo"]
     restart: unless-stopped
     command: dashboard --host 0.0.0.0
     ports:
@@ -205,6 +222,7 @@ services:
   grafo-a2a:
     build: ./grafo-a2a
     container_name: grafo-a2a
+    profiles: ["a2a"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:4000:4000"     # solo inspeccion local; nunca 0.0.0.0
@@ -237,6 +255,7 @@ services:
       context: .
       dockerfile: ejecutor-a2a/Dockerfile
     container_name: ejecutor-a2a
+    profiles: ["trio"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:4100:4100"     # solo inspeccion local; nunca 0.0.0.0
@@ -272,6 +291,7 @@ services:
       context: .
       dockerfile: supervisor-a2a/Dockerfile
     container_name: supervisor-a2a
+    profiles: ["trio"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:4200:4200"     # solo inspeccion local; nunca 0.0.0.0
