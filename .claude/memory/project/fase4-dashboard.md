@@ -33,8 +33,9 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   `turbopack.root` explícitos. NO borrar el lockfile ajeno del home.
 - Los ítems YAML de listas de Hermes van a COLUMNA 0: una regex de bloque que
   corte en `^\S` se come la lista entera (ya estaba en memoria; re-confirmado).
-- Playwright: browsers en caché pero sin libs de sistema; los screenshots
-  requieren `sudo npx playwright install-deps chromium` (residual dev).
+- Playwright: `npx playwright install chromium` bastó en esta máquina (NO hizo falta
+  `sudo install-deps`); las 3 vistas se capturaron en modo mock el 2026-07-04 →
+  `businessos/dashboard-screenshots/`.
 - La tabla `pantheon` hoy tiene datos de FIXTURE (validación del camino de
   escritura); el primer run real en runtime los sobrescribe.
 
@@ -42,4 +43,5 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
 
 - **Runtime**: build de imagen + `compose up a2abot`, verificar path real del
   health del gateway (aquí mockeado), cron de snapshot-pantheon (junto a los otros).
-- **Dev**: screenshots Playwright de las 3 vistas (tras install-deps).
+- ~~**Dev**: screenshots Playwright de las 3 vistas~~ → HECHO 2026-07-04
+  (`businessos/dashboard-screenshots/`, modo mock).
