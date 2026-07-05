@@ -17,8 +17,12 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ## Stack confirmado
 
-- **Servidor:** Droplet DigitalOcean (4 GB / 2 vCPU para arrancar; 8 GB al sumar
-  el grafo). No bajar de 4 GB: en 2 GB el stack hace OOM-kill (ver FASE0.md §1).
+- **Servidor:** ruta de bajo presupuesto elegida = **Hetzner Cloud** (2026-07-04):
+  CX32 8 GB ~€6.80/mes corre TODO incl. grafo, y cuesta menos que el plan de 4 GB de
+  DO (~$24); CX22 4 GB ~€3.79/mes como mínimo. Runbook en `FASE0-hetzner.md` (delta
+  sobre FASE0.md). DO sigue documentado en FASE0.md como alternativa. No bajar de
+  4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill (FASE0.md §1); con 1
+  vertical + limits recortados, 2 GB alcanza.
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
 - **Modelos (opt-in GLM-5.2, seam listo 2026-07-04):** `z-ai/glm-5.2` (~1/6 del costo de
