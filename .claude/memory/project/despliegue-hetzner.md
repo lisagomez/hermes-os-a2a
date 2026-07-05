@@ -35,5 +35,15 @@ preflight/idle/snapshots). Es herramienta HOST/dev (Bearer HCLOUD_TOKEN; el agen
 secret-scrubbing). GOTCHA del generador: casos `switch` duplicados en sync.go (firewalls/servers/
 volumes) → deduplicar a mano al reimprimir (candidato a retro). Ver [[cli-printing-press]].
 
+**Arranque escalonado por profiles (2026-07-05):** el `docker-compose.yml` ahora usa
+`profiles:` para caber en cajas chicas. `docker compose up -d` (default) levanta SOLO el
+núcleo mínimo **hermes-negocio + grafo + grafo-db + a2abot** (~3.5 GB de techo). Decisión:
+**empezar por la vertical NEGOCIO** (los dashboards apuntan a ella vía
+`GATEWAY_HEALTH_URL=hermes-negocio` y lleva el tracking de presupuesto). Los demás se suman a
+demanda: `--profile verticales` (personal+clientes), `--profile trio` (ejecutor+supervisor),
+`--profile a2a` (grafo-a2a), `--profile dashboard-nativo` (9119). Con una sola vertical basta
+**CX22 (4 GB, €3.79/mes)** + swap; resize en caliente a CX32 al sumar verticales/trío.
+`mem_limit` es techo, no reserva → la sobre-suscripción solo muerde si todo pica a la vez.
+
 **Pendiente:** sigue diferido levantar el runtime hasta decidir provisionar; smoke real del
 CLI cuando exista el token. Ver [[fase0-estado]] y [[maquinas-entornos]].
