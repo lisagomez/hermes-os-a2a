@@ -21,9 +21,21 @@ phases:
   "0-1":
     label: "Infraestructura y canales"
     clis:
+      - name: "https://docs.hetzner.cloud/cloud.spec.json"
+        source: spec
+        why: "Gestionar el servidor Hetzner (crear/resize/snapshot, firewalls, SSH keys, redes) desde los agentes. Reemplaza a digitalocean tras mover el runtime a Hetzner (ver FASE0-hetzner.md)."
+        verticales: [negocio]
+        note: >-
+          Impreso 2026-07-04 desde el OpenAPI 3.1 oficial (189 ops), Grade A (95/100),
+          shipcheck 7/7. Binario `hcloud-pp-cli` en ~/printing-press/library/hcloud/ (aún
+          sin publicar; publish:false). Auth Bearer HCLOUD_TOKEN → herramienta de HOST/dev,
+          el agente Hermes NO la usa (secret-scrubbing). 5 comandos novel: burn, fits,
+          preflight, idle, snapshots prune. GOTCHA del generador: emite `switch` con casos
+          duplicados en sync.go para firewalls/servers/volumes (colisión clave plana vs
+          jerárquica) → no compila; deduplicar a mano al reimprimir (candidato a retro).
       - name: digitalocean
         source: catalog
-        why: "Gestionar Droplet, snapshots y backups desde los agentes."
+        why: "DEPRECADO tras elegir Hetzner (ver hcloud arriba). Se mantiene por si se vuelve a DO."
         verticales: [negocio]
       - name: telegram
         source: catalog
