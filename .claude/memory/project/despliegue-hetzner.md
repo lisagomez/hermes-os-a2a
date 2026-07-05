@@ -28,7 +28,12 @@ VM) → SÍ gobierna los puertos que Docker publica, resolviendo de raíz el got
 los pasos 1 (crear servidor), 2 (firewall) y las notas de costo; los pasos 0 y 3–10
 (Docker, swap, .env, wizard Hermes, compose up, GitHub cron, verificación) son idénticos.
 
-**Pendientes que abre:** (1) el CLI `digitalocean` impreso (Fase 0-1) NO gestiona Hetzner;
-si se quiere gestión agente-nativa, imprimir `hcloud` con Printing Press (Go + tokens,
-no bloquea). (2) Sigue diferido levantar el runtime hasta decidir provisionar. Ver
-[[fase0-estado]] y [[maquinas-entornos]].
+**CLI de gestión:** `hcloud-pp-cli` IMPRESO 2026-07-04 con Printing Press desde el OpenAPI
+oficial de Hetzner (189 ops), Grade A 95/100, shipcheck 7/7; en `~/printing-press/library/hcloud/`
+(sin publicar aún). Reemplaza el rol del CLI `digitalocean`. 5 comandos novel (burn/fits/
+preflight/idle/snapshots). Es herramienta HOST/dev (Bearer HCLOUD_TOKEN; el agente no la usa por
+secret-scrubbing). GOTCHA del generador: casos `switch` duplicados en sync.go (firewalls/servers/
+volumes) → deduplicar a mano al reimprimir (candidato a retro). Ver [[cli-printing-press]].
+
+**Pendiente:** sigue diferido levantar el runtime hasta decidir provisionar; smoke real del
+CLI cuando exista el token. Ver [[fase0-estado]] y [[maquinas-entornos]].
