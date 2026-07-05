@@ -470,4 +470,38 @@ npm run lint         # ESLint
   toda extensión de un sistema A2A — sumar un servicio hermano y preservar los invariantes,
   no engordar los existentes. Ver `.claude/memory/project/fase7-swarm.md`.
 
+### 2026-07-05: Desplegar una vertical NO es "deploy", es MIGRACIÓN (token por-máquina)
+- **Error**: tratar el paso a un servidor nuevo como un deploy limpio. Realidad: las verticales
+  YA corrían en la máquina "de desarrollo" (WSL2) — memoria desactualizada decía que no (verificar
+  SIEMPRE con `docker ps` en qué máquina corre algo antes de concluir). Telegram permite UNA
+  conexión por token: arrancar negocio en Hetzner con el mismo token mientras vive en WSL2 los
+  choca (y viola "nunca dos gateways sobre el mismo token/volumen").
+- **Fix (patrón de migración de vertical)**: (1) `docker stop` en origen (libera token); (2)
+  empaquetar el volumen `.hermes` (uid 10000, 0700) SIN sudo con un contenedor lector privilegiado
+  — `docker run --rm -v <vol>:/data:ro alpine tar -cpzf /out/x.tgz .` (el tar sale root:644,
+  legible para scp); (3) extraer en destino preservando uid 10000/0700 y borrando
+  `gateway.lock`/`.dispatcher.lock`; (4) copiar el `.env` del compose (opaco, sin leerlo);
+  (5) `compose up -d --build`; (6) `docker rm` el contenedor de origen para que un `compose up`
+  accidental no reviva el token. Conserva memoria/sesiones (state.db) intactas.
+- **Aplicar en**: mover personal/clientes o cualquier vertical entre máquinas; todo servicio
+  con estado en volumen uid-10000. Ver `.claude/memory/project/despliegue-hetzner.md` y la
+  corrección en `.claude/memory/reference/maquinas-entornos.md`.
+
+### 2026-07-05: Provisionar Hetzner por CLI — precios reales y gotchas del hcloud-pp-cli
+- **Error/hallazgos**: (1) el runbook pedía **cx22 en Ashburn** — INVIABLE: la línea **CX es
+  solo-Europa**; en US (ash/hil) solo hay CPX/CCX y salen **~3.4× más caro** ($37.49 cpx21 4GB
+  vs $10.99 EU). Naming actual: cx23 (4GB $6.49) / **cx33 (8GB $8.99)** — no cx22/cx32. Elegido
+  cx33 EU: 8GB corre todo por ~$9/mes. (2) El precio hay que sacarlo del endpoint `pricing`
+  (moneda USD); el espejo local y `fits` daban datos raros/0. (3) `preflight`/`fits` leen el
+  ESPEJO local → correr `sync` antes (aún así `ssh_key_exists` dio falso-negativo con la key ya
+  creada en vivo). (4) el flag `--firewalls` mapea a ESCALAR (mal) → crear el server con
+  `--stdin` y `firewalls:[{"firewall":ID}]`; `--dry-run` para ver el body sin gastar.
+  (5) Evitar ARM (cax): la imagen Hermes puede ser solo-x86.
+- **Gotcha del build en el server**: `git archive HEAD` NO incluye archivos git-ignored →
+  faltó `package-lock.json` (lo pide el Dockerfile de a2abot) y `GRAFO_DB_PASSWORD` no existía en
+  el `.env` de dev. Copiar el lock aparte + fijar la password nueva. El token hcloud vive en
+  `~/.config/claude/secrets.env` (que `.bashrc` hace `source`; ojo: una línea con clave SSH sin
+  comillas rompía ese source).
+- **Aplicar en**: cualquier provisión Hetzner y todo build en server desde un snapshot de git.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

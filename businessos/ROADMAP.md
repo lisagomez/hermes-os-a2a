@@ -46,17 +46,17 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ---
 
-## FASE 0 — Infraestructura  ← 3/3 verticales vivas (Droplet + sync nocturno diferidos)
+## FASE 0 — Infraestructura  ← servidor Hetzner VIVO; negocio migrado a él (2026-07-05); sync nocturno pendiente
 
 Cimiento técnico. Ver FASE0.md y los scripts. Estado detallado en
 `.claude/memory/project/fase0-estado.md`. Procedimiento + gotchas para levantar una
 vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
 
-- [ ] Droplet + endurecimiento + Docker  *(la vertical personal corre por ahora en WSL2 local, no en el Droplet)*
+- [x] **Servidor + endurecimiento + Docker** — Hetzner **cx33** (4 vCPU / 8 GB / x86, Falkenstein `fsn1`), IPv4 `167.233.233.56`, provisionado 100% por CLI (`hcloud-pp-cli`) el 2026-07-05. Docker + compose + swap 2G + fail2ban + usuario `hermes` + firewall solo-SSH. Detalle y gotchas en `.claude/memory/project/despliegue-hetzner.md`. *(cx22/Ashburn del runbook resultó inviable: CX es solo-EU y US ~3.4× más caro)*
 - [~] Tres contenedores Hermes con sus SOUL.md / AGENTS.md
-  - [x] **personal (iris)** — viva, servicio persistente `hermes-personal`, bot Kiris `@hermes_khmcih2cwjdulkbq_bot`, modelo nemotron-3-super-120b vía OpenRouter, persona instalada, round-trip verificado (2026-06-27)
-  - [ ] negocio — token Telegram placeholder
-  - [ ] clientes — token Telegram placeholder
+  - [x] **personal (iris)** — viva en WSL2 local (`hermes-personal`), bot Kiris, nemotron-3-super-120b vía OpenRouter, round-trip verificado (2026-06-27). Migración a Hetzner pendiente.
+  - [x] **negocio (@a2aTeamBot)** — **MIGRADO a Hetzner y VIVO (2026-07-05)**: se paró en WSL2, se copió su volumen `.hermes` (memoria intacta) al server y arranca con el núcleo (negocio + grafo + grafo-db + a2abot, todos Up/healthy). Bot responde. Ver [[despliegue-hetzner]].
+  - [~] clientes — vivo en WSL2 local; migración a Hetzner pendiente
 - [~] Tres bots de Telegram + voz  *(1 bot propio listo; voz pendiente)*
 - [ ] Sync nocturno a GitHub
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
