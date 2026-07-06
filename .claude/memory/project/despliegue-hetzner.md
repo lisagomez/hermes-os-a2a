@@ -95,7 +95,15 @@ historia de 1 commit (tamaño acotado; ~14 MB comprimido). Acceso git aislado po
 verificado en GitHub. Restaurar = extraer el `.tgz` en un `.hermes` limpio preservando uid/perms
 (mismo patrón que la migración).
 
-**Pendiente (residual):** cerrar root SSH — BLOQUEADO desde esta sesión: `hermes` NO tiene sudo sin
-contraseña y entramos solo con llave → editar `sshd_config`/reiniciar sshd requiere root o el password
-de sudo de hermes (lo hace la dueña, o darle NOPASSWD sudo). Y migrar personal/clientes cuando se
-decida. Ver [[fase0-estado]] y [[maquinas-entornos]].
+**Root SSH cerrado (HECHO 2026-07-06):** `PermitRootLogin no` en drop-in
+`/etc/ssh/sshd_config.d/99-hardening.conf`. Patrón seguro usado: (1) otorgar a `hermes` NOPASSWD
+sudo PRIMERO (`/etc/sudoers.d/90-hermes-nopasswd`, validado con `visudo -c`) y confirmarlo en
+conexión nueva → red de seguridad; (2) escribir el drop-in, validar con `sshd -t`, y `systemctl
+reload ssh` (reload, NO restart → no corta sesiones); (3) verificar: root da `Permission denied`,
+`hermes` sigue entrando y `sudo -n whoami`=root. El acceso al server es ahora SOLO `hermes` por
+llave, con sudo pleno. (Nota: `hermes` ya estaba en el grupo `docker` = root-equivalente, así que
+el NOPASSWD sudo no cambia la postura de seguridad real.) El agente tenía llave root en esta
+sesión; ese acceso queda cerrado tras el cambio.
+
+**Pendiente (residual):** migrar personal/clientes cuando se decida. Ver [[fase0-estado]] y
+[[maquinas-entornos]].

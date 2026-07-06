@@ -92,7 +92,6 @@ mismo patrón de extracción que la migración (ver `.claude/memory/project/desp
 ## Pendientes anotados
 
 - [x] ~~Cron nocturno de respaldo de negocio~~ → **hecho (2026-07-06)**, repo privado `businessos-negocio`.
+- [x] ~~Cierre de root SSH~~ → **hecho (2026-07-06)**. Root ya NO entra por SSH (`PermitRootLogin no`).
+  El acceso es **solo `hermes`** (con llave), que ahora tiene **sudo sin contraseña** para administrar.
 - [ ] Migrar personal + clientes a Hetzner (mismo patrón que negocio — ver `.claude/memory/project/despliegue-hetzner.md`)
-- [ ] Decidir cierre de root SSH (hoy abierto con llave para poder operar el server). Nota:
-  `hermes` NO tiene sudo sin contraseña → este cambio necesita entrar como root/con sudo (no
-  se puede hacer solo por SSH-key de hermes).
