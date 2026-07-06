@@ -31,8 +31,8 @@ PRP: `.claude/PRPs/prp-fase2-grafo.md` (aprobado 2026-07-01). Rama `feat/fase2-g
 
 ## Residuales (Droplet / runtime)
 
-- `docker compose up` real + `/health` + POST con postgres (daemon Docker apagado en WSL2;
-  arrancarlo pide sudo interactivo).
+- ~~`docker compose up` real + `/health` + POST con postgres~~ → **RESUELTO en Hetzner
+  (2026-07-06)**: grafo + grafo-db Up/healthy, `GET /health` = `{status:ok, db:ok, reglas:24}`.
 - `evaluar-facturas.py --dry-run` contra Supabase productivo (sin `.env` local). Validado
   contra mock local + grafo real por uvicorn.
 - CLI impreso con Printing Press grado ≥A (sin Go/prensa en esta máquina; instalador bloqueado

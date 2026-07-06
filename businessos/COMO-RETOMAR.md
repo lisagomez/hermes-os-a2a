@@ -89,6 +89,18 @@ Script: `~/bin/backup-negocio.sh` · log: `~/backups/backup.log` · corre como `
 negocio detenido, volcarlo en un volumen `.hermes` limpio preservando uid 10000/0700 —
 mismo patrón de extracción que la migración (ver `.claude/memory/project/despliegue-hetzner.md`).
 
+## Qué corre solo (crons en el server)
+
+Todo como `hermes`, sin intervención. Log en `~/logs/host-jobs.log` (y `~/backups/backup.log`):
+
+| Cron | Cuándo | Qué hace |
+|------|--------|----------|
+| `nightly-jobs.sh` | 03:10 diario | Ingesta `token_usage` (ayer+hoy) → snapshot de **presupuesto** que lee el bot; + **pantheon** del dashboard |
+| `weekly-jobs.sh` | 03:30 lunes | Salud del grafo (`revisar-vigencias`): reglas vencidas / cifras a cotejar |
+| `backup-negocio.sh` | 04:17 diario | Respaldo del volumen `.hermes` (local + repo privado) |
+
+Al bot le puedes preguntar **"¿cómo va el presupuesto?"** y responde con datos frescos del snapshot.
+
 ## Pendientes anotados
 
 - [x] ~~Cron nocturno de respaldo de negocio~~ → **hecho (2026-07-06)**, repo privado `businessos-negocio`.

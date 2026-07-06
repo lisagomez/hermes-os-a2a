@@ -46,7 +46,11 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
   PostgREST + service_role (constraint única `token_usage_fecha_vertical_modelo_key`). Corrida
   inicial: 4 filas, total $0.0217 el 2026-06-30. **Limitación:** solo loop principal (las aux no
   emiten tokens en agent.log); depende de que el log no haya rotado. Escrituras NO van por el MCP
-  (read-only) sino por service_role; ver [[supabase-acceso]]. Programación por cron → Droplet.
+  (read-only) sino por service_role; ver [[supabase-acceso]]. **Cron nocturno INSTALADO en
+  Hetzner (2026-07-06)**: `~/bin/nightly-jobs.sh` (03:10) corre ayer+hoy (UTC, idempotente) +
+  `snapshot-pantheon`. Backfill verificado (28/30 jun + 05 jul); snapshot `presupuesto.json`
+  vivo → julio $0.09/$30 (0.3%). El loop de negocio corre `claude-haiku-4.5` (confirmado en
+  agent.log de prod).
 - ✅ **Reporte de presupuesto on-demand** (2026-06-30, **round-trip verificado**): negocio
   (haiku-4.5) hace `skill_view` + `read_file` del snapshot `/opt/data/workspace/presupuesto.json`
   y reporta total + desglose por vertical + alerta al 80%. Sin `execute_code` ni credenciales.

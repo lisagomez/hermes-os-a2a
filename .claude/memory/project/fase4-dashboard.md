@@ -41,7 +41,10 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
 
 ## Residuales
 
-- **Runtime**: build de imagen + `compose up a2abot`, verificar path real del
-  health del gateway (aquí mockeado), cron de snapshot-pantheon (junto a los otros).
+- ~~**Runtime**: build de imagen + `compose up a2abot` + cron de snapshot-pantheon~~ →
+  **RESUELTO en Hetzner (2026-07-06)**: `a2abot` Up (responde 307, ya con auth
+  `DASH_USER/PASS`), y `snapshot-pantheon.py` corre en el cron nocturno
+  (`~/bin/nightly-jobs.sh`, 03:10) → pantheon con datos reales de negocio (HTTP 200).
+  Pendiente menor: verificar el path real del health del gateway (antes mockeado).
 - ~~**Dev**: screenshots Playwright de las 3 vistas~~ → HECHO 2026-07-04
   (`businessos/dashboard-screenshots/`, modo mock).
