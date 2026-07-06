@@ -76,8 +76,23 @@ Abre Claude Code en `/home/gsore/code/a2aboths` y escribe **`/primer`** para rec
   (minutos, sin reprovisionar).
 - Apagar el server en Hetzner **no** deja de cobrar (reserva recursos); pausa real = snapshot + delete.
 
+## Respaldo automático (negocio)
+
+Cada noche (**04:17**, hora del server) un cron copia el volumen `.hermes` de negocio
+(memoria + sesiones del bot) a dos sitios:
+- **Local**: `~/backups/negocio-*.tgz` en el server (se conservan los últimos 7).
+- **Off-box**: repo privado GitHub **`lisagomez/businessos-negocio`** (sobrevive aunque muera el server).
+
+Script: `~/bin/backup-negocio.sh` · log: `~/backups/backup.log` · corre como `hermes` (sin sudo).
+
+**Restaurar** (si hiciera falta): bajar el `.tgz` del repo privado (o de `~/backups`), y con
+negocio detenido, volcarlo en un volumen `.hermes` limpio preservando uid 10000/0700 —
+mismo patrón de extracción que la migración (ver `.claude/memory/project/despliegue-hetzner.md`).
+
 ## Pendientes anotados
 
-- [ ] Cron nocturno de respaldo de negocio (a un repo privado `businessos-negocio`)
+- [x] ~~Cron nocturno de respaldo de negocio~~ → **hecho (2026-07-06)**, repo privado `businessos-negocio`.
 - [ ] Migrar personal + clientes a Hetzner (mismo patrón que negocio — ver `.claude/memory/project/despliegue-hetzner.md`)
-- [ ] Decidir cierre de root SSH (hoy abierto con llave para poder operar el server)
+- [ ] Decidir cierre de root SSH (hoy abierto con llave para poder operar el server). Nota:
+  `hermes` NO tiene sudo sin contraseña → este cambio necesita entrar como root/con sudo (no
+  se puede hacer solo por SSH-key de hermes).
