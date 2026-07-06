@@ -80,9 +80,12 @@ uid 10000/0700 y limpiando `gateway.lock`/`.dispatcher.lock` → copiar el `.env
   (3) el build de a2abot corre en el server (contexto = raíz del repo); node/next tardan ~min.
 - **Método de migración de volumen sin sudo**: `docker run --rm -v <vol>:/data:ro alpine tar -cpzf`
   lee el 0700/uid-10000 como root del contenedor; el tar sale root:644 (legible para scp).
-- **CAVEAT vivo**: en dev, negocio quedó SOLO detenido (contenedor existe). `unless-stopped` NO lo
-  revive tras reboot, pero un `docker compose up` en dev SÍ lo recrearía → chocaría el token con
-  Hetzner. No correr compose de negocio en dev; idealmente `docker rm hermes-negocio` en dev.
+- **CAVEAT (resuelto 2026-07-06)**: `hermes-negocio` ya NO existe en dev — `docker ps -a` solo
+  muestra `hermes-personal` + `hermes-clientes` (Up); el contenedor de origen fue removido tras la
+  migración → riesgo de revivir por reboot eliminado. SIGUE EN PIE la regla dura: un
+  `docker compose up` de negocio en dev lo RECREARÍA desde el compose y chocaría el token con
+  Hetzner → nunca correr el compose de negocio en la máquina local (personal/clientes tienen tokens
+  distintos, sí pueden).
 
 **Pendiente (residual):** cerrar root SSH (o dar NOPASSWD sudo a hermes si quiero seguir operando),
 cron nocturno de respaldo de negocio (repo privado businessos-negocio), y migrar personal/clientes
