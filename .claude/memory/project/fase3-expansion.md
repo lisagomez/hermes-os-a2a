@@ -15,7 +15,8 @@ PRP: `.claude/PRPs/prp-fase3-expansion.md`. Rama `feat/fase3-expansion`.
 - Contractual NUNCA dice "deducible": solo dudoso/requisitos (el grafo señala, Elisa decide).
 - `GET /salud-conocimiento` (reglas vencidas + `verificar:true` pendientes + ámbitos) +
   host-job `revisar-vigencias.py` → snapshot `/opt/data/workspace/vigencias.json` en negocio;
-  exit 1 si hay vencidas (cron lunes sugerido). 47 tests pytest verdes.
+  exit 1 si hay vencidas (**cron lunes 03:30 INSTALADO en Hetzner 2026-07-06** vía
+  `~/bin/weekly-jobs.sh`; corrida verificada: 0 vencidas). 47 tests pytest verdes.
 
 ## Cobro (Polar MoR)
 
