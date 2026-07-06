@@ -54,6 +54,11 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
 - ✅ **Reporte de presupuesto on-demand** (2026-06-30, **round-trip verificado**): negocio
   (haiku-4.5) hace `skill_view` + `read_file` del snapshot `/opt/data/workspace/presupuesto.json`
   y reporta total + desglose por vertical + alerta al 80%. Sin `execute_code` ni credenciales.
+  - **CORRECCIÓN (2026-07-06):** en Hetzner el contenedor NO tiene Docker → `read_file` (y todo el
+    toolset `file`) FALLA. El mecanismo cambió al **patrón dato-en-SOUL**: el job nocturno
+    (`inject-presupuesto.py`) escribe el presupuesto en `SOUL.md` (único archivo inyectado al
+    system prompt) y el skill v3 responde desde contexto, PROHIBIDO usar herramientas. Verificado
+    en vivo por la dueña. Ver [[hermes-sin-docker-runtime]].
   - **Presupuesto: $30/mes TOTAL, alerta $24** (bajado de $120; fuente única `negocio/MEMORY.md`).
   - El snapshot lo prepara el job de host `ingest-token-usage.py`; el agente NO consulta Supabase.
   - **Gotcha CLAVE (costó varias iteraciones):** Hermes **scrubbea los secretos** del sandbox del

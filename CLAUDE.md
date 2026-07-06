@@ -504,4 +504,31 @@ npm run lint         # ESLint
   comillas rompía ese source).
 - **Aplicar en**: cualquier provisión Hetzner y todo build en server desde un snapshot de git.
 
+### 2026-07-06: El bot en runtime sin Docker NO puede leer archivos → dato al SOUL, no read_file
+- **Error**: el skill `budget-report` decía "lee `/opt/data/workspace/presupuesto.json` con
+  read_file". En el contenedor Hermes de Hetzner **no hay daemon de Docker**, y `read_file`/
+  `execute_code`/`file` corren dentro de un entorno Docker → fallan ("Cannot connect to the
+  Docker daemon"); Hermes auto-DESHABILITA el toolset `file` (`hermes doctor`: "file — system
+  dependency not met"). El bot confabulaba ("el backend Docker no responde"). `environment_probe`
+  no era el lever; el `file` toolset está atado a Docker por diseño en este build.
+- **Descubrimientos que costaron iteraciones**:
+  (1) De los archivos del volumen, **solo `SOUL.md` se inyecta al system prompt**. `AGENTS.md`
+  está solo *referenciado* (no su contenido) y `MEMORY.md` se accede por la herramienta de
+  memoria (`recall`), que indexa por embeddings → **editar MEMORY.md en crudo NO lo hace
+  recuperable**. Meter el dato en AGENTS/MEMORY NO funcionó; en **SOUL.md SÍ**.
+  (2) `terminal.backend: local` **SÍ funciona, pero solo en el GATEWAY** (Telegram): ahí el
+  agente puede `cat` un archivo local. En `hermes chat --cli` la terminal NO está disponible →
+  **`hermes chat -q` es un harness PARCIAL** (miente sobre la disponibilidad de tools); la
+  prueba real es un mensaje de Telegram. Además el **historial de la conversación** sesga al
+  agente (arrastraba los intentos fallidos) → a veces hay que empezar sesión nueva.
+  (3) Telegram **Web** no renderiza el widget de tool-call ("message not supported on Telegram
+  Web"); Desktop/móvil sí. Un tool-call que "funciona" puede verse roto solo por el cliente.
+- **Fix (patrón dato-en-SOUL)**: un host-job nocturno escribe un bloque idempotente con
+  marcadores (`<!-- PRESUPUESTO:AUTO:START/END -->`) en `SOUL.md` del volumen; el skill ordena
+  responder en TEXTO desde el contexto y **PROHÍBE ejecutar herramientas** para esa consulta.
+  Scripts: `businessos/inject-presupuesto.py` (corre dentro del contenedor por stdin) cableado en
+  `businessos/nightly-jobs.sh`. Verificado en vivo por la dueña.
+- **Aplicar en**: cualquier skill/vertical que necesite exponer un DATO al agente en runtime sin
+  Docker → inyectar en SOUL, no leer archivos. Ver `.claude/memory/reference/hermes-sin-docker-runtime.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
