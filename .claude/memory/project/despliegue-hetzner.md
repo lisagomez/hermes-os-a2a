@@ -87,6 +87,15 @@ uid 10000/0700 y limpiando `gateway.lock`/`.dispatcher.lock` → copiar el `.env
   Hetzner → nunca correr el compose de negocio en la máquina local (personal/clientes tienen tokens
   distintos, sí pueden).
 
-**Pendiente (residual):** cerrar root SSH (o dar NOPASSWD sudo a hermes si quiero seguir operando),
-cron nocturno de respaldo de negocio (repo privado businessos-negocio), y migrar personal/clientes
-cuando se decida. Ver [[fase0-estado]] y [[maquinas-entornos]].
+**Respaldo nocturno (HECHO 2026-07-06):** cron de `hermes` a las 04:17 corre `~/bin/backup-negocio.sh`
+(sin sudo): lee el volumen `.hermes` vía contenedor privilegiado (uid-10000/0700) → tarball, rota los
+últimos 7 en `~/backups/`, y espeja off-box al repo privado **`lisagomez/businessos-negocio`** con
+historia de 1 commit (tamaño acotado; ~14 MB comprimido). Acceso git aislado por deploy-key write
+(`~/.ssh/businessos_negocio_deploy` + Host `github-negocio` en `~/.ssh/config`). Primer respaldo
+verificado en GitHub. Restaurar = extraer el `.tgz` en un `.hermes` limpio preservando uid/perms
+(mismo patrón que la migración).
+
+**Pendiente (residual):** cerrar root SSH — BLOQUEADO desde esta sesión: `hermes` NO tiene sudo sin
+contraseña y entramos solo con llave → editar `sshd_config`/reiniciar sshd requiere root o el password
+de sudo de hermes (lo hace la dueña, o darle NOPASSWD sudo). Y migrar personal/clientes cuando se
+decida. Ver [[fase0-estado]] y [[maquinas-entornos]].
