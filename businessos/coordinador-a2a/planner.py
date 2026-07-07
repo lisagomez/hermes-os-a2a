@@ -8,7 +8,7 @@ Planner es pluggable/mockeable igual que el `Engine` del Ejecutor:
 - MockPlanner  — cero tokens: lee el DAG de `contexto["mock_plan"]` y lo valida
   con el contrato. Es el planner de tests y del end-to-end de dev.
 - ClaudePlanner — modelo real (Claude Agent SDK), opt-in por env
-  `COORDINADOR_PLANNER=claude`. Llega en la Fase 5 del blueprint, detrás de ESTA
+  `COORDINADOR_PLANNER=claude`. Vive en `claude_planner.py`, detrás de ESTA
   misma interfaz.
 
 El plan es DATOS validados por `validar_plan`: el servicio, el fan-out y la
