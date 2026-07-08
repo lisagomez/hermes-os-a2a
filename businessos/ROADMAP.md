@@ -454,7 +454,7 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 
 - **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
   al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
-- **Slack** (interno, se SUMA a Telegram — piloto en curso): centro de trabajo
+- **Slack** (interno, se SUMA a Telegram — **piloto VIVO desde 2026-07-08**): centro de trabajo
   del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
   de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos
   reportan a Hermes y él publica al canal. **Slack es SOLO interno — NO de cara
@@ -466,10 +466,15 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
     `departamentos/equipo-y-slack.md`
   - Artefactos listos: `negocio/slack-config-fragment.yaml` +
     `slack-piloto.sh` (host-job runtime)
-  - **PENDIENTE (dueña)**: crear la Slack App (Socket Mode, scopes y eventos del
-    runbook) + pasar tokens al `.env` del volumen de negocio + IDs de canal/miembros
-  - **PENDIENTE (runtime)**: correr `slack-piloto.sh` y verificar la @mención
-    en `#dep-negocio`
+  - ✅ **Piloto ACTIVO (2026-07-08)**: la dueña creó la app con el manifiesto
+    (`negocio/slack-app-manifest.yaml`, colapsa scopes/eventos/Socket Mode en un
+    paso), tokens al `.env` del volumen, y `slack-piloto.sh` cableó y reinició:
+    `@hermes_negocio` autenticado en el workspace A2AMassivo, Socket Mode
+    conectado, gateway con 2 plataformas (Telegram intacto), mensaje de
+    presentación entregado en `#dep-negocio`. Gotcha: el script se re-ejecuta
+    con `sudo env HOME=…` (volumen 0700 uid-10000)
+  - **Siguiente**: sumar a las 4 personas a `SLACK_ALLOWED_USERS` + expandir
+    canales (`#dep-clientes`, `#dep-desarrollo`, `#dev-*`) por configuración
 - **Web propia** (producto, futuro): el canal de clientes, con marca propia y
   aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
   prefiere.

@@ -153,6 +153,20 @@ Token.
 > mecanismo de roles nativo; los botones de aprobación son la etapa "Slack App
 > propia" del roadmap de canales.
 
+### ✅ PILOTO EJECUTADO Y VIVO (2026-07-08)
+
+`@hermes_negocio` autenticado en el workspace **A2AMassivo** (Socket Mode conectado,
+gateway con 2 plataformas — Telegram intacto), mensaje de presentación entregado en
+`#dep-negocio` vía `hermes send -t slack:<C…>`. Gotchas de la corrida real:
+- el volumen `.hermes` es 0700 uid-10000 → `slack-piloto.sh` ahora se re-ejecuta solo
+  con `sudo env HOME=…` (sudo pelón cambia HOME y rompe las rutas);
+- el Channel ID puede venir del `.env` (`SLACK_CHANNEL_ID=C…`): la dueña solo toca UN
+  archivo y el fragmento versionado queda intacto;
+- la app se creó con el manifiesto (`negocio/slack-app-manifest.yaml`) — scopes,
+  eventos, Socket Mode y Messages Tab en un paso.
+Pendiente natural: añadir los Member IDs de las otras 3 personas a
+`SLACK_ALLOWED_USERS` y re-correr el script.
+
 ### Después del piloto
 Validado el acceso+aprobación con los 4, expandir por departamento (`#dep-clientes`,
 `#dep-desarrollo`) y luego los `#cli-*` / `#dev-*`. Mismo patrón, otra membresía y otro

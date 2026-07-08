@@ -17,6 +17,15 @@ ENV_FILE="$VOL/.env"
 CONFIG="$VOL/config.yaml"
 FRAGMENT="$(dirname "$0")/negocio/slack-config-fragment.yaml"
 
+# El volumen es 0700 uid-10000: el usuario normal NO puede leerlo (gotcha visto
+# en la corrida real 2026-07-08). Re-exec con sudo PRESERVANDO HOME (sudo pelón
+# cambia HOME a /root y rompe las rutas). La escritura de config.yaml conserva
+# al dueño (truncado in-place, no recreación).
+if [ ! -r "$ENV_FILE" ] && [ "$(id -u)" != "0" ] && command -v sudo >/dev/null; then
+  echo "(volumen 0700: re-ejecutando con sudo, HOME preservado)"
+  exec sudo env HOME="$HOME" "$0" "$@"
+fi
+
 echo "== 1/4 verificando tokens en el .env del volumen (sin imprimirlos) =="
 [ -f "$ENV_FILE" ] || { echo "ERROR: no existe $ENV_FILE"; exit 1; }
 for var in SLACK_BOT_TOKEN SLACK_APP_TOKEN SLACK_ALLOWED_USERS; do

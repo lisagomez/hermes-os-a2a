@@ -107,3 +107,15 @@ resuelto: bind-mounts con uid del host → `git config --system safe.directory '
 en las 3 imágenes del trío (sin eso git aborta con "dubious ownership" → failed).
 El repo objetivo del trío es `~/businessos/trio-repo` (placeholder git init).
 Residual restante: dogfood con motor real (decisión de la dueña, quema tokens).
+
+## ACTUALIZACIÓN 2026-07-08 — Slack piloto VIVO
+
+La capa humana arrancó: `@hermes_negocio` conectado por Socket Mode al workspace
+A2AMassivo, operando en `#dep-negocio` (require_mention + hilos + channel_prompt
+con higiene). La app se creó con `negocio/slack-app-manifest.yaml` (un paso);
+tokens en el `.env` del volumen; `slack-piloto.sh` cablea y reinicia (ahora se
+re-ejecuta con `sudo env HOME=…` por el volumen 0700). `hermes send -t slack:<C…>`
+funciona = canal saliente verificado. Falta: Member IDs del resto del equipo en
+SLACK_ALLOWED_USERS y expandir canales por config. ⚠️ Los tokens de Slack viajaron
+en un screenshot del chat de la sesión (riesgo bajo, local): ofrecer rotación
+(reinstalar app + regenerar xapp-) como higiene.

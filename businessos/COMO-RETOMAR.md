@@ -18,6 +18,11 @@ grafo, grafo-a2a, el trío (ejecutor + supervisor + coordinador) y el dashboard.
 Los 3 bots corren 24/7 en Hetzner — solo mándales un mensaje por **Telegram**:
 **@a2aTeamBot** (negocio) · **Kiris** (personal) · **@a2aClientbot** (clientes). No hay que entrar a nada.
 
+Además, **negocio vive en Slack** (piloto 2026-07-08): @menciona a `@Hermes Negocio`
+en `#dep-negocio` del workspace **A2AMassivo** — responde en hilo. Solo usuarios en
+`SLACK_ALLOWED_USERS` (`.env` del volumen); para sumar al equipo, añade sus Member
+IDs ahí y corre `~/repo/businessos/slack-piloto.sh`.
+
 ## 2. Entrar al servidor (para operarlo)
 
 Desde tu terminal WSL:
@@ -117,7 +122,6 @@ Al bot le puedes preguntar **"¿cómo va el presupuesto?"** y responde con datos
 
 - **Dogfood real del trío/enjambre** (quema tokens): `EJECUTOR_ENGINE=claude` y/o
   `COORDINADOR_PLANNER=claude` + CLI de Claude Code en las imágenes.
-- **Slack piloto**: crear la Slack App (runbook en `departamentos/equipo-y-slack.md`) y pasar tokens.
 - **Polar producción**: cambiar token/product_id de sandbox a prod cuando haya cobros reales.
 - **Voz** (TTS/transcripción) y **exposición de grafo-a2a a internet** (dominio + auth real).
 - **CLIs pendientes de imprimir** (acción humana en Claude Code): grafo y Polar (`/printing-press`).
