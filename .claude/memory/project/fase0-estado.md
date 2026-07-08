@@ -63,3 +63,18 @@ Mismo patrón que personal → ver [[hermes-vertical-setup]]. Cada una con su pr
 - El Hermes "del host" (`~/.hermes`) tiene un `config.yaml` **corrupto** (bloque
   `telegram:` mal inyectado en `platform_toolsets:`, ~línea 660). No se arregló porque
   se decidió usar bot/vertical nuevos. Es ajeno a BusinessOS.
+
+## ACTUALIZACIÓN 2026-07-08 — FASE 0 COMPLETA (salvo voz)
+
+Las **3 verticales viven en Hetzner** (167.233.233.56) 24/7:
+- negocio migrado 2026-07-05; **personal (Kiris) y clientes migradas 2026-07-08**
+  con el patrón documentado en [[despliegue-hetzner]] (stop en WSL2 → tar vía
+  alpine → extracción uid 10000/0700 sin locks → `--profile verticales up`).
+  Envío saliente verificado desde ambos bots (`hermes send` → message_id).
+  Contenedores locales ELIMINADOS (volúmenes locales quedan de respaldo extra).
+- **Respaldo nocturno generalizado**: `backup-verticales.sh` (04:17) respalda los
+  3 volúmenes + espejo off-box. Pantheon del dashboard ve las 3 (upsert 3 filas).
+- Pendiente de Fase 0 solo **voz** (decisión de la dueña).
+- Gotcha: el puerto 8642 del gateway NO responde en este build de Hermes (ni en
+  negocio, que funciona) → no usarlo como health check; la prueba real es
+  `hermes send` o un mensaje de Telegram.

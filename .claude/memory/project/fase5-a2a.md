@@ -48,3 +48,10 @@ EvaluacionResponse ÍNTEGRA. Compose: `127.0.0.1:4000` + hermes-net, sin secreto
   dentro de hermes-net (aquí validado con uvicorn + curl + 17 tests).
 - **Futuro (decisión de negocio)**: exposición a internet para socios (dominio +
   auth real + `securitySchemes` en la card + `GRAFO_A2A_PUBLIC_URL`). Nada a medias.
+
+## ACTUALIZACIÓN 2026-07-08 — runtime CERRADO
+
+`grafo-a2a` Up/healthy en Hetzner y smoke card/message-send DENTRO de hermes-net
+(`businessos/smoke-trio/runtime.py`, corre en contenedor efímero python:3.12-slim
+con a2a-sdk): evaluación real → `deducible` + 4 fuentes citadas + disclaimer.
+Queda solo la exposición a internet (futuro, decisión de negocio).

@@ -96,3 +96,14 @@ Mode, reinstalar la app si cambian scopes, habilitar Messages Tab. Artefactos:
 (host-job runtime: verifica tokens sin imprimirlos, mergea config con backup,
 reinicia). Bloqueado en: la usuaria crea la Slack App + tokens al `.env` del
 volumen + Channel/Member IDs; luego correr el script en la máquina runtime.
+
+## ACTUALIZACIÓN 2026-07-08 — runtime CERRADO
+
+Ejecutor + Supervisor Up/healthy en Hetzner (profile `trio`). Smoke de runtime
+(`smoke-trio/runtime.py`): cadena completa con los gates npm REALES → repo
+placeholder rechazado con hallazgos [build, typecheck, lint, tests] (anti-sello-
+de-goma OK) y fila `smoke-runtime-1` escrita en `tareas` de producción. Gotcha
+resuelto: bind-mounts con uid del host → `git config --system safe.directory '*'`
+en las 3 imágenes del trío (sin eso git aborta con "dubious ownership" → failed).
+El repo objetivo del trío es `~/businessos/trio-repo` (placeholder git init).
+Residual restante: dogfood con motor real (decisión de la dueña, quema tokens).

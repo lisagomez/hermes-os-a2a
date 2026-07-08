@@ -60,3 +60,11 @@ esa `url`); sin eso el SDK pega al nombre docker `coordinador-a2a:4300` y no res
 **Pytest habilitado en la máquina de desarrollo (2026-07-04):** venv en `businessos/.venv`
 (Python 3.14, bootstrap de pip con get-pip.py por el gotcha de ensurepip). Detalle y comando
 en [[maquinas-entornos]].
+
+## ACTUALIZACIÓN 2026-07-08 — runtime CERRADO
+
+El coordinador ganó su entrada en `docker-compose.yml` (¡faltaba! profile `trio`,
+127.0.0.1:4300, espejo del ejecutor) y corre Up/healthy en Hetzner; card +
+opacidad verificadas por el smoke de runtime. El Planner real (PR #28,
+`claude_planner.py`) está mergeado pero sigue mock por default. Residual:
+dogfood real opt-in (decisión de la dueña).
