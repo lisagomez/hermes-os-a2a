@@ -1,0 +1,70 @@
+# slack-app-manifest.yaml — manifiesto para crear la Slack App del piloto EN UN PASO.
+#
+# Colapsa los pasos 2-6 del runbook (departamentos/equipo-y-slack.md §c): Socket
+# Mode, Bot Token Scopes, Event Subscriptions y Messages Tab quedan preconfigurados.
+#
+# CÓMO USARLO (dueña, ~5 min):
+#   1. https://api.slack.com/apps → "Create New App" → "From an app manifest"
+#      → elegir el workspace → pegar TODO este YAML → Create.
+#   2. Basic Information → App-Level Tokens → "Generate Token and Scopes":
+#      nombre "socket", scope `connections:write` → copiar el token `xapp-…`.
+#      (Es lo ÚNICO que el manifiesto no puede preconfigurar.)
+#   3. Install App → "Install to Workspace" → copiar el Bot Token `xoxb-…`.
+#   4. Crear #dep-negocio, `/invite @Hermes Negocio`, añadir a las 4 personas.
+#      Anotar Channel ID (C…) y los 4 Member IDs (U…).
+#   5. Los 3 valores van al .env del VOLUMEN en el server (NUNCA a un chat):
+#        ssh hermes@167.233.233.56
+#        sudo nano ~/businessos/negocio/.hermes/.env   # perms 600
+#          SLACK_BOT_TOKEN=xoxb-…
+#          SLACK_APP_TOKEN=xapp-…
+#          SLACK_ALLOWED_USERS=U…,U…,U…,U…
+#   6. Poner el Channel ID real en negocio/slack-config-fragment.yaml (reemplaza
+#      C_REEMPLAZA_DEP_NEGOCIO) y correr:  ~/repo/businessos/slack-piloto.sh
+#
+# ⚠️ Si después cambias scopes/eventos aquí, hay que REINSTALAR la app (paso 3).
+
+display_information:
+  name: Hermes Negocio
+  description: Agente del departamento negocio (BusinessOS) — presupuesto, KPIs y coordinación del equipo.
+  background_color: "#1a1d21"
+
+features:
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: true          # sin esto los DMs quedan bloqueados (runbook §c.6)
+    messages_tab_read_only_enabled: false
+  bot_user:
+    display_name: Hermes Negocio
+    always_online: true
+
+oauth_config:
+  scopes:
+    bot:                                # lista verificada contra la doc oficial de hermes-agent (2026-07-03)
+      - chat:write
+      - app_mentions:read
+      - channels:history
+      - channels:read
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - im:write
+      - mpim:history
+      - mpim:read
+      - users:read
+      - files:read
+      - files:write
+
+settings:
+  event_subscriptions:
+    bot_events:                         # sí, también con Socket Mode (runbook §c.4)
+      - app_mention
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+  interactivity:
+    is_enabled: false                   # los botones de aprobación son la etapa "Slack App propia"
+  org_deploy_enabled: false
+  socket_mode_enabled: true             # sin webhook entrante; requiere el App-Level Token xapp-
+  token_rotation_enabled: false

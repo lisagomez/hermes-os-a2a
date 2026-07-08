@@ -107,22 +107,32 @@ mayormente consultas de lectura del presupuesto), ya corre y ya tiene la regla d
 Token.
 
 ### Lo que hace la usuaria (no lo puedo hacer yo)
-1. Crear un **Slack workspace** (o usar uno) y una **Slack App** en `api.slack.com/apps`.
+
+> **ATAJO (2026-07-08): manifiesto listo.** Los pasos 2-6 se colapsan creando la
+> app "From an app manifest" con `businessos/negocio/slack-app-manifest.yaml`
+> (Socket Mode + scopes + eventos + Messages Tab quedan preconfigurados; el
+> propio archivo trae las instrucciones). Solo quedan: generar el App-Level
+> Token (`xapp-…`, scope `connections:write`), instalar (→ `xoxb-…`), y los
+> pasos 7-8 de abajo.
+
+1. Crear un **Slack workspace** (o usar uno) y una **Slack App** en `api.slack.com/apps`
+   — con el manifiesto de arriba (recomendado) o a mano con los pasos 2-6.
 2. Activar **Socket Mode** → generar **App-Level Token** `xapp-…` con scope
-   `connections:write`.
+   `connections:write`. *(Con manifiesto: solo generar el token; Socket Mode ya está ON.)*
 3. **Bot Token Scopes** (lista verificada): `chat:write`, `app_mentions:read`,
    `channels:history`, `channels:read`, `groups:history`, `groups:read`,
    `im:history`, `im:read`, `im:write`, `mpim:history`, `mpim:read`,
-   `users:read`, `files:read`, `files:write`.
+   `users:read`, `files:read`, `files:write`. *(Ya en el manifiesto.)*
 4. **Event Subscriptions** (sí, también con Socket Mode): `message.im`,
-   `message.mpim`, `message.channels`, `message.groups`, `app_mention`.
+   `message.mpim`, `message.channels`, `message.groups`, `app_mention`. *(Ya en el manifiesto.)*
 5. **Instalar la app** en el workspace → **Bot Token** `xoxb-…`.
    ⚠️ Si después cambias scopes o eventos, hay que REINSTALAR la app.
 6. En App Home, habilitar **Messages Tab** (sin esto los DMs quedan bloqueados).
-7. Crear `#dep-negocio`, invitar al bot (`/invite @<bot>`) — no se auto-une — y
+   *(Ya en el manifiesto.)*
+7. Crear `#dep-negocio`, invitar al bot (`/invite @Hermes Negocio`) — no se auto-une — y
    añadir a las 4 personas. Anotar el **Channel ID** (`C…`: canal → View channel
    details → Channel ID) y los **Member IDs** (`U…`) de las 4 personas.
-8. En la máquina runtime, añadir al `.env` del volumen de negocio
+8. En el server Hetzner, añadir al `.env` del volumen de negocio
    (`~/businessos/negocio/.hermes/.env`, perms 600 — NUNCA pegar tokens en un chat):
    `SLACK_BOT_TOKEN=xoxb-…`, `SLACK_APP_TOKEN=xapp-…`,
    `SLACK_ALLOWED_USERS=U…,U…,U…,U…` (los 4 Member IDs).
