@@ -12,6 +12,7 @@ Exit != 0 solo si fallan Tier 1 o Tier 2 (garantizados). Tier 3 se reporta hones
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 
 import httpx
@@ -20,13 +21,17 @@ from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.helpers import get_data_parts, new_data_message
 from a2a.types import SendMessageRequest, TaskState
 
+# Bases por servicio, configurables por env para correr el MISMO smoke en
+# runtime DENTRO de hermes-net (SMOKE_*=http://<servicio>:<puerto>). Default:
+# dev/uvicorn en 127.0.0.1 — igual que siempre.
+SUPERVISOR = os.environ.get("SMOKE_SUPERVISOR", "http://127.0.0.1:4200")
+EJECUTOR = os.environ.get("SMOKE_EJECUTOR", "http://127.0.0.1:4100")
+COORDINADOR = os.environ.get("SMOKE_COORDINADOR", "http://127.0.0.1:4300")
 SERVICIOS = {
-    "supervisor-a2a (Fase 6)": 4200,
-    "ejecutor-a2a (Fase 6)": 4100,
-    "coordinador-a2a (Fase 7)": 4300,
+    "supervisor-a2a (Fase 6)": SUPERVISOR,
+    "ejecutor-a2a (Fase 6)": EJECUTOR,
+    "coordinador-a2a (Fase 7)": COORDINADOR,
 }
-EJECUTOR = "http://127.0.0.1:4100"
-COORDINADOR = "http://127.0.0.1:4300"
 
 fallos: list[str] = []
 
@@ -44,8 +49,7 @@ def bad(msg: str, fatal: bool = True) -> None:
 async def tier1() -> None:
     print("\n== TIER 1: liveness + Agent Card + opacidad (TCP real) ==")
     async with httpx.AsyncClient(timeout=10) as h:
-        for nombre, port in SERVICIOS.items():
-            base = f"http://127.0.0.1:{port}"
+        for nombre, base in SERVICIOS.items():
             try:
                 r = await h.get(f"{base}/health")
                 (ok if r.status_code == 200 and r.json().get("status") == "ok" else bad)(

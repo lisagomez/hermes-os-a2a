@@ -15,6 +15,11 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
+# El repo/worktrees llegan por bind-mount/volumen con uid del host (distinto de
+# root): sin esto git aborta con 'dubious ownership'. El contenedor solo ve SUS
+# mounts; marcar todo como safe.directory es correcto en este aislamiento.
+RUN git config --system --add safe.directory '*'
+
 WORKDIR /app
 
 COPY ejecutor-a2a/requirements.txt .
