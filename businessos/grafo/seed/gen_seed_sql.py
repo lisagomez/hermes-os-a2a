@@ -22,7 +22,7 @@ AQUI = Path(__file__).resolve().parent
 SEED_JSON = AQUI / "reglas.json"
 SEED_SQL = AQUI / "02-seed.sql"
 
-VEREDICTOS = {"deducible", "no_deducible", "dudoso"}
+VEREDICTOS = {"deducible", "no_deducible", "permitido", "no_permitido", "dudoso"}
 
 
 def err(errores: list[str], msg: str) -> None:

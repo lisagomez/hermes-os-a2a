@@ -105,3 +105,33 @@ def test_texto_contractual_no_clasifica_en_fiscal():
 def test_texto_de_gasto_no_clasifica_en_contractual():
     r = ev([{"descripcion": "Carga de gasolina magna"}], dimension="contractual")
     assert r["conceptos"][0]["categoria"] is None
+
+
+# --- Regulatorio MX: drones/RPAS (Fase 8) ----------------------------------------
+
+def test_drones_delivery_permitido_con_requisitos_y_fuente_lac():
+    r = ev(
+        [{"descripcion": "Uso de drones para delivery en Mexico"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DRONES_DELIVERY"
+    assert c["estado"] == "permitido"
+    assert any(f["clave"] == "MX-LAC-30-REGISTRO-RPAS" for f in r["fuentes"])
+    assert any("AFAC" in req for req in c["checklist"])
+
+def test_drones_seguro_cita_articulo_74_no_72():
+    r = ev(
+        [{"descripcion": "Que regulacion debe cumplir el seguro de un dron para delivery en Mexico"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DRONES_DELIVERY"
+    fuente_seguro = next(f for f in r["fuentes"] if f["clave"] == "MX-LAC-74-SEGURO-RPAS")
+    assert "Art. 74" in fuente_seguro["cita"]
+    assert any("AFAC" in req and "seguro" in req.lower() for req in c["checklist"])
+
+def test_drones_no_cruza_a_fiscal_ni_viceversa():
+    r = ev([{"descripcion": "Uso de drones para delivery en Mexico"}])  # dimension fiscal (default)
+    assert r["conceptos"][0]["categoria"] is None
+    assert r["conceptos"][0]["estado"] == "dudoso"

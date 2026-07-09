@@ -95,3 +95,13 @@ Activar el ahorro sin sacrificar calidad donde importa. Plan completo en
 ## Rollback
 Cada profile vuelve a su estado original poniendo `model` y `provider` a `''` (eran vacíos).
 El default (nemotron) nunca se tocó.
+
+## ACTUALIZACIÓN 2026-07-08 — residuales CERRADOS
+
+- **Validación en vivo**: `title_generation` → gpt-oss-120b:nitro invocado en prod
+  (varias corridas reales; agent.log). `vision` → claude-sonnet-4.6 ejercitado con
+  `hermes chat -q ... --image` dentro del contenedor ("Image analysis completed").
+- **Alerta 80% AUTOMÁTICA**: `businessos/alerta-presupuesto.sh` (cron 08:00 server)
+  lee presupuesto.json del volumen vía docker exec; al cruzar 80% manda UN push
+  a Elisa con `hermes send` (dedupe: flag mensual en ~/state). --dry-run para probar.
+- Solo queda como futuro el auto-tuner (evals + OK humano).

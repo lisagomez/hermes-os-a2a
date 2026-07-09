@@ -30,7 +30,7 @@ DISCLAIMER = (
 
 RAZON_SIN_REGLA = "sin regla aplicable"
 
-ESTADOS = ("deducible", "no_deducible", "dudoso")
+ESTADOS = ("deducible", "no_deducible", "permitido", "no_permitido", "dudoso")
 
 
 def _normalizar(texto: str) -> str:

@@ -1,20 +1,27 @@
 # Cómo retomar — BusinessOS
 
-Guía rápida para volver a entrar y operar. Estado al 2026-07-05:
-**negocio (@a2aTeamBot) vive en Hetzner**; personal + clientes siguen en la máquina WSL2 local.
+Guía rápida para volver a entrar y operar. Estado al 2026-07-08:
+**las TRES verticales viven en Hetzner** (negocio, personal/Kiris y clientes), junto con
+grafo, grafo-a2a, el trío (ejecutor + supervisor + coordinador) y el dashboard.
 
 | Recurso | Dónde |
 |---------|-------|
-| Servidor (runtime de negocio) | Hetzner cx33 · Falkenstein · **`167.233.233.56`** |
+| Servidor (runtime de TODO) | Hetzner cx33 · Falkenstein · **`167.233.233.56`** |
 | Repo + compose en el server | `/home/hermes/repo/businessos` |
-| Volumen de negocio | `/home/hermes/businessos/negocio/.hermes` |
+| Volúmenes de las verticales | `/home/hermes/businessos/{negocio,personal,clientes}/.hermes` |
 | Este repo (desarrollo) | `/home/gsore/code/a2aboths` |
 
 ---
 
 ## 1. Hablar con el bot (sin login)
 
-**@a2aTeamBot** corre 24/7 en Hetzner. Solo mándale un mensaje por **Telegram**. No hay que entrar a nada.
+Los 3 bots corren 24/7 en Hetzner — solo mándales un mensaje por **Telegram**:
+**@a2aTeamBot** (negocio) · **Kiris** (personal) · **@a2aClientbot** (clientes). No hay que entrar a nada.
+
+Además, **negocio vive en Slack** (piloto 2026-07-08): @menciona a `@Hermes Negocio`
+en `#dep-negocio` del workspace **A2AMassivo** — responde en hilo. Solo usuarios en
+`SLACK_ALLOWED_USERS` (`.env` del volumen); para sumar al equipo, añade sus Member
+IDs ahí y corre `~/repo/businessos/slack-piloto.sh`.
 
 ## 2. Entrar al servidor (para operarlo)
 
@@ -69,21 +76,22 @@ Abre Claude Code en `/home/gsore/code/a2aboths` y escribe **`/primer`** para rec
 
 ## Reglas de oro (para no romper nada)
 
-- **NO correr `docker compose up` de negocio en la máquina WSL2 local.** El token de @a2aTeamBot
-  ahora vive en Hetzner; Telegram permite una sola conexión por token → chocarían. (personal y
-  clientes en local están bien, tienen tokens distintos.)
+- **NO correr `docker compose up` de NINGUNA vertical en la máquina WSL2 local.** Los tokens de
+  los 3 bots viven en Hetzner; Telegram permite una sola conexión por token → chocarían. (Los
+  contenedores locales fueron eliminados el 2026-07-08; los volúmenes locales quedan solo como
+  respaldo extra de la migración.)
 - Escalar el server: `cx33 → cx42` es **resize en caliente** desde la consola de Hetzner
   (minutos, sin reprovisionar).
 - Apagar el server en Hetzner **no** deja de cobrar (reserva recursos); pausa real = snapshot + delete.
 
-## Respaldo automático (negocio)
+## Respaldo automático (las 3 verticales)
 
-Cada noche (**04:17**, hora del server) un cron copia el volumen `.hermes` de negocio
-(memoria + sesiones del bot) a dos sitios:
-- **Local**: `~/backups/negocio-*.tgz` en el server (se conservan los últimos 7).
+Cada noche (**04:17**, hora del server) un cron copia los volúmenes `.hermes` de
+negocio, personal y clientes (memoria + sesiones de cada bot) a dos sitios:
+- **Local**: `~/backups/{negocio,personal,clientes}-*.tgz` en el server (últimos 7 de cada una).
 - **Off-box**: repo privado GitHub **`lisagomez/businessos-negocio`** (sobrevive aunque muera el server).
 
-Script: `~/bin/backup-negocio.sh` · log: `~/backups/backup.log` · corre como `hermes` (sin sudo).
+Script: `~/bin/backup-verticales.sh` · log: `~/backups/backup.log` · corre como `hermes` (sin sudo).
 
 **Restaurar** (si hiciera falta): bajar el `.tgz` del repo privado (o de `~/backups`), y con
 negocio detenido, volcarlo en un volumen `.hermes` limpio preservando uid 10000/0700 —
@@ -95,15 +103,25 @@ Todo como `hermes`, sin intervención. Log en `~/logs/host-jobs.log` (y `~/backu
 
 | Cron | Cuándo | Qué hace |
 |------|--------|----------|
-| `nightly-jobs.sh` | 03:10 diario | Ingesta `token_usage` (ayer+hoy) → snapshot de **presupuesto** que lee el bot; + **pantheon** del dashboard |
+| `nightly-jobs.sh` | 03:10 diario | Ingesta `token_usage` (ayer+hoy) → snapshot de **presupuesto** que lee el bot; + **pantheon** de las 3 verticales |
 | `weekly-jobs.sh` | 03:30 lunes | Salud del grafo (`revisar-vigencias`): reglas vencidas / cifras a cotejar |
-| `backup-negocio.sh` | 04:17 diario | Respaldo del volumen `.hermes` (local + repo privado) |
+| `backup-verticales.sh` | 04:17 diario | Respaldo de los 3 volúmenes `.hermes` (local + repo privado) |
+| `alerta-presupuesto.sh` | 08:00 diario | Push proactivo a Elisa si el gasto cruzó el **80%** del presupuesto (una vez por mes) |
 
 Al bot le puedes preguntar **"¿cómo va el presupuesto?"** y responde con datos frescos del snapshot.
 
 ## Pendientes anotados
 
-- [x] ~~Cron nocturno de respaldo de negocio~~ → **hecho (2026-07-06)**, repo privado `businessos-negocio`.
+- [x] ~~Cron nocturno de respaldo de negocio~~ → **hecho (2026-07-06)**; generalizado a las 3 verticales el 2026-07-08.
 - [x] ~~Cierre de root SSH~~ → **hecho (2026-07-06)**. Root ya NO entra por SSH (`PermitRootLogin no`).
   El acceso es **solo `hermes`** (con llave), que ahora tiene **sudo sin contraseña** para administrar.
-- [ ] Migrar personal + clientes a Hetzner (mismo patrón que negocio — ver `.claude/memory/project/despliegue-hetzner.md`)
+- [x] ~~Migrar personal + clientes a Hetzner~~ → **hecho (2026-07-08)**, mismo patrón que negocio; envío
+  saliente verificado desde ambos bots.
+
+## Qué queda por decidir (nada corre solo sin tu OK)
+
+- **Dogfood real del trío/enjambre** (quema tokens): `EJECUTOR_ENGINE=claude` y/o
+  `COORDINADOR_PLANNER=claude` + CLI de Claude Code en las imágenes.
+- **Polar producción**: cambiar token/product_id de sandbox a prod cuando haya cobros reales.
+- **Voz** (TTS/transcripción) y **exposición de grafo-a2a a internet** (dominio + auth real).
+- **CLIs pendientes de imprimir** (acción humana en Claude Code): grafo y Polar (`/printing-press`).

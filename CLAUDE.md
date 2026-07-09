@@ -531,4 +531,24 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier skill/vertical que necesite exponer un DATO al agente en runtime sin
   Docker → inyectar en SOUL, no leer archivos. Ver `.claude/memory/reference/hermes-sin-docker-runtime.md`.
 
+### 2026-07-08 : Cierre de residuales de runtime — gotchas que costaron iteraciones
+- **git en contenedores del trío**: los bind-mounts (`/repo`) llegan con uid del HOST y el
+  contenedor corre como root → git aborta con "dubious ownership" y la tarea sale `failed`
+  sin pista clara en `docker logs`. Fix en imagen: `git config --system --add safe.directory '*'`
+  (correcto en un contenedor aislado que solo ve SUS mounts). Aplicado a ejecutor/supervisor/coordinador.
+- **Smoke de runtime con expectativas HONESTAS**: en runtime el Supervisor corre los gates npm
+  REALES → sobre un repo placeholder el veredicto correcto es RECHAZADO con hallazgos; el smoke
+  valida el PROTOCOLO (card + message/send + cadena + escritura en `tareas`), no fuerza un
+  "aprobado" (ese camino se valida en dev con gates ligeros). `smoke-trio/runtime.py` corre en
+  contenedor efímero DENTRO de hermes-net; `client.py` quedó configurable por env (SMOKE_*).
+- **El health del gateway Hermes NO está en :8642** en este build (tampoco en la vertical que
+  funciona) → no usarlo para verificar una migración; la prueba real es `hermes send` (devuelve
+  message_id) o un mensaje de Telegram. `hermes chat -q --image` SÍ sirve para ejercitar el
+  perfil `vision` (queda en agent.log).
+- **Servicios nuevos requieren su entrada en compose**: el coordinador-a2a (Fase 7) tenía
+  Dockerfile y servicio completos pero NADIE lo había añadido a `docker-compose.yml` — el
+  residual "compose up coordinador" era imposible. Al construir un servicio, el compose es
+  parte de la definición de terminado.
+- **Aplicar en**: todo despliegue de servicios A2A/trío y toda verificación de verticales Hermes.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

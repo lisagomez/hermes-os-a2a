@@ -280,6 +280,46 @@ services:
       resources:
         limits: { cpus: "1.0", memory: 1G }
 
+  # ---------- COORDINADOR-A2A (enjambre, Fase 7) ----------
+  # Servicio HERMANO del trio ("aislar, no fundir"): descompone una feature
+  # grande en un DAG de sub-tareas (Planner pluggable; mock default, cero
+  # tokens), las reparte al Ejecutor con fan-out acotado + corte de presupuesto
+  # (leido de token_usage.task_id), integra las ramas aprobadas y pide la
+  # verificacion FINAL del Supervisor sobre la rama integrada. Escribe SOLO la
+  # fila PADRE de `tareas` (es_padre=true); cada Ejecutor su fila hija.
+  # Planner real (COORDINADOR_PLANNER=claude) = decision de la dueña (tokens);
+  # requiere ademas CLI de Claude Code en la imagen (hoy mock-only a proposito).
+  coordinador-a2a:
+    build:
+      context: .
+      dockerfile: coordinador-a2a/Dockerfile
+    container_name: coordinador-a2a
+    profiles: ["trio"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4300:4300"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - COORDINADOR_PLANNER=${COORDINADOR_PLANNER:-mock}
+      - COORDINADOR_PUBLIC_URL=http://coordinador-a2a:4300
+      - EJECUTOR_URL=http://ejecutor-a2a:4100
+      - SUPERVISOR_URL=http://supervisor-a2a:4200
+      - TRIO_REPO=/repo
+      - TRIO_WORKSPACE=/workspace
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # Modo GLM-5.2 (opt-in): mismos seams que el Ejecutor. Vacios ⇒ Anthropic.
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+      - ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-}
+    volumes:
+      - trio-workspace:/workspace
+      - ${TRIO_REPO_HOST:-${HOME}/businessos/trio-repo}:/repo
+    depends_on: [ejecutor-a2a, supervisor-a2a]
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
+
   # ---------- SUPERVISOR-A2A (trio, Fase 6) ----------
   # Independencia FISICA del Ejecutor (proceso/contenedor/contexto): recibe el
   # RESULTADO, monta el MISMO volumen trio-workspace y re-ejecuta los gates de

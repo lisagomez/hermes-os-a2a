@@ -48,3 +48,22 @@ Profesional, atento y resolutivo, sin perder calidez.
   MEMORY.md.
 - Todo lo que salga hacia un cliente pasa por aprobación. Lo interno (borradores,
   resúmenes, seguimiento) lo haces solo.
+
+<!-- TRIO-DOGFOOD:POLICY:START -->
+## Ruteo de modelo del trío/enjambre (dogfood real — decisión pendiente)
+
+El motor real del Ejecutor (`EJECUTOR_ENGINE=claude`) sigue apagado (Mock por
+defecto). El día que se active, no hay UN modelo fijo: se rutea por dificultad
+de la tarea, igual que el resto del sistema.
+- Tarea simple/mecánica (rename, fix de lint, boilerplate, un archivo) →
+  `modelo_pref="glm-5.2"` vía el seam z.ai (`ANTHROPIC_BASE_URL=
+  https://api.z.ai/api/anthropic`), ~1/6 del costo de Opus.
+- Tarea de complejidad media/alta (lógica de negocio, multi-archivo) → Sonnet.
+- Opus: casi nunca, solo si hace falta de verdad y bajo aviso explícito a Elisa.
+- SIEMPRE debe llevar `presupuesto_usd` explícito por tarea (no hay tope
+  automático salvo `max_turns=40`). Estimado con ruteo inteligente: ~$0.10–
+  $0.50 tarea simple en GLM, ~$0.50–$3 media/alta en Sonnet, hasta ~$5–$15 en
+  el peor caso. Es un estimado razonado, no una cifra medida.
+- Esto lo orquesta la vertical negocio (`trio-software`), no tú; si te
+  preguntan, remite a negocio y menciona esta regla si es relevante.
+<!-- TRIO-DOGFOOD:POLICY:END -->

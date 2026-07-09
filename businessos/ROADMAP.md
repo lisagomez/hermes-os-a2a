@@ -46,30 +46,29 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ---
 
-## FASE 0 — Infraestructura  ← servidor Hetzner VIVO; negocio migrado a él (2026-07-05); sync nocturno pendiente
+## FASE 0 — Infraestructura ✅ (2026-07-08: las 3 verticales viven en Hetzner; solo voz queda como futuro)
 
 Cimiento técnico. Ver FASE0.md y los scripts. Estado detallado en
 `.claude/memory/project/fase0-estado.md`. Procedimiento + gotchas para levantar una
 vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
 
-- [x] **Servidor + endurecimiento + Docker** — Hetzner **cx33** (4 vCPU / 8 GB / x86, Falkenstein `fsn1`), IPv4 `167.233.233.56`, provisionado 100% por CLI (`hcloud-pp-cli`) el 2026-07-05. Docker + compose + swap 2G + fail2ban + usuario `hermes` + firewall solo-SSH. Detalle y gotchas en `.claude/memory/project/despliegue-hetzner.md`. *(cx22/Ashburn del runbook resultó inviable: CX es solo-EU y US ~3.4× más caro)*
-- [~] Tres contenedores Hermes con sus SOUL.md / AGENTS.md
-  - [x] **personal (iris)** — viva en WSL2 local (`hermes-personal`), bot Kiris, nemotron-3-super-120b vía OpenRouter, round-trip verificado (2026-06-27). Migración a Hetzner pendiente.
-  - [x] **negocio (@a2aTeamBot)** — **MIGRADO a Hetzner y VIVO (2026-07-05)**: se paró en WSL2, se copió su volumen `.hermes` (memoria intacta) al server y arranca con el núcleo (negocio + grafo + grafo-db + a2abot, todos Up/healthy). Bot responde. Ver [[despliegue-hetzner]].
-  - [~] clientes — vivo en WSL2 local; migración a Hetzner pendiente
-- [~] Tres bots de Telegram + voz  *(1 bot propio listo; voz pendiente)*
-- [ ] Sync nocturno a GitHub
+- [x] **Servidor + endurecimiento + Docker** — Hetzner **cx33** (4 vCPU / 8 GB / x86, Falkenstein `fsn1`), IPv4 `167.233.233.56`, provisionado 100% por CLI (`hcloud-pp-cli`) el 2026-07-05. Docker + compose + swap 2G + fail2ban + usuario `hermes` + firewall solo-SSH; root SSH cerrado (2026-07-06). Detalle y gotchas en `.claude/memory/project/despliegue-hetzner.md`. *(cx22/Ashburn del runbook resultó inviable: CX es solo-EU y US ~3.4× más caro)*
+- [x] Tres contenedores Hermes con sus SOUL.md / AGENTS.md — **las 3 en Hetzner**
+  - [x] **negocio (@a2aTeamBot)** — migrado 2026-07-05, 24/7, memoria intacta.
+  - [x] **personal (Kiris)** — migrada 2026-07-08 (mismo patrón: stop en WSL2 → tar del volumen vía alpine → extracción uid 10000/0700 sin locks → `--profile verticales up`). Envío saliente verificado por Telegram; contenedor local eliminado (el volumen local queda como respaldo extra).
+  - [x] **clientes (@a2aClientbot)** — migrada 2026-07-08, igual que personal. Verificada.
+- [~] Tres bots de Telegram + voz  *(3 bots vivos en el server; voz = futuro, decisión de la dueña)*
+- [x] Sync nocturno a GitHub — cron 04:17 `backup-verticales.sh` (2026-07-08 generalizado desde el de negocio del 2026-07-06): tarball por vertical de los 3 volúmenes `.hermes` + rotación 7 + espejo off-box al repo privado `businessos-negocio`.
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
-- **Salida:** las tres verticales vivas y respondiendo.
+- **Salida:** ✅ las tres verticales vivas y respondiendo **desde el server 24/7**, con respaldo nocturno.
 
-## FASE 1 — Eficiencia de tokens  ← ✅ COMPLETA en su núcleo (residuales diferidos al Droplet)
+## FASE 1 — Eficiencia de tokens ✅ COMPLETA (residuales cerrados 2026-07-08)
 
-> **Cierre (2026-07-01):** la salida —gasto mensual controlado— está lograda en código:
-> routing en las 3 verticales, loop en gemini-flash-lite (caché 97%), ingesta a
-> `token_usage`, reporte de presupuesto y registro de facturas. Lo que queda NO bloquea
-> la fase: la alerta 80% por cron y el auto-tuner **dependen del Droplet** (Fase 0, aún
-> diferido), y falta **ejercitar en vivo** los modelos nuevos (gpt-oss/Sonnet aplicados
-> por config, no invocados). Ver residuales marcados abajo.
+> **Cierre (2026-07-01, residuales 2026-07-08):** la salida —gasto mensual controlado—
+> está lograda y operando en runtime: routing en las 3 verticales, loop en
+> gemini-flash-lite (caché 97%; negocio en haiku-4.5), ingesta nocturna a `token_usage`,
+> reporte de presupuesto (dato-en-SOUL), alerta 80% automática y respaldo de facturas.
+> Solo el auto-tuner sigue como futuro (requiere evals + OK humano).
 
 Activar el ahorro una vez que el cimiento corre. Estado detallado en
 `.claude/memory/project/fase1-eficiencia.md`; gotchas en `hermes-vertical-setup.md`.
@@ -95,18 +94,19 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
 - [x] Registro de `facturas` (2026-07-01): job de host `businessos/ingest-facturas.py` (patrón
   inverso al snapshot de tokens; el agente deja JSON en el volumen, el job hace UPSERT vía
   service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al Droplet.
-- [ ] **RESIDUAL — validación en vivo de modelos nuevos**: `title_generation` (gpt-oss) y `vision`
-  (Sonnet) están aplicados por config pero NO se han invocado de verdad. Ejercitar y confirmar por
-  `agent.log`. No bloquea la fase; local, no depende del Droplet.
-- [ ] **RESIDUAL (Droplet)** — Alerta de presupuesto al 80% AUTOMÁTICA (push proactivo): la entrega
-  por cron se DIFIERE al Droplet (WSL2 no 24/7); por ahora es on-demand (preguntándole a negocio)
-- [ ] (Futuro/Droplet) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
+- [x] **Validación en vivo de modelos nuevos (2026-07-08)**: `title_generation` → `gpt-oss-120b:nitro`
+  invocado de verdad en prod (varias corridas, últimas 2026-07-06); `vision` → `claude-sonnet-4.6`
+  ejercitado con imagen real vía `hermes chat --image` ("Image analysis completed" en `agent.log`).
+- [x] **Alerta de presupuesto al 80% AUTOMÁTICA (2026-07-08)**: host-job `alerta-presupuesto.sh`
+  (cron 08:00 en el server) lee el snapshot y al cruzar 80% manda UN push por Telegram a la dueña
+  (`hermes send`, sin LLM; dedupe con flag mensual). Probado con snapshot sintético.
+- [ ] (Futuro) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
   aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
 - **Salida:** gasto mensual controlado. Presupuesto **$30/mes TOTAL** (las 3 verticales),
   alerta al 80% ($24); fijado el 2026-06-30 (antes 120; bajado tras la eficiencia de Fase 1).
   Fuente única del número: `negocio/MEMORY.md`.
 
-## FASE 2 — Cerebro regulatorio (grafo), acotado ✅ (núcleo completo 2026-07-02; residuales visibles)
+## FASE 2 — Cerebro regulatorio (grafo), acotado ✅ (runtime en Hetzner 2026-07-06; queda el CLI como acción humana)
 
 Empezar por UN país + UNA dimensión, no los diez de golpe.
 - [x] grafo como servicio Docker en hermes-net con su PostgreSQL (`businessos/grafo/`:
@@ -121,15 +121,16 @@ Empezar por UN país + UNA dimensión, no los diez de golpe.
   SIEMPRE, cero afirmación sin fuente (invariante testeado)
 - [x] Integración facturas: host-job `evaluar-facturas.py` (pendiente → veredicto en Supabase);
   AGENTS.md de clientes/negocio actualizados (agente consulta grafo por HTTP sin secretos)
-- [ ] **RESIDUAL (Droplet)** — `docker compose up` real + `--dry-run` contra Supabase productivo
-  (aquí el daemon Docker está apagado y no hay `.env`; validado local con uvicorn + mock)
-- [ ] **RESIDUAL (toolchain)** — CLI del grafo impreso con Printing Press grado ≥A (sin Go/prensa
-  en esta máquina; el manifiesto ya apunta a `http://grafo:3000/openapi.json`)
+- [x] **Runtime (cerrado 2026-07-06)** — grafo Up/healthy en Hetzner (`/health` = ok, db ok,
+  24 reglas); cron lunes `revisar-vigencias` operando (0 vencidas)
+- [ ] **RESIDUAL (toolchain, acción humana)** — CLI del grafo impreso con Printing Press grado ≥A
+  (el manifiesto ya apunta a `http://grafo:3000/openapi.json`; se dispara con `/printing-press`
+  en Claude Code — por decisión de Nivel 2, la impresión nunca es automática)
 - [ ] (Fase 3) Cotejo DOF de cifras con `verificar:true` + cron de vigencias
 - **Salida:** ✅ evaluación real con banderas rojas, checklist y 7 fuentes citadas
   (consultoría=deducible LISR 27-V; hotel=dudoso LISR 28-V; MacBook=dudoso LISR 34-VII).
 
-## FASE 3 — Expansión del grafo + cobro + contratos-documento ✅ (núcleo completo 2026-07-02; residuales visibles)
+## FASE 3 — Expansión del grafo + cobro + contratos-documento ✅ (runtime verificado 2026-07-08; Polar producción cuando haya cobros reales)
 
 El grafo crece, y encima de él se montan las dos capas que dependen de él:
 cobrar y contratar. Ambas usan el grafo como validador.
@@ -160,13 +161,14 @@ Contratos-documento (capa 1):
   `validar-contratos.py`: cláusulas → grafo (dimensión contractual, país del cliente) →
   banderas con fuente → `en_revision`/`validado`. Aprobar/firmar = SOLO Elisa
 - [x] SQL de Fase 3 en `supabase-fase3.sql` (cobros + contratos, RLS sin políticas)
-- [ ] **RESIDUAL (Droplet)** — aplicar `supabase-fase3.sql` al proyecto, correr los jobs
-  contra Supabase productivo con grafo arriba, y reseedear el grafo (seed v2)
+- [x] **Runtime (verificado 2026-07-08)** — `cobros` y `contratos` aplicadas en producción
+  (list_tables las confirma; `cobros` ya tiene la fila del sandbox), grafo arriba con seed v2
+  (24 reglas en `/health`) y `revisar-vigencias` corriendo por cron semanal
 - **Salida:** ✅ evaluaciones reales en los 3 ámbitos nuevos con fuente citada
   (CO: deducible ET 107 + 6 requisitos; contable: dudoso NIF C-6 + bandera diferencia
   temporal; contractual: contrato de 5 cláusulas → en_revision con bandera CCF 1843).
 
-## FASE 4 — Dashboard Mission Control ✅ (núcleo completo 2026-07-02; residuales visibles)
+## FASE 4 — Dashboard Mission Control ✅ COMPLETA (runtime cerrado 2026-07-06/08)
 
 PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
 `.claude/memory/project/fase4-dashboard.md`. A2ABot = el Next.js de la raíz del repo.
@@ -185,8 +187,10 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
   los monta) + health de gateways `:8642`; UPSERT real verificado (3 filas)
 - [x] Empaquetado: Dockerfile standalone + servicio `a2abot` en compose
   (`127.0.0.1:9200`, túnel SSH); convive con hermes-dashboard 9119
-- [ ] **RESIDUAL (máquina runtime)** — build de la imagen + `compose up a2abot` real,
-  verificar path de health del gateway, y cron de `snapshot-pantheon.py`
+- [x] **Runtime (cerrado 2026-07-06/08)** — a2abot Up en Hetzner (307 con auth, túnel SSH
+  9200) + cron nocturno de `snapshot-pantheon.py`; desde 2026-07-08 el snapshot lee las
+  TRES verticales del server (3 upserts HTTP 200). *(Nota: el puerto 8642 del gateway no
+  responde en este build de Hermes — el health de Pantheon se apoya en el snapshot.)*
 - [x] **Dev (2026-07-04)** — screenshots Playwright de las 3 vistas en modo mock
   validados y guardados en `businessos/dashboard-screenshots/` (chromium instaló con
   `npx playwright install chromium`, sin `install-deps`); las 3 vistas renderizan
@@ -194,7 +198,7 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
 - **Salida:** ✅ panel único con las 3 vistas funcionando (mock en dev; `real`
   conmutado por env en runtime).
 
-## FASE 5 — Interoperabilidad A2A ✅ núcleo A2A completo (2026-07-03); capa económica FUTURA
+## FASE 5 — Interoperabilidad A2A ✅ COMPLETA en runtime (smoke 2026-07-08); capa económica FUTURA
 
 PRP: `.claude/PRPs/prp-fase5-a2a.md`. Estado detallado en
 `.claude/memory/project/fase5-a2a.md`. Protocolo Agent2Agent (a2aproject/A2A,
@@ -219,8 +223,9 @@ Linux Foundation), SDK oficial `a2a-sdk` 1.1.0.
 - [x] Empaquetado: Dockerfile + servicio en compose (127.0.0.1:4000 +
   hermes-net, sin secretos); AGENTS.md de negocio/clientes con el escalón A2A
   activo (las verticales siguen en REST directo: A2A complementa, no reemplaza)
-- [ ] **RESIDUAL (Droplet)** — build + `compose up grafo-a2a` real y smoke de
-  card/message-send dentro de hermes-net
+- [x] **Runtime (cerrado 2026-07-08)** — `compose up grafo-a2a` en Hetzner (healthy) y
+  smoke card/message-send DENTRO de hermes-net (`smoke-trio/runtime.py`): evaluación real
+  por A2A → `deducible` con 4 fuentes citadas (LISR 27-I/III/V, CFF 29/29-A) + disclaimer
 - [ ] **RESIDUAL (futuro, requiere decisión)** — exposición a internet para
   socios reales: dominio + auth real (`securitySchemes` en la card) + revisar
   `GRAFO_A2A_PUBLIC_URL`. Nada de auth a medias
@@ -258,7 +263,7 @@ Contratos-blockchain (capa 2 de contratos):
 **Salida de la capa económica:** el sistema no solo razona y contrata, también
 transacciona — con respaldo regulado y verificación formal.
 
-## FASE 6 — Departamentos operados por el trío Hermes→Ejecutor→Supervisor ✅ trío construido y validado en dev (2026-07-03); runtime RESIDUAL
+## FASE 6 — Departamentos operados por el trío Hermes→Ejecutor→Supervisor ✅ trío VIVO en runtime (2026-07-08); dogfood real = decisión de la dueña
 
 PRP: `.claude/PRPs/prp-fase6-trio.md`. Estado detallado en
 `.claude/memory/project/fase6-departamentos.md`.
@@ -314,13 +319,30 @@ el paquete del primer departamento, y el modelo white-label).
   verificado en producción (tabla `tareas` con RLS; check de
   `token_usage.vertical` incluye 'trio') — vía management API con permiso
   explícito de la dueña
-- [~] **RESIDUAL (Droplet/runtime)** — smoke card/SendMessage VALIDADO en dev
-  (2026-07-04, uvicorn real + TCP real, `businessos/smoke-trio/`): cadena
-  Ejecutor→Supervisor `any`→rechazado→corrección→aprobado. Falta solo el build
-  Docker + `compose up ejecutor-a2a supervisor-a2a` en hermes-net (Droplet)
-- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
-  primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
-  imagen del ejecutor; hoy la imagen es mock-only a propósito)
+- [x] **Runtime (cerrado 2026-07-08)** — `compose up ejecutor-a2a supervisor-a2a` en
+  Hetzner (healthy) + smoke card/SendMessage dentro de hermes-net
+  (`smoke-trio/runtime.py`): cadena completa con gates npm REALES → el repo placeholder
+  se rechaza con hallazgos [build, typecheck, lint, tests] (anti-sello-de-goma actuando)
+  y la fila `smoke-runtime-1` quedó escrita en `tareas` de producción por el Ejecutor.
+  El camino "aprobado" quedó validado en dev (gates ligeros). Gotcha resuelto: los
+  bind-mounts llegan con uid del host → `git config --system safe.directory '*'` en las
+  imágenes del trío (sin eso git aborta con 'dubious ownership' y la tarea sale failed)
+- [x] **Preparación del dogfood real (2026-07-09)** — dos huecos de infra cerrados,
+  cero tokens: (1) `supervisor-a2a` reconstruido con Playwright+Chromium
+  (`@playwright/test@1.61.1` en `/ms-playwright`) — antes CUALQUIER tarea real
+  rechazaba en el gate `tests` por diseño, sin importar el modelo; (2)
+  `ejecutor-a2a` reconstruido con el CLI de Claude Code (Node +
+  `@anthropic-ai/claude-code`, verificado `claude --version` → `2.1.205`).
+  Ruteo de costo decidido: GLM-5.2 vía seam z.ai para la primera tarea (simple),
+  `presupuesto_usd=1`. Política de ruteo por tarea documentada en
+  `negocio/MEMORY.md` + `SOUL.md` de las 3 verticales.
+- [ ] **PENDIENTE (bloqueado en la dueña)** — falta la API key de z.ai
+  (`ANTHROPIC_AUTH_TOKEN` en el `.env` del server; la dueña la agrega ella misma,
+  nunca por chat). Con eso puesto: `EJECUTOR_ENGINE=claude`, recrear
+  `ejecutor-a2a`, correr la tarea de humo (scaffold npm mínimo con
+  `@playwright/test@1.61.1` pineado) y reportar veredicto + gasto real. Pausado
+  a pedido de la dueña el 2026-07-09 (no perder el contexto: retomar leyendo
+  este bloque + `.claude/memory/project/fase6-departamentos.md`).
 - [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
   Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
 - [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del
@@ -331,7 +353,7 @@ el paquete del primer departamento, y el modelo white-label).
 
 ---
 
-## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ construido y validado en dev (2026-07-04, PR #13); SQL + runtime RESIDUAL
+## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ VIVO en runtime (2026-07-08); dogfood real = decisión de la dueña
 
 PRP: `.claude/PRPs/prp-fase7-swarm.md`. Estado detallado en
 `.claude/memory/project/fase7-swarm.md`.
@@ -371,16 +393,76 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
   `tareas.parent_id/es_padre/fan_out_max/plan/presupuesto_usd/gasto_usd` + índices
   `tareas_parent_idx`/`token_usage_task_idx` presentes; sin alertas de seguridad nuevas
   (RLS sin políticas = solo service_role, por diseño)
-- [~] **RESIDUAL (Droplet/runtime)** — smoke del enjambre end-to-end VALIDADO en
-  dev (2026-07-04, `businessos/smoke-trio/`): feature padre → fan-out → integración
-  → verificación final del Supervisor → `veredicto_final=aprobado`, sobre uvicorn+TCP
-  reales. Falta solo el build Docker + `compose up coordinador-a2a` en hermes-net (Droplet)
-- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — Planner real opt-in y primer
+- [x] **Runtime (cerrado 2026-07-08)** — el coordinador ganó su entrada en
+  `docker-compose.yml` (profile `trio`; el servicio existía pero faltaba en el compose) y
+  corre Up/healthy en Hetzner con card y opacidad verificadas por el smoke de runtime.
+  Smoke del enjambre end-to-end validado en dev (2026-07-04, `veredicto_final=aprobado`)
+- [x] **Planner REAL construido (2026-07-06, PR #28)** — `claude_planner.py` con
+  claude-agent-sdk detrás de la interfaz Planner; opt-in `COORDINADOR_PLANNER=claude`;
+  gasto atribuido a la fila PADRE; 53 tests verdes. Sigue mock por default
+- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — activar Planner real + primer
   dogfood del enjambre con motor real (`EJECUTOR_ENGINE=claude`); hoy Mock-only a propósito
 - **Salida:** ✅ un enjambre de Ejecutores coordinado, validado de punta a punta en dev
   (motor y planner mock, cero tokens), con las mismas garantías de la Fase 6 (Supervisor
   independiente re-gatea el todo + gate humano en lo irreversible) — aplicar el SQL y el
   dogfood real son los siguientes pasos y son decisión de la dueña.
+
+---
+
+## FASE 8 — Grafo: dimensión "regulatorio" (permisos y cumplimiento operativo) ✅ COMPLETA, runtime verificado (2026-07-09)
+
+El grafo (Fase 2/3, hasta ahora solo fiscal/contable/contractual) se abre a la
+pregunta genérica "¿puedo hacer X, y qué debo cumplir?" — no solo deducibilidad.
+Caso ancla: ¿está permitido el uso de drones para delivery en México?, ¿qué
+regulación debe cumplir el seguro de un dron para delivery?
+
+- [x] Nueva dimensión `regulatorio` (código elegido para ser amplia: sirve a
+  cualquier actividad con permiso/cumplimiento operativo, no solo aeronáutica)
+  con vocabulario de veredicto propio `permitido`/`no_permitido` — convive con
+  `deducible`/`no_deducible` sin cruzarse porque las categorías no cruzan de
+  dimensión (invariante ya existente desde Fase 3). Tocado en 4 lugares que
+  tenían el vocabulario fiscal hardcodeado: `schemas.py` (Estado), `evaluador.py`
+  (ESTADOS), `seed/gen_seed_sql.py` (VEREDICTOS), `seed/01-schema.sql` (CHECK de
+  `impactos.veredicto_base`).
+- [x] Primera categoría: `DRONES_DELIVERY`, 2 reglas MX citando **fuente
+  primaria verificada** (no blogs, no la NOM de 2019 a ciegas): Ley de Aviación
+  Civil Art. 30 (registro RPAS ante AFAC si no hay "servicio público") y Art. 74
+  (seguro de responsabilidad civil obligatorio, aprobación previa de AFAC).
+  Hallazgo que justificó ir a la fuente primaria: NOM-107-SCT3-2019 (2019) cita
+  el requisito de seguro como "artículo 72"; la Ley vigente (reforma consolidada
+  DOF 14-11-2025) lo tiene en el **Art. 74** tras renumeraciones posteriores —
+  citando la NOM a ciegas se habría propagado el número equivocado. También
+  incorporado NOM-107 num. 4.10.3 (prohibición de dejar caer/arrojar objetos que
+  dañen personas o propiedad) como requisito directamente relevante al mecanismo
+  de entrega.
+- [x] 3 tests nuevos (`test_multiambito.py`): veredicto `permitido` con fuente
+  correcta, cita exacta del Art. 74 (no el 72 de la NOM), y no-cruce con fiscal
+  en ambas direcciones. 54/54 tests verdes (51 previos + 3 nuevos, cero
+  regresión en fiscal/contable/contractual).
+- [x] **Runtime (2026-07-09)** — migración aditiva pura en producción: `ALTER
+  TABLE impactos` amplía el CHECK de `veredicto_base` (sin tocar las 24 reglas
+  existentes), seed regenerado aplicado vía el propio patrón idempotente
+  (`on conflict ... do update`, sin necesidad de recrear el volumen), imagen de
+  `grafo` reconstruida y redesplegada. Verificado en vivo por DOS canales:
+  `POST /evaluaciones` directo (respuesta persistida con `id`, veredicto
+  `permitido`, 2 fuentes citadas) y **A2A real** vía `grafo-a2a`
+  (`message/send` → `TASK_STATE_COMPLETED`, mismo resultado) — cumple el
+  requisito de que tanto humano como agente puedan consultarlo.
+- [x] **"Biblioteca" resuelta sin caché de LLM**: la respuesta repetible no es
+  un caché de texto generado, es la regla ya en el seed — determinista, con
+  fuente, instantánea. Cada `evaluación` además queda persistida en la tabla
+  `evaluaciones` (ya existía desde Fase 2).
+- [ ] **Convención acordada (no construida aún)**: Obsidian (bóveda de
+  `personal`) como bitácora de INVESTIGACIÓN/borrador antes de que una regla
+  entre al seed — NO como fuente que el grafo consulte en vivo (rompería el
+  gate de procedencia). Sin construir todavía; aplica cuando se investigue el
+  siguiente país/ámbito.
+- [ ] **Futuro**: más países/ámbitos regulatorios sobre la misma dimensión
+  (el código `regulatorio` ya es genérico a propósito, no específico a drones).
+- **Salida:** ✅ el grafo responde preguntas de permiso/cumplimiento operativo
+  (no solo fiscales) con la misma regla de oro (fail-safe, fuente citada,
+  disclaimer siempre), verificado por humano (REST) y por agente (A2A) en
+  producción.
 
 ---
 
@@ -442,7 +524,7 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 
 - **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
   al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
-- **Slack** (interno, se SUMA a Telegram — piloto en curso): centro de trabajo
+- **Slack** (interno, se SUMA a Telegram — **piloto VIVO desde 2026-07-08**): centro de trabajo
   del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
   de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos
   reportan a Hermes y él publica al canal. **Slack es SOLO interno — NO de cara
@@ -454,10 +536,15 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
     `departamentos/equipo-y-slack.md`
   - Artefactos listos: `negocio/slack-config-fragment.yaml` +
     `slack-piloto.sh` (host-job runtime)
-  - **PENDIENTE (dueña)**: crear la Slack App (Socket Mode, scopes y eventos del
-    runbook) + pasar tokens al `.env` del volumen de negocio + IDs de canal/miembros
-  - **PENDIENTE (runtime)**: correr `slack-piloto.sh` y verificar la @mención
-    en `#dep-negocio`
+  - ✅ **Piloto ACTIVO (2026-07-08)**: la dueña creó la app con el manifiesto
+    (`negocio/slack-app-manifest.yaml`, colapsa scopes/eventos/Socket Mode en un
+    paso), tokens al `.env` del volumen, y `slack-piloto.sh` cableó y reinició:
+    `@hermes_negocio` autenticado en el workspace A2AMassivo, Socket Mode
+    conectado, gateway con 2 plataformas (Telegram intacto), mensaje de
+    presentación entregado en `#dep-negocio`. Gotcha: el script se re-ejecuta
+    con `sudo env HOME=…` (volumen 0700 uid-10000)
+  - **Siguiente**: sumar a las 4 personas a `SLACK_ALLOWED_USERS` + expandir
+    canales (`#dep-clientes`, `#dep-desarrollo`, `#dev-*`) por configuración
 - **Web propia** (producto, futuro): el canal de clientes, con marca propia y
   aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
   prefiere.

@@ -10,7 +10,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Estado = Literal["deducible", "no_deducible", "dudoso"]
+Estado = Literal["deducible", "no_deducible", "permitido", "no_permitido", "dudoso"]
+# "deducible"/"no_deducible": dimensiones fiscal/contable/contractual (V1-V3).
+# "permitido"/"no_permitido": dimension "regulatorio" (permisos y cumplimiento
+# operativo, ej. RPAS/drones) — anadida sin tocar el vocabulario existente
+# porque las categorias no cruzan de dimension (evaluador.py filtra por
+# ambito), asi que ambos vocabularios conviven sin ambiguedad. "dudoso" es el
+# fail-safe compartido por todas las dimensiones.
 
 
 class Contexto(BaseModel):

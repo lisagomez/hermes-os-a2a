@@ -59,3 +59,11 @@ Falso: el runtime está aquí. Se conserva la nota para trazabilidad.
 - `~/businessos` no existe (no confundir con el gotcha de uid 10000/0700, que da
   "Permission denied" con el directorio SÍ existente).
 - `secrets.env` ausente → es que esta máquina aún no tiene el suyo.
+
+## ACTUALIZACIÓN 2026-07-08 — ya NO hay verticales en WSL2
+
+Las 3 verticales (negocio, personal, clientes) viven en **Hetzner**. En la máquina
+de desarrollo NO debe correrse `docker compose up` de NINGUNA vertical (choque de
+token Telegram). Los volúmenes locales `~/businessos/*/.hermes` quedan solo como
+respaldo histórico de la migración. El runtime se opera por SSH
+(`ssh hermes@167.233.233.56`, ver `businessos/COMO-RETOMAR.md`).

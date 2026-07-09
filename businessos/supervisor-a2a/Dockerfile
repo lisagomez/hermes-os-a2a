@@ -9,13 +9,28 @@
 # node/npm: los gates reales del departamento software son `npm run build|
 # typecheck|lint` y `npx playwright test` — sin node, TODO gate de comando
 # seria `no_ejecutable` (= rechazo) y el supervisor no serviria de nada.
-# Playwright con browsers pesa demasiado para esta imagen: si el gate `tests`
-# no puede correr, rechaza con ese hallazgo (honesto por diseño) — instalar
-# browsers en runtime es residual (ver ROADMAP Fase 6).
+#
+# Playwright browsers (cierre de residual, 2026-07-09): pre-instalados AQUI en
+# un path fijo (PLAYWRIGHT_BROWSERS_PATH=/ms-playwright) para que `npx
+# playwright test` sobre CUALQUIER worktree los encuentre sin descargarlos en
+# cada corrida. El repo objetivo debe fijar la MISMA version de
+# `@playwright/test` que la instalada aqui (ver version resuelta en el build)
+# para que el cache resuelva; si no coincide, Playwright intenta descargar de
+# nuevo en runtime (funciona igual, solo mas lento la primera vez).
 FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends git nodejs npm \
     && rm -rf /var/lib/apt/lists/*
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npm install -g @playwright/test \
+    && npx playwright install --with-deps chromium \
+    && npm list -g @playwright/test
+
+# El repo/worktrees llegan por bind-mount/volumen con uid del host (distinto de
+# root): sin esto git aborta con 'dubious ownership'. El contenedor solo ve SUS
+# mounts; marcar todo como safe.directory es correcto en este aislamiento.
+RUN git config --system --add safe.directory '*'
 
 WORKDIR /app
 
