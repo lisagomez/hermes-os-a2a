@@ -327,9 +327,22 @@ el paquete del primer departamento, y el modelo white-label).
   El camino "aprobado" quedó validado en dev (gates ligeros). Gotcha resuelto: los
   bind-mounts llegan con uid del host → `git config --system safe.directory '*'` en las
   imágenes del trío (sin eso git aborta con 'dubious ownership' y la tarea sale failed)
-- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — smoke del motor real y
-  primer dogfood con `EJECUTOR_ENGINE=claude` (requiere CLI de Claude Code en la
-  imagen del ejecutor; hoy la imagen es mock-only a propósito)
+- [x] **Preparación del dogfood real (2026-07-09)** — dos huecos de infra cerrados,
+  cero tokens: (1) `supervisor-a2a` reconstruido con Playwright+Chromium
+  (`@playwright/test@1.61.1` en `/ms-playwright`) — antes CUALQUIER tarea real
+  rechazaba en el gate `tests` por diseño, sin importar el modelo; (2)
+  `ejecutor-a2a` reconstruido con el CLI de Claude Code (Node +
+  `@anthropic-ai/claude-code`, verificado `claude --version` → `2.1.205`).
+  Ruteo de costo decidido: GLM-5.2 vía seam z.ai para la primera tarea (simple),
+  `presupuesto_usd=1`. Política de ruteo por tarea documentada en
+  `negocio/MEMORY.md` + `SOUL.md` de las 3 verticales.
+- [ ] **PENDIENTE (bloqueado en la dueña)** — falta la API key de z.ai
+  (`ANTHROPIC_AUTH_TOKEN` en el `.env` del server; la dueña la agrega ella misma,
+  nunca por chat). Con eso puesto: `EJECUTOR_ENGINE=claude`, recrear
+  `ejecutor-a2a`, correr la tarea de humo (scaffold npm mínimo con
+  `@playwright/test@1.61.1` pineado) y reportar veredicto + gasto real. Pausado
+  a pedido de la dueña el 2026-07-09 (no perder el contexto: retomar leyendo
+  este bloque + `.claude/memory/project/fase6-departamentos.md`).
 - [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
   Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
 - [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del
@@ -393,6 +406,63 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
   (motor y planner mock, cero tokens), con las mismas garantías de la Fase 6 (Supervisor
   independiente re-gatea el todo + gate humano en lo irreversible) — aplicar el SQL y el
   dogfood real son los siguientes pasos y son decisión de la dueña.
+
+---
+
+## FASE 8 — Grafo: dimensión "regulatorio" (permisos y cumplimiento operativo) ✅ COMPLETA, runtime verificado (2026-07-09)
+
+El grafo (Fase 2/3, hasta ahora solo fiscal/contable/contractual) se abre a la
+pregunta genérica "¿puedo hacer X, y qué debo cumplir?" — no solo deducibilidad.
+Caso ancla: ¿está permitido el uso de drones para delivery en México?, ¿qué
+regulación debe cumplir el seguro de un dron para delivery?
+
+- [x] Nueva dimensión `regulatorio` (código elegido para ser amplia: sirve a
+  cualquier actividad con permiso/cumplimiento operativo, no solo aeronáutica)
+  con vocabulario de veredicto propio `permitido`/`no_permitido` — convive con
+  `deducible`/`no_deducible` sin cruzarse porque las categorías no cruzan de
+  dimensión (invariante ya existente desde Fase 3). Tocado en 4 lugares que
+  tenían el vocabulario fiscal hardcodeado: `schemas.py` (Estado), `evaluador.py`
+  (ESTADOS), `seed/gen_seed_sql.py` (VEREDICTOS), `seed/01-schema.sql` (CHECK de
+  `impactos.veredicto_base`).
+- [x] Primera categoría: `DRONES_DELIVERY`, 2 reglas MX citando **fuente
+  primaria verificada** (no blogs, no la NOM de 2019 a ciegas): Ley de Aviación
+  Civil Art. 30 (registro RPAS ante AFAC si no hay "servicio público") y Art. 74
+  (seguro de responsabilidad civil obligatorio, aprobación previa de AFAC).
+  Hallazgo que justificó ir a la fuente primaria: NOM-107-SCT3-2019 (2019) cita
+  el requisito de seguro como "artículo 72"; la Ley vigente (reforma consolidada
+  DOF 14-11-2025) lo tiene en el **Art. 74** tras renumeraciones posteriores —
+  citando la NOM a ciegas se habría propagado el número equivocado. También
+  incorporado NOM-107 num. 4.10.3 (prohibición de dejar caer/arrojar objetos que
+  dañen personas o propiedad) como requisito directamente relevante al mecanismo
+  de entrega.
+- [x] 3 tests nuevos (`test_multiambito.py`): veredicto `permitido` con fuente
+  correcta, cita exacta del Art. 74 (no el 72 de la NOM), y no-cruce con fiscal
+  en ambas direcciones. 54/54 tests verdes (51 previos + 3 nuevos, cero
+  regresión en fiscal/contable/contractual).
+- [x] **Runtime (2026-07-09)** — migración aditiva pura en producción: `ALTER
+  TABLE impactos` amplía el CHECK de `veredicto_base` (sin tocar las 24 reglas
+  existentes), seed regenerado aplicado vía el propio patrón idempotente
+  (`on conflict ... do update`, sin necesidad de recrear el volumen), imagen de
+  `grafo` reconstruida y redesplegada. Verificado en vivo por DOS canales:
+  `POST /evaluaciones` directo (respuesta persistida con `id`, veredicto
+  `permitido`, 2 fuentes citadas) y **A2A real** vía `grafo-a2a`
+  (`message/send` → `TASK_STATE_COMPLETED`, mismo resultado) — cumple el
+  requisito de que tanto humano como agente puedan consultarlo.
+- [x] **"Biblioteca" resuelta sin caché de LLM**: la respuesta repetible no es
+  un caché de texto generado, es la regla ya en el seed — determinista, con
+  fuente, instantánea. Cada `evaluación` además queda persistida en la tabla
+  `evaluaciones` (ya existía desde Fase 2).
+- [ ] **Convención acordada (no construida aún)**: Obsidian (bóveda de
+  `personal`) como bitácora de INVESTIGACIÓN/borrador antes de que una regla
+  entre al seed — NO como fuente que el grafo consulte en vivo (rompería el
+  gate de procedencia). Sin construir todavía; aplica cuando se investigue el
+  siguiente país/ámbito.
+- [ ] **Futuro**: más países/ámbitos regulatorios sobre la misma dimensión
+  (el código `regulatorio` ya es genérico a propósito, no específico a drones).
+- **Salida:** ✅ el grafo responde preguntas de permiso/cumplimiento operativo
+  (no solo fiscales) con la misma regla de oro (fail-safe, fuente citada,
+  disclaimer siempre), verificado por humano (REST) y por agente (A2A) en
+  producción.
 
 ---
 

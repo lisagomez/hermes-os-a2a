@@ -49,7 +49,10 @@ create table if not exists impactos (
   categoria      text references categorias_gasto(clave), -- NULL = todas (requisitos generales)
   regimen        text not null default 'PM_TITULO_II',
   -- NULL = la regla no determina veredicto, solo aporta requisitos/banderas
-  veredicto_base text check (veredicto_base in ('deducible','no_deducible','dudoso')),
+  -- 'permitido'/'no_permitido': dimension 'regulatorio' (permisos/cumplimiento
+  -- operativo); conviven con 'deducible'/'no_deducible' porque las categorias
+  -- no cruzan de dimension (ver evaluador.py).
+  veredicto_base text check (veredicto_base in ('deducible','no_deducible','permitido','no_permitido','dudoso')),
   tope_monto     numeric(14,2) check (tope_monto is null or tope_monto >= 0),
   tope_pct       numeric(5,2)  check (tope_pct   is null or (tope_pct between 0 and 100)),
   requisitos     jsonb not null default '[]'::jsonb, -- ["texto de checklist", ...]

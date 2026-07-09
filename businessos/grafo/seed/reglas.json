@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v2 (Fase 3): fiscal MX + fiscal CO + contable MX + contractual MX. FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
+    "descripcion": "Seed del grafo v3 (Fase 8): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion",
+    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros",
     "regimen_default": "PM_TITULO_II"
   },
   "jurisdicciones": [
@@ -27,6 +27,10 @@
     {
       "codigo": "contractual",
       "nombre": "Contractual (clausulas de acuerdos comerciales)"
+    },
+    {
+      "codigo": "regulatorio",
+      "nombre": "Regulatorio (permisos y cumplimiento operativo)"
     }
   ],
   "categorias": [
@@ -184,6 +188,23 @@
         "clausula penal",
         "penalizacion",
         "mora"
+      ]
+    },
+    {
+      "clave": "DRONES_DELIVERY",
+      "nombre": "Uso de RPAS (drones) para entrega/delivery",
+      "descripcion": "Operacion de aeronaves pilotadas a distancia (RPAS) para reparto/entrega comercial",
+      "keywords": [
+        "dron",
+        "drones",
+        "rpas",
+        "delivery con dron",
+        "entrega por dron",
+        "reparto con dron",
+        "aeronave no tripulada",
+        "vehiculo aereo no tripulado",
+        "dron de reparto",
+        "drone delivery"
       ]
     }
   ],
@@ -827,6 +848,66 @@
           ],
           "banderas": [],
           "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LAC-30-REGISTRO-RPAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Registro de RPAS ante AFAC (no servicio publico)",
+      "texto_resumen": "Un sistema de aeronave pilotada a distancia (RPAS) que no preste 'servicio publico' (transporte aereo con itinerarios/frecuencias/horarios) debe registrarse ante la Agencia Federal de Aviacion Civil (AFAC) y sujetarse a las disposiciones tecnico-administrativas respectivas (NOM-107-SCT3-2019). Un delivery comercial operado por una empresa privada normalmente no encaja en 'servicio publico' en el sentido de esta Ley, por lo que aplica el regimen de registro, no de concesion. NOM-107-SCT3-2019 num. 4.10.3 prohibe dejar caer/arrojar objetos que puedan danar personas o bienes — condiciona directamente el mecanismo de entrega.",
+      "fuente_cita": "Ley de Aviacion Civil, Art. 30 (reformado DOF 03-05-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAC.pdf",
+      "vigente_desde": "2023-05-03",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DRONES_DELIVERY",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Registro del RPAS ante la Agencia Federal de Aviacion Civil (AFAC), via SIIAU/SICT",
+            "Cumplir NOM-107-SCT3-2019: categoria por peso (Micro <=2kg, Pequeno 2-25kg, Grande >25kg) y sus limitaciones operativas",
+            "No dejar caer ni arrojar objetos que puedan danar personas o propiedad al momento de la entrega (NOM-107-SCT3-2019, num. 4.10.3)",
+            "Confirmar si la ruta de entrega requiere operacion BVLOS (mas alla de linea de vista) — solo permitida para RPAS Grande bajo condiciones especificas de la norma"
+          ],
+          "banderas": [
+            "No existe una categoria regulatoria especifica de 'drone delivery' en la Ley: se evalua bajo el regimen general de RPAS sin servicio publico"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LAC-74-SEGURO-RPAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Seguro de responsabilidad civil obligatorio para RPAS",
+      "texto_resumen": "Toda persona operadora de una aeronave (incluye RPAS) que transite en espacio aereo nacional debe contratar y mantener vigente un seguro que cubra danos a terceros, carga y equipaje. El contrato de seguro requiere aprobacion previa de AFAC antes de iniciar operaciones (plazo de respuesta de AFAC: 15 dias habiles). NOTA DE VIGENCIAS: NOM-107-SCT3-2019 (2019) cita este requisito como 'articulo 72' de la Ley; la Ley vigente (reforma consolidada DOF 14-11-2025) ubica la obligacion en el Articulo 74 tras renumeraciones posteriores — se cita el numero vigente, no el de la NOM.",
+      "fuente_cita": "Ley de Aviacion Civil, Art. 74 (reformado DOF 03-05-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAC.pdf",
+      "vigente_desde": "2023-05-03",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DRONES_DELIVERY",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Contratar y mantener vigente poliza de seguro de responsabilidad civil por danos a terceros, carga y equipaje (LAC Art. 74)",
+            "Obtener la aprobacion de AFAC sobre el contrato de seguro ANTES de iniciar operaciones (LAC Art. 74)",
+            "Portar copia de la poliza vigente en la estacion de control durante la operacion (NOM-107-SCT3-2019)"
+          ],
+          "banderas": [
+            "Operar sin poliza vigente o sin aprobacion de AFAC deja la operacion fuera de cumplimiento — sancionable conforme al capitulo de infracciones de la Ley",
+            "NOM-107-SCT3-2019 cita 'articulo 72'; el articulo vigente hoy es el 74 (renumeracion posterior a 2019) — usar 74"
+          ],
+          "parametros": {
+            "verificar": false
+          }
         }
       ]
     }

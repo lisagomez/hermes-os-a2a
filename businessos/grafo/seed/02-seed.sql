@@ -1,5 +1,5 @@
 -- 02-seed.sql — GENERADO por gen_seed_sql.py desde reglas_mx.json. NO EDITAR A MANO.
--- source_version: seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion
+-- source_version: seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros
 -- Idempotente: upserts sobre claves naturales (reseed real = volumen virgen).
 begin;
 
@@ -13,6 +13,8 @@ insert into dimensiones (codigo, nombre) values ('fiscal', 'Fiscal (deducibilida
 insert into dimensiones (codigo, nombre) values ('contable', 'Contable (registro y normas de informacion financiera)')
   on conflict (codigo) do update set nombre = excluded.nombre;
 insert into dimensiones (codigo, nombre) values ('contractual', 'Contractual (clausulas de acuerdos comerciales)')
+  on conflict (codigo) do update set nombre = excluded.nombre;
+insert into dimensiones (codigo, nombre) values ('regulatorio', 'Regulatorio (permisos y cumplimiento operativo)')
   on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into categorias_gasto (clave, nombre, descripcion, keywords) values
@@ -59,11 +61,15 @@ insert into categorias_gasto (clave, nombre, descripcion, keywords) values
   ('CLAUSULA_PENAL', 'Clausula penal / pena convencional', 'Penalizaciones pactadas por incumplimiento', array['pena convencional', 'clausula penal', 'penalizacion', 'mora']::text[])
   on conflict (clave) do update set nombre = excluded.nombre,
     descripcion = excluded.descripcion, keywords = excluded.keywords;
+insert into categorias_gasto (clave, nombre, descripcion, keywords) values
+  ('DRONES_DELIVERY', 'Uso de RPAS (drones) para entrega/delivery', 'Operacion de aeronaves pilotadas a distancia (RPAS) para reparto/entrega comercial', array['dron', 'drones', 'rpas', 'delivery con dron', 'entrega por dron', 'reparto con dron', 'aeronave no tripulada', 'vehiculo aereo no tripulado', 'dron de reparto', 'drone delivery']::text[])
+  on conflict (clave) do update set nombre = excluded.nombre,
+    descripcion = excluded.descripcion, keywords = excluded.keywords;
 
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-27-I', 'MX', 'fiscal', 'Estricta indispensabilidad y donativos', 'Las deducciones deben ser estrictamente indispensables para los fines de la actividad del contribuyente, salvo donativos no onerosos ni remunerativos a donatarias autorizadas, deducibles hasta el 7% de la utilidad fiscal del ejercicio anterior.',
-   'LISR Art. 27, fraccion I', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 27, fraccion I', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -94,7 +100,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-27-III', 'MX', 'fiscal', 'CFDI y medios de pago electronicos', 'Deducciones amparadas con CFDI; pagos cuyo monto exceda $2,000 MXN deben efectuarse mediante transferencia, cheque nominativo, tarjeta o monedero electronico. Los combustibles para vehiculos deben pagarse con esos medios AUNQUE no excedan $2,000.',
-   'LISR Art. 27, fraccion III', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 27, fraccion III', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -125,7 +131,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-27-V', 'MX', 'fiscal', 'Retenciones a terceros (honorarios)', 'Cumplir obligaciones de retencion y entero de impuestos a cargo de terceros. Honorarios pagados a personas fisicas: retencion del 10% de ISR.',
-   'LISR Art. 27, fraccion V (y Art. 106 ultimo parrafo)', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 27, fraccion V (y Art. 106 ultimo parrafo)', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -146,7 +152,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-27-VII', 'MX', 'fiscal', 'Intereses por capitales tomados en prestamo', 'Intereses deducibles cuando el capital tomado en prestamo se invierta en los fines del negocio.',
-   'LISR Art. 27, fraccion VII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 27, fraccion VII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -167,7 +173,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-28-V', 'MX', 'fiscal', 'Viaticos: topes y faja de 50 km', 'Viaticos no deducibles salvo que se destinen a hospedaje, alimentacion, transporte, uso de automovil y kilometraje, aplicados fuera de una faja de 50 km del establecimiento, y el beneficiario tenga relacion de trabajo o preste servicios profesionales. Topes diarios: alimentacion $750 nacional / $1,500 extranjero; hospedaje extranjero $3,850; renta de autos $850.',
-   'LISR Art. 28, fraccion V', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 28, fraccion V', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -188,7 +194,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-28-XIII', 'MX', 'fiscal', 'Renta de automoviles, aviones y casas habitacion', 'Renta de automoviles deducible hasta $200 diarios por unidad ($285 si es electrico/hibrido); renta de aviones/embarcaciones y casas habitacion solo con requisitos reglamentarios.',
-   'LISR Art. 28, fraccion XIII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 28, fraccion XIII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2017-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -209,7 +215,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-28-XXVII', 'MX', 'fiscal', 'Capitalizacion delgada (partes relacionadas extranjeras)', 'No deducibles los intereses de deudas con partes relacionadas residentes en el extranjero que excedan la proporcion deuda/capital de 3:1.',
-   'LISR Art. 28, fraccion XXVII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 28, fraccion XXVII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -230,7 +236,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-28-XXXII', 'MX', 'fiscal', 'Limitacion de intereses netos (30% utilidad fiscal ajustada)', 'Intereses netos del ejercicio que excedan el 30% de la utilidad fiscal ajustada no son deducibles; aplica cuando los intereses netos exceden $20,000,000.',
-   'LISR Art. 28, fraccion XXXII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Art. 28, fraccion XXXII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2020-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -251,7 +257,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LISR-34-VII', 'MX', 'fiscal', 'Equipo de computo: inversion con depreciacion 30%', 'El equipo de computo es INVERSION, no gasto: se deduce via depreciacion con tasa maxima anual del 30% (computadoras, servidores, impresoras).',
-   'LISR Arts. 31-34; Art. 34, fraccion VII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LISR Arts. 31-34; Art. 34, fraccion VII', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -272,7 +278,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CFF-29A', 'MX', 'fiscal', 'Requisitos de los CFDI', 'Todo comprobante debe ser CFDI con los requisitos del 29-A (RFC emisor/receptor, uso de CFDI, forma y metodo de pago). Sin CFDI valido no hay deduccion.',
-   'CFF Arts. 29 y 29-A', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'CFF Arts. 29 y 29-A', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -293,7 +299,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-SAT-CRIT-VIATICOS', 'MX', 'fiscal', 'Criterio SAT: relacion laboral en viaticos', 'Para la deducibilidad, los viaticos deben corresponder a personas con relacion laboral o que presten servicios profesionales a la empresa.',
-   'Criterio Normativo SAT (viaticos)', 'https://www.sat.gob.mx/normatividad/criterios-normativos#viaticos', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Criterio Normativo SAT (viaticos)', 'https://www.sat.gob.mx/normatividad/criterios-normativos#viaticos', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2026-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -314,7 +320,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CFF-28-CONTABILIDAD', 'MX', 'contable', 'Integracion de la contabilidad y contabilidad electronica', 'La contabilidad se integra por libros, registros, papeles de trabajo, CFDI y demas documentacion; los registros deben cumplir los requisitos del reglamento y la contabilidad electronica se ingresa mensualmente a traves del portal del SAT.',
-   'CFF Art. 28', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'CFF Art. 28', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -335,7 +341,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CFF-30-CONSERVACION', 'MX', 'contable', 'Conservacion de la contabilidad (5 anos)', 'La contabilidad y documentacion soporte deben conservarse durante 5 anos contados desde la fecha en que se presentaron o debieron presentarse las declaraciones relacionadas.',
-   'CFF Art. 30', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'CFF Art. 30', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -356,7 +362,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-NIF-C6-ACTIVO-FIJO', 'MX', 'contable', 'Propiedades, planta y equipo (NIF C-6)', 'El equipo (incluido el de computo) se reconoce como activo fijo y se deprecia contablemente segun su vida util estimada y valor residual; la tasa contable puede diferir de la fiscal (LISR 34).',
-   'NIF C-6 (CINIF), Propiedades, planta y equipo', 'https://www.cinif.org.mx/', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'NIF C-6 (CINIF), Propiedades, planta y equipo', 'https://www.cinif.org.mx/', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2011-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -377,7 +383,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-NIF-D5-ARRENDAMIENTOS', 'MX', 'contable', 'Arrendamientos (NIF D-5)', 'Los contratos de arrendamiento se reconocen con un activo por derecho de uso y un pasivo por arrendamiento, salvo plazo corto (<=12 meses) o bajo valor.',
-   'NIF D-5 (CINIF), Arrendamientos', 'https://www.cinif.org.mx/', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'NIF D-5 (CINIF), Arrendamientos', 'https://www.cinif.org.mx/', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2019-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -398,7 +404,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('CO-ET-107-EXPENSAS', 'CO', 'fiscal', 'Expensas necesarias: causalidad, necesidad y proporcionalidad', 'Son deducibles las expensas realizadas durante el ano gravable en desarrollo de la actividad productora de renta, siempre que tengan relacion de causalidad con ella y sean necesarias y proporcionadas.',
-   'Estatuto Tributario (CO), Art. 107', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Estatuto Tributario (CO), Art. 107', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1989-03-30'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -429,7 +435,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('CO-ET-771-2-FACTURA', 'CO', 'fiscal', 'Procedencia de costos y deducciones: factura', 'Para la procedencia de costos, deducciones e impuestos descontables se requiere factura (electronica) o documento equivalente con los requisitos de los articulos 617 y 618 del ET.',
-   'Estatuto Tributario (CO), Art. 771-2', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Estatuto Tributario (CO), Art. 771-2', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1997-07-14'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -450,7 +456,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('CO-ET-104-REALIZACION', 'CO', 'fiscal', 'Realizacion de las deducciones', 'Las deducciones se entienden realizadas cuando se paguen efectivamente o, para obligados a llevar contabilidad, cuando se devenguen (causacion).',
-   'Estatuto Tributario (CO), Art. 104', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Estatuto Tributario (CO), Art. 104', 'http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1989-03-30'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -471,7 +477,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CCF-1794-1796-ELEMENTOS', 'MX', 'contractual', 'Elementos y obligatoriedad del contrato', 'El contrato existe con consentimiento y objeto; es valido si hay capacidad, ausencia de vicios, objeto licito y la forma que la ley exija. Desde su perfeccionamiento obliga a lo expresamente pactado y a las consecuencias de la buena fe, el uso o la ley.',
-   'Codigo Civil Federal, Arts. 1794-1796', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Codigo Civil Federal, Arts. 1794-1796', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1932-10-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -492,7 +498,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CCF-1843-PENA', 'MX', 'contractual', 'Clausula penal: limite', 'La clausula penal no puede exceder ni en valor ni en cuantia a la obligacion principal; el exceso es nulo.',
-   'Codigo Civil Federal, Art. 1843', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Codigo Civil Federal, Art. 1843', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1932-10-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -513,7 +519,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CCO-78-FORMA', 'MX', 'contractual', 'Libertad de forma en materia mercantil', 'En las convenciones mercantiles cada parte se obliga en la manera y terminos que aparezca que quiso obligarse, sin que la validez dependa de formalidades, salvo los casos en que la ley exija forma especifica.',
-   'Codigo de Comercio, Art. 78', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCom.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Codigo de Comercio, Art. 78', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCom.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1890-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -534,7 +540,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CFF-29A-CONTRACTUAL', 'MX', 'contractual', 'Pagos del contrato y facturacion CFDI', 'Los pagos pactados en el contrato deben ampararse con CFDI que cumpla los requisitos del CFF 29-A; definir moneda, plazos, y retenciones aplicables segun el tipo de contraparte.',
-   'CFF Arts. 29 y 29-A', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'CFF Arts. 29 y 29-A', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2014-01-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -555,7 +561,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-LFPDPPP-21-CONFIDENCIALIDAD', 'MX', 'contractual', 'Deber de confidencialidad (datos personales)', 'Quien trate datos personales debe guardar confidencialidad respecto de ellos; la obligacion subsiste aun despues de terminada la relacion con el titular o el responsable.',
-   'LFPDPPP Art. 21', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'LFPDPPP Art. 21', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '2010-07-06'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -576,7 +582,7 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
 insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
                     fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
   ('MX-CCF-1797-TERMINACION', 'MX', 'contractual', 'Terminacion: no al arbitrio de una sola parte', 'La validez y el cumplimiento de los contratos no puede dejarse al arbitrio de uno de los contratantes; las causales y mecanica de terminacion deben ser claras y bilaterales.',
-   'Codigo Civil Federal, Art. 1797', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion',
+   'Codigo Civil Federal, Art. 1797', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
    '1932-10-01'::date, null)
   on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
     dimension = excluded.dimension, titulo = excluded.titulo,
@@ -589,6 +595,48 @@ insert into impactos (regla_id, categoria, regimen, veredicto_base,
          null, null,
          '["Causales de terminacion claras y no potestativas de una sola parte (CCF 1797)", "Preaviso y efectos de la terminacion definidos (pagos devengados, entregables, devolucion de informacion)"]'::jsonb, '[]'::jsonb, '{}'::jsonb
   from reglas r where r.clave = 'MX-CCF-1797-TERMINACION'
+  on conflict (regla_id, categoria, regimen) do update set
+    veredicto_base = excluded.veredicto_base, tope_monto = excluded.tope_monto,
+    tope_pct = excluded.tope_pct, requisitos = excluded.requisitos,
+    banderas = excluded.banderas, parametros = excluded.parametros;
+
+insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
+                    fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
+  ('MX-LAC-30-REGISTRO-RPAS', 'MX', 'regulatorio', 'Registro de RPAS ante AFAC (no servicio publico)', 'Un sistema de aeronave pilotada a distancia (RPAS) que no preste ''servicio publico'' (transporte aereo con itinerarios/frecuencias/horarios) debe registrarse ante la Agencia Federal de Aviacion Civil (AFAC) y sujetarse a las disposiciones tecnico-administrativas respectivas (NOM-107-SCT3-2019). Un delivery comercial operado por una empresa privada normalmente no encaja en ''servicio publico'' en el sentido de esta Ley, por lo que aplica el regimen de registro, no de concesion. NOM-107-SCT3-2019 num. 4.10.3 prohibe dejar caer/arrojar objetos que puedan danar personas o bienes — condiciona directamente el mecanismo de entrega.',
+   'Ley de Aviacion Civil, Art. 30 (reformado DOF 03-05-2023)', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LAC.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
+   '2023-05-03'::date, null)
+  on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
+    dimension = excluded.dimension, titulo = excluded.titulo,
+    texto_resumen = excluded.texto_resumen, fuente_cita = excluded.fuente_cita,
+    fuente_url = excluded.fuente_url, source_version = excluded.source_version,
+    vigente_desde = excluded.vigente_desde, vigente_hasta = excluded.vigente_hasta;
+insert into impactos (regla_id, categoria, regimen, veredicto_base,
+                      tope_monto, tope_pct, requisitos, banderas, parametros)
+  select r.id, 'DRONES_DELIVERY', 'GENERAL', 'permitido',
+         null, null,
+         '["Registro del RPAS ante la Agencia Federal de Aviacion Civil (AFAC), via SIIAU/SICT", "Cumplir NOM-107-SCT3-2019: categoria por peso (Micro <=2kg, Pequeno 2-25kg, Grande >25kg) y sus limitaciones operativas", "No dejar caer ni arrojar objetos que puedan danar personas o propiedad al momento de la entrega (NOM-107-SCT3-2019, num. 4.10.3)", "Confirmar si la ruta de entrega requiere operacion BVLOS (mas alla de linea de vista) — solo permitida para RPAS Grande bajo condiciones especificas de la norma"]'::jsonb, '["No existe una categoria regulatoria especifica de ''drone delivery'' en la Ley: se evalua bajo el regimen general de RPAS sin servicio publico"]'::jsonb, '{"verificar": false}'::jsonb
+  from reglas r where r.clave = 'MX-LAC-30-REGISTRO-RPAS'
+  on conflict (regla_id, categoria, regimen) do update set
+    veredicto_base = excluded.veredicto_base, tope_monto = excluded.tope_monto,
+    tope_pct = excluded.tope_pct, requisitos = excluded.requisitos,
+    banderas = excluded.banderas, parametros = excluded.parametros;
+
+insert into reglas (clave, jurisdiccion, dimension, titulo, texto_resumen,
+                    fuente_cita, fuente_url, source_version, vigente_desde, vigente_hasta) values
+  ('MX-LAC-74-SEGURO-RPAS', 'MX', 'regulatorio', 'Seguro de responsabilidad civil obligatorio para RPAS', 'Toda persona operadora de una aeronave (incluye RPAS) que transite en espacio aereo nacional debe contratar y mantener vigente un seguro que cubra danos a terceros, carga y equipaje. El contrato de seguro requiere aprobacion previa de AFAC antes de iniciar operaciones (plazo de respuesta de AFAC: 15 dias habiles). NOTA DE VIGENCIAS: NOM-107-SCT3-2019 (2019) cita este requisito como ''articulo 72'' de la Ley; la Ley vigente (reforma consolidada DOF 14-11-2025) ubica la obligacion en el Articulo 74 tras renumeraciones posteriores — se cita el numero vigente, no el de la NOM.',
+   'Ley de Aviacion Civil, Art. 74 (reformado DOF 03-05-2023)', 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LAC.pdf', 'seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros',
+   '2023-05-03'::date, null)
+  on conflict (clave) do update set jurisdiccion = excluded.jurisdiccion,
+    dimension = excluded.dimension, titulo = excluded.titulo,
+    texto_resumen = excluded.texto_resumen, fuente_cita = excluded.fuente_cita,
+    fuente_url = excluded.fuente_url, source_version = excluded.source_version,
+    vigente_desde = excluded.vigente_desde, vigente_hasta = excluded.vigente_hasta;
+insert into impactos (regla_id, categoria, regimen, veredicto_base,
+                      tope_monto, tope_pct, requisitos, banderas, parametros)
+  select r.id, 'DRONES_DELIVERY', 'GENERAL', 'permitido',
+         null, null,
+         '["Contratar y mantener vigente poliza de seguro de responsabilidad civil por danos a terceros, carga y equipaje (LAC Art. 74)", "Obtener la aprobacion de AFAC sobre el contrato de seguro ANTES de iniciar operaciones (LAC Art. 74)", "Portar copia de la poliza vigente en la estacion de control durante la operacion (NOM-107-SCT3-2019)"]'::jsonb, '["Operar sin poliza vigente o sin aprobacion de AFAC deja la operacion fuera de cumplimiento — sancionable conforme al capitulo de infracciones de la Ley", "NOM-107-SCT3-2019 cita ''articulo 72''; el articulo vigente hoy es el 74 (renumeracion posterior a 2019) — usar 74"]'::jsonb, '{"verificar": false}'::jsonb
+  from reglas r where r.clave = 'MX-LAC-74-SEGURO-RPAS'
   on conflict (regla_id, categoria, regimen) do update set
     veredicto_base = excluded.veredicto_base, tope_monto = excluded.tope_monto,
     tope_pct = excluded.tope_pct, requisitos = excluded.requisitos,
