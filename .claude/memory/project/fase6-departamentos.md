@@ -119,3 +119,47 @@ funciona = canal saliente verificado. Falta: Member IDs del resto del equipo en
 SLACK_ALLOWED_USERS y expandir canales por config. ⚠️ Los tokens de Slack viajaron
 en un screenshot del chat de la sesión (riesgo bajo, local): ofrecer rotación
 (reinstalar app + regenerar xapp-) como higiene.
+
+## ACTUALIZACIÓN 2026-07-09 — dogfood real: infra lista, PAUSADO en credencial
+
+Política de ruteo por tarea decidida (GLM-5.2 para simple/mecánica vía seam
+z.ai, Sonnet para media/alta, Opus casi nunca) y documentada en
+`negocio/MEMORY.md` (sección "Riesgo aparte: dogfood real del trío/enjambre")
+y en el bloque `<!-- TRIO-DOGFOOD:POLICY -->` del `SOUL.md` de las 3 verticales
+(negocio/personal/clientes) — sincronizado y verificado byte-a-byte en runtime.
+
+**Dos huecos de infra cerrados en el server, cero tokens:**
+- `supervisor-a2a` reconstruido: Playwright + Chromium instalados
+  (`@playwright/test@1.61.1` en `/ms-playwright`, `ENV PLAYWRIGHT_BROWSERS_PATH`).
+  Antes de esto, el gate `tests` (`npx playwright test`) SIEMPRE rechazaba
+  (`no_ejecutable`) sin importar el modelo o la calidad de la tarea — era un
+  residual silencioso que hubiera hecho fallar el primer dogfood real por una
+  razón ajena al motor. El repo objetivo de la tarea debe pinear la MISMA
+  versión de `@playwright/test` para que el caché resuelva sin re-descargar.
+- `ejecutor-a2a` reconstruido: Node + `@anthropic-ai/claude-code` instalado
+  (`claude --version` → `2.1.205` verificado dentro de la imagen). El Dockerfile
+  ya no es mock-only a nivel de imagen.
+- Ambos Dockerfiles se copiaron (`scp`, no git — el checkout del server en
+  `~/repo/businessos` es un `git archive`, no un repo git) y se reconstruyeron
+  con `docker compose --profile trio build <servicio>`.
+
+**Bloqueado (pendiente de la dueña):** falta `ANTHROPIC_AUTH_TOKEN` (API key de
+z.ai) en el `.env` del server — la dueña la agrega ella misma vía SSH, nunca
+por chat (ni la key ni capturas de la consola). Ruta real para obtenerla:
+login en z.ai → `z.ai/manage-apikey/apikey-list` → crear key → verificar saldo
+en `z.ai/manage-apikey/billing`.
+
+**Gotcha de arquitectura descubierto:** `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`
+son env vars de contenedor completo (`claude_engine.py` las lee de `os.environ`,
+no por tarea) — mientras `ejecutor-a2a` apunte a z.ai, TODAS sus tareas usan
+GLM, no solo la marcada como "simple". El ruteo verdaderamente por-tarea entre
+proveedores requeriría togglear la env var + reiniciar entre corridas (no es
+instantáneo hoy). Para la primera tarea (simple) no importa.
+
+**Plan al desbloquear:** setear `EJECUTOR_ENGINE=claude` + recrear
+`ejecutor-a2a`; tarea de humo con `presupuesto_usd=1`, `modelo_pref="glm-5.2"`,
+scaffold npm mínimo (`package.json` con build/typecheck/lint + `@playwright/test@1.61.1`
++ test trivial) en `~/businessos/trio-repo`; mandarla por A2A; reportar veredicto
+del Supervisor + gasto real en `token_usage` (vertical `trio`) — la primera
+cifra medida (hasta ahora todo estimado). Pausado explícitamente por la dueña
+el 2026-07-09.

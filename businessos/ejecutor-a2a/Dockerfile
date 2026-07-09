@@ -5,15 +5,21 @@
 # (trio-contrato/contrato.py) se copia dentro de la imagen:
 #   docker build -f ejecutor-a2a/Dockerfile .
 #
-# MOTOR REAL (EJECUTOR_ENGINE=claude): requiere ademas el CLI de Claude Code
-# (Node + `npm i -g @anthropic-ai/claude-code`) y ANTHROPIC_API_KEY. Esta imagen
-# NO lo trae (default = mock, cero tokens): activar el motor real es decision
-# explicita de la dueña (residual runtime, ver ROADMAP Fase 6).
+# MOTOR REAL (EJECUTOR_ENGINE=claude): requiere el CLI de Claude Code (Node +
+# `npm i -g @anthropic-ai/claude-code`, instalado aqui abajo) y una credencial
+# en runtime — ANTHROPIC_API_KEY (Anthropic directo) o ANTHROPIC_BASE_URL +
+# ANTHROPIC_AUTH_TOKEN (seam GLM-5.2 via z.ai). El CLI se instala en TIEMPO DE
+# BUILD (no necesita credencial); la credencial se inyecta por env var al
+# arrancar el contenedor — decision explicita de la dueña de encenderla
+# (ver ROADMAP Fase 6, residual "dogfood real").
 FROM python:3.12-slim
 
 # git: el aislamiento por tarea son git worktrees (workspace.py)
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+# nodejs/npm: soporte del CLI de Claude Code para el motor real
+RUN apt-get update && apt-get install -y --no-install-recommends git nodejs npm \
     && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
 
 # El repo/worktrees llegan por bind-mount/volumen con uid del host (distinto de
 # root): sin esto git aborta con 'dubious ownership'. El contenedor solo ve SUS
