@@ -33,7 +33,7 @@ PRINT_PHASE = HERE / "print-phase.sh"
 LOCAL_SNAPSHOT = Path("/tmp/cli-audit.json")
 EMIT = "--emit" in sys.argv[1:]
 
-# Servicios internos del propio BusinessOS: no son APIs externas que requieran CLI.
+# Servicios internos del propio Hermes OS · A2A: no son APIs externas que requieran CLI.
 INTERNAL_SERVICES = {"hermes-personal", "hermes-negocio", "hermes-clientes", "dashboard"}
 # Donde Printing Press deja los CLIs publicados: ~/printing-press/library/<slug>
 # (confirmado con cli-printing-press 4.27.0: `publish ... --dir ~/printing-press/library/notion`).

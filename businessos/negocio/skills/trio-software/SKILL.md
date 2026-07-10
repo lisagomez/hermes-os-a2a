@@ -2,7 +2,7 @@
 name: trio-software
 description: "Orquesta el departamento Desarrollo de Software: arma una tarea con criterios de aceptación, la reparte al Ejecutor A2A, interpreta el veredicto del Supervisor, reintenta con tope, escala a Elisa y SIEMPRE pide su visto bueno antes de lo irreversible (merge/deploy)."
 version: 1.0.0
-author: BusinessOS
+author: Hermes OS · A2A
 license: MIT
 metadata:
   hermes:

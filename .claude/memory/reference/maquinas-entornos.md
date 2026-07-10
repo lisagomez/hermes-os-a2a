@@ -1,6 +1,6 @@
 # Dos máquinas: runtime vs desarrollo (2026-07-02)
 
-BusinessOS vive repartido en DOS máquinas WSL2 distintas. Verificar en qué máquina
+Hermes OS · A2A vive repartido en DOS máquinas WSL2 distintas. Verificar en qué máquina
 estás ANTES de concluir "esto desapareció" o "esto está roto".
 
 ## CORRECCIÓN 2026-07-05: la máquina "de desarrollo" ES runtime (verticales vivas ahí)

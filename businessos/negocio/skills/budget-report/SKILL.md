@@ -2,7 +2,7 @@
 name: budget-report
 description: "Reporta el gasto de tokens del mes (presupuesto) por vertical y total, con alerta al 80%."
 version: 3.0.0
-author: BusinessOS
+author: Hermes OS · A2A
 license: MIT
 metadata:
   hermes:

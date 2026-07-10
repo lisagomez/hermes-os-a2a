@@ -1,4 +1,4 @@
-# cli-manifest.yaml — Qué CLIs necesita BusinessOS y cuándo imprimirlos.
+# cli-manifest.yaml — Qué CLIs necesita Hermes OS · A2A y cuándo imprimirlos.
 #
 # Este manifiesto es la fuente de verdad del sistema de generación automática.
 # El script print-phase.sh lee este archivo e imprime (vía Printing Press en

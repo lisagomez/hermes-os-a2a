@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# print-phase.sh — Generación automática de CLIs por fase para BusinessOS.
+# print-phase.sh — Generación automática de CLIs por fase para Hermes OS · A2A.
 #
 # Lee cli-manifest.yaml y, para la fase indicada, prepara las instrucciones de
 # impresión de cada CLI. Printing Press corre dentro de Claude Code (comando

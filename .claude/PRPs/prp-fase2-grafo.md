@@ -1,7 +1,7 @@
 # PRP-002: Grafo — Cerebro Regulatorio Fiscal (Fase 2)
 
 > **Estado:** APROBADO (2026-07-01, aprobación del plan por Elisa en Claude Code)
-> **Proyecto:** BusinessOS · **Fase del ROADMAP:** 2
+> **Proyecto:** Hermes OS · A2A · **Fase del ROADMAP:** 2
 > **Fuente de verdad del diseño:** este PRP + `businessos/ROADMAP.md:99-107`
 
 ---
@@ -105,7 +105,7 @@ concepto con fuente citada**, banderas rojas y checklist. Señala riesgos; NO as
   compose sea correcto (los `env_file: [.env]` de las verticales no son opcionales).
 - **Fix**: validar con copia temporal (`cp .env.example .env && docker compose config -q && rm .env`);
   `.env` está gitignored, riesgo cero.
-- **Aplicar en**: validación local del compose de BusinessOS.
+- **Aplicar en**: validación local del compose de Hermes OS · A2A.
 
 ### 2026-07-02: estado real de la validación de runtime
 - Daemon Docker apagado en WSL2 (arrancarlo pide sudo interactivo) → `up + /health + POST` real

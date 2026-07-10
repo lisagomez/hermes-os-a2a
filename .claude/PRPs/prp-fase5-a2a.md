@@ -2,7 +2,7 @@
 
 > **Estado**: COMPLETADO (núcleo, 2026-07-03) — residuales de runtime en ROADMAP §Fase 5
 > **Fecha**: 2026-07-03
-> **Proyecto**: BusinessOS
+> **Proyecto**: Hermes OS · A2A
 
 ---
 

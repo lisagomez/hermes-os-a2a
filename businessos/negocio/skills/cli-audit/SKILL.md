@@ -2,7 +2,7 @@
 name: cli-audit
 description: "Reporta el estado de los CLIs agente-nativos (Printing Press): cuáles faltan imprimir para la fase actual, cuáles convendría revisar, y el comando exacto a correr en Claude Code."
 version: 1.0.0
-author: BusinessOS
+author: Hermes OS · A2A
 license: MIT
 metadata:
   hermes:

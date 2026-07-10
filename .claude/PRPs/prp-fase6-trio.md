@@ -6,7 +6,7 @@
 > en runtime/Droplet, smoke motor real gated (decisión de la dueña), gates de
 > modelo cuando tengan runner.
 > **Fecha**: 2026-07-03
-> **Proyecto**: BusinessOS
+> **Proyecto**: Hermes OS · A2A
 > **Rama**: `feat/fase6-trio`
 
 ---

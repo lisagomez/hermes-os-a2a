@@ -58,4 +58,4 @@ El GET trae secretos (SMTP, etc.) → no volcar entero, filtrar el campo con `py
 ## Esquema aplicado (2026-06-27)
 `token_usage` y `facturas` creadas y verificadas (RLS ON, sin políticas = solo
 `service_role`). Definición fuente: `businessos/supabase-init.sql`. Hay además una tabla
-`profiles` (de un add-login previo, ajena a BusinessOS).
+`profiles` (de un add-login previo, ajena a Hermes OS · A2A).

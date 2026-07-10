@@ -25,7 +25,7 @@
 
 display_information:
   name: Hermes Negocio
-  description: Agente del departamento negocio (BusinessOS) — presupuesto, KPIs y coordinación del equipo.
+  description: Agente del departamento negocio (Hermes OS · A2A) — presupuesto, KPIs y coordinación del equipo.
   background_color: "#1a1d21"
 
 features:

@@ -8,7 +8,7 @@ persona + respaldo nocturno. Progreso: **3 de 3 verticales vivas y respondiendo
 - ✅ **Vertical personal (iris)** viva como servicio persistente `hermes-personal`
   (contenedor, `--restart unless-stopped`, red `hermes-net`), corriendo en **WSL2 local**
   (no en el Droplet todavía). Bot propio **Kiris** `@hermes_khmcih2cwjdulkbq_bot`.
-  Modelo `nvidia/nemotron-3-super-120b-a12b` vía OpenRouter. Persona BusinessOS
+  Modelo `nvidia/nemotron-3-super-120b-a12b` vía OpenRouter. Persona Hermes OS · A2A
   instalada. Round-trip verificado: le escribes → responde.
 - ✅ **Vertical negocio** viva como servicio `hermes-negocio` (2026-06-28). Bot
   **@a2aTeamBot** (id 8718725089). Mismo modelo nemotron vía OpenRouter, persona negocio
@@ -62,7 +62,7 @@ Mismo patrón que personal → ver [[hermes-vertical-setup]]. Cada una con su pr
   viajó al transcript) y reiniciar Claude Code para que el MCP tome el valor corregido.
 - El Hermes "del host" (`~/.hermes`) tiene un `config.yaml` **corrupto** (bloque
   `telegram:` mal inyectado en `platform_toolsets:`, ~línea 660). No se arregló porque
-  se decidió usar bot/vertical nuevos. Es ajeno a BusinessOS.
+  se decidió usar bot/vertical nuevos. Es ajeno a Hermes OS · A2A.
 
 ## ACTUALIZACIÓN 2026-07-08 — FASE 0 COMPLETA (salvo voz)
 

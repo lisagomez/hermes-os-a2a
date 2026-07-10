@@ -1,6 +1,6 @@
 ---
 name: despliegue-hetzner
-description: Decisión (2026-07-04) — el despliegue de bajo presupuesto de BusinessOS va a Hetzner Cloud (no DigitalOcean); CX32 8GB ~€6.80/mes corre todo incl. grafo. Runbook en businessos/FASE0-hetzner.md.
+description: Decisión (2026-07-04) — el despliegue de bajo presupuesto de Hermes OS · A2A va a Hetzner Cloud (no DigitalOcean); CX32 8GB ~€6.80/mes corre todo incl. grafo. Runbook en businessos/FASE0-hetzner.md.
 metadata:
   type: project
 ---

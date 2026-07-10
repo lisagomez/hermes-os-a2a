@@ -2,7 +2,7 @@
 
 > **Estado**: APROBADO (2026-07-02, tal cual) — en ejecución con bucle-agentico
 > **Fecha**: 2026-07-02
-> **Proyecto**: BusinessOS
+> **Proyecto**: Hermes OS · A2A
 
 ---
 

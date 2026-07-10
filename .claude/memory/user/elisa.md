@@ -1,6 +1,6 @@
 # Elisa — dueña-operadora única
 
-La usuaria es **Elisa**, la dueña-operadora única de BusinessOS (el "una persona
+La usuaria es **Elisa**, la dueña-operadora única de Hermes OS · A2A (el "una persona
 multiplicada por tres verticales" de BUSINESS_LOGIC.md §3). No es un equipo.
 
 - **Telegram user_id: `7022378429`** (nombre "Elisa"). Es el allowlist de los bots y el

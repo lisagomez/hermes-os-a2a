@@ -2,7 +2,7 @@
 
 > **Estado**: PENDIENTE
 > **Fecha**: 2026-06-30
-> **Proyecto**: BusinessOS
+> **Proyecto**: Hermes OS · A2A
 
 ---
 

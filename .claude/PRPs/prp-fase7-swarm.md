@@ -2,7 +2,7 @@
 
 > **Estado**: APROBADO (2026-07-04, por la dueña)
 > **Fecha**: 2026-07-04
-> **Proyecto**: BusinessOS
+> **Proyecto**: Hermes OS · A2A
 > **Rama sugerida**: `feat/fase7-swarm`
 > **Depende de**: PRP-006 (Fase 6, trío Hermes→Ejecutor→Supervisor) — YA construido y validado en dev.
 >

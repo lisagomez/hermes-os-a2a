@@ -1,6 +1,6 @@
 name: businessos
 
-# BusinessOS — Hermes Agent multi-vertical sobre Docker
+# Hermes OS · A2A — Hermes Agent multi-vertical sobre Docker
 # Patron oficial de Nous Research: UN contenedor por vertical (no multi-profile).
 # Regla de oro: nunca dos gateways sobre el mismo volumen (corrompe el estado).
 #
