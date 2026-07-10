@@ -466,7 +466,7 @@ regulación debe cumplir el seguro de un dron para delivery?
 
 ---
 
-## FASE 9 — Departamento de Adquisición de Clientes agéntico 🔨 núcleo construido en dev (2026-07-10); runtime pendiente
+## FASE 9 — Departamento de Adquisición de Clientes agéntico ✅ núcleo VIVO en runtime (2026-07-10); motor real/envíos = gates de la dueña
 
 El ciclo comercial del white-label: cómo se consiguen los clientes a los que
 Desarrollo de Software (Fase 6/7) les entrega. Diseño completo en
@@ -499,8 +499,15 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   políticas) + servicio en el compose (profile `a2a`, 127.0.0.1:4400) + smoke
   de runtime extendido (tier 4). 217+ tests verdes en los 6 servicios, cero
   tokens.
-- [ ] **Runtime**: aplicar `supabase-fase9.sql`, rsync + compose up en Hetzner,
-  smoke tier 4, verificar 4400 solo en localhost.
+- [x] **Runtime (cerrado 2026-07-10)** — `supabase-fase9.sql` aplicado en producción
+  (management API, patrón de siempre; `leads` con RLS verificada por MCP, sin alertas
+  nuevas); rsync + rebuild de supervisor/ejecutor + `--profile a2a up -d ventas-a2a`
+  en Hetzner (healthy); smoke completo tiers 1–4 en hermes-net TODO en verde
+  (lead real `persistido=true`, fila verificada en `leads` de prod); `ss -tlnp`
+  confirma 4000–4400 SOLO en 127.0.0.1. Gotcha corregido: el Dockerfile del
+  supervisor no copiaba `chequeos_adquisicion.py` → crash-loop
+  (ModuleNotFoundError); los tests de dev no lo cazan porque corren desde el
+  directorio fuente — un módulo python nuevo exige su COPY en el Dockerfile.
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
   de autenticidad de aprobación); negociación A2A externa autónoma (política

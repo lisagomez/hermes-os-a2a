@@ -551,4 +551,15 @@ npm run lint         # ESLint
   parte de la definición de terminado.
 - **Aplicar en**: todo despliegue de servicios A2A/trío y toda verificación de verticales Hermes.
 
+### 2026-07-10: Un módulo python nuevo en un servicio exige su COPY en el Dockerfile
+- **Error**: Fase 9 añadió `supervisor-a2a/chequeos_adquisicion.py` (importado por
+  `executor.py`) pero el Dockerfile copia archivos EXPLÍCITOS y nadie añadió el nuevo →
+  en runtime el supervisor entró en crash-loop (`ModuleNotFoundError`). Los 219 tests de
+  dev NO lo cazan: pytest corre desde el directorio fuente, donde el módulo sí existe.
+- **Fix**: al crear un archivo en un servicio dockerizado, actualizar su Dockerfile en el
+  MISMO cambio (hermano del gotcha 2026-07-08 "el compose es parte de la definición de
+  terminado"). Señal en runtime: `Up X seconds` que rejuvenece tras un sleep = crash-loop;
+  confirmar con `docker compose logs`.
+- **Aplicar en**: todo servicio con COPY explícito (los 6 A2A) y todo smoke post-deploy.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

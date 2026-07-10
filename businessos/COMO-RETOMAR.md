@@ -47,7 +47,7 @@ Sumar servicios a demanda (perfiles):
 ```bash
 docker compose --profile verticales up -d   # + personal + clientes
 docker compose --profile trio up -d         # + ejecutor + supervisor
-docker compose --profile a2a up -d          # + grafo-a2a
+docker compose --profile a2a up -d          # + grafo-a2a + ventas-a2a (Fase 9)
 ```
 
 ## 3. Ver el dashboard (Mission Control)
@@ -124,4 +124,7 @@ Al bot le puedes preguntar **"¿cómo va el presupuesto?"** y responde con datos
   `COORDINADOR_PLANNER=claude` + CLI de Claude Code en las imágenes.
 - **Polar producción**: cambiar token/product_id de sandbox a prod cuando haya cobros reales.
 - **Voz** (TTS/transcripción) y **exposición de grafo-a2a a internet** (dominio + auth real).
+- **Fase 9 (adquisición)**: motor LLM real para tareas `adquisicion`, host-job
+  `enviar-salientes.py` (email real), negociación A2A externa, card de ventas en internet,
+  canal `#dep-adquisicion` en Slack. El núcleo ya corre en Hetzner (ventas-a2a :4400).
 - **CLIs pendientes de imprimir** (acción humana en Claude Code): grafo y Polar (`/printing-press`).

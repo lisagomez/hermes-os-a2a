@@ -1,6 +1,6 @@
 ---
 name: fase9-adquisicion
-description: Fase 9 — departamento de Adquisicion de Clientes agentico (vende el white-label); nucleo construido en dev 2026-07-10, runtime en Hetzner PENDIENTE
+description: Fase 9 — departamento de Adquisicion de Clientes agentico (vende el white-label); nucleo VIVO en runtime Hetzner 2026-07-10; motor real/envios = gates de la dueña
 metadata:
   type: project
 ---
@@ -54,15 +54,21 @@ tramo con MockEngine cero tokens; motor real/envios = gates de la dueña.
 dogfood integral aprobado/rechazado, ejecutor 35, coordinador 53, grafo-a2a 17,
 ventas-a2a 14). Cero tokens.
 
-**PENDIENTE (runtime, en orden):**
-1. Aplicar `supabase-fase9.sql` en Supabase (management API si el MCP esta
-   read-only, patron de siempre: UA curl/8.0).
-2. rsync de businessos/ (supervisor-a2a, ejecutor-a2a, trio-contrato,
-   ventas-a2a, compose, smoke) al server + `docker compose build` supervisor/
-   ejecutor + `--profile a2a up -d ventas-a2a` + restart supervisor (carga el
-   directorio de reglas con 2 TOMLs).
-3. Smoke tier 4 en hermes-net; `ss -tlnp` confirma 4400 solo localhost.
-4. Commitear todo (sigue sin commit).
+**RUNTIME CERRADO (2026-07-10):**
+1. `supabase-fase9.sql` aplicado en prod via management API (HTTP 201); `leads`
+   verificada por MCP read-only (RLS on, sin alertas nuevas en advisors).
+2. rsync + rebuild supervisor/ejecutor + `--profile a2a up -d ventas-a2a` en
+   Hetzner: los 3 healthy. **Gotcha real**: el Dockerfile del supervisor NO
+   copiaba `chequeos_adquisicion.py` → crash-loop ModuleNotFoundError; los 219
+   tests de dev no lo cazan (corren desde el directorio fuente). Regla: modulo
+   python nuevo en un servicio = su COPY en el Dockerfile es parte de la
+   definicion de terminado (hermano del gotcha "compose es parte del terminado").
+3. Smoke runtime tiers 1-4 TODO en verde dentro de hermes-net: card+opacidad de
+   los 5 servicios, grafo-a2a con fuentes+disclaimer, trio con rechazo honesto
+   (gates npm reales), y tier 4: lead `persistido=true` + fila real en `leads`
+   de prod (verificada por SQL). `ss -tlnp`: 4000-4400 SOLO en 127.0.0.1.
+4. Nucleo commiteado en `2f217dc`; el cierre de runtime (Dockerfile fix + docs)
+   en el commit siguiente.
 
 **Gates de la dueña (nada corre solo):** motor LLM real para tareas
 adquisicion; host-job `enviar-salientes.py` (email real + autenticidad);

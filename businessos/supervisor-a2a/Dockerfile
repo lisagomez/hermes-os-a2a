@@ -39,6 +39,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY trio-contrato/contrato.py .
 COPY supervisor-a2a/card.py supervisor-a2a/executor.py supervisor-a2a/gates.py \
+     supervisor-a2a/chequeos_adquisicion.py \
      supervisor-a2a/veredicto.py supervisor-a2a/app.py ./
 COPY supervisor-a2a/reglas ./reglas
 
