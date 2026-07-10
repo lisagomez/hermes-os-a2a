@@ -84,6 +84,9 @@ def validar(seed: dict) -> list[str]:
             if kw in kw_global and kw_global[kw] != clave:
                 err(e, f"keyword {kw!r} repetida en {kw_global[kw]} y {clave} (clasificacion ambigua)")
             kw_global[kw] = clave
+        for kw in cat.get("exclusiones", []):
+            if kw != kw.lower().strip() or not kw:
+                err(e, f"categoria {clave}: exclusion {kw!r} debe ir en minusculas y sin espacios extremos")
 
     jurs = {j.get("codigo") for j in seed.get("jurisdicciones", [])}
     dims = {d.get("codigo") for d in seed.get("dimensiones", [])}
@@ -200,10 +203,12 @@ def generar_sql(seed: dict) -> str:
     out.append("")
     for c in seed["categorias"]:
         out.append(
-            "insert into categorias_gasto (clave, nombre, descripcion, keywords) values\n"
-            f"  ({lit(c['clave'])}, {lit(c['nombre'])}, {opt(c.get('descripcion'), lit)}, {arr(c['keywords'])})\n"
+            "insert into categorias_gasto (clave, nombre, descripcion, keywords, exclusiones) values\n"
+            f"  ({lit(c['clave'])}, {lit(c['nombre'])}, {opt(c.get('descripcion'), lit)}, "
+            f"{arr(c['keywords'])}, {arr(c.get('exclusiones', []))})\n"
             "  on conflict (clave) do update set nombre = excluded.nombre,\n"
-            "    descripcion = excluded.descripcion, keywords = excluded.keywords;"
+            "    descripcion = excluded.descripcion, keywords = excluded.keywords,\n"
+            "    exclusiones = excluded.exclusiones;"
         )
     out.append("")
 

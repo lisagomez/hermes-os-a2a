@@ -57,6 +57,7 @@ def ensamblar_conocimiento(
                 "nombre": c["nombre"],
                 "descripcion": c["descripcion"],
                 "keywords": list(c["keywords"]),
+                "exclusiones": list(c["exclusiones"]),
             }
             for c in categorias
         ],
@@ -83,7 +84,8 @@ def ensamblar_conocimiento(
 def conocimiento() -> dict[str, Any]:
     with _conectar() as conn:
         categorias = conn.execute(
-            "select clave, nombre, descripcion, keywords from categorias_gasto order by clave"
+            "select clave, nombre, descripcion, keywords, exclusiones"
+            "  from categorias_gasto order by clave"
         ).fetchall()
         reglas = conn.execute(
             "select id, clave, jurisdiccion, dimension, titulo, texto_resumen, fuente_cita,"

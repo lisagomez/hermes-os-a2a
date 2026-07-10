@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v3 (Fase 8): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
+    "descripcion": "Seed del grafo v3 (Fase 8): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019 — verificado contra texto primario, no contra blogs de terceros",
+    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal).",
     "regimen_default": "PM_TITULO_II"
   },
   "jurisdicciones": [
@@ -205,6 +205,31 @@
         "vehiculo aereo no tripulado",
         "dron de reparto",
         "drone delivery"
+      ],
+      "exclusiones": [
+        "agente de seguros",
+        "agente de seguros y fianzas",
+        "corredor de seguros",
+        "correduria de seguros",
+        "intermediario de seguros",
+        "intermediacion de seguros",
+        "vender seguros",
+        "cedula de agente"
+      ]
+    },
+    {
+      "clave": "AGENTES_SEGUROS",
+      "nombre": "Intermediacion de seguros: agentes y corredores",
+      "descripcion": "Actuar como agente/corredor que intermedia la contratacion de seguros (vender, cotizar o asesorar sobre polizas), independientemente del ramo asegurado",
+      "keywords": [
+        "agente de seguros",
+        "agente de seguros y fianzas",
+        "corredor de seguros",
+        "correduria de seguros",
+        "intermediario de seguros",
+        "intermediacion de seguros",
+        "vender seguros",
+        "cedula de agente"
       ]
     }
   ],
@@ -904,6 +929,88 @@
           "banderas": [
             "Operar sin poliza vigente o sin aprobacion de AFAC deja la operacion fuera de cumplimiento — sancionable conforme al capitulo de infracciones de la Ley",
             "NOM-107-SCT3-2019 cita 'articulo 72'; el articulo vigente hoy es el 74 (renumeracion posterior a 2019) — usar 74"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISF-93-AUTORIZACION-AGENTE",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Autorizacion de la CNSF para actuar como agente de seguros",
+      "texto_resumen": "Se considera agente de seguros a la persona fisica o moral que interviene en la contratacion de seguros (intercambio de propuestas y aceptacion, comercializacion, asesoramiento para celebrar/conservar/modificar polizas). Para ejercer esa actividad se requiere autorizacion previa de la Comision Nacional de Seguros y Fianzas (CNSF); la Comision puede suspender (hasta 2 anios) o revocar la autorizacion, ademas de aplicar amonestaciones y multas. Los requisitos especificos de la autorizacion (examen, credencial, inscripcion) los fija el reglamento respectivo de la CNSF, no la Ley misma — no verificados en este texto primario.",
+      "fuente_cita": "Ley de Instituciones de Seguros y de Fianzas, Art. 91 y 93",
+      "fuente_url": "http://www.diputados.gob.mx/LeyesBiblio/pdf/LISF.pdf",
+      "vigente_desde": "2013-04-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "AGENTES_SEGUROS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Obtener autorizacion de la Comision Nacional de Seguros y Fianzas (CNSF) antes de intermediar cualquier contrato de seguro (LISF Art. 93)",
+            "Verificar directamente con la CNSF los requisitos especificos de la autorizacion (examen, credencial/cedula, inscripcion, garantia o fianza personal del agente si aplica): la Ley los remite a 'el reglamento respectivo' y no los detalla — investigado en el texto primario de la LISF (Titulo Cuarto, Capitulo Segundo, Art. 91-103) y NO se encontro un requisito de garantia/fianza de fidelidad para el agente como persona (las 'fianzas de fidelidad' que menciona la Ley, Art. 36 y 170, son un RAMO de producto de Institucion de Fianzas, no una garantia que el agente deba constituir); si existe, vive en disposiciones de la CNSF (reglamento/Circular Unica) aun no verificadas contra fuente primaria — pendiente de cotejo"
+          ],
+          "banderas": [
+            "Ejercer como agente de seguros SIN autorizacion de la CNSF infringe el Art. 93 LISF: la Comision puede suspender (hasta 2 anios) o revocar la autorizacion y aplicar amonestaciones/multas"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISF-94-DEBER-INFORMACION-AGENTE",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Deberes de informacion del agente de seguros y prohibicion de datos falsos",
+      "texto_resumen": "El agente de seguros debe informar de manera amplia y detallada al contratante sobre el alcance real de la cobertura y como conservarla o darla por terminada, y debe proporcionar a la Institucion de Seguros la informacion precisa y relevante del riesgo que conozca. Tiene prohibido proporcionar datos falsos o adversos sobre las Instituciones.",
+      "fuente_cita": "Ley de Instituciones de Seguros y de Fianzas, Art. 94",
+      "fuente_url": "http://www.diputados.gob.mx/LeyesBiblio/pdf/LISF.pdf",
+      "vigente_desde": "2013-04-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "AGENTES_SEGUROS",
+          "regimen": "GENERAL",
+          "requisitos": [
+            "Informar de manera amplia y detallada al contratante el alcance real de la cobertura del seguro y como conservarla o darla por terminada (LISF Art. 94, fraccion I)",
+            "Proporcionar a la Institucion de Seguros la informacion precisa y relevante del riesgo que el agente conozca (LISF Art. 94, fraccion I)"
+          ],
+          "banderas": [
+            "Prohibido proporcionar datos falsos o adversos sobre las Instituciones de Seguros (LISF Art. 94, fraccion III)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LISF-25-93-RAMOS-AGENTE",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "La autorizacion del agente de seguros es por ramo, no generica",
+      "texto_resumen": "El Art. 93 dice que las autorizaciones de agente 'podran otorgarse para realizar actividades de intermediacion en las operaciones y ramos... que determine la Comision'. El catalogo de operaciones y ramos de seguro esta en el Art. 25: I. Vida; II. Accidentes y enfermedades (accidentes personales, gastos medicos, salud); III. Danios (responsabilidad civil y riesgos profesionales, maritimo y transportes, incendio, agricola y de animales, automoviles, credito, caucion, credito a la vivienda, garantia financiera, riesgos catastroficos, diversos, y los especiales que declare la Secretaria). No existe un ramo llamado 'aviacion' o 'drones' en este catalogo: un seguro de RPAS/drones normalmente encajaria en Danios (posiblemente 'responsabilidad civil y riesgos profesionales' u otro subramo/ramo especial), pero la clasificacion exacta no esta en el texto de la Ley y debe confirmarse con la CNSF o la aseguradora antes de operar.",
+      "fuente_cita": "Ley de Instituciones de Seguros y de Fianzas, Art. 25 y 93",
+      "fuente_url": "http://www.diputados.gob.mx/LeyesBiblio/pdf/LISF.pdf",
+      "vigente_desde": "2013-04-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "AGENTES_SEGUROS",
+          "regimen": "GENERAL",
+          "requisitos": [
+            "Confirmar ante la CNSF el/los ramo(s) especifico(s) de seguro (Art. 25 LISF: Vida / Accidentes y enfermedades / Danios) para los que se solicita o se tiene autorizacion como agente — la autorizacion NO es generica para 'seguros' en general (LISF Art. 93)",
+            "Para un seguro de drones/RPAS: NO hay ramo explicito de 'aviacion' en el catalogo del Art. 25 — confirmar con la CNSF o la aseguradora bajo que ramo/subramo de Danios se clasificaria antes de cotizar u operar (no verificado en este texto primario)"
+          ],
+          "banderas": [
+            "Intermediar seguros fuera del/los ramo(s) para los que el agente tiene autorizacion equivale a operar sin autorizacion para ese ramo (mismo regimen sancionador del Art. 93 LISF)"
           ],
           "parametros": {
             "verificar": false

@@ -7,7 +7,7 @@ from db import ensamblar_conocimiento
 
 
 CATEGORIAS = [
-    {"clave": "VIATICOS", "nombre": "Viaticos", "descripcion": None, "keywords": ["hotel", "hospedaje"]},
+    {"clave": "VIATICOS", "nombre": "Viaticos", "descripcion": None, "keywords": ["hotel", "hospedaje"], "exclusiones": []},
 ]
 REGLAS = [
     {

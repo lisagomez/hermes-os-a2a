@@ -39,18 +39,31 @@ def _normalizar(texto: str) -> str:
     return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
 
 
+def _casa(texto: str, kw: str) -> bool:
+    kw_n = _normalizar(kw)
+    patron = r"(?<![a-z0-9])" + re.escape(kw_n) + r"(?![a-z0-9])"
+    return re.search(patron, texto) is not None
+
+
 def clasificar(descripcion: str, categorias: list[dict]) -> str | None:
     """Categoria por keyword mas larga con frontera de palabra; None si nada casa.
 
     Empates de longitud se resuelven por orden de catalogo (determinista).
+
+    `exclusiones` (opcional, por categoria): si el texto casa alguna, esa
+    categoria queda descartada por completo aunque tambien casen sus propias
+    keywords — defensa contra colisiones de dominio (ej. "agente de seguros
+    para drones" no debe clasificar como DRONES_DELIVERY solo por mencionar
+    "drones"; ver fase8-grafo-regulatorio, incidente 2026-07-10).
     """
     texto = _normalizar(descripcion)
     mejor: tuple[int, str] | None = None
     for cat in categorias:
+        if any(_casa(texto, kw) for kw in cat.get("exclusiones", [])):
+            continue
         for kw in cat["keywords"]:
-            kw_n = _normalizar(kw)
-            patron = r"(?<![a-z0-9])" + re.escape(kw_n) + r"(?![a-z0-9])"
-            if re.search(patron, texto):
+            if _casa(texto, kw):
+                kw_n = _normalizar(kw)
                 if mejor is None or len(kw_n) > mejor[0]:
                     mejor = (len(kw_n), cat["clave"])
     return mejor[1] if mejor else None

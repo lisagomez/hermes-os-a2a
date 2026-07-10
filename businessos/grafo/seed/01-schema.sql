@@ -24,7 +24,8 @@ create table if not exists categorias_gasto (
   clave       text primary key,            -- 'VIATICOS' (catalogo V1)
   nombre      text not null,
   descripcion text,
-  keywords    text[] not null default '{}' -- clasificacion determinista, sin LLM
+  keywords    text[] not null default '{}', -- clasificacion determinista, sin LLM
+  exclusiones text[] not null default '{}'  -- si casa, descarta esta categoria aunque casen keywords (Fase 8b)
 );
 
 create table if not exists reglas (

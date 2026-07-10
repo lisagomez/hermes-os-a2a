@@ -172,6 +172,15 @@ Validado el acceso+aprobación con los 4, expandir por departamento (`#dep-clien
 `#dep-desarrollo`) y luego los `#cli-*` / `#dev-*`. Mismo patrón, otra membresía y otro
 `channel_prompt`.
 
+**`#dep-legal` (2026-07-09)** — primer canal fuera del plan original: consultas de
+cumplimiento regulatorio, respondidas por `hermes-negocio` consultando el grafo
+(dimensión `regulatorio` de la Fase 8). Mismo patrón additivo: Channel ID agregado a
+`allowed_channels` + `channel_prompt` propio en `negocio/slack-config-fragment.yaml`
+(ahora fuente de verdad de AMBOS canales, ya no placeholder de uno solo — un re-run de
+`slack-piloto.sh` reproduce el estado real en vez de borrar el canal nuevo). Bloqueo
+recurrente: el bot no se auto-une a canales nuevos (sin scope `channels:join`) — hay que
+`/invite @Hermes Negocio` a mano en cada canal nuevo antes de que responda ahí.
+
 ---
 
 ## Encaje con Fase 6

@@ -1,5 +1,6 @@
 # slack-config-fragment.yaml — fragmento a MERGEAR en el config.yaml del volumen
-# de la vertical NEGOCIO (piloto en #dep-negocio; ver departamentos/equipo-y-slack.md).
+# de la vertical NEGOCIO. FUENTE DE VERDAD del estado real (2 canales activos,
+# 2026-07-09): #dep-negocio + #dep-legal. Ver departamentos/equipo-y-slack.md.
 #
 # Verificado contra la doc oficial de hermes-agent el 2026-07-03:
 #   https://hermes-agent.nousresearch.com/docs/user-guide/messaging/slack
@@ -7,6 +8,7 @@
 # GOTCHAS confirmados:
 # - allowed_channels y channel_prompts usan IDs de canal (C…), NUNCA "#nombre".
 #   El ID sale de Slack: canal → View channel details → abajo ("Channel ID").
+#   No son secretos (a diferencia de los tokens); es seguro versionarlos.
 # - Los tokens NO van aquí: van al .env del VOLUMEN (/opt/data/.env), perms 600:
 #     SLACK_BOT_TOKEN=xoxb-…       (Bot Token, tras instalar la app)
 #     SLACK_APP_TOKEN=xapp-…       (App-Level Token, Socket Mode, scope connections:write)
@@ -15,6 +17,12 @@
 # - Aplicar con businessos/slack-piloto.sh en la máquina runtime (backup + merge
 #   + restart), o a mano; NUNCA `docker run` sobre el volumen (segundo gateway
 #   corrompe el estado — aprendizaje 2026-06-30).
+# - ⚠️ slack-piloto.sh REEMPLAZA platforms.slack ENTERO con este fragmento — si
+#   agregas un canal nuevo a mano en el volumen (como #dep-legal, 2026-07-09),
+#   AGRÉGALO TAMBIÉN AQUÍ o un re-run del script lo borra silenciosamente.
+# - El bot debe estar INVITADO al canal en Slack (`/invite @Hermes Negocio`)
+#   para recibir eventos ahí; agregarlo aquí no lo une por sí solo (el bot no
+#   tiene el scope channels:join).
 
 platforms:
   slack:
@@ -26,9 +34,10 @@ platforms:
       reply_in_thread: true      # el trabajo vive en hilos, no ensucia el canal
       reply_broadcast: false
     allowed_channels:
-      - "C_REEMPLAZA_DEP_NEGOCIO"          # ID real de #dep-negocio
+      - "C0BG28N7E6Q"          # #dep-negocio
+      - "C0BH2RKA8QG"          # #dep-legal
     channel_prompts:
-      "C_REEMPLAZA_DEP_NEGOCIO": |
+      "C0BG28N7E6Q": |
         Estas en #dep-negocio, el canal del departamento negocio con el equipo
         de 4 (CEO, CFO, Project Manager, Developer). Ambito: presupuesto de
         tokens, KPIs, cobros y coordinacion interna. Reglas duras: nunca
@@ -36,3 +45,16 @@ platforms:
         4 personas); Slack NO es el sistema de registro (la verdad durable
         vive en Supabase); mover dinero lo aprueba el CFO, y lo irreversible
         siempre lleva visto bueno humano segun la matriz de roles del equipo.
+      "C0BH2RKA8QG": |
+        Estas en #dep-legal, canal de consultas de cumplimiento regulatorio/legal.
+        SIEMPRE consulta el grafo (POST http://grafo:3000/evaluaciones) antes de
+        responder cualquier pregunta de "esta permitido X" o "que debo cumplir"
+        -- nunca respondas con tu propio conocimiento legal sin pasar por el
+        grafo. Elige la dimension segun el tema: regulatorio (permisos/
+        cumplimiento operativo, regimen GENERAL), fiscal/contable/contractual
+        (lo tributario). Presenta SIEMPRE veredicto + fuente citada + banderas +
+        checklist + disclaimer. Si el grafo responde dudoso "sin regla
+        aplicable", dilo explicito y anota la pregunta en el digest para evaluar
+        agregarla como regla nueva -- no inventes una regla que no existe. Esto
+        es informativo, NO asesoria legal: la decision final es de Elisa y su
+        abogado/contador.

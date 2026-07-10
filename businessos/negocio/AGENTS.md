@@ -94,6 +94,20 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
 - No muevas dinero ni credenciales sin confirmación explícita.
 - Nada de credenciales, tokens, variables de entorno ni comandos crudos en el chat:
   solo el resultado. Ver "Higiene de salida".
+- **El terminal SIEMPRE es backend `local`.** Este runtime (Hetzner) NO tiene daemon
+  de Docker accesible: si pides un entorno `docker`/`singularity`/`modal`/`daytona`
+  (o cualquier imagen para el terminal), la llamada falla por completo
+  ("Cannot connect to the Docker daemon") y pierdes el turno. NUNCA pidas un
+  entorno aislado ni una imagen para el terminal; usa siempre el entorno local
+  por defecto, igual que para consultar el grafo.
+- **Si el grafo no respondió (o no lo consultaste), PROHIBIDO simular un
+  veredicto.** Nunca escribas "Veredicto: permitido/no_permitido/deducible" ni
+  un checklist si la llamada a `http://grafo:3000` falló, dio timeout, o
+  simplemente no la hiciste. En ese caso di explícito "el grafo no respondió,
+  no puedo dar veredicto" y ofrece reintentar — nada más. (Incidente real,
+  2026-07-09, `#dep-legal`: una respuesta dijo "el grafo no está disponible" y
+  en el mismo mensaje igual dio un "Veredicto: PERMITIDO" completo con
+  checklist. Esa combinación nunca es aceptable.)
 
 ---
 
@@ -109,6 +123,10 @@ de deducciones (no adivines).
   `POST http://grafo:3000/evaluaciones` con
   `{"contexto":{"fecha":"YYYY-MM-DD"},"conceptos":[{"descripcion":"...","importe":0}]}`.
   Presenta veredicto + `fuente.cita` + banderas + `disclaimer`, siempre.
+  **`jq` NO está instalado en este contenedor** — usa `curl -s ... ` y lee el
+  JSON crudo directamente (ya sabes interpretarlo), o `python3 -c "import json,
+  sys; print(json.load(sys.stdin))"`; NUNCA lo pipees a `jq` (falla con
+  "command not found" y gasta un turno + una aprobación de seguridad en balde).
 - Los veredictos por factura ya viven en Supabase (`facturas.deducibilidad_estado`
   y `deducibilidad_detalle`): los escribe el host-job `businessos/evaluar-facturas.py`
   (tú no tienes secretos de Supabase; consumes cifras vía snapshot, como siempre).
@@ -134,3 +152,26 @@ de deducciones (no adivines).
   y deja el link en `cobros_links/`. El estado (pagado/expirado) vive en Supabase
   `cobros` (job `--sync`); tú lo consumes vía snapshot/reportes. No tienes el token
   de Polar: si el link no aparece, repórtalo, no lo inventes.
+
+---
+
+## Fase 8: grafo — dimensión `regulatorio` (permisos y cumplimiento operativo)
+
+- **El grafo ya no es solo deducibilidad.** Nueva dimensión `dimension:
+  "regulatorio"` para preguntas de "¿está permitido X y qué debo cumplir?" —
+  permisos, registros ante autoridad, seguros obligatorios, límites operativos.
+  Vocabulario de veredicto propio (`permitido`/`no_permitido`/`dudoso`, no
+  `deducible`/`no_deducible`). Usa `regimen: "GENERAL"` en el contexto para
+  esta dimensión (no tiene régimen fiscal).
+- Primera categoría real: `DRONES_DELIVERY` (MX) — registro de RPAS ante AFAC
+  y seguro de responsabilidad civil obligatorio, citando Ley de Aviación Civil
+  Art. 30 y 74. Ejemplo de consulta:
+  `POST http://grafo:3000/evaluaciones` con
+  `{"contexto":{"jurisdiccion":"MX","dimension":"regulatorio","regimen":"GENERAL"},
+  "conceptos":[{"descripcion":"uso de drones para delivery en Mexico"}]}`.
+- Misma regla de siempre: presenta veredicto + fuente citada + banderas +
+  checklist + disclaimer, SIEMPRE. Si la pregunta no tiene regla en el grafo
+  todavía, el fail-safe es `dudoso` "sin regla aplicable" — repórtalo así, no
+  inventes una respuesta con tu propio conocimiento de la ley. Cuando esto pase
+  en un canal de Slack de un ámbito nuevo (ej. legal), anótalo en el digest
+  para que se evalúe agregar la regla al grafo.

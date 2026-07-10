@@ -135,3 +135,60 @@ def test_drones_no_cruza_a_fiscal_ni_viceversa():
     r = ev([{"descripcion": "Uso de drones para delivery en Mexico"}])  # dimension fiscal (default)
     assert r["conceptos"][0]["categoria"] is None
     assert r["conceptos"][0]["estado"] == "dudoso"
+
+
+# --- Regulatorio MX: agentes de seguros (Fase 8b) -- regresion del incidente ------
+# 2026-07-10, #dep-legal: "quiero ser un agente de seguros para drones delivery"
+# clasifico como DRONES_DELIVERY (keyword "drones") y el grafo devolvio un
+# veredicto de OPERADOR de RPAS para una pregunta de INTERMEDIARIO de seguros.
+
+def test_agente_de_seguros_para_drones_no_clasifica_como_drones_delivery():
+    r = ev(
+        [{"descripcion": "quiero ser un agente de seguros para drones delivery"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    c = r["conceptos"][0]
+    assert c["categoria"] == "AGENTES_SEGUROS"
+    assert c["categoria"] != "DRONES_DELIVERY"
+
+def test_agente_de_seguros_permitido_con_autorizacion_cnsf():
+    r = ev(
+        [{"descripcion": "requisitos para ser agente de seguros en Mexico"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    c = r["conceptos"][0]
+    assert c["categoria"] == "AGENTES_SEGUROS"
+    assert c["estado"] == "permitido"
+    fuente = next(f for f in r["fuentes"] if f["clave"] == "MX-LISF-93-AUTORIZACION-AGENTE")
+    assert "Art. 91" in fuente["cita"] and "93" in fuente["cita"]
+    assert any("CNSF" in req for req in c["checklist"])
+    assert any("informar" in req.lower() for req in c["checklist"]), (
+        "debe incluir el deber de informacion del Art. 94 aunque no fije veredicto propio"
+    )
+
+def test_drones_delivery_puro_sigue_clasificando_bien_tras_el_fix():
+    # No-regresion: una pregunta SOLO de operar el dron (sin mencionar seguros/agente)
+    # debe seguir cayendo en DRONES_DELIVERY como antes del fix.
+    r = ev(
+        [{"descripcion": "Uso de drones para delivery en Mexico"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    assert r["conceptos"][0]["categoria"] == "DRONES_DELIVERY"
+
+def test_agentes_seguros_no_cruza_a_fiscal():
+    r = ev([{"descripcion": "quiero ser agente de seguros"}])  # dimension fiscal (default)
+    assert r["conceptos"][0]["categoria"] is None
+    assert r["conceptos"][0]["estado"] == "dudoso"
+
+def test_agente_seguros_checklist_incluye_ramos_y_flag_de_garantia_sin_verificar():
+    r = ev(
+        [{"descripcion": "requisitos para ser agente de seguros en Mexico"}],
+        dimension="regulatorio", regimen="GENERAL",
+    )
+    c = r["conceptos"][0]
+    assert any(f["clave"] == "MX-LISF-25-93-RAMOS-AGENTE" for f in r["fuentes"])
+    assert any("ramo" in req.lower() for req in c["checklist"])
+    assert any("garantia" in req.lower() and "no se encontro" in req.lower() for req in c["checklist"]), (
+        "el checklist debe decir explicitamente que NO se encontro requisito de "
+        "garantia/fianza del agente en el texto primario, no inventarlo"
+    )
