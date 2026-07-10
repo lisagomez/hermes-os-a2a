@@ -7,9 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from gates import ConfigInvalida, cargar_config
+import chequeos_adquisicion  # noqa: F401 — registra los chequeos comerciales
+from gates import ConfigInvalida, cargar_config, cargar_configs
 
-REGLAS_REALES = Path(__file__).resolve().parent.parent / "reglas" / "software.toml"
+DIR_REGLAS = Path(__file__).resolve().parent.parent / "reglas"
+REGLAS_REALES = DIR_REGLAS / "software.toml"
 
 
 def escribir(tmp_path: Path, contenido: str) -> Path:
@@ -79,3 +81,60 @@ def test_regla_duplicada_no_arranca(tmp_path):
 def test_config_inexistente_no_arranca(tmp_path):
     with pytest.raises(ConfigInvalida, match="no existe"):
         cargar_config(tmp_path / "nada.toml")
+
+
+# --- multi-departamento (Fase 9): cargar_configs sobre el directorio ---
+
+def test_directorio_real_carga_ambos_departamentos():
+    configs = cargar_configs(DIR_REGLAS)
+    assert set(configs) == {"software", "adquisicion"}
+    reglas_adq = {g.regla for g in configs["adquisicion"]}
+    assert {
+        "claims_aprobados", "precio_en_rango", "plantilla_contrato_intacta",
+        "salientes_con_aprobacion", "politica_intocable", "sin_secretos",
+    } <= reglas_adq
+    modelo = [g for g in configs["adquisicion"] if g.runner == "modelo"]
+    assert modelo and all(not g.activo for g in modelo)
+
+
+def test_cargar_configs_acepta_archivo_suelto_legado():
+    configs = cargar_configs(REGLAS_REALES)
+    assert set(configs) == {"software"}
+
+
+def test_toml_sin_departamento_no_arranca(tmp_path):
+    (tmp_path / "x.toml").write_text(
+        '[[gate]]\nregla = "a"\nrunner = "comando"\ncomando = "true"\n'
+    )
+    with pytest.raises(ConfigInvalida, match="departamento"):
+        cargar_configs(tmp_path)
+
+
+def test_departamento_duplicado_en_directorio_no_arranca(tmp_path):
+    contenido = (
+        'departamento = "software"\n'
+        '[[gate]]\nregla = "a"\nrunner = "comando"\ncomando = "true"\n'
+    )
+    (tmp_path / "a.toml").write_text(contenido)
+    (tmp_path / "b.toml").write_text(contenido)
+    with pytest.raises(ConfigInvalida, match="duplicado"):
+        cargar_configs(tmp_path)
+
+
+def test_directorio_vacio_no_arranca(tmp_path):
+    with pytest.raises(ConfigInvalida, match="sin ningun"):
+        cargar_configs(tmp_path)
+
+
+def test_un_toml_invalido_tumba_toda_la_carga(tmp_path):
+    """Un supervisor con la MITAD de sus reglas no supervisa: todo o nada."""
+    (tmp_path / "ok.toml").write_text(
+        'departamento = "software"\n'
+        '[[gate]]\nregla = "a"\nrunner = "comando"\ncomando = "true"\n'
+    )
+    (tmp_path / "roto.toml").write_text(
+        'departamento = "adquisicion"\n'
+        '[[gate]]\nregla = "b"\nrunner = "modelo"\nactivo = true\n'
+    )
+    with pytest.raises(ConfigInvalida, match="modelo"):
+        cargar_configs(tmp_path)

@@ -1,0 +1,12 @@
+# claims-aprobados.txt — la lista curada de afirmaciones comerciales (Fase 9).
+# UNA afirmacion por linea; lineas con # son comentarios.
+# El gate `claims_aprobados` exige que todo `CLAIM:` del material exista aqui
+# TEXTUAL. Cambiar esta lista = PR humano con aprobacion del CEO (el gate
+# `politica_intocable` impide que el motor la toque).
+# Derivada de white-label.md §5: honestidad comercial — nunca se vende
+# "el agente lo hace solo".
+Departamento de software con IA bajo supervision humana
+Gates deterministas re-ejecutados antes de cada entrega
+Aislamiento por cliente: repo, datos y workspace separados
+Con su marca: mismo motor verificado, identidad del cliente
+Aprobacion humana obligatoria en todo lo irreversible

@@ -118,11 +118,29 @@ def test_tarea_invalida(mutacion, fragmento):
 def test_resultado_valido():
     r = validar_resultado(RESULTADO_OK)
     assert r["worktree"] == "worktree/rec-2026-0042"
+    assert r["departamento"] == "software"  # default retrocompatible (Fase 6/7)
 
 
 def test_resultado_worktree_sin_escapes():
     with pytest.raises(ContratoInvalido):
         validar_resultado({**RESULTADO_OK, "worktree": "../fuera-del-volumen"})
+
+
+# --- departamento adquisicion (Fase 9) ---
+
+def test_tarea_adquisicion_valida():
+    t = validar_tarea({**TAREA_OK, "departamento": "adquisicion"})
+    assert t["departamento"] == "adquisicion"
+
+
+def test_resultado_adquisicion_valido():
+    r = validar_resultado({**RESULTADO_OK, "departamento": "adquisicion"})
+    assert r["departamento"] == "adquisicion"
+
+
+def test_resultado_departamento_desconocido_es_invalido():
+    with pytest.raises(ContratoInvalido, match="departamento"):
+        validar_resultado({**RESULTADO_OK, "departamento": "finanzas"})
 
 
 # --- veredicto (invariantes anti-sello-de-goma) ---

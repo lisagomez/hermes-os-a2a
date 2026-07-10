@@ -237,6 +237,33 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- VENTAS-A2A (adquisicion de clientes, Fase 9) ----------
+  # La puerta COMERCIAL publica del departamento de adquisicion: Agent Card
+  # con fronteras negativas literales (no cierra tratos, no fija precios, no
+  # firma, no envia correos) y message/send que registra el lead en Supabase
+  # `leads` (escritor unico del origen 'a2a') y devuelve la oferta APROBADA
+  # (estatica, versionada en oferta.py). Sin LLM: cero tokens por lead.
+  # Fallo VISIBLE: con Supabase configurado, un lead que no se pudo guardar =
+  # task failed reintentable, jamas perdido en silencio.
+  # Hoy solo hermes-net + 127.0.0.1 (tunel SSH); exponerla a internet (dominio
+  # + TLS + rate limiting) es gate de la dueña → ajustar VENTAS_PUBLIC_URL.
+  # Pipeline completo: departamentos/adquisicion-clientes.md
+  ventas-a2a:
+    build: ./ventas-a2a
+    container_name: ventas-a2a
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4400:4400"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - VENTAS_PUBLIC_URL=${VENTAS_PUBLIC_URL:-http://ventas-a2a:4400}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   # ---------- EJECUTOR-A2A (trio, Fase 6) ----------
   # Recibe UNA tarea con criterios de aceptacion (via Hermes-Negocio, skill
   # trio-software), la hace en worktree/<task_id> del volumen trio-workspace

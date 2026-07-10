@@ -173,6 +173,16 @@ businessos/
    opt-in), un escritor por fila padre/hija. Validado en dev con cero tokens (112 tests
    verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04). Residuales: compose up
    en Droplet, dogfood con Planner/motor real (decisión de la dueña).
+9. [~] **Fase 9** — Departamento de Adquisición de Clientes agéntico (núcleo en dev
+   2026-07-10): segundo departamento del trío (`departamento: "adquisicion"` en el contrato;
+   Supervisor multi-departamento ruteando `reglas/*.toml`); gates comerciales binarios con la
+   referencia de verdad versionada e intocable (`adquisicion/`: claims aprobados, política de
+   precios, plantilla de contrato white-label); `ventas-a2a` (:4400) = card comercial pública
+   con fronteras negativas (no cierra tratos/no fija precios/no firma/no envía) que registra
+   leads (tabla `leads`, escritor único, fallo visible) y comparte la oferta aprobada. Diseño
+   completo: `businessos/departamentos/adquisicion-clientes.md`. Residuales: runtime en
+   Hetzner; motor real, email saliente, negociación A2A externa y card en internet = gates de
+   la dueña.
 
 ---
 

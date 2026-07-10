@@ -466,6 +466,53 @@ regulación debe cumplir el seguro de un dron para delivery?
 
 ---
 
+## FASE 9 — Departamento de Adquisición de Clientes agéntico 🔨 núcleo construido en dev (2026-07-10); runtime pendiente
+
+El ciclo comercial del white-label: cómo se consiguen los clientes a los que
+Desarrollo de Software (Fase 6/7) les entrega. Diseño completo en
+`departamentos/adquisicion-clientes.md`. Decisiones de la dueña: vende el
+white-label; negociación con humanos hoy PERO card A2A pública de ventas desde
+el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
+
+- [x] **Segundo departamento del trío** (el patrón "se configura, no se
+  programa" demostrado): `DEPARTAMENTOS += "adquisicion"` en el contrato;
+  `validar_resultado` gana campo `departamento`; el Ejecutor lo propaga (1
+  línea); el Supervisor es ahora **multi-departamento** (`cargar_configs`
+  carga todos los `reglas/*.toml` y rutea por el `departamento` del RESULTADO;
+  TOML inválido = no arranca, invariante intacta).
+- [x] **Gates comerciales binarios** (`reglas/adquisicion.toml` +
+  `chequeos_adquisicion.py`) — el reto "en software es npm build, ¿aquí qué?"
+  resuelto con la referencia de verdad VERSIONADA en el repo objetivo bajo
+  `adquisicion/` (claims aprobados, política de precios, plantilla de
+  contrato) que el motor NO puede tocar: `claims_aprobados`, `precio_en_rango`,
+  `plantilla_contrato_intacta`, `salientes_con_aprobacion` (sha256 =
+  integridad; autenticidad en la frontera de envío, fase posterior),
+  `politica_intocable` + `sin_secretos`. Gates de modelo (`tono_de_marca`,
+  `revision_comercial`) declarados inactivos.
+- [x] **`ventas-a2a` (puerto 4400)**: la puerta comercial pública — puente
+  determinista sin LLM (patrón grafo-a2a) que registra interés (tabla `leads`,
+  escritor único origen `a2a`, fallo VISIBLE: lead no guardado = task failed
+  reintentable) y comparte la oferta APROBADA (estática, versionada). Card con
+  fronteras negativas literales: no cierra tratos, no fija precios finales,
+  no firma, no envía correos.
+- [x] `supabase-fase9.sql` (tabla `leads`, 10 etapas del pipeline, RLS sin
+  políticas) + servicio en el compose (profile `a2a`, 127.0.0.1:4400) + smoke
+  de runtime extendido (tier 4). 217+ tests verdes en los 6 servicios, cero
+  tokens.
+- [ ] **Runtime**: aplicar `supabase-fase9.sql`, rsync + compose up en Hetzner,
+  smoke tier 4, verificar 4400 solo en localhost.
+- [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
+  `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
+  de autenticidad de aprobación); negociación A2A externa autónoma (política
+  de límites + auth en la card + revisión legal); card en internet
+  (dominio/TLS/rate limiting); `#dep-adquisicion` en Slack.
+- **Salida esperada:** un lead entra por A2A o manual, el pipeline vive en
+  `leads`, el Ejecutor redacta bajo gates comerciales deterministas, y TODO lo
+  de cara al cliente (correo, propuesta, contrato, firma) pasa por humano según
+  la matriz de `equipo-y-slack.md`.
+
+---
+
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
 No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se

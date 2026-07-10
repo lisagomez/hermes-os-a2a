@@ -31,11 +31,13 @@ GRAFO_A2A = os.environ.get("SMOKE_GRAFO_A2A", "http://grafo-a2a:4000")
 EJECUTOR = os.environ.get("SMOKE_EJECUTOR", "http://ejecutor-a2a:4100")
 SUPERVISOR = os.environ.get("SMOKE_SUPERVISOR", "http://supervisor-a2a:4200")
 COORDINADOR = os.environ.get("SMOKE_COORDINADOR", "http://coordinador-a2a:4300")
+VENTAS = os.environ.get("SMOKE_VENTAS", "http://ventas-a2a:4400")
 SERVICIOS = {
     "grafo-a2a (Fase 5)": GRAFO_A2A,
     "ejecutor-a2a (Fase 6)": EJECUTOR,
     "supervisor-a2a (Fase 6)": SUPERVISOR,
     "coordinador-a2a (Fase 7)": COORDINADOR,
+    "ventas-a2a (Fase 9)": VENTAS,
 }
 
 fallos: list[str] = []
@@ -145,10 +147,50 @@ async def tier3_trio() -> None:
             bad(f"trio: {type(e).__name__}: {e}")
 
 
+async def tier4_ventas() -> None:
+    """Fase 9: lead real por A2A → registrado en `leads` + oferta con disclaimer.
+    En runtime Supabase esta configurado → persistido DEBE ser true (D6: un
+    lead que no se pudo guardar es task failed, no un exito a medias)."""
+    print("\n== TIER 4: ventas-a2a message/send (lead → oferta aprobada) ==")
+    async with httpx.AsyncClient(base_url=VENTAS, timeout=30) as http:
+        try:
+            cliente, card = await _cliente_para(http, VENTAS)
+            ok(f"descubrimiento por card: skill '{card.skills[0].id}'")
+            fronteras = "no cierro tratos" in card.description.lower()
+            (ok if fronteras else bad)(f"card declara fronteras negativas: {fronteras}")
+            lead = {
+                "empresa": "Smoke Test S.A.",
+                "contacto": "smoke@ejemplo.mx",
+                "mensaje": "lead del smoke de runtime (ignorar/borrar)",
+            }
+            t = await _enviar(cliente, lead)
+            if t is None or t.status.state != TaskState.TASK_STATE_COMPLETED:
+                estado, razon = (None, "") if t is None else (t.status.state, "")
+                if t is not None and t.status.HasField("message") and t.status.message.parts:
+                    razon = t.status.message.parts[0].text[:300]
+                bad(f"ventas: tarea no completada (estado={estado}) razon: {razon}")
+                return
+            [data] = get_data_parts(t.artifacts[0].parts)
+            bien = (
+                data.get("lead_id", "").startswith("lead-")
+                and data.get("etapa") == "nuevo"
+                and data.get("persistido") is True
+                and bool(data.get("disclaimer"))
+                and "pactado" in data.get("disclaimer", "")
+            )
+            (ok if bien else bad)(
+                f"lead registrado: {data.get('lead_id')} etapa={data.get('etapa')} "
+                f"persistido={data.get('persistido')} disclaimer={bool(data.get('disclaimer'))}"
+            )
+        except Exception as e:
+            bad(f"ventas: {type(e).__name__}: {e}")
+
+
 async def main() -> None:
     await tier1()
     await tier2_grafo()
     await tier3_trio()
+    await tier4_ventas()
     print("\n" + "=" * 50)
     if fallos:
         print(f"SMOKE RUNTIME FALLO: {len(fallos)} chequeo(s):")

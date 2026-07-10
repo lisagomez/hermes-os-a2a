@@ -48,6 +48,34 @@ class ResultadoGate:
 
 # ---------- carga y validacion de config ----------
 
+def cargar_configs(path: Path) -> dict[str, list[Gate]]:
+    """Carga las reglas indexadas por su campo `departamento`.
+
+    Multi-departamento (Fase 9): un DIRECTORIO carga todos sus *.toml; un
+    ARCHIVO carga solo ese (legado: SUPERVISOR_REGLAS apuntando a un toml).
+    Cualquier TOML invalido, sin departamento o duplicado = ConfigInvalida =
+    el servicio NO arranca (misma invariante que un gate incomprobable).
+    """
+    if path.is_file():
+        tomls = [path]
+    elif path.is_dir():
+        tomls = sorted(path.glob("*.toml"))
+        if not tomls:
+            raise ConfigInvalida(f"directorio de reglas sin ningun .toml: {path}")
+    else:
+        raise ConfigInvalida(f"config de reglas no existe: {path}")
+    por_departamento: dict[str, list[Gate]] = {}
+    for toml in tomls:
+        data = tomllib.loads(toml.read_text(encoding="utf-8"))
+        dep = data.get("departamento")
+        if not isinstance(dep, str) or not dep.strip():
+            raise ConfigInvalida(f"{toml.name}: sin campo `departamento` (obligatorio)")
+        if dep in por_departamento:
+            raise ConfigInvalida(f"{toml.name}: departamento {dep!r} duplicado en el directorio")
+        por_departamento[dep] = cargar_config(toml)
+    return por_departamento
+
+
 def cargar_config(path: Path) -> list[Gate]:
     """Carga la config y la valida ENTERA antes de aceptar un solo gate."""
     if not path.is_file():

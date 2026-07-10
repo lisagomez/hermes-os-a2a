@@ -89,6 +89,7 @@ class EjecutorA2A(AgentExecutor):
             resultado = validar_resultado(
                 {
                     "task_id": tarea["task_id"],
+                    "departamento": tarea["departamento"],  # el Supervisor rutea reglas por esto
                     "worktree": f"worktree/{tarea['task_id']}",
                     "diff": ws.diff_de(worktree),
                     "archivos": ws.archivos_cambiados(worktree),

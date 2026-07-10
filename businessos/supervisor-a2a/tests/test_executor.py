@@ -174,3 +174,47 @@ def test_config_invalida_el_servicio_no_arranca(tmp_path):
     mala.write_text('[[gate]]\nregla = "code_review"\nrunner = "modelo"\nactivo = true\n')
     with pytest.raises(ConfigInvalida):
         SupervisorA2A(reglas_path=mala)
+
+
+# --- ruteo por departamento (Fase 9) ---
+
+def reglas_dir(tmp_path: Path) -> Path:
+    d = tmp_path / "reglas"
+    d.mkdir()
+    (d / "software.toml").write_text(
+        'departamento = "software"\n'
+        '[[gate]]\nregla = "smoke_sw"\nrunner = "comando"\ncomando = "git status --short"\n'
+    )
+    (d / "adquisicion.toml").write_text(
+        'departamento = "adquisicion"\n'
+        '[[gate]]\nregla = "politica_intocable"\nrunner = "estatico"\nchequeo = "politica_intocable"\n'
+    )
+    return d
+
+
+def test_rutea_gates_por_departamento(workspace, tmp_path):
+    supervisor = SupervisorA2A(workspace_root=workspace, reglas_path=reglas_dir(tmp_path))
+    # software → corre smoke_sw
+    cola = ejecutar(supervisor, new_data_message(resultado_de_t100()))
+    assert {g["regla"] for g in veredicto_de(cola)["gates"]} == {"smoke_sw"}
+    # adquisicion → corre politica_intocable
+    resultado = resultado_de_t100() | {"departamento": "adquisicion"}
+    cola = ejecutar(supervisor, new_data_message(resultado))
+    assert {g["regla"] for g in veredicto_de(cola)["gates"]} == {"politica_intocable"}
+
+
+def test_departamento_sin_reglas_cargadas_es_failed_no_veredicto(workspace, tmp_path):
+    """Sin reglas para el dept = error de DESPLIEGUE, jamas un juicio sin reglas."""
+    d = tmp_path / "reglas"
+    d.mkdir()
+    (d / "software.toml").write_text(
+        'departamento = "software"\n'
+        '[[gate]]\nregla = "smoke_sw"\nrunner = "comando"\ncomando = "git status --short"\n'
+    )
+    supervisor = SupervisorA2A(workspace_root=workspace, reglas_path=d)
+    resultado = resultado_de_t100() | {"departamento": "adquisicion"}
+    cola = ejecutar(supervisor, new_data_message(resultado))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    fallo = [e for e in cola.eventos if isinstance(e, TaskStatusUpdateEvent)][-1]
+    assert "sin reglas cargadas" in fallo.status.message.parts[0].text

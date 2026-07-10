@@ -20,12 +20,15 @@ from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 
+import chequeos_adquisicion  # noqa: F401 — registra sus chequeos en gates.CHEQUEOS
 from contrato import ContratoInvalido, validar_resultado
-from gates import Gate, cargar_config, correr_gates
+from gates import Gate, cargar_configs, correr_gates
 from veredicto import emitir_veredicto
 
 DEFAULT_WORKSPACE = "/workspace"
-DEFAULT_REGLAS = Path(__file__).resolve().parent / "reglas" / "software.toml"
+# Fase 9: el default es el DIRECTORIO de reglas (multi-departamento). Un env
+# SUPERVISOR_REGLAS apuntando a un archivo sigue funcionando (un solo dept).
+DEFAULT_REGLAS = Path(__file__).resolve().parent / "reglas"
 
 
 class SupervisorA2A(AgentExecutor):
@@ -37,12 +40,19 @@ class SupervisorA2A(AgentExecutor):
         workspace_root: Path | None = None,
         reglas_path: Path | None = None,
     ) -> None:
-        self._gates = gates if gates is not None else cargar_config(
+        # gates inyectados (tests): aplican a cualquier departamento.
+        self._gates_inyectados = gates
+        self._gates_por_dep = None if gates is not None else cargar_configs(
             reglas_path or Path(os.environ.get("SUPERVISOR_REGLAS", DEFAULT_REGLAS))
         )
         self._workspace_root = workspace_root or Path(
             os.environ.get("TRIO_WORKSPACE", DEFAULT_WORKSPACE)
         )
+
+    def _gates_de(self, departamento: str) -> list[Gate] | None:
+        if self._gates_inyectados is not None:
+            return self._gates_inyectados
+        return self._gates_por_dep.get(departamento)
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
@@ -69,10 +79,22 @@ class SupervisorA2A(AgentExecutor):
             )
             return
 
+        gates_dep = self._gates_de(resultado["departamento"])
+        if gates_dep is None:
+            # Error de DESPLIEGUE (falta reglas/<dep>.toml), no un veredicto:
+            # un juicio sin reglas cargadas seria un sello de goma.
+            await updater.failed(
+                updater.new_agent_message(parts=[new_text_part(
+                    f"sin reglas cargadas para departamento "
+                    f"{resultado['departamento']!r} (falta reglas/<dep>.toml)"
+                )])
+            )
+            return
+
         # El contrato garantiza worktree relativo y sin '..' — se ancla al volumen.
         worktree = self._workspace_root / resultado["worktree"]
         # Los gates re-ejecutan builds/tests: fuera del event loop.
-        resultados = await asyncio.to_thread(correr_gates, self._gates, worktree)
+        resultados = await asyncio.to_thread(correr_gates, gates_dep, worktree)
         veredicto = emitir_veredicto(resultado["task_id"], resultados)
 
         await updater.add_artifact([new_data_part(veredicto)], name="veredicto")

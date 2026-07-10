@@ -183,6 +183,7 @@ def test_tarea_valida_entrega_resultado_y_veredicto(repo, tmp_path):
 
     # Resultado bien formado: diff REAL desde git, no testimonio del motor.
     assert resultado["task_id"] == "t-100"
+    assert resultado["departamento"] == "software"  # el Supervisor rutea por esto (Fase 9)
     assert resultado["worktree"] == "worktree/t-100"
     assert "export const x = 1" in resultado["diff"]
     assert resultado["archivos"] == ["src/x.ts"]

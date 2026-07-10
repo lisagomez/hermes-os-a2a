@@ -1,0 +1,62 @@
+# reglas/adquisicion.toml — reglas del Supervisor para el departamento ADQUISICION (Fase 9).
+#
+# Config VERSIONADA y diff-eable (SPEC-trio §7.4: auditables, no improvisadas).
+# El reto del dominio comercial resuelto igual que en software: cada gate es
+# (chequeo real → criterio binario → evidencia). La referencia de verdad
+# (claims, precios, plantilla) vive versionada en el repo objetivo bajo
+# `adquisicion/` y el motor NO la puede tocar (gate politica_intocable).
+# Derivada de businessos/departamentos/adquisicion-clientes.md §6.
+#
+# Mismas invariantes del motor (gates.py):
+# - gate activo con runner inexistente = CONFIG INVALIDA (no arranca).
+# - gate que no puede correr en runtime = `no_ejecutable` → RECHAZO.
+
+departamento = "adquisicion"
+
+# --- chequeos estaticos deterministas (chequeos_adquisicion.py) ---
+
+[[gate]]
+regla = "claims_aprobados"
+runner = "estatico"
+chequeo = "claims_aprobados"
+
+[[gate]]
+regla = "precio_en_rango"
+runner = "estatico"
+chequeo = "precio_en_rango"
+
+[[gate]]
+regla = "plantilla_contrato_intacta"
+runner = "estatico"
+chequeo = "plantilla_contrato_intacta"
+
+[[gate]]
+regla = "salientes_con_aprobacion"
+runner = "estatico"
+chequeo = "salientes_con_aprobacion"
+
+[[gate]]
+regla = "politica_intocable"
+runner = "estatico"
+chequeo = "politica_intocable"
+
+# --- compartido con software: nada de secretos en material comercial ---
+
+[[gate]]
+regla = "sin_secretos"
+runner = "estatico"
+chequeo = "sin_secretos"
+
+# --- gates de modelo: DECLARADOS pero inactivos hasta tener runner real ---
+# (igual que code_review/security_review en software.toml: activarlos sin
+# runner es imposible por diseño — config invalida)
+
+[[gate]]
+regla = "tono_de_marca"
+runner = "modelo"
+activo = false
+
+[[gate]]
+regla = "revision_comercial"
+runner = "modelo"
+activo = false

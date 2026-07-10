@@ -1,0 +1,7 @@
+{
+  "_comentario": "politica-precios.json — rango autorizado para propuestas (Fase 9). El gate precio_en_rango rechaza todo precio fuera de [min,max]. Cambiarla = PR humano con aprobacion del CEO (y CFO por ser dinero). La oferta publica de ventas-a2a (oferta.py) usa este mismo rango: si esto cambia, aquello cambia en el MISMO PR.",
+  "moneda": "USD",
+  "periodicidad": "mensual",
+  "min": 500,
+  "max": 5000
+}

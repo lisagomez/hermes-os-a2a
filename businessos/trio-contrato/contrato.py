@@ -18,7 +18,7 @@ import re
 from collections import deque
 from typing import Any
 
-DEPARTAMENTOS = ("software",)
+DEPARTAMENTOS = ("software", "adquisicion")
 
 # Ciclo de estados de `tareas` (SPEC-trio §7.2 + escalada/cancelada).
 ESTADOS = (
@@ -127,12 +127,21 @@ def validar_tarea(d: Any) -> dict:
 
 
 def validar_resultado(d: Any) -> dict:
-    """RESULTADO (Ejecutor → Supervisor). Artefactos = afirmaciones, NO evidencia."""
+    """RESULTADO (Ejecutor → Supervisor). Artefactos = afirmaciones, NO evidencia.
+
+    `departamento` (Fase 9): el Supervisor rutea sus reglas por este campo.
+    Default "software" para retrocompatibilidad con payloads de Fase 6/7.
+    """
     _exigir(isinstance(d, dict), "el resultado debe ser un objeto JSON")
     task_id = d.get("task_id")
     _exigir(
         isinstance(task_id, str) and bool(_TASK_ID_RE.match(task_id)),
         "resultado.task_id invalido",
+    )
+    departamento = d.get("departamento", "software")
+    _exigir(
+        departamento in DEPARTAMENTOS,
+        f"resultado.departamento desconocido: {departamento!r}",
     )
     worktree = d.get("worktree")
     _exigir(
@@ -149,6 +158,7 @@ def validar_resultado(d: Any) -> dict:
     _exigir(isinstance(notas, str), "resultado.notas: string")
     return {
         "task_id": task_id,
+        "departamento": departamento,
         "worktree": worktree.strip(),
         "diff": diff,
         "archivos": list(archivos),
