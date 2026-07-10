@@ -1,6 +1,6 @@
 # Generación automática de CLIs conforme el proyecto madura
 
-Cómo lograr que BusinessOS imprima sus propios CLIs al avanzar de fase, en lugar
+Cómo lograr que Hermes OS · A2A imprima sus propios CLIs al avanzar de fase, en lugar
 de hacerlo a mano. Tres niveles, de menos a más automático. Empieza por el 1.
 
 ## Pieza previa (una sola vez)
@@ -50,7 +50,7 @@ Advertencia honesta: el Nivel 3 es cómodo pero puede sorprenderte con gasto si
 una API resulta grande. No lo actives hasta tener varios CLIs impresos y saber
 cuánto cuesta cada uno en tu caso. El Nivel 1 cubre el 90% del valor.
 
-## Por qué esto encaja con el resto de BusinessOS
+## Por qué esto encaja con el resto de Hermes OS · A2A
 - Mismo principio de eficiencia de tokens: un CLI impreso gasta ~100x menos
   tokens que un MCP pesado cuando un agente lo llama miles de veces.
 - Mismo principio de aislar: cada CLI es una herramienta independiente que los

@@ -1,4 +1,4 @@
-# Cómo retomar — BusinessOS
+# Cómo retomar — Hermes OS · A2A
 
 Guía rápida para volver a entrar y operar. Estado al 2026-07-08:
 **las TRES verticales viven en Hetzner** (negocio, personal/Kiris y clientes), junto con

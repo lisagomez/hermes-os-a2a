@@ -1,4 +1,4 @@
--- BusinessOS — esquema Supabase (Fase 0)
+-- Hermes OS · A2A — esquema Supabase (Fase 0)
 -- Tablas: token_usage (presupuesto, lo escriben las 3 verticales)
 --         facturas    (las procesa la vertical clientes)
 --

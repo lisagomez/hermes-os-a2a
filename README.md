@@ -1,11 +1,11 @@
-# BusinessOS
+# Hermes OS · A2A
 
 > Una mente con tres bocas. Un agente (Hermes) que opera tu vida **personal**,
 > tu **negocio** y tus **clientes** desde tres contenedores aislados, hablando
 > por Telegram y voz, con un grafo de conocimiento como cerebro
 > regulatorio/fiscal/contable multi-país y un dashboard "Mission Control" encima.
 
-BusinessOS es un sistema de agentes operativos autoalojados. No es una app que
+Hermes OS · A2A es un sistema de agentes operativos autoalojados. No es una app que
 abres: es una infraestructura que vive en un servidor, te responde por Telegram,
 y crece por fases — de un cimiento mínimo a un sistema que razona sobre
 regulación, cobra, contrata y (a futuro) transacciona valor entre agentes.
@@ -148,7 +148,7 @@ businessos/
 ```
 
 El resto del repositorio (carpeta `.claude/`, `src/`, configs de Next.js) es el
-**toolkit SaaS Factory** con el que se construye y opera BusinessOS: skills de
+**toolkit SaaS Factory** con el que se construye y opera Hermes OS · A2A: skills de
 Claude Code, design systems y plantillas. Es herramienta interna, no el producto.
 
 ---
@@ -168,4 +168,4 @@ Claude Code, design systems y plantillas. Es herramienta interna, no el producto
 
 ---
 
-**BusinessOS** — Aislar, no fundir. Acotar antes de escalar. Citar, no inventar.
+**Hermes OS · A2A** — Aislar, no fundir. Acotar antes de escalar. Citar, no inventar.

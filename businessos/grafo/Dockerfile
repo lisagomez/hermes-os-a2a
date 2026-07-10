@@ -1,4 +1,4 @@
-# grafo — cerebro regulatorio fiscal de BusinessOS (Fase 2)
+# grafo — cerebro regulatorio fiscal de Hermes OS · A2A (Fase 2)
 # Escucha en :3000 dentro de hermes-net; sin puertos publicos (ver compose).
 FROM python:3.12-slim
 

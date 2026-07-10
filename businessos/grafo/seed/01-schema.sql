@@ -1,4 +1,4 @@
--- 01-schema.sql — grafo (cerebro regulatorio de BusinessOS, Fase 2). Idempotente.
+-- 01-schema.sql — grafo (cerebro regulatorio de Hermes OS · A2A, Fase 2). Idempotente.
 --
 -- Modelo: proyecto -> jurisdiccion -> dimension -> regla -> impacto.
 -- "Proyecto" = contexto de cada request (jurisdiccion/dimension/regimen/fecha);

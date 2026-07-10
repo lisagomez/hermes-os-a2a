@@ -67,7 +67,7 @@ como pasada. (Anti-sello-de-goma, hermano del "citar fuentes, no inventar".)
 - **El catálogo de skills** — la "biblioteca de competencias" de la fábrica.
 - **RAG con ámbito por cliente** — sobre los docs propios del cliente (aislado por ámbito,
   como ya se diseñó el RAG). *Dependencia futura: el RAG por ámbito aún no está integrado en
-  BusinessOS (existe como template en `/ai rag`).*
+  Hermes OS · A2A (existe como template en `/ai rag`).*
 
 > **No interviene el grafo.** Esa es la diferencia con un futuro departamento de Finanzas:
 > aquí el conocimiento es el código y los skills, no lo fiscal/regulatorio.

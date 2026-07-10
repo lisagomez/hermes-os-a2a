@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'BusinessOS — Mission Control',
-  description: 'Panel único de BusinessOS: Pantheon, AI Spend y Grafo (solo lectura)',
+  title: 'Hermes OS · A2A — Mission Control',
+  description: 'Panel único de Hermes OS · A2A: Pantheon, AI Spend y Grafo (solo lectura)',
 }
 
 export default function RootLayout({

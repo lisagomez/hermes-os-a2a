@@ -1,9 +1,9 @@
-# BUSINESS_LOGIC.md — BusinessOS
+# BUSINESS_LOGIC.md — Hermes OS · A2A
 
 > Generado por SaaS Factory (skill new-app, adaptado a infra agente-first) | Fecha: 2026-06-26
 > Fuente de verdad de fases y stack: ROADMAP.md. Detalle de cimiento: FASE0.md.
 
-> **Nota de encaje:** BusinessOS NO es un SaaS web Next.js. Es un sistema
+> **Nota de encaje:** Hermes OS · A2A NO es un SaaS web Next.js. Es un sistema
 > operativo de agentes (Hermes) sobre Docker/Telegram en un Droplet. Este
 > documento usa la estructura de BUSINESS_LOGIC.md pero adapta la sección
 > técnica a la arquitectura real (contenedores + servicios en `hermes-net`),

@@ -1,6 +1,6 @@
 # Levantar una vertical Hermes (setup + gotchas)
 
-Cómo poner viva una vertical de BusinessOS sin repetir el viacrucis del 2026-06-27.
+Cómo poner viva una vertical de Hermes OS · A2A sin repetir el viacrucis del 2026-06-27.
 
 ## Modelo mental correcto
 - **Cada vertical ES su propio Hermes** (un contenedor `nousresearch/hermes-agent`).

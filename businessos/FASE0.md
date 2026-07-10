@@ -1,4 +1,4 @@
-# Fase 0 — Infraestructura BusinessOS
+# Fase 0 — Infraestructura Hermes OS · A2A
 
 Cimiento técnico: Droplet + Docker + los tres contenedores Hermes + sync a
 GitHub. Al terminar tendrás las tres verticales corriendo y respondiendo por
@@ -37,8 +37,8 @@ los wizards de Hermes).
 Telegram permite solo UNA conexión por token, por eso cada vertical necesita su
 propio bot. En Telegram, habla con @BotFather:
 
-1. `/newbot` → nombre "BusinessOS Personal" → usuario que termine en `bot`.
-2. Repite para "BusinessOS Negocio" y "BusinessOS Clientes".
+1. `/newbot` → nombre "Hermes OS · A2A Personal" → usuario que termine en `bot`.
+2. Repite para "Hermes OS · A2A Negocio" y "Hermes OS · A2A Clientes".
 3. Guarda los 3 tokens que te da (formato `0000000000:AA...`). Los necesitas
    en el paso 5.
 

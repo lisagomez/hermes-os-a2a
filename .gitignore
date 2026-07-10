@@ -64,7 +64,7 @@ Thumbs.db
 supabase/.branches
 supabase/.temp
 
-# BusinessOS — nunca subir secretos ni los volumenes de Hermes
+# Hermes OS · A2A — nunca subir secretos ni los volumenes de Hermes
 businessos/.env
 businessos/**/.env
 businessos/**/.hermes/

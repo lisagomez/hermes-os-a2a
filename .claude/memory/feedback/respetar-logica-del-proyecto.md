@@ -11,7 +11,7 @@ Feedback del usuario (Elisa) el 2026-06-27.
   con SOUL/AGENTS/MEMORY cargadas. Un envío mecánico NO es "la vertical hablando".
 
 ## Cómo aplicarlo
-- Antes de actuar, contrastar con los principios de BusinessOS (ROADMAP §principios):
+- Antes de actuar, contrastar con los principios de Hermes OS · A2A (ROADMAP §principios):
   aislar-no-fundir, acotar-antes-de-escalar, **verificar-antes-de-confiar**.
 - No declarar éxito sin verificación real (round-trip), y ser honesto sobre los matices
   (p.ej. distinguir "Hermes lo envió" de "el binario `hermes send` lo entregó sin persona").

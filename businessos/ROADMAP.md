@@ -1,4 +1,4 @@
-# BusinessOS — Roadmap del proyecto
+# Hermes OS · A2A — Roadmap del proyecto
 
 Mapa consolidado de las decisiones tomadas. Las fases están en orden de
 construcción: cada una se apoya en la anterior. No saltes hacia adelante hasta

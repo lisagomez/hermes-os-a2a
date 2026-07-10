@@ -1,4 +1,4 @@
-"""app.py — API del grafo (cerebro regulatorio de BusinessOS, Fase 2).
+"""app.py — API del grafo (cerebro regulatorio de Hermes OS · A2A, Fase 2).
 
 Gotcha de diseno (PRP-002): el openapi.json DEBE generarse sin postgres, porque
 el CLI se imprime desde el contrato. Por eso `db` se importa DENTRO de las
@@ -21,7 +21,7 @@ app = FastAPI(
     title="grafo",
     version="2.0.0",
     description=(
-        "Cerebro regulatorio fiscal de BusinessOS. Evalua deducibilidad de conceptos "
+        "Cerebro regulatorio fiscal de Hermes OS · A2A. Evalua deducibilidad de conceptos "
         "de gasto (MX, dimension fiscal) con veredicto por concepto y fuente citada. "
         "Senala riesgos; NO asesora."
     ),

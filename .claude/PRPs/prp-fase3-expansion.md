@@ -1,7 +1,7 @@
 # PRP-003: Expansión del grafo + cobro (Polar) + contratos-documento (Fase 3)
 
 > **Estado:** APROBADO (2026-07-02, Elisa pre-aprobó ejecución de Fase 3 y 4 sin gates intermedios: "no preguntes ejecuta")
-> **Proyecto:** BusinessOS · **Fase del ROADMAP:** 3
+> **Proyecto:** Hermes OS · A2A · **Fase del ROADMAP:** 3
 > **Fuente de verdad del diseño:** este PRP + `businessos/ROADMAP.md` (sección FASE 3)
 
 ---
