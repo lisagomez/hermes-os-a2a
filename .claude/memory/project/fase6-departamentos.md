@@ -150,11 +150,32 @@ uid 10000 vía `docker exec -i -u 10000 ... cat >`; `hermes skills list` los
 muestra `local/enabled` SIN reiniciar el gateway. Sin esto, Hermes-Negocio no
 podía orquestar el trío en el dogfood.
 
-**Bloqueado (pendiente de la dueña):** falta `ANTHROPIC_AUTH_TOKEN` (API key de
-z.ai) en el `.env` del server — la dueña la agrega ella misma vía SSH, nunca
-por chat (ni la key ni capturas de la consola). Ruta real para obtenerla:
-login en z.ai → `z.ai/manage-apikey/apikey-list` → crear key → verificar saldo
-en `z.ai/manage-apikey/billing`.
+**DOGFOOD REAL COMPLETADO (2026-07-11) — APROBADO con los 8 gates en verde.**
+La dueña puso la key de z.ai (GLM Coding Plan) en el `.env`; auth verificada
+con curl mínimo ANTES de encender el motor (formato de key validado sin
+imprimirla). Cronología que costó 3 intentos:
+- Intento 0: `TASK_STATE_FAILED` inmediato — **el CLI de Claude Code rehúsa
+  `--dangerously-skip-permissions` corriendo como root**. Fix: `IS_SANDBOX=1`
+  en el environment del ejecutor (señal oficial para contenedores que SON el
+  sandbox; una línea en compose, sin tocar imagen).
+- Limpieza de worktree fallido: `git worktree prune` ANTES de borrar el
+  directorio NO lo desregistra ("missing but already registered") → orden
+  correcto: borrar dir → prune → borrar rama `tarea/<id>`.
+- Intento 1 (`dogfood-glm-1`): GLM hizo TODO bien (código limpio, 4 gates de
+  comando paso) pero RECHAZADO — los 4 gates estáticos `no_ejecutable`: **el
+  Supervisor no montaba `/repo` y el `.git` de un worktree es un puntero a
+  `/repo/.git/worktrees/<id>`** (en dev no se ve: procesos comparten fs; el
+  smoke de runtime tampoco lo cazó porque esperaba rechazo). Fix: mount de
+  `/repo` en el supervisor (rw: `_archivos_cambiados` hace `git add -A`).
+- Intento 2 (`dogfood-glm-2`): **APROBADO**, fila `aprobada` en `tareas` de
+  prod. Scaffold npm real en trio-repo (playwright 1.61.1 pineado) validado
+  ANTES con cero tokens ejecutando los 4 gates en el contenedor del ejecutor.
+- Gasto: intento 1 = 15,576 in / 1,477 out, `costo_usd` 0.19 (tarifa Anthropic,
+  SOBRE-estimado vs z.ai; con Coding Plan el marginal es ~0). **El del intento 2
+  SE PERDIÓ**: `UNIQUE(fecha,vertical,modelo)` de token_usage + `except: pass`
+  sin `raise_for_status` en el motor = 409 silencioso. BUG ABIERTO con fix
+  propuesto (índice único parcial where task_id is null + ingest delete+insert
+  + log del fallo); DDL en prod = OK de la dueña.
 
 **Gotcha de arquitectura descubierto:** `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`
 son env vars de contenedor completo (`claude_engine.py` las lee de `os.environ`,

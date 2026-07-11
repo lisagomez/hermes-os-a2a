@@ -309,6 +309,11 @@ services:
       - "127.0.0.1:4100:4100"     # solo inspeccion local; nunca 0.0.0.0
     environment:
       - EJECUTOR_ENGINE=${EJECUTOR_ENGINE:-mock}
+      # El CLI de Claude Code rehusa --dangerously-skip-permissions como root;
+      # IS_SANDBOX=1 es su señal oficial para contenedores que SON el sandbox
+      # (este contenedor aislado solo ve SUS mounts — mismo criterio que el
+      # safe.directory '*' de la imagen).
+      - IS_SANDBOX=1
       - EJECUTOR_PUBLIC_URL=http://ejecutor-a2a:4100
       - SUPERVISOR_URL=http://supervisor-a2a:4200
       - TRIO_REPO=/repo
@@ -388,6 +393,13 @@ services:
       - TRIO_WORKSPACE=/workspace
     volumes:
       - trio-workspace:/workspace
+      # El .git de un worktree es un PUNTERO a /repo/.git/worktrees/<id>: sin
+      # este mount los gates estaticos (git add/diff) salen no_ejecutable =
+      # rechazo aunque el codigo este bien (descubierto en el primer dogfood
+      # real). rw porque _archivos_cambiados hace `git add -A` (escribe el
+      # index del worktree, que vive bajo /repo). La frontera con el Ejecutor
+      # es de JUICIO, no de filesystem (misma nota del volumen trio-workspace).
+      - ${TRIO_REPO_HOST:-${HOME}/businessos/trio-repo}:/repo
     networks: [hermes-net]
     deploy:
       resources:

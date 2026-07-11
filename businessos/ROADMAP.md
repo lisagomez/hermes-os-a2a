@@ -336,13 +336,24 @@ el paquete del primer departamento, y el modelo white-label).
   Ruteo de costo decidido: GLM-5.2 vía seam z.ai para la primera tarea (simple),
   `presupuesto_usd=1`. Política de ruteo por tarea documentada en
   `negocio/MEMORY.md` + `SOUL.md` de las 3 verticales.
-- [ ] **PENDIENTE (bloqueado en la dueña)** — falta la API key de z.ai
-  (`ANTHROPIC_AUTH_TOKEN` en el `.env` del server; la dueña la agrega ella misma,
-  nunca por chat). Con eso puesto: `EJECUTOR_ENGINE=claude`, recrear
-  `ejecutor-a2a`, correr la tarea de humo (scaffold npm mínimo con
-  `@playwright/test@1.61.1` pineado) y reportar veredicto + gasto real. Pausado
-  a pedido de la dueña el 2026-07-09 (no perder el contexto: retomar leyendo
-  este bloque + `.claude/memory/project/fase6-departamentos.md`).
+- [x] **DOGFOOD REAL COMPLETADO (2026-07-11)** — primera tarea con motor LLM de
+  verdad, veredicto **APROBADO** con los 8 gates en verde: GLM-5.2 vía seam z.ai
+  (`EJECUTOR_ENGINE=claude`), tarea `dogfood-glm-2` (módulo TS + test playwright
+  sin navegador) sobre scaffold npm real en `trio-repo` (`@playwright/test@1.61.1`
+  pineado, gates build/typecheck/lint/tests validados con cero tokens antes de
+  quemar modelo). Dos fixes de infra que salieron del intento 1 (rechazado por
+  infra, NO por el modelo — anti-sello-de-goma actuando): (a) el CLI de Claude
+  Code rehúsa `--dangerously-skip-permissions` como root → `IS_SANDBOX=1` en el
+  ejecutor; (b) el `.git` de un worktree es un PUNTERO a `/repo/.git/worktrees/`
+  → el Supervisor necesita el mount de `/repo` o sus gates estáticos salen
+  `no_ejecutable`. Detalle en `.claude/memory/project/fase6-departamentos.md`.
+- [ ] **BUG ABIERTO (fix propuesto, requiere OK de la dueña: DDL en prod)** —
+  `token_usage` tiene `UNIQUE(fecha,vertical,modelo)` (diseñada para el agregado
+  DIARIO del ingest nocturno): la 2ª tarea del mismo modelo el mismo día choca y
+  el `except: pass` del motor (sin `raise_for_status`) la traga → **gasto
+  perdido en silencio** (pasó con `dogfood-glm-2`; presupuesto subcontado).
+  Fix: índice único PARCIAL (`where task_id is null`) + ingest a
+  delete+insert del día + motor que loguee el fallo del POST.
 - [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
   Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
 - [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del

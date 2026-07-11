@@ -562,4 +562,23 @@ npm run lint         # ESLint
   confirmar con `docker compose logs`.
 - **Aplicar en**: todo servicio con COPY explícito (los 6 A2A) y todo smoke post-deploy.
 
+### 2026-07-11: Primer dogfood real del trío (GLM-5.2) — tres gotchas que costaron 3 intentos
+- **Error(es)**: (1) el CLI de Claude Code **rehúsa `--dangerously-skip-permissions` como
+  root** → el motor muere al primer turno en contenedores root; (2) el `.git` de un git-worktree
+  es un ARCHIVO-puntero a `<repo>/.git/worktrees/<id>` → un servicio que solo monta el volumen
+  de worktrees NO puede correr git ahí (el Supervisor daba `no_ejecutable` en todos los gates
+  estáticos = rechazo aunque el código estuviera bien; en dev no se ve porque los procesos
+  comparten filesystem); (3) `token_usage` tiene `UNIQUE(fecha,vertical,modelo)` pensada para
+  el agregado DIARIO del ingest → la 2ª tarea del mismo modelo el mismo día devuelve 409 y el
+  `except: pass` del motor (sin `raise_for_status`) **pierde el gasto en silencio**.
+- **Fix**: (1) `IS_SANDBOX=1` en el environment del ejecutor (señal oficial de Claude Code para
+  contenedores que SON el sandbox); (2) montar `/repo` también en el Supervisor (rw: sus
+  chequeos hacen `git add -A`) — la frontera del trío es de JUICIO, no de filesystem; (3) fix
+  propuesto pendiente de OK (índice único parcial `where task_id is null` + ingest delete+insert).
+  Bonus: limpiar un worktree fallido = borrar dir → `git worktree prune` → borrar rama (prune
+  con el dir presente NO desregistra). Validar el scaffold con los gates en el contenedor
+  (cero tokens) ANTES de quemar modelo.
+- **Aplicar en**: todo motor de agente en contenedor, todo servicio que opere git sobre
+  worktrees compartidos, y toda escritura best-effort a Supabase (mínimo: loguear el fallo).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
