@@ -143,6 +143,13 @@ y en el bloque `<!-- TRIO-DOGFOOD:POLICY -->` del `SOUL.md` de las 3 verticales
   `~/repo/businessos` es un `git archive`, no un repo git) y se reconstruyeron
   con `docker compose --profile trio build <servicio>`.
 
+**Skills instalados en el volumen (2026-07-11):** `trio-software` y `cli-audit`
+existían solo en el repo, NUNCA se habían copiado a `/opt/data/skills/` del
+volumen de negocio (hueco detectado al desplegar el rename) → copiados como
+uid 10000 vía `docker exec -i -u 10000 ... cat >`; `hermes skills list` los
+muestra `local/enabled` SIN reiniciar el gateway. Sin esto, Hermes-Negocio no
+podía orquestar el trío en el dogfood.
+
 **Bloqueado (pendiente de la dueña):** falta `ANTHROPIC_AUTH_TOKEN` (API key de
 z.ai) en el `.env` del server — la dueña la agrega ella misma vía SSH, nunca
 por chat (ni la key ni capturas de la consola). Ruta real para obtenerla:
