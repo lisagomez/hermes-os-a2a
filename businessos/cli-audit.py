@@ -17,7 +17,7 @@ Uso:
     python3 businessos/cli-audit.py --emit     # ademas deja los prompts (print-phase.sh)
 
 Sin secretos: este auditor NO necesita el service_role (no toca Supabase).
-Pensado para correr on-demand o por cron de SO en el Droplet (escalonado tras la
+Pensado para correr on-demand o por cron de SO en el servidor (escalonado tras la
 ingesta de tokens). Idempotente: re-correr recalcula desde el manifiesto + stack.
 """
 import json, re, subprocess, datetime, sys, os
@@ -161,6 +161,8 @@ def main() -> None:
     for key, phase in phases.items():
         due = phase_earliest(key) <= fase
         for cli in phase.get("clis", []):
+            if cli.get("deprecated"):
+                continue  # superseded (p. ej. digitalocean -> hcloud): no se audita ni cuenta
             name = cli["name"]
             sl = slug(name)
             entry = {
@@ -205,7 +207,7 @@ def main() -> None:
         "apis_sin_entrada": apis_sin_entrada,
         "no_due_aun": no_due_aun,
         "comando_sugerido": comando_sugerido,
-        "nota": ("Printing Press corre en Claude Code (no en cron/Droplet). Este auditor solo "
+        "nota": ("Printing Press corre en Claude Code (no en cron/servidor). Este auditor solo "
                  "prepara y avisa: para imprimir, corre el comando sugerido en Claude Code. "
                  + ("Sin libreria de CLIs detectada: todo lo 'due' se reporta como faltante."
                     if not library else f"Libreria: {library}.")),

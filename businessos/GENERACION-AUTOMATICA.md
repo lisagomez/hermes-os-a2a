@@ -5,7 +5,7 @@ de hacerlo a mano. Tres niveles, de menos a más automático. Empieza por el 1.
 
 ## Pieza previa (una sola vez)
 Printing Press necesita Claude Code + Go 1.26.4+. Instálalo en la máquina donde
-corra el agente que imprimirá (puede ser tu equipo, no el Droplet):
+corra el agente que imprimirá (puede ser tu equipo, no el servidor):
 
     curl -fsSL https://raw.githubusercontent.com/mvanhorn/cli-printing-press/main/scripts/install.sh | bash
 

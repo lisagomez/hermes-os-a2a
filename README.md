@@ -15,8 +15,8 @@ regulación, cobra, contrata y (a futuro) transacciona valor entre agentes.
 ## Arquitectura en una frase
 
 Una mente (**Hermes**) con tres bocas (**verticales**: personal, negocio,
-clientes), cada una en su propio contenedor Docker, sobre un Droplet de
-DigitalOcean, hablando por Telegram y voz, con un grafo de conocimiento como
+clientes), cada una en su propio contenedor Docker, sobre un servidor
+Hetzner Cloud, hablando por Telegram y voz, con un grafo de conocimiento como
 cerebro regulatorio multi-país y un dashboard encima.
 
 ```
@@ -47,7 +47,7 @@ funden: ese es el primer principio del proyecto.
 
 | Capa | Tecnología |
 |------|------------|
-| Servidor | Droplet DigitalOcean (4 GB / 2 vCPU; sube a 8 GB con el grafo) |
+| Servidor | Hetzner Cloud (cx33: 4 vCPU / 8 GB; corre todo incl. grafo) |
 | Orquestación | Docker + docker-compose (un contenedor por vertical) |
 | Agente | Hermes Agent (Nous Research) — memory, skills, soul, crons, loop |
 | Canales | Telegram (3 bots) + voz (TTS salida, transcripción entrada) |
@@ -68,10 +68,11 @@ funden: ese es el primer principio del proyecto.
 ## Estado actual
 
 **FASE 0 — Infraestructura: ✅ las 3 verticales vivas y respondiendo** (personal/Kiris,
-negocio/@a2aTeamBot, clientes/@a2aClientbot), round-trip verificado. Corren como servicios
-Docker persistentes en **WSL2 local**; el Droplet y el sync nocturno a GitHub están
-**diferidos por costo** hasta que haya un disparador real de "always-on". Detalle:
-**[`businessos/FASE0.md`](businessos/FASE0.md)**.
+negocio/@a2aTeamBot, clientes/@a2aClientbot), round-trip verificado. Corren 24/7 como
+servicios Docker en un **servidor Hetzner Cloud** (cx33, `167.233.233.56`), con respaldo
+nocturno a GitHub por vertical. Detalle: **[`businessos/FASE0.md`](businessos/FASE0.md)**;
+la variante concreta de Hetzner (tipo, firewall, costo) en
+**[`businessos/FASE0-hetzner.md`](businessos/FASE0-hetzner.md)**.
 
 **FASE 1 — Eficiencia de tokens: ✅ esencialmente cerrada** (2026-06-30). Routing por modelo
 (cerebro `gemini-2.5-flash-lite` con caché de prefijo 97%, ~3s/turno; negocio en `haiku-4.5`
@@ -96,7 +97,7 @@ resto son wizards interactivos de Hermes.
 **2. Provisiona el servidor** (como root, una vez):
 
 ```bash
-ssh root@LA_IP_DEL_DROPLET
+ssh root@LA_IP_DEL_SERVIDOR
 bash prep-servidor.sh    # usuario hermes, firewall, fail2ban, swap, Docker
 ```
 
@@ -138,7 +139,7 @@ businessos/
 ├── ROADMAP.md            # Mapa de todas las fases (0 → 5) y principios
 ├── FASE0.md              # Guía paso a paso de la infraestructura
 ├── docker-compose.yml    # 3 verticales Hermes + dashboard en hermes-net
-├── prep-servidor.sh      # Fase 0 pasos 2-3: endurece el Droplet + Docker
+├── prep-servidor.sh      # Fase 0 pasos 2-3: endurece el servidor + Docker
 ├── init-verticales.sh    # Fase 0 pasos 6-7: wizards + copia de personas
 ├── supabase-init.sql     # Esquema inicial de Supabase
 ├── .env.example          # Plantilla de variables (sin secretos)

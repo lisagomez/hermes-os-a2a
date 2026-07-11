@@ -76,8 +76,11 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   claves reales antes de tocar un vertical vivo).
 
 ## Primeros CLIs impresos (2026-06-30)
-- ✅ **digitalocean** (spec oficial, 660 endpoints) → shipcheck 7/7, scorecard **87/100 Grade A**.
-  En `~/printing-press/library/digitalocean/` (binario `digitalocean-pp-cli` v1.0.0).
+- ⚠️ **digitalocean** — **SUPERSEDED (2026-07-04) por `hcloud`** al mover el runtime a Hetzner
+  (ver [[despliegue-hetzner]]). Impreso en su momento (spec oficial, 660 endpoints) → shipcheck 7/7,
+  scorecard **87/100 Grade A**, en `~/printing-press/library/digitalocean/` (binario
+  `digitalocean-pp-cli` v1.0.0), pero **ya NO es la herramienta de gestión vigente**: marcado
+  `deprecated: true` en `cli-manifest.yaml` y el auditor lo ignora. Se conserva como registro.
 - ✅ **telegram** (apis.guru, 74 endpoints) → shipcheck 7/7, scorecard **83/100 Grade A** (2 bajo
   el 85 del manifiesto; drag = `insight 0/10`). Slug de librería = `telegram-bot` (del display name).
   En `~/printing-press/library/telegram-bot/` (binario `telegram-bot-pp-cli`).
@@ -120,8 +123,9 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
     `token_usage` directo, es trabajo de spec/generación a futuro.
 
 ## Estado: Fase 0-1 + 1-2 completas en CLIs
-Auditor reporta **0 faltantes** para la fase actual: digitalocean (87/A), telegram (83/A),
-supabase (87/A) impresos. Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
+Auditor reporta **0 faltantes** para la fase actual: hcloud (95/A, Hetzner — reemplaza a
+digitalocean, que quedó SUPERSEDED e ignorado), telegram (83/A) y supabase (87/A) impresos.
+Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
 
 ## Pendiente
 - ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight 0/10` si se va a publicar.

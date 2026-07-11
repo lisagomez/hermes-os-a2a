@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # prep-servidor.sh — Fase 0, pasos 2 y 3 automatizados.
-# Correr UNA vez como root en el primer acceso al Droplet (Ubuntu 24.04):
+# Correr UNA vez como root en el primer acceso al servidor (Ubuntu 24.04):
 #   ssh root@LA_IP   →   bash prep-servidor.sh
 # Crea el usuario 'hermes', endurece firewall, instala fail2ban + parches
 # automaticos, crea swap e instala Docker.

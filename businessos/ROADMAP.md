@@ -9,7 +9,7 @@ que la fase previa esté validada.
 ## Arquitectura en una frase
 
 Una mente (Hermes) con tres bocas (verticales: personal, negocio, clientes),
-cada una en su propio contenedor Docker, sobre un Droplet de DigitalOcean,
+cada una en su propio contenedor Docker, sobre un servidor Hetzner Cloud,
 hablando por Telegram y voz, con un grafo de conocimiento como cerebro
 regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima.
 
@@ -17,12 +17,11 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ## Stack confirmado
 
-- **Servidor:** ruta de bajo presupuesto elegida = **Hetzner Cloud** (2026-07-04):
-  CX32 8 GB ~€6.80/mes corre TODO incl. grafo, y cuesta menos que el plan de 4 GB de
-  DO (~$24); CX22 4 GB ~€3.79/mes como mínimo. Runbook en `FASE0-hetzner.md` (delta
-  sobre FASE0.md). DO sigue documentado en FASE0.md como alternativa. No bajar de
-  4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill (FASE0.md §1); con 1
-  vertical + limits recortados, 2 GB alcanza.
+- **Servidor:** **Hetzner Cloud** — PROVISIONADO 2026-07 (cx33: 4 vCPU / 8 GB,
+  `167.233.233.56`, Falkenstein `fsn1`); corre TODO incl. grafo por ~$9/mes. Runbook
+  en `FASE0-hetzner.md` (delta sobre FASE0.md, que conserva los pasos genéricos de
+  servidor). No bajar de 4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill
+  (FASE0.md §1); con 1 vertical + limits recortados, 2 GB alcanza.
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
 - **Modelos (opt-in GLM-5.2, seam listo 2026-07-04):** `z-ai/glm-5.2` (~1/6 del costo de
@@ -41,7 +40,7 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
   blockchain opcional (smart contracts con verificación formal Lean 4)
 - **Conexión de herramientas:** MCP
 - **CLIs agente-nativos:** Printing Press (imprime CLI+MCP por API; ahorro de
-  tokens ~100x vs MCP pesado; corre en Claude Code, no en el Droplet)
+  tokens ~100x vs MCP pesado; corre en Claude Code, no en el servidor)
 - **Conexión entre agentes:** protocolo A2A (primer agente vivo: `grafo-a2a`, Fase 5)
 
 ---
@@ -85,15 +84,15 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
 - [x] Caché de prefijo: REQUIERE proveedor compatible (Anthropic/OpenAI/Gemini/DeepSeek).
   nemotron NO la soporta (estaba efectivamente apagada); con gemini-flash-lite quedó activa
   (97% hit). Mantener SOUL/memoria estables para no invalidarla.
-- [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el Droplet)
+- [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el servidor)
 - [x] Ingesta real a `token_usage` (2026-06-30): `businessos/ingest-token-usage.py` parsea
   agent.log → costo con tarifas OpenRouter (caché incluida) → UPSERT idempotente vía service_role.
-  Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al Droplet.
+  Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al servidor.
 - [x] Reporte de presupuesto on-demand (2026-06-30): vista `v_presupuesto_mensual` + skill
   negocio `budget-report` (negocio reporta gasto del mes por Telegram, alerta al 80%).
 - [x] Registro de `facturas` (2026-07-01): job de host `businessos/ingest-facturas.py` (patrón
   inverso al snapshot de tokens; el agente deja JSON en el volumen, el job hace UPSERT vía
-  service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al Droplet.
+  service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al servidor.
 - [x] **Validación en vivo de modelos nuevos (2026-07-08)**: `title_generation` → `gpt-oss-120b:nitro`
   invocado de verdad en prod (varias corridas, últimas 2026-07-06); `vision` → `claude-sonnet-4.6`
   ejercitado con imagen real vía `hermes chat --image` ("Image analysis completed" en `agent.log`).
@@ -573,17 +572,18 @@ Cómo funciona (archivos en la raíz de `businessos/`):
 - cli-audit.py (job de confianza del host) audita qué CLIs faltan para la fase
   actual y deja el snapshot que lee la vertical negocio (skill `cli-audit`)
 - Printing Press corre en Claude Code en tu máquina de desarrollo, no en el
-  Droplet (necesita Go 1.26.4+ y Claude Code)
+  servidor (necesita Go 1.26.4+ y Claude Code)
 
 Detector + aviso (Nivel 2-prep, decidido 2026-06-30): `cli-audit.py` corre por
-cron de SO en el Droplet (2:30, escalonado tras la ingesta de tokens) y deja
+cron de SO en el servidor (2:30, escalonado tras la ingesta de tokens) y deja
 `/opt/data/workspace/cli-audit.json`; el digest 8:00 de negocio reporta las
 brechas con el comando exacto. La impresión y la mejora de un CLI siguen siendo
 acción humana en Claude Code (`/printing-press`, `/printing-press-amend`,
 `/code-review`): el cron solo detecta y avisa, nunca imprime (Nivel 3 descartado).
 
 Qué CLI por fase:
-- Fase 0-1: DigitalOcean ✅, Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
+- Fase 0-1: ~~DigitalOcean~~ superseded → **hcloud** (Hetzner, impreso 2026-07-04,
+  Grade A 95/100), Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
 - Fase 1-2: Supabase ✅ (impreso 2026-06-30 desde el OpenAPI de PostgREST del
   proyecto; auth dual-header service_role cableada a mano; herramienta de host/dev,
   el agente no la usa por secret-scrubbing)

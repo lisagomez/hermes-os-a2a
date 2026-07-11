@@ -22,7 +22,7 @@ Forma del request:
     {"cliente": "ACME S.A.", "titulo": "Consultoria 2026", "jurisdiccion": "MX",
      "clausulas": [{"titulo": "Condiciones de pago", "texto": "..."}, ...]}
 
-Uso (Droplet, grafo arriba):
+Uso (servidor, grafo arriba):
     source businessos/.env
     python3 businessos/validar-contratos.py            # procesa la bandeja
     python3 businessos/validar-contratos.py --dry-run  # evalúa y muestra, sin escribir

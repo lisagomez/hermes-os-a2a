@@ -13,7 +13,7 @@ Regla de oro: **cero afirmación fiscal sin fuente citada.** Lo no clasificable 
 ## Consumo
 
 - Verticales Hermes (dentro de la red): `http://grafo:3000` — sin secretos, solo lectura HTTP.
-- Host-jobs en el Droplet: `http://127.0.0.1:3000` (puerto publicado solo en loopback).
+- Host-jobs en el servidor: `http://127.0.0.1:3000` (puerto publicado solo en loopback).
 - Contrato: `GET /openapi.json` (de aquí se imprime el CLI con Printing Press).
 - Salud del seed: `GET /salud-conocimiento` (reglas vencidas + montos sin cotejo);
   la consume el cron `businessos/revisar-vigencias.py`.
