@@ -508,11 +508,23 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   supervisor no copiaba `chequeos_adquisicion.py` → crash-loop
   (ModuleNotFoundError); los tests de dev no lo cazan porque corren desde el
   directorio fuente — un módulo python nuevo exige su COPY en el Dockerfile.
+- [x] **Card en internet — edge público (gate abierto 2026-07-10, verificado
+  2026-07-11)**: servicio `edge` (Caddy compilado con xcaddy +
+  mholt/caddy-ratelimit; la imagen oficial no trae rate limiting) — la ÚNICA
+  pieza del stack que publica un puerto en 0.0.0.0 (443; el Cloud Firewall de
+  Hetzner quedó en exactamente tcp/22 + tcp/443). TLS automático (Let's
+  Encrypt, certs persistidos en volumen `caddy-data`), rate limit 30 req/min
+  por IP (verificado: 30×200 → 429), body máx 64KB, y solo proxyea
+  `ventas-a2a:4400`. Dominio temporal `167-233-233-56.sslip.io` ("probar
+  primero"); `VENTAS_PUBLIC_URL` en el `.env` del server para que la card no
+  mienta. Smoke end-to-end por la URL pública: lead → `TASK_STATE_COMPLETED`,
+  `persistido=true`, fila real en `leads` de prod. Con dominio real: cambiar
+  `edge/Caddyfile` + `VENTAS_PUBLIC_URL` y recrear.
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
   de autenticidad de aprobación); negociación A2A externa autónoma (política
-  de límites + auth en la card + revisión legal); card en internet
-  (dominio/TLS/rate limiting); `#dep-adquisicion` en Slack.
+  de límites + auth en la card + revisión legal); dominio real para el edge
+  (hoy sslip.io temporal); `#dep-adquisicion` en Slack.
 - **Salida esperada:** un lead entra por A2A o manual, el pipeline vive en
   `leads`, el Ejecutor redacta bajo gates comerciales deterministas, y TODO lo
   de cara al cliente (correo, propuesta, contrato, firma) pasa por humano según

@@ -1,0 +1,26 @@
+# Edge publico de BusinessOS. HOY solo publica la card de ventas-a2a.
+# Dominio temporal sslip.io (decision de la dueña 2026-07-10, "probar primero");
+# al comprar dominio real: cambiar el site address + VENTAS_PUBLIC_URL y ya.
+{
+	email lisagomez967@gmail.com
+	order rate_limit before reverse_proxy
+}
+
+167-233-233-56.sslip.io {
+	# 30 req/min por IP: trafico legitimo de una card comercial esta muy por
+	# debajo; protege a ventas-a2a (y a Supabase detras) de scrapers/floods.
+	rate_limit {
+		zone ventas {
+			key {remote_host}
+			events 30
+			window 1m
+		}
+	}
+
+	# Un lead A2A son unos KB de JSON-RPC; nadie legitimo manda mas.
+	request_body {
+		max_size 64KB
+	}
+
+	reverse_proxy ventas-a2a:4400
+}

@@ -245,8 +245,9 @@ services:
   # (estatica, versionada en oferta.py). Sin LLM: cero tokens por lead.
   # Fallo VISIBLE: con Supabase configurado, un lead que no se pudo guardar =
   # task failed reintentable, jamas perdido en silencio.
-  # Hoy solo hermes-net + 127.0.0.1 (tunel SSH); exponerla a internet (dominio
-  # + TLS + rate limiting) es gate de la dueña → ajustar VENTAS_PUBLIC_URL.
+  # Expuesta a internet SOLO a traves del servicio `edge` (gate abierto
+  # 2026-07-10): este contenedor sigue en hermes-net + 127.0.0.1;
+  # VENTAS_PUBLIC_URL (en el .env del server) es la URL que anuncia la card.
   # Pipeline completo: departamentos/adquisicion-clientes.md
   ventas-a2a:
     build: ./ventas-a2a
@@ -259,6 +260,26 @@ services:
       - VENTAS_PUBLIC_URL=${VENTAS_PUBLIC_URL:-http://ventas-a2a:4400}
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  # ---------- EDGE (proxy publico, gate de la dueña abierto 2026-07-10) ----------
+  # La UNICA pieza que publica un puerto en 0.0.0.0: Caddy con TLS automatico
+  # (Let's Encrypt) + rate limiting (30 req/min por IP), delante de ventas-a2a
+  # y de NADA mas. Dominio temporal sslip.io para probar; con dominio real solo
+  # cambia edge/Caddyfile + VENTAS_PUBLIC_URL. El 443 lo abre el Cloud Firewall
+  # de Hetzner (filtra fuera de la VM, gobierna lo que Docker publica).
+  edge:
+    build: ./edge
+    container_name: edge
+    profiles: ["edge"]
+    restart: unless-stopped
+    ports:
+      - "443:443"                 # publico a proposito (unico en todo el stack)
+    volumes:
+      - caddy-data:/data          # certificados ACME persistentes
     networks: [hermes-net]
     deploy:
       resources:
@@ -408,3 +429,6 @@ volumes:
   # Supervisor re-ejecuta los gates ahi mismo. La frontera entre ambos es de
   # JUICIO (contexto/proceso separados), no de filesystem.
   trio-workspace:
+  # Certificados TLS del edge (ACME): persistir evita re-emitir en cada
+  # recreate y pegarle a los rate limits de Let's Encrypt.
+  caddy-data:
