@@ -4,15 +4,17 @@
 Lee las líneas `API call #` del agent.log de cada contenedor Hermes (el loop
 principal; las llamadas auxiliares no emiten tokens en ese log todavía), calcula
 el costo real con tarifas de OpenRouter (incluida la lectura de caché), agrega por
-(fecha, vertical, modelo) y hace UPSERT idempotente vía PostgREST + service_role.
+(fecha, vertical, modelo) y escribe vía PostgREST + service_role.
 
 Uso:
     source businessos/.env            # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
     python3 businessos/ingest-token-usage.py [YYYY-MM-DD]   # default: hoy (UTC)
 
-Idempotente: re-correr el mismo día recalcula desde el log y sobrescribe (constraint
-única fecha,vertical,modelo). Requiere que el agent.log aún contenga ese día (si rota,
-re-correr pierde lo anterior). Pensado para correr on-demand o por cron en el Droplet.
+Idempotente: re-correr el mismo día recalcula desde el log y reemplaza SOLO las
+filas del agregado diario de estas verticales (delete+insert; el índice único es
+parcial desde 2026-07-11 y no admite on_conflict — ver supabase-fix-token-ledger.sql).
+Las filas por-tarea del trío (task_id set) nunca se tocan. Requiere que el agent.log
+aún contenga ese día (si rota, re-correr pierde lo anterior). Corre por cron en el server.
 """
 import os, re, json, subprocess, urllib.request, datetime, sys
 
@@ -60,17 +62,25 @@ for r in rows:
     print(f"  {r['vertical']:<9}{r['modelo']:<40} in={r['tokens_in']:>7} out={r['tokens_out']:>5} ${r['costo_usd']:.5f}")
 print(f"  TOTAL ${sum(r['costo_usd'] for r in rows):.5f}")
 
-req = urllib.request.Request(
-    f"{URL}/rest/v1/token_usage?on_conflict=fecha,vertical,modelo",
-    data=json.dumps(rows).encode(),
-    headers={"apikey": KEY, "Authorization": "Bearer " + KEY,
-             "Content-Type": "application/json",
-             "Prefer": "resolution=merge-duplicates,return=minimal"})
+# Idempotencia por delete+insert del dia (2026-07-11): el indice unico es ahora
+# PARCIAL (where task_id is null; ver supabase-fix-token-ledger.sql) y PostgREST
+# no puede inferir on_conflict sobre el. El delete filtra task_id=is.null Y las
+# verticales de ESTE job: jamas toca el ledger por-tarea del trio (lo escribe el
+# motor del Ejecutor).
+HDRS = {"apikey": KEY, "Authorization": "Bearer " + KEY,
+        "Content-Type": "application/json", "Prefer": "return=minimal"}
 try:
+    req = urllib.request.Request(
+        f"{URL}/rest/v1/token_usage?fecha=eq.{DATE}&task_id=is.null"
+        "&vertical=in.(personal,negocio,clientes)",
+        headers=HDRS, method="DELETE")
     urllib.request.urlopen(req, timeout=30)
-    print("UPSERT ok (%d filas)" % len(rows))
+    req = urllib.request.Request(
+        f"{URL}/rest/v1/token_usage", data=json.dumps(rows).encode(), headers=HDRS)
+    urllib.request.urlopen(req, timeout=30)
+    print("INGESTA ok (%d filas, delete+insert %s)" % (len(rows), DATE))
 except urllib.error.HTTPError as e:
-    print("UPSERT ERROR", e.code, e.read().decode()[:300]); sys.exit(1)
+    print("INGESTA ERROR", e.code, e.read().decode()[:300]); sys.exit(1)
 
 # --- Snapshot de presupuesto para el skill budget-report ---
 # Hermes scrubbea los secretos del sandbox del agente: NO puede usar el service_role.

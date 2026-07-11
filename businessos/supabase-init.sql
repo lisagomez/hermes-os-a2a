@@ -74,6 +74,10 @@ alter table public.facturas enable row level security;
 
 -- Idempotencia de la ingesta: un renglon por (dia, vertical, modelo).
 -- Lo usa businessos/ingest-token-usage.py para el UPSERT.
+-- NOTA (2026-07-11): supabase-fix-token-ledger.sql (corre DESPUES de fase7,
+-- que agrega task_id) convierte esta unique en un indice PARCIAL (solo
+-- task_id null) para que las filas por-tarea del trio sean un ledger
+-- append-only. Ver ese archivo.
 alter table public.token_usage
   add constraint token_usage_fecha_vertical_modelo_key
   unique (fecha, vertical, modelo);

@@ -63,7 +63,7 @@ class RegistroTokenUsage:
             return
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
-                await client.post(
+                r = await client.post(
                     f"{self._url}/rest/v1/token_usage",
                     headers={
                         "apikey": self._key,
@@ -72,8 +72,18 @@ class RegistroTokenUsage:
                     },
                     json=filas,
                 )
-        except httpx.HTTPError:
-            pass  # best-effort: el presupuesto no tumba la tarea
+            # Best-effort NO es silencioso: un 4xx/5xx (p.ej. el 409 del indice
+            # unico que se trago el gasto del dogfood 2026-07-11) debe VERSE en
+            # los logs aunque no tumbe la tarea.
+            if r.status_code >= 300:
+                print(
+                    f"[token_usage] POST fallo HTTP {r.status_code}: "
+                    f"{r.text[:200]} (gasto NO registrado, la tarea sigue)",
+                    flush=True,
+                )
+        except httpx.HTTPError as exc:
+            # best-effort: el presupuesto no tumba la tarea, pero queda rastro
+            print(f"[token_usage] POST fallo: {type(exc).__name__}: {exc}", flush=True)
 
 
 def _entero(u: dict, *claves: str) -> int:
