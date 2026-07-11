@@ -612,6 +612,24 @@ Reglas de seguridad (heredadas del rigor del propio Printing Press):
 
 ---
 
+## Corriente transversal — Memoria del agente (decidido 2026-07-11)
+
+Criterio: rentabilidad. **Piloto Holographic ACTIVO en negocio** (provider bundled
+local, SQLite en el volumen → cubierto por el respaldo nocturno; 100% bajo demanda
+via `fact_store` → caché de prefijo intacta, 95% medido post-activación). Evaluar
+~2 semanas (≈2026-07-25): si no reduce re-explicaciones/tokens en uso real, se
+apaga (rollback de una línea); si aporta, extender a personal/clientes.
+
+**Engram DIFERIDO como tier premium** ("memoria auditable/portable/exportable por
+cliente") con trigger explícito: primer cliente white-label que lo pida o >2
+verticales de clientes activas. Motivo: su plugin bundled tiene bug upstream
+cerrado "not planned" (gateway colgado 30 min en silencio) → fork permanente en
+ruta crítica + infra sin línea de ingreso hoy; como feature con demanda, se paga
+solo. **Obsidian intocable**: humana, un escritor (Elisa), sin sync bidireccional.
+Detalle en `.claude/memory/project/memoria-agente.md`.
+
+---
+
 ## Corriente transversal — Canales de comunicación
 
 No es una fase; atraviesa todas. Tres superficies con papeles distintos:
