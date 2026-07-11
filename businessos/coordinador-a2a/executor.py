@@ -36,6 +36,25 @@ FAN_OUT_DEFAULT = 3
 DEFAULT_WORKSPACE = "/workspace"
 
 
+def heredar_modelo_pref(plan: dict, tarea: dict) -> dict:
+    """Las sub-tareas sin `limites.modelo_pref` heredan el del padre.
+
+    El ruteo por tarea de la dueña (GLM-5.2 simple, Sonnet media/alta) se decide
+    en la feature PADRE; el Planner no emite límites, así que sin esta herencia
+    cada sub-tarea caería al modelo default del CLI, no al que pidió la feature.
+    Una sub-tarea con su propio modelo_pref se respeta.
+    """
+    pref = tarea.get("limites", {}).get("modelo_pref")
+    if not pref:
+        return plan
+    subs = [
+        s if s.get("limites", {}).get("modelo_pref")
+        else {**s, "limites": {**s.get("limites", {}), "modelo_pref": pref}}
+        for s in plan["sub_tareas"]
+    ]
+    return {**plan, "sub_tareas": subs}
+
+
 def limites_enjambre(tarea: dict) -> tuple[int, float | None]:
     """Extrae y valida `fan_out_max` (>=1) y `presupuesto_usd` (>=0, opcional).
 
@@ -109,7 +128,7 @@ class CoordinadorA2A(AgentExecutor):
             return
 
         try:
-            plan = await self._planner.plan(tarea)
+            plan = heredar_modelo_pref(await self._planner.plan(tarea), tarea)
         except PlannerError as exc:
             await self._fallar(updater, f"planner: {exc}")
             return

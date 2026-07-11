@@ -5,15 +5,20 @@
 # (trio-contrato/contrato.py) se copia dentro de la imagen:
 #   docker build -f coordinador-a2a/Dockerfile .
 #
-# PLANNER REAL (COORDINADOR_PLANNER=claude): requiere ademas el CLI de Claude Code
-# (Node + `npm i -g @anthropic-ai/claude-code`) y ANTHROPIC_API_KEY. Esta imagen
-# NO lo trae (default = mock, cero tokens): activar el planner real es decision
-# explicita de la dueña (residual runtime, ver ROADMAP Fase 7).
+# PLANNER REAL (COORDINADOR_PLANNER=claude): requiere el CLI de Claude Code (Node +
+# `npm i -g @anthropic-ai/claude-code`, instalado aqui abajo) y una credencial en
+# runtime — ANTHROPIC_API_KEY (Anthropic directo) o ANTHROPIC_BASE_URL +
+# ANTHROPIC_AUTH_TOKEN (seam GLM-5.2 via z.ai). El CLI se instala en TIEMPO DE
+# BUILD (no necesita credencial); encenderlo (COORDINADOR_PLANNER=claude) es
+# decision explicita de la dueña (default = mock, cero tokens).
 FROM python:3.12-slim
 
 # git: la integracion de ramas del enjambre usa git (Fase 4)
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+# nodejs/npm: soporte del CLI de Claude Code para el planner real
+RUN apt-get update && apt-get install -y --no-install-recommends git nodejs npm \
     && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
 
 # El repo/worktrees llegan por bind-mount/volumen con uid del host (distinto de
 # root): sin esto git aborta con 'dubious ownership'. El contenedor solo ve SUS

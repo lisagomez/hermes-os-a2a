@@ -162,17 +162,21 @@ businessos/
    Mock/Claude Agent SDK) + `supervisor-a2a` (gates deterministas de `reglas/software.toml`,
    gate no corrible = rechazo) + skill `trio-software` (Hermes reparte, reintenta con tope,
    gate humano en lo irreversible) + tabla `tareas`; interop e2e con reintento demostrado en
-   dev con cero tokens. Residuales: compose up en Droplet, dogfood con motor real (decisión
-   de la dueña), gates de modelo con runner. White-label y RAG por ámbito: FUTURO, otro PRP.
+   dev con cero tokens. Runtime cerrado 2026-07-08 y dogfood con motor real APROBADO
+   2026-07-11 (GLM-5.2 vía seam z.ai, 8 gates verdes). Residual: gates de modelo con runner.
+   White-label y RAG por ámbito: FUTURO, otro PRP.
    Primer departamento: Desarrollo de Software (ver `businessos/departamentos/`).
-8. [~] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
+8. [x] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
    PR #13): `coordinador-a2a` (servicio A2A hermano) descompone una feature grande en un DAG
    de sub-tareas, las reparte en paralelo al Ejecutor con tope de fan-out + presupuesto
    (`token_usage.task_id`), integra lo aprobado en `tarea/<parent_id>` y pide una verificación
    final del Supervisor sobre la rama integrada — o escala; Planner pluggable (Mock/real
    opt-in), un escritor por fila padre/hija. Validado en dev con cero tokens (112 tests
-   verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04). Residuales: compose up
-   en Droplet, dogfood con Planner/motor real (decisión de la dueña).
+   verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04); runtime cerrado
+   2026-07-08. COMPLETA 2026-07-11: dogfood real APROBADO — Planner real GLM-5.2 planificó
+   3 sub-tareas, enjambre paralelo aprobado al primer intento, integración limpia y 8 gates
+   verdes en el todo; ledger por-tarea real y corte de presupuesto operando con datos
+   medidos (ver CLAUDE.md 2026-07-11 enjambre).
 9. [x] **Fase 9** — Departamento de Adquisición de Clientes agéntico (núcleo en dev
    2026-07-10): segundo departamento del trío (`departamento: "adquisicion"` en el contrato;
    Supervisor multi-departamento ruteando `reglas/*.toml`); gates comerciales binarios con la

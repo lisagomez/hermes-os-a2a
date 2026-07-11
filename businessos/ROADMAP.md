@@ -367,7 +367,7 @@ el paquete del primer departamento, y el modelo white-label).
 
 ---
 
-## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ VIVO en runtime (2026-07-08); dogfood real = decisión de la dueña
+## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ COMPLETA — dogfood real APROBADO (2026-07-11, GLM-5.2)
 
 PRP: `.claude/PRPs/prp-fase7-swarm.md`. Estado detallado en
 `.claude/memory/project/fase7-swarm.md`.
@@ -414,12 +414,26 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
 - [x] **Planner REAL construido (2026-07-06, PR #28)** — `claude_planner.py` con
   claude-agent-sdk detrás de la interfaz Planner; opt-in `COORDINADOR_PLANNER=claude`;
   gasto atribuido a la fila PADRE; 53 tests verdes. Sigue mock por default
-- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — activar Planner real + primer
-  dogfood del enjambre con motor real (`EJECUTOR_ENGINE=claude`); hoy Mock-only a propósito
-- **Salida:** ✅ un enjambre de Ejecutores coordinado, validado de punta a punta en dev
-  (motor y planner mock, cero tokens), con las mismas garantías de la Fase 6 (Supervisor
-  independiente re-gatea el todo + gate humano en lo irreversible) — aplicar el SQL y el
-  dogfood real son los siguientes pasos y son decisión de la dueña.
+- [x] **DOGFOOD REAL APROBADO (2026-07-11, GLM-5.2 end-to-end)** — Planner real activado
+  (`COORDINADOR_PLANNER=claude`, imagen del coordinador con CLI + `IS_SANDBOX=1`) y
+  `dogfood-swarm-1` corrido en runtime: GLM planificó 3 sub-tareas (2 paralelas + 1
+  dependiente), las 3 aprobadas al primer intento por los gates reales, integración
+  limpia (4 archivos) y veredicto FINAL del Supervisor con los 8 gates en verde. Fila
+  padre `aprobada` en `tareas` de prod; ledger por-tarea completo (Planner → padre
+  $0.27, `slug` $0.76, `moneda` $0.59 a tarifa nominal Anthropic — ~$1.62 del
+  presupuesto de $2; el corte de presupuesto operó con datos reales). Gotchas nuevos:
+  `node_modules` COMPARTIDO en `/workspace/worktree/` (el worktree de integración nace
+  sin deps y nadie le corre npm install; la resolución upward de Node cubre TODOS los
+  worktrees y ahorra tokens por sub-tarea) y herencia de `modelo_pref` padre→sub-tareas
+  (el Planner no emite límites; sin herencia el enjambre caería al modelo default del
+  CLI). Ver CLAUDE.md 2026-07-11 (enjambre) y `fase7-swarm.md`.
+- **Salida:** ✅ un enjambre de Ejecutores coordinado y VERIFICADO en producción con
+  motor real (GLM-5.2 vía seam z.ai), con las mismas garantías de la Fase 6 (Supervisor
+  independiente re-gatea el todo + gate humano en lo irreversible). Residuales menores
+  (no bloquean): las filas hijas no llevan `parent_id` (validar_tarea descarta el campo)
+  y `gasto_usd` de la fila padre queda 0 (el ledger `token_usage.task_id` es la fuente
+  de verdad); el `node_modules` compartido se re-instala a mano si cambia el
+  `package.json` del scaffold.
 
 ---
 

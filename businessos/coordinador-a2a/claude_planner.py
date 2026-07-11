@@ -126,7 +126,7 @@ class RegistroTokenUsage:
             return
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
-                await client.post(
+                r = await client.post(
                     f"{self._url}/rest/v1/token_usage",
                     headers={
                         "apikey": self._key,
@@ -135,8 +135,16 @@ class RegistroTokenUsage:
                     },
                     json=filas,
                 )
-        except httpx.HTTPError:
-            pass  # best-effort: el registro no tumba la planificacion
+            # Best-effort NO es silencioso (leccion del 409 del dogfood 2026-07-11):
+            # un 4xx/5xx debe VERSE en los logs aunque no tumbe la planificacion.
+            if r.status_code >= 300:
+                print(
+                    f"[token_usage] POST fallo HTTP {r.status_code}: "
+                    f"{r.text[:200]} (gasto del Planner NO registrado, la tarea sigue)",
+                    flush=True,
+                )
+        except httpx.HTTPError as exc:
+            print(f"[token_usage] POST fallo: {type(exc).__name__}: {exc}", flush=True)
 
 
 class ClaudePlanner:

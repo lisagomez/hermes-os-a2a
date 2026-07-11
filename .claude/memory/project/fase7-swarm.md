@@ -1,6 +1,6 @@
 ---
 name: fase7-swarm
-description: Fase 7 — enjambre (swarm) de Ejecutores coordinado CONSTRUIDO y validado en dev (2026-07-04, PRP-007, PR #13); Coordinador A2A hermano del trío; residuales SQL (no aplicado aún) + runtime + dogfood real.
+description: Fase 7 — enjambre (swarm) COMPLETA — dogfood real APROBADO en runtime (2026-07-11, GLM-5.2 end-to-end); Coordinador A2A con Planner real; gotchas node_modules compartido + herencia modelo_pref.
 metadata:
   type: project
 ---
@@ -68,3 +68,40 @@ El coordinador ganó su entrada en `docker-compose.yml` (¡faltaba! profile `tri
 opacidad verificadas por el smoke de runtime. El Planner real (PR #28,
 `claude_planner.py`) está mergeado pero sigue mock por default. Residual:
 dogfood real opt-in (decisión de la dueña).
+
+## ACTUALIZACIÓN 2026-07-11 — DOGFOOD REAL APROBADO (GLM-5.2) → FASE COMPLETA
+
+`dogfood-swarm-1` (2 utilidades TS independientes sobre el scaffold de trio-repo,
+`fan_out_max=2`, `presupuesto_usd=2`, `modelo_pref=glm-5.2`) aprobado end-to-end
+en runtime: el Planner real (GLM) produjo un DAG de 3 sub-tareas (`slug` y
+`moneda` en paralelo + `validar` dependiente de ambas), las 3 aprobadas al PRIMER
+intento por los gates reales, integración limpia (4 archivos) y veredicto FINAL
+del Supervisor con los 8 gates en verde. Fila padre `aprobada` en `tareas` de
+prod; ledger por-tarea completo gracias al fix del índice parcial (Planner
+atribuido al padre $0.27 + `slug` $0.76 + `moneda` $0.59 nominal Anthropic ≈
+$1.62/2.00 — el corte de presupuesto del scheduler leyó gasto REAL por primera
+vez).
+
+**Lo que hubo que construir/destrabar (detalle en CLAUDE.md 2026-07-11 enjambre):**
+- Imagen del coordinador con Node + CLI de Claude Code (era mock-only) e
+  `IS_SANDBOX=1` en su compose (planner corre `bypassPermissions` como root).
+- `executor.py::heredar_modelo_pref` — las sub-tareas heredan `limites.modelo_pref`
+  del padre (el Planner no emite límites; sin herencia el enjambre caería al
+  modelo default del CLI). Test unidad + flujo; suite del coordinador 55 verdes.
+- `claude_planner.py::registrar` ya no es silencioso ante 4xx/5xx (paridad con el
+  fix del motor del 2026-07-11).
+- **`node_modules` COMPARTIDO en `/workspace/worktree/`**: el worktree de
+  integración nace de `git worktree add` y nadie le corre npm install → los gates
+  finales fallarían por tooling. La resolución upward de Node/npm cubre TODOS los
+  worktrees; validado con los 4 gates desde el contenedor del Supervisor sobre un
+  worktree desechable, cero tokens. Mantenimiento: re-instalar si cambia el
+  `package.json` del scaffold.
+
+**Residuales menores (no bloquean; anotados en ROADMAP):** filas hijas sin
+`parent_id` (validar_tarea descarta el campo → columna null; el vínculo vive en
+el `plan` jsonb del padre); `gasto_usd` de la fila padre queda 0 (el docstring de
+estado.py promete actualización por vuelta pero enjambre.correr no recibe el
+estado; el ledger `token_usage.task_id` es la fuente de verdad). El worktree
+integrado `tarea/dogfood-swarm-1` quedó en el server para inspección de la dueña
+(merge a main = gate humano); limpiar = borrar dir → prune → borrar rama, DESDE
+el contenedor (admin-dirs de root).

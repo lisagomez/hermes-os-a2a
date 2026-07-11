@@ -581,4 +581,29 @@ npm run lint         # ESLint
 - **Aplicar en**: todo motor de agente en contenedor, todo servicio que opere git sobre
   worktrees compartidos, y toda escritura best-effort a Supabase (mínimo: loguear el fallo).
 
+### 2026-07-11: Dogfood real del ENJAMBRE (Fase 7) aprobado — dos gotchas estructurales
+- **Error(es) que se habrían comido la corrida**: (1) el worktree de INTEGRACIÓN lo crea
+  el Coordinador con `git worktree add` y NADIE le corre `npm install` → la verificación
+  final fallaría por tooling (`tsc: not found`), no por juicio; en Fase 6 no se vio porque
+  el motor (GLM) instalaba deps en SU worktree. (2) el Planner real solo emite
+  task_id/objetivo/criterios/depende_de/alcance — SIN `limites` → las sub-tareas irían al
+  modelo default del CLI, no al que pidió la feature padre.
+- **Fix**: (1) `node_modules` COMPARTIDO en `/workspace/worktree/` (la resolución upward
+  de Node/npm cubre TODOS los worktrees, incluido el integrado, y ahorra tokens por
+  sub-tarea — verificado corriendo los 4 gates desde el contenedor del Supervisor sobre un
+  worktree desechable ANTES de quemar modelo; re-instalar a mano si cambia el package.json
+  del scaffold). (2) herencia `modelo_pref` padre→sub-tareas en el Coordinador
+  (`executor.py::heredar_modelo_pref`; una sub-tarea con su propio modelo_pref gana).
+  Además: el planner real necesita el CLI en la imagen del coordinador + `IS_SANDBOX=1`
+  (mismo gotcha root de Fase 6) y el mismo fix "best-effort no silencioso" en su registro
+  de token_usage. Al limpiar worktrees viejos: los admin-dirs son de root (los creó el
+  contenedor) → limpiar DESDE el contenedor, y los dirs del volumen se ven "prunable"
+  desde el host aunque existen (el host no ve /workspace).
+- **Resultado**: `dogfood-swarm-1` APROBADO — plan GLM de 3 sub-tareas (2 paralelas + 1
+  dependiente), integración limpia, 8 gates verdes en el todo, ledger por-tarea completo
+  (~$1.62 nominal de $2; el corte de presupuesto operó con datos reales por primera vez).
+- **Aplicar en**: todo worktree que un servicio prepare para gates npm (quien crea el
+  worktree responde por que sea verificable), y todo campo de ruteo que deba sobrevivir a
+  una descomposición (heredar explícitamente, no asumir que el modelo lo emite).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
