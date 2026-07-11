@@ -173,9 +173,17 @@ imprimirla). Cronología que costó 3 intentos:
 - Gasto: intento 1 = 15,576 in / 1,477 out, `costo_usd` 0.19 (tarifa Anthropic,
   SOBRE-estimado vs z.ai; con Coding Plan el marginal es ~0). **El del intento 2
   SE PERDIÓ**: `UNIQUE(fecha,vertical,modelo)` de token_usage + `except: pass`
-  sin `raise_for_status` en el motor = 409 silencioso. BUG ABIERTO con fix
-  propuesto (índice único parcial where task_id is null + ingest delete+insert
-  + log del fallo); DDL en prod = OK de la dueña.
+  sin `raise_for_status` en el motor = 409 silencioso.
+- **BUG CERRADO (2026-07-11, OK de la dueña):** índice único PARCIAL en prod
+  (`supabase-fix-token-ledger.sql`; correr SIEMPRE después de fase7 porque usa
+  task_id — el init NO se toca por eso), ingest-token-usage.py a delete+insert
+  del día (filtra `task_id=is.null` + las 3 verticales del job; de paso
+  consolidó dos filas duplicadas raras del 07-10), y `registrar` del motor
+  imprime cualquier 4xx/5xx o error de transporte (best-effort ≠ silencioso).
+  Verificado end-to-end con `dogfood-glm-3` (aprobado, 8 gates): su fila
+  (3,619 in / 1,762 out) convive con la de dogfood-glm-1 — mismo día, mismo
+  modelo. El corte de presupuesto del enjambre (suma por task_id) ya tiene
+  ledger confiable.
 
 **Gotcha de arquitectura descubierto:** `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`
 son env vars de contenedor completo (`claude_engine.py` las lee de `os.environ`,

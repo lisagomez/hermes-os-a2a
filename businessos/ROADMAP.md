@@ -347,13 +347,16 @@ el paquete del primer departamento, y el modelo white-label).
   ejecutor; (b) el `.git` de un worktree es un PUNTERO a `/repo/.git/worktrees/`
   → el Supervisor necesita el mount de `/repo` o sus gates estáticos salen
   `no_ejecutable`. Detalle en `.claude/memory/project/fase6-departamentos.md`.
-- [ ] **BUG ABIERTO (fix propuesto, requiere OK de la dueña: DDL en prod)** —
-  `token_usage` tiene `UNIQUE(fecha,vertical,modelo)` (diseñada para el agregado
-  DIARIO del ingest nocturno): la 2ª tarea del mismo modelo el mismo día choca y
-  el `except: pass` del motor (sin `raise_for_status`) la traga → **gasto
-  perdido en silencio** (pasó con `dogfood-glm-2`; presupuesto subcontado).
-  Fix: índice único PARCIAL (`where task_id is null`) + ingest a
-  delete+insert del día + motor que loguee el fallo del POST.
+- [x] **BUG del ledger de gasto CERRADO (2026-07-11, OK de la dueña, DDL en
+  prod)** — la `UNIQUE(fecha,vertical,modelo)` de `token_usage` (agregado
+  DIARIO del ingest) tragaba en silencio el gasto de la 2ª tarea del mismo
+  modelo/día (pasó con `dogfood-glm-2`: 409 + `except: pass` sin log). Fix en
+  tres piezas: índice único PARCIAL `where task_id is null`
+  (`supabase-fix-token-ledger.sql`, corre después de fase7), ingest a
+  delete+insert del día (solo filas de agregado, jamás el ledger del trío), y
+  motor con fallos de POST visibles en log. Verificado end-to-end:
+  `dogfood-glm-3` (aprobado, 8 gates) registró su fila JUNTO a la de
+  `dogfood-glm-1` — mismo día, mismo modelo, dos filas conviviendo.
 - [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
   Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
 - [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del
