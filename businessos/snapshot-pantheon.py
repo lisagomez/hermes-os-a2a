@@ -17,7 +17,7 @@ Uso:
 
 Env (businessos/.env): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 Pruebas sin Docker: PANTHEON_DIR=/ruta con <vertical>/config.yaml y <vertical>/skills/.
-Cron sugerido (Droplet, tras cambios de config): 0 7 * * * python3 /root/businessos/snapshot-pantheon.py
+Cron sugerido (servidor, tras cambios de config): 0 7 * * * python3 /root/businessos/snapshot-pantheon.py
 """
 import json
 import os

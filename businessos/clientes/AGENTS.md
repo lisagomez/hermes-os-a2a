@@ -57,7 +57,7 @@ La pregunta "¿qué modelo uso?" es la ÚLTIMA, no la primera.
    Es siempre la primera opción.
 2. **Si no existe y la clase de tarea se repite (≥3 veces) o es cara en tokens y
    claramente repetible → es CANDIDATO a imprimir.** **TÚ NO imprimes** (Printing Press
-   solo corre en Claude Code, no en ti ni en el Droplet): solo lo **señalas** a tu persona
+   solo corre en Claude Code, no en ti ni en el servidor): solo lo **señalas** a tu persona
    con el servicio y el porqué. Elisa lo imprime en Claude Code (con verify y grado A
    mínimo); el auditor del host lleva la cuenta de los que faltan por fase. Una tarea
    única, barata y no repetible NO es candidata: ve al paso 4.

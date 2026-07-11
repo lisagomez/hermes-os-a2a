@@ -13,7 +13,7 @@ Consulta GET /salud-conocimiento del grafo y:
 Los montos con `verificar:true` NO son error (el seed nace pendiente de cotejo
 DOF/DIAN): se listan para que Elisa/contador los vayan cerrando.
 
-Uso (Droplet, grafo arriba):
+Uso (servidor, grafo arriba):
     python3 businessos/revisar-vigencias.py            # reporte + snapshot
     python3 businessos/revisar-vigencias.py --dry-run  # solo reporte, sin escribir
 Cron sugerido (lunes 8:00): 0 8 * * 1 python3 /root/businessos/revisar-vigencias.py

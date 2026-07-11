@@ -44,8 +44,9 @@ name: businessos
 # de minutos atras, sin garantia de estabilidad).
 #
 # RAM (verificado contra la doc oficial): Nous recomienda 2+ vCPU y 8 GB RAM.
-# Con TRES verticales, el Droplet de 2 GB se queda corto. Usa 4 GB como minimo
-# realista (~$28/mes) y 8 GB si quieres holgura con el grafo encima. Ademas, los
+# Con TRES verticales, un servidor de 2 GB se queda corto. Usa 4 GB como minimo
+# realista y 8 GB (el Hetzner cx33 provisionado) si quieres holgura con el grafo
+# encima. Ademas, los
 # limits de abajo (3 x 2G) estan sobre-suscritos: en 4 GB solo sobreviven gracias
 # al swap del paso 3 de FASE0. Si bajas a un solo box chico, reduce estos limits.
 #
@@ -193,7 +194,7 @@ services:
   # de la red como http://grafo:3000 (los agentes no necesitan secretos para
   # leerlo). Los host-jobs (evaluar-facturas.py) entran por 127.0.0.1:3000.
   # NO tiene puerto publico: mismo postura que el dashboard (tunel SSH si hace
-  # falta inspeccionarlo desde fuera del Droplet).
+  # falta inspeccionarlo desde fuera del servidor).
   grafo:
     build: ./grafo
     container_name: grafo

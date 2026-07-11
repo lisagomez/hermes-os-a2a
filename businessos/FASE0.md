@@ -1,8 +1,13 @@
 # Fase 0 — Infraestructura Hermes OS · A2A
 
-Cimiento técnico: Droplet + Docker + los tres contenedores Hermes + sync a
+Cimiento técnico: servidor + Docker + los tres contenedores Hermes + sync a
 GitHub. Al terminar tendrás las tres verticales corriendo y respondiendo por
 Telegram. Sigue los pasos en orden.
+
+> **Proveedor de servidor:** el runtime vive en **Hetzner Cloud**. Los pasos de
+> este archivo son independientes del proveedor; los concretos de Hetzner (tipo
+> cx33, location, firewall de red, costo) están en **`FASE0-hetzner.md`**, que es
+> un delta sobre este documento.
 
 Tiempo estimado: 1.5 – 2.5 horas (la mayoría es esperar instalaciones y correr
 los wizards de Hermes).
@@ -19,7 +24,7 @@ los wizards de Hermes).
 ## Checklist de orden (no te saltes pasos)
 
 - [ ] 0. Antes de empezar: crear los 3 bots de Telegram
-- [ ] 1. Crear el Droplet en DigitalOcean
+- [ ] 1. Crear el servidor (Hetzner — ver FASE0-hetzner.md §1')
 - [ ] 2. Primer acceso SSH + endurecer el servidor (incluye lockdown de SSH)
 - [ ] 3. Instalar Docker
 - [ ] 4. Estructura de carpetas + clonar repos
@@ -47,28 +52,25 @@ para el allowlist (que solo tú puedas hablarle a los bots).
 
 ---
 
-## 1. Crear el Droplet
+## 1. Crear el servidor
 
-En DigitalOcean → Create → Droplet:
+El servidor de runtime es **Hetzner Cloud**. Los pasos concretos (tipo cx33,
+location `fsn1`, firewall de red) están en **`FASE0-hetzner.md` §1'–2'**; aquí
+queda lo independiente del proveedor:
 
-- **Imagen:** Ubuntu 24.04 LTS
-- **Plan:** Basic → Regular → **4 GB / 2 vCPU** (~$28/mes). Es el mínimo
-  realista para 3 contenedores Hermes + dashboard. La doc oficial de Nous
-  recomienda 8 GB; con 4 GB vas cómodo para empezar y subes a 8 GB cuando
-  montes el grafo.
+- **Imagen:** Ubuntu 24.04 LTS.
+- **Tamaño:** el mínimo realista es **4 GB / 2 vCPU** para 3 contenedores Hermes +
+  dashboard; **8 GB** (el cx33 provisionado) corre además el grafo y el trío A2A
+  holgado. La doc oficial de Nous recomienda 8 GB.
   > No bajes a 2 GB: los límites del compose (3 × 2 GB) están sobre-suscritos y
   > en 2 GB el stack hace OOM-kill. Aun en 4 GB, el swap del paso 3 es la red de
   > seguridad que absorbe los picos.
-- **Región:** la más cercana a ti (para LATAM, normalmente NYC o el datacenter
-  con mejor latencia a tu país).
-- **Autenticación:** SSH key (más seguro que contraseña). Si no tienes uno:
-  `ssh-keygen -t ed25519` en tu máquina, pega el contenido de
+- **Autenticación:** SSH key (más seguro que contraseña). Si no tienes una:
+  `ssh-keygen -t ed25519` en tu máquina, sube el contenido de
   `~/.ssh/id_ed25519.pub`.
-- **Hostname:** businessos
+- **Hostname:** businessos.
 
-Cuentas nuevas traen $200 de crédito por 60 días — cubre los primeros 2 meses.
-
-Anota la IP pública del Droplet.
+Anota la IP pública del servidor.
 
 ---
 
@@ -78,7 +80,7 @@ Conéctate por SSH (NO uses la consola web del navegador para pegar comandos con
 `:` `@` `=` — los corrompe; usa SSH real):
 
 ```bash
-ssh root@LA_IP_DEL_DROPLET
+ssh root@LA_IP_DEL_SERVIDOR
 ```
 
 Crea un usuario no-root para correr Hermes (no corras todo como root):
@@ -115,7 +117,7 @@ Desconéctate y vuelve a entrar:
 
 ```bash
 exit
-ssh hermes@LA_IP_DEL_DROPLET
+ssh hermes@LA_IP_DEL_SERVIDOR
 ```
 
 **Solo cuando confirmes que `ssh hermes@...` funciona con tu llave**, cierra el
@@ -157,7 +159,7 @@ Cierra sesión y vuelve a entrar para que el grupo docker tome efecto:
 
 ```bash
 exit
-ssh hermes@LA_IP_DEL_DROPLET
+ssh hermes@LA_IP_DEL_SERVIDOR
 docker --version          # debe responder
 docker compose version    # debe responder
 ```
@@ -317,7 +319,7 @@ el wizard, o por MCP):
 | clientes | `businessos-clientes` | 2:20 |
 
 Fija la zona horaria del servidor para que las horas signifiquen lo que crees
-(los Droplets vienen en UTC por defecto):
+(los servidores cloud vienen en UTC por defecto):
 
 ```bash
 sudo timedatectl set-timezone America/Mexico_City
@@ -347,7 +349,7 @@ pídele a cada uno "muéstrame los cron jobs activos".
       `http://localhost:9119` en tu navegador
 - [ ] Cada vertical tiene su cron de sync (personal 2:00, negocio 2:10, clientes
       2:20) — pídele a cada bot "lista de crons" y confirma que apunta a SU repo
-- [ ] Reinicia el Droplet (`sudo reboot`) y confirma que los contenedores
+- [ ] Reinicia el servidor (`sudo reboot`) y confirma que los contenedores
       vuelven solos (`restart: unless-stopped`)
 - [ ] `free -h` muestra el swap activo
 
@@ -358,10 +360,9 @@ modelos (config.yaml) y/o montar el grafo.
 
 ## Notas de costo y operación
 
-- Apagar el Droplet NO detiene el cobro (DO reserva recursos). Para pausar de
-  verdad: snapshot + destroy.
-- Backups automáticos de DO cuestan 20% del Droplet (~$3/mes). Opcional pero
-  recomendado.
+- Las notas de **costo, apagado/pausa y backups** específicas de Hetzner están en
+  **`FASE0-hetzner.md`** (apagar ≠ dejar de pagar; pausa real = snapshot + delete;
+  backups automáticos +20% del precio del servidor).
 - Si algo se rompe en un contenedor, su volumen está intacto: borras el
   contenedor y `docker compose up -d` lo recrea sin perder memoria/skills.
 - `unattended-upgrades` aplica parches de seguridad solo; los reinicios de

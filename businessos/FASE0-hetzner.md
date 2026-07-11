@@ -76,10 +76,11 @@ no-root, `rsync` de la llave, `ufw`/`fail2ban`/`unattended-upgrades`, verificar
 - **Backups automáticos:** +20% del precio del servidor (~€1.4/mes en CX32).
   Opcional; el modelo de respaldo primario sigue siendo el cron nocturno a
   GitHub por vertical (paso 9).
-- **`hcloud` CLI:** Hetzner tiene su propio CLI (`hcloud`). El CLI `digitalocean`
-  que imprimiste (Fase 0-1) NO gestiona Hetzner; si quieres gestión agente-nativa
-  del servidor, imprime `hcloud` con Printing Press más adelante (Go + tokens) —
-  no bloquea nada del despliegue.
+- **`hcloud` CLI:** la gestión agente-nativa del servidor se hace con `hcloud-pp-cli`
+  (impreso con Printing Press el 2026-07-04, Grade A 95/100; en
+  `~/printing-press/library/hcloud/`). **Reemplaza al CLI `digitalocean` (SUPERSEDED)**,
+  que no gestiona Hetzner. Es herramienta de host/dev (Bearer `HCLOUD_TOKEN`; el agente
+  no la usa por secret-scrubbing).
 - **Escalar:** de CX22 a CX32 es un resize en caliente desde la consola (unos
   minutos de downtime); no hay que reprovisionar.
 

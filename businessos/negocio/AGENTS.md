@@ -28,7 +28,7 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
    Es siempre la primera opción.
 2. **Si no existe y la clase de tarea se repite (≥3 veces) o es cara en tokens y
    claramente repetible → es CANDIDATO a imprimir.** **TÚ NO imprimes** (Printing Press
-   solo corre en Claude Code, no en ti ni en el Droplet): solo lo **señalas**. El auditor
+   solo corre en Claude Code, no en ti ni en el servidor): solo lo **señalas**. El auditor
    del host (`cli-audit.py` → snapshot, skill `cli-audit`) ya detecta los CLIs que faltan
    por fase; si surge un servicio nuevo que no esté en el manifiesto, inclúyelo en el
    digest con el servicio y el porqué. Elisa lo imprime en Claude Code (con verify y grado
@@ -67,7 +67,7 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   (`cat /opt/data/workspace/cli-audit.json`) via skill
   `cli-audit`; no corres el auditor, no imprimes CLIs y no tocas docker. Si hay
   `faltantes`, inclúyelos en el digest 8:00 con el comando exacto que Elisa debe
-  correr **en Claude Code** (Printing Press no corre en el Droplet ni en ti).
+  correr **en Claude Code** (Printing Press no corre en el servidor ni en ti).
   Máximo 150 palabras para esta sección del digest.
 
 ## Datos
