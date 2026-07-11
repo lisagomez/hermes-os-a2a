@@ -125,15 +125,23 @@ def write_snapshot(snapshot: dict) -> None:
     payload = json.dumps(snapshot, ensure_ascii=False, indent=2)
     LOCAL_SNAPSHOT.write_text(payload, encoding="utf-8")
     print(f"Snapshot local -> {LOCAL_SNAPSHOT}")
-    cmd = ["docker", "exec", "-i", "-u", "hermes", "hermes-negocio", "sh", "-c",
-           "mkdir -p /opt/data/workspace && cat > /opt/data/workspace/cli-audit.json"]
+    # negocio vive en el runtime (Hetzner) desde 2026-07-05: el docker exec local
+    # quedo huerfano tras la migracion. Con CLI_AUDIT_SSH_HOST (p. ej.
+    # hermes@<ip>) el snapshot viaja por ssh; sin la var se intenta el contenedor
+    # local (util si algun dia vuelve a correr aqui).
+    exec_sh = ("docker exec -i -u hermes hermes-negocio sh -c "
+               "'mkdir -p /opt/data/workspace && cat > /opt/data/workspace/cli-audit.json'")
+    ssh_host = os.environ.get("CLI_AUDIT_SSH_HOST", "")
+    cmd = ["ssh", ssh_host, exec_sh] if ssh_host else ["sh", "-c", exec_sh]
+    destino = (f"{ssh_host} -> " if ssh_host else "") + "negocio:/opt/data/workspace/cli-audit.json"
     try:
         r = subprocess.run(cmd, input=payload, text=True, capture_output=True)
         ok = r.returncode == 0
     except FileNotFoundError:
         ok = False
-    print("Snapshot a negocio:/opt/data/workspace/cli-audit.json",
-          "ok" if ok else "FALLO (contenedor no disponible; solo copia local)")
+    print(f"Snapshot a {destino}",
+          "ok" if ok else "FALLO (destino no disponible; solo copia local — define "
+                          "CLI_AUDIT_SSH_HOST=hermes@<runtime> si negocio vive remoto)")
 
 
 def main() -> None:

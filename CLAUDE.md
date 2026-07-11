@@ -606,4 +606,25 @@ npm run lint         # ESLint
   worktree responde por que sea verificable), y todo campo de ruteo que deba sobrevivir a
   una descomposición (heredar explícitamente, no asumir que el modelo lo emite).
 
+### 2026-07-11: Host-jobs con `docker exec` local quedan HUÉRFANOS tras migrar la vertical
+- **Error (visto en vivo por la dueña)**: pidió al bot "revisa el manifest.yaml" y el bot
+  se enredó: snapshot `cli-audit.json` rancio (30 de junio — `cli-audit.py` escribía con
+  `docker exec` LOCAL y negocio migró a Hetzner el 07-05: el job quedó huérfano en
+  silencio), buscó `cli-manifest.yaml` que solo existe en el repo de dev, y el skill le
+  instruía "lee el archivo con tu herramienta de lectura" → `read_file`/`execute_code` NO
+  existen en este runtime (toolset `file` atado a Docker) → cayó en execute_code, falló y
+  CONFABULÓ pidiéndole a Elisa depurar Docker. Tres fallas apiladas, ninguna nueva: todas
+  eran variantes de gotchas ya documentados que no se re-auditaron tras la migración.
+- **Fix**: (1) `cli-audit.py::write_snapshot` acepta `CLI_AUDIT_SSH_HOST=hermes@<runtime>`
+  y empuja por ssh (el auditor SOLO puede correr en dev: ahí viven la librería de CLIs y
+  Claude Code); (2) el skill `cli-audit` ahora instruye el ÚNICO camino que funciona —
+  TERMINAL local `cat /opt/data/workspace/cli-audit.json` — y prohíbe read_file/
+  execute_code + buscar archivos del repo con find; maneja `generado` viejo sin pedir
+  debug; (3) AGENTS.md de negocio dice explícito qué toolsets NO existen aquí y que un
+  fallo por Docker jamás se le escala a Elisa como si fuera su bug.
+- **Aplicar en**: tras CUALQUIER migración de vertical, re-auditar los host-jobs que
+  asuman contenedor local (`grep -l "docker exec" businessos/*.py *.sh`) y los skills que
+  digan "lee el archivo": en runtime sin Docker la instrucción correcta es terminal `cat`
+  (gateway) o dato-en-SOUL — nunca el toolset `file`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

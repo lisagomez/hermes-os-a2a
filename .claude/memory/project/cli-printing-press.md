@@ -127,3 +127,18 @@ supabase (87/A) impresos. Quedan solo futuros: grafo (F2), Polar (F3), Circle (F
 - ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight 0/10` si se va a publicar.
 - ⬜ (Opcional) exponer `token_usage`/`facturas` como comandos directos del supabase-pp-cli
   (hoy solo la vista de presupuesto es comando top-level; el resto vía sync/search/api).
+
+
+## ACTUALIZACIÓN 2026-07-11 — el auditor corre en DEV y empuja por ssh
+
+Tras la migración a Hetzner, `cli-audit.py` (que escribía el snapshot con
+`docker exec` local) quedó huérfano: el JSON del volumen se congeló el 06-30 y
+el bot, al pedirle "revisa el manifest", confabuló (skill instruía `read_file`,
+inexistente en runtime). Arreglado: el auditor corre en la máquina de
+desarrollo (única con la librería `~/printing-press/library/`) con
+`CLI_AUDIT_SSH_HOST=hermes@<runtime>` para empujar el snapshot por ssh; el
+skill `cli-audit` v1.1.0 lee con TERMINAL local (`cat`) y prohíbe
+read_file/execute_code; AGENTS.md declara los toolsets inexistentes. Corrida
+fresca 2026-07-11: fase 9, 4 faltantes (hetzner spec, grafo, polar, circle).
+Refrescar el snapshot = correr el auditor on-demand desde dev (no hay cron que
+pueda hacerlo: ni el server ni el bot tienen la librería).

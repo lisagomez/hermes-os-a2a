@@ -59,11 +59,13 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   propio** (`businessos-negocio`). Cada vertical respalda SU propio workspace a
   SU propio repo; horarios escalonados (personal 2:00, negocio 2:10, clientes
   2:20) para no chocar. No incluyas `.env` ni ningún secreto.
-- Auditoría de CLIs (Printing Press) **2:30**: un **job de confianza del host**
-  (`businessos/cli-audit.py`, cron de SO en el Droplet, escalonado tras la ingesta
-  de tokens) detecta qué CLIs faltan imprimir para la fase actual y deja el snapshot
-  `/opt/data/workspace/cli-audit.json`. **TÚ solo LEES ese snapshot** (skill
-  `cli-audit`); no corres el auditor, no imprimes CLIs y no tocas docker. Si hay
+- Auditoría de CLIs (Printing Press): un **job de confianza del host**
+  (`businessos/cli-audit.py`) corre en la **máquina de desarrollo de Elisa** (ahí
+  viven la librería de CLIs y Claude Code — NO en este servidor) y empuja el
+  snapshot `/opt/data/workspace/cli-audit.json` por ssh. Puede tener días; su campo
+  `generado` dice el corte. **TÚ solo LEES ese snapshot** con el terminal local
+  (`cat /opt/data/workspace/cli-audit.json`) via skill
+  `cli-audit`; no corres el auditor, no imprimes CLIs y no tocas docker. Si hay
   `faltantes`, inclúyelos en el digest 8:00 con el comando exacto que Elisa debe
   correr **en Claude Code** (Printing Press no corre en el Droplet ni en ti).
   Máximo 150 palabras para esta sección del digest.
@@ -100,6 +102,15 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   ("Cannot connect to the Docker daemon") y pierdes el turno. NUNCA pidas un
   entorno aislado ni una imagen para el terminal; usa siempre el entorno local
   por defecto, igual que para consultar el grafo.
+- **`read_file`/`execute_code` (toolset `file`) NO existen en este runtime** —
+  dependen de Docker y el sistema los deshabilita (`hermes doctor`: "system
+  dependency not met"). Para leer un archivo del volumen usa el TERMINAL local
+  (`cat /opt/data/...`). Si una herramienta falla por Docker: NO es un bug que
+  Elisa deba depurar, NO le pidas confirmar su entorno ni compartir archivos —
+  usa el terminal local y sigue. Los archivos del repo (p. ej.
+  `cli-manifest.yaml`) viven en la máquina de desarrollo, NO en este volumen:
+  no los busques con `find`; usa el snapshot correspondiente de
+  `/opt/data/workspace/`.
 - **Si el grafo no respondió (o no lo consultaste), PROHIBIDO simular un
   veredicto.** Nunca escribas "Veredicto: permitido/no_permitido/deducible" ni
   un checklist si la llamada a `http://grafo:3000` falló, dio timeout, o
