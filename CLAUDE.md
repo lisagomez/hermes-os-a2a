@@ -505,6 +505,11 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier provisión Hetzner y todo build en server desde un snapshot de git.
 
 ### 2026-07-06: El bot en runtime sin Docker NO puede leer archivos → dato al SOUL, no read_file
+> ⚠️ **CORREGIDO el 2026-07-11**: la causa raíz era `TERMINAL_ENV=docker` en el `.env` del
+> volumen (mina de la migración), NO un diseño de Hermes. Con `terminal.backend: local`
+> bien aplicado, read_file/execute_code/terminal SÍ funcionan en runtime (y en `chat -q`).
+> Ver el aprendizaje "TERMINAL_ENV=docker en el .env del volumen" (2026-07-11). El patrón
+> dato-en-SOUL sigue vigente como optimización, no como única vía.
 - **Error**: el skill `budget-report` decía "lee `/opt/data/workspace/presupuesto.json` con
   read_file". En el contenedor Hermes de Hetzner **no hay daemon de Docker**, y `read_file`/
   `execute_code`/`file` corren dentro de un entorno Docker → fallan ("Cannot connect to the
@@ -610,21 +615,40 @@ npm run lint         # ESLint
 - **Error (visto en vivo por la dueña)**: pidió al bot "revisa el manifest.yaml" y el bot
   se enredó: snapshot `cli-audit.json` rancio (30 de junio — `cli-audit.py` escribía con
   `docker exec` LOCAL y negocio migró a Hetzner el 07-05: el job quedó huérfano en
-  silencio), buscó `cli-manifest.yaml` que solo existe en el repo de dev, y el skill le
-  instruía "lee el archivo con tu herramienta de lectura" → `read_file`/`execute_code` NO
-  existen en este runtime (toolset `file` atado a Docker) → cayó en execute_code, falló y
-  CONFABULÓ pidiéndole a Elisa depurar Docker. Tres fallas apiladas, ninguna nueva: todas
-  eran variantes de gotchas ya documentados que no se re-auditaron tras la migración.
+  silencio), buscó `cli-manifest.yaml` que solo existe en el repo de dev, y todas sus
+  tools de archivos fallaban por Docker (ver el aprendizaje TERMINAL_ENV de abajo) →
+  CONFABULÓ pidiéndole a Elisa depurar Docker.
 - **Fix**: (1) `cli-audit.py::write_snapshot` acepta `CLI_AUDIT_SSH_HOST=hermes@<runtime>`
   y empuja por ssh (el auditor SOLO puede correr en dev: ahí viven la librería de CLIs y
-  Claude Code); (2) el skill `cli-audit` ahora instruye el ÚNICO camino que funciona —
-  TERMINAL local `cat /opt/data/workspace/cli-audit.json` — y prohíbe read_file/
-  execute_code + buscar archivos del repo con find; maneja `generado` viejo sin pedir
-  debug; (3) AGENTS.md de negocio dice explícito qué toolsets NO existen aquí y que un
-  fallo por Docker jamás se le escala a Elisa como si fuera su bug.
+  Claude Code); (2) el skill `cli-audit` da el comando exacto y maneja `generado` viejo
+  sin pedir debug; (3) AGENTS.md de negocio: un fallo de tooling jamás se le escala a
+  Elisa como si fuera su bug.
 - **Aplicar en**: tras CUALQUIER migración de vertical, re-auditar los host-jobs que
-  asuman contenedor local (`grep -l "docker exec" businessos/*.py *.sh`) y los skills que
-  digan "lee el archivo": en runtime sin Docker la instrucción correcta es terminal `cat`
-  (gateway) o dato-en-SOUL — nunca el toolset `file`.
+  asuman contenedor local (`grep -l "docker exec" businessos/*.py *.sh`).
+
+### 2026-07-11: TERMINAL_ENV=docker en el `.env` del volumen — la mina que reescribe la doctrina
+- **Error**: las tools del bot (terminal, read_file, execute_code) fallaban con "Docker
+  command is available but 'docker version' failed" AUNQUE `config.yaml` decía
+  `terminal.backend: local`. Causa real: el `.env` del volumen traía `TERMINAL_ENV=docker`
+  (herencia de WSL2, donde Docker sí existía; viajó con la migración del volumen) y en la
+  práctica le gana al config. Las 3 verticales lo tenían; personal además tenía
+  `backend: docker` hasta en el config. Un `docker restart` re-materializa la mina (el
+  gateway rehace el bridge config→env al arrancar): por eso "funcionaba ayer".
+- **CORRECCIÓN de la doctrina 2026-07-06** ("Hermes sin Docker no puede leer archivos →
+  dato-en-SOUL"): la causa raíz NUNCA fue un diseño de Hermes — era esta mina. Con
+  `terminal.backend: local` bien aplicado (config + .env), **read_file, execute_code y el
+  terminal funcionan en runtime**, incluso en `hermes chat -q` (que tampoco era un
+  "harness parcial" para esto). Verificado con evidencia: `agent.log` pasó de "Creating
+  new docker environment" (fallos de Elisa 13:18) a "Creating new local environment" +
+  lecturas reales post-fix. El patrón dato-en-SOUL sigue siendo VÁLIDO como optimización
+  (cero tool calls) pero ya no es la única vía.
+- **Fix**: `docker exec -u hermes <c> hermes config set terminal.backend local` — arregla
+  LAS DOS capas (escribe config.yaml Y sincroniza el `.env`). Aplicado a las 3 verticales
+  + restart. Editar config.yaml a mano NO basta: deja el `.env` rancio esperando el
+  siguiente restart.
+- **Aplicar en**: toda vertical nueva o migrada (revisar `grep ^TERMINAL /opt/data/.env`),
+  y ante cualquier "tool falla por Docker": es config, jamás pedirle debug a la dueña.
+  Al diagnosticar: `agent.log` dice qué entorno se creó ("local"/"docker") — esa línea es
+  la verdad, no la doc ni la memoria.
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

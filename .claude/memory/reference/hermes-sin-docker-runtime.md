@@ -49,3 +49,26 @@ patrón nuevo para exponerle datos. Descubierto el 2026-07-06 arreglando `budget
   del `sed -i` — verificar después, no asumir daño. `hermes config set` usa `show/set` (no `get`).
 
 Ver también [[hermes-vertical-setup]] y [[maquinas-entornos]].
+---
+
+## ⚠️ CORRECCIÓN 2026-07-11 — la causa raíz era TERMINAL_ENV=docker en el .env
+
+Casi todo lo de arriba tenía la causa equivocada. El `.env` del volumen traía
+`TERMINAL_ENV=docker` (herencia de WSL2; viajó con la migración) y en la práctica
+le gana al `terminal.backend: local` del config.yaml. Con
+`hermes config set terminal.backend local` (arregla config **y** sincroniza el
+.env) + restart, en las 3 verticales:
+
+- **read_file / execute_code / terminal FUNCIONAN en runtime** (backend local).
+- **`hermes chat -q` SÍ ejercita terminal y file tools** — no era harness parcial
+  para esto (verificado: cat y read_file reales vía chat -q el 2026-07-11).
+- El diagnóstico definitivo está en `agent.log`: "Creating new local environment"
+  vs "Creating new docker environment" — esa línea es la verdad.
+- `docker restart` re-materializa minas del .env: tras cualquier restart raro,
+  revisar `grep ^TERMINAL /opt/data/.env`.
+
+**Sigue vigente**: solo SOUL.md se inyecta al system prompt; MEMORY.md va por la
+tool de memoria (embeddings); dato-en-SOUL es una optimización válida (cero tool
+calls, p. ej. presupuesto) pero YA NO es la única vía para exponer datos;
+Telegram Web sigue sin dibujar tool-calls. Ver CLAUDE.md aprendizaje
+"TERMINAL_ENV=docker" (2026-07-11).

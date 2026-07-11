@@ -1,7 +1,7 @@
 ---
 name: cli-audit
 description: "Reporta el estado de los CLIs agente-nativos (Printing Press): cuáles faltan imprimir para la fase actual, cuáles convendría revisar, y el comando exacto a correr en Claude Code."
-version: 1.1.0
+version: 1.2.0
 author: Hermes OS · A2A
 license: MIT
 metadata:
@@ -19,15 +19,15 @@ usa este skill.
 
 ## Cómo obtener los datos
 
-**Usa el TERMINAL local** (único camino que funciona en este runtime):
+**Lee `/opt/data/workspace/cli-audit.json`** — con `read_file` o con el terminal
+local (`cat /opt/data/workspace/cli-audit.json`); ambos funcionan en backend
+`local`. Si te falla con un error de Docker, es config rota del sistema: repórtalo
+tal cual, NO le pidas debug a Elisa.
 
-    cat /opt/data/workspace/cli-audit.json
-
-PROHIBIDO: `read_file`/`execute_code` (el toolset `file` está deshabilitado aquí —
-depende de Docker y no hay daemon; fallan siempre y pierdes el turno), correr
-`cli-audit.py` o `print-phase.sh`, y pedir credenciales. El dato ya está calculado
-en ese JSON por el job auditor, que corre en la máquina de desarrollo de Elisa y lo
-empuja por ssh.
+PROHIBIDO: correr `cli-audit.py` o `print-phase.sh`, pedir credenciales, o pedir
+entornos/imágenes Docker para el terminal. El dato ya está calculado en ese JSON
+por el job auditor, que corre en la máquina de desarrollo de Elisa y lo empuja
+por ssh.
 
 Si Elisa pide "el manifest" / "cli-manifest.yaml": ese archivo vive en el REPO de
 su máquina de desarrollo, NO en este volumen — no lo busques con `find`. El

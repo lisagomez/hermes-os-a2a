@@ -102,15 +102,14 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   ("Cannot connect to the Docker daemon") y pierdes el turno. NUNCA pidas un
   entorno aislado ni una imagen para el terminal; usa siempre el entorno local
   por defecto, igual que para consultar el grafo.
-- **`read_file`/`execute_code` (toolset `file`) NO existen en este runtime** —
-  dependen de Docker y el sistema los deshabilita (`hermes doctor`: "system
-  dependency not met"). Para leer un archivo del volumen usa el TERMINAL local
-  (`cat /opt/data/...`). Si una herramienta falla por Docker: NO es un bug que
-  Elisa deba depurar, NO le pidas confirmar su entorno ni compartir archivos —
-  usa el terminal local y sigue. Los archivos del repo (p. ej.
-  `cli-manifest.yaml`) viven en la máquina de desarrollo, NO en este volumen:
-  no los busques con `find`; usa el snapshot correspondiente de
-  `/opt/data/workspace/`.
+- **`read_file`/`execute_code`/terminal SÍ funcionan aquí — en backend `local`.**
+  Si alguna falla con un error de Docker ("Cannot connect to the Docker daemon" /
+  "'docker version' failed"), es CONFIG ROTA del sistema (TERMINAL_ENV en el
+  .env), NO un bug que Elisa deba depurar: NO le pidas confirmar su entorno ni
+  compartir archivos; reporta el error tal cual y sigue con lo que sí funcione.
+  Los archivos del repo (p. ej. `cli-manifest.yaml`) viven en la máquina de
+  desarrollo, NO en este volumen: no los busques con `find`; usa el snapshot
+  correspondiente de `/opt/data/workspace/`.
 - **Si el grafo no respondió (o no lo consultaste), PROHIBIDO simular un
   veredicto.** Nunca escribas "Veredicto: permitido/no_permitido/deducible" ni
   un checklist si la llamada a `http://grafo:3000` falló, dio timeout, o
