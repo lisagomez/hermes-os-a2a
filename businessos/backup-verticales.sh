@@ -10,7 +10,7 @@ set -euo pipefail
 BASE=/home/hermes/businessos
 VERTICALES="negocio personal clientes"
 BK=/home/hermes/backups
-REPO=/home/hermes/businessos-negocio
+REPO=/home/hermes/hermes-os-a2a-backups
 KEEP=7
 STAMP=$(date +%Y%m%d-%H%M%S)
 
@@ -41,4 +41,4 @@ git -c user.email=backup@businessos -c user.name=verticales-backup \
     commit -q -m "backup $STAMP ($(ls *-*.tgz | wc -l) copias, 3 verticales)"
 git branch -M fresh main
 GIT_SSH_COMMAND="ssh -F /home/hermes/.ssh/config" git push -f origin main -q
-echo "=== $(date -Is) OK: empujado a businessos-negocio (3 verticales) ==="
+echo "=== $(date -Is) OK: empujado a hermes-os-a2a-backups (3 verticales) ==="

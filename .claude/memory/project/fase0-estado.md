@@ -29,13 +29,14 @@ persona + respaldo nocturno. Progreso: **3 de 3 verticales vivas y respondiendo
   nocturno). Todo listo para hacerlo en ~20-30 min (FASE0.md + volúmenes ya configurados; se
   transfieren en vez de re-correr wizards). `doctl` ya instalado en `~/.local/bin`. NO se creó
   ningún Droplet (sin gasto). Plan: 2 GB primero (s-1vcpu-2gb) con swap + `mem_limit` ~512MB.
-- ⏸️ **Respaldo nocturno** a GitHub — acoplado al Droplet (un cron 2:00/2:10/2:20 no sirve sin
-  24/7). Diferido junto con el Droplet. **Reafirmado 2026-06-30**: se reevaluó (propuesta de
-  "skill+cron+backup de un prompt") y se mantuvo diferido. Motivos: (1) WSL2 no es 24/7 → el cron
-  no dispara fiable; (2) GitHub ya es remote (`origin → lisagomez/businessos`), no falta "conectar";
-  (3) lo que vale respaldar son los volúmenes `.hermes` (config+memoria viva), pero están gitignored
-  por contener secretos → el backup real debe capturarlos scrubbed/cifrados, no un `git push`. Entra
-  como una sola pieza junto con el Droplet.
+- ✅ **Respaldo nocturno** a GitHub — **HECHO** (negocio 2026-07-06, las 3 verticales 2026-07-08).
+  Estuvo diferido mientras corría en WSL2 (no 24/7 → el cron no dispara fiable); entró junto con
+  Hetzner. **Modelo final**: UN host-job (`backup-verticales.sh`, cron 04:17) tarballea los 3
+  volúmenes `.hermes` y los espeja al repo privado **`lisagomez/hermes-os-a2a-backups`**. Se
+  DESCARTÓ el modelo del runbook ("3 repos, uno por vertical, el bot hace commit+push a las
+  2:00/2:10/2:20"): el volumen es `0700`/uid-10000 → el agente no puede leerlo (y darle acceso
+  sería darle sus propios secretos). Repo de CÓDIGO: `lisagomez/hermes-os-a2a` (ambos renombrados
+  el 2026-07-11). Ver FASE0.md §9.
 - ⬜ Voz (TTS salida / transcripción entrada).
 
 ## Gotcha credencial (2026-06-28)

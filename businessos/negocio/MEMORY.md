@@ -95,9 +95,10 @@ Rellena con los KPIs reales del negocio. Plantilla:
 
 - **Digest negocio 8:00** — KPIs, gasto del dia y del mes vs presupuesto, alertas.
 - **Cierre semanal lunes 8:00** — resumen de KPIs y proyeccion de gasto del mes.
-- **Sync nocturno a GitHub 2:10** — negocio respalda SU workspace a su repo
-  privado `businessos-negocio`. Modelo: un repo por vertical, horarios
-  escalonados (personal 2:00, negocio 2:10, clientes 2:20) para no chocar.
+- **Respaldo nocturno 04:17 — lo hace el HOST, no yo.** `backup-verticales.sh`
+  (cron del usuario `hermes`) tarballea los volumenes de las 3 verticales y los
+  espeja al repo privado `hermes-os-a2a-backups`. Yo no tengo acceso a mi volumen
+  (0700/uid-10000) ni hago push de nada. Ver FASE0 §9.
 
 ---
 

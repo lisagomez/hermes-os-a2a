@@ -57,7 +57,7 @@ vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
   - [x] **personal (Kiris)** — migrada 2026-07-08 (mismo patrón: stop en WSL2 → tar del volumen vía alpine → extracción uid 10000/0700 sin locks → `--profile verticales up`). Envío saliente verificado por Telegram; contenedor local eliminado (el volumen local queda como respaldo extra).
   - [x] **clientes (@a2aClientbot)** — migrada 2026-07-08, igual que personal. Verificada.
 - [~] Tres bots de Telegram + voz  *(3 bots vivos en el server; voz = futuro, decisión de la dueña)*
-- [x] Sync nocturno a GitHub — cron 04:17 `backup-verticales.sh` (2026-07-08 generalizado desde el de negocio del 2026-07-06): tarball por vertical de los 3 volúmenes `.hermes` + rotación 7 + espejo off-box al repo privado `businessos-negocio`.
+- [x] Sync nocturno a GitHub — cron 04:17 `backup-verticales.sh` (2026-07-08 generalizado desde el de negocio del 2026-07-06): tarball por vertical de los 3 volúmenes `.hermes` + rotación 7 + espejo off-box al repo privado **`hermes-os-a2a-backups`**. *(2026-07-11: repos renombrados — código `lisagomez/hermes-os-a2a`, respaldo `lisagomez/hermes-os-a2a-backups`; el modelo "3 repos, uno por vertical, pusheados por el bot" del runbook original quedó **descartado** — el volumen es 0700/uid-10000, el agente no puede leerlo. Ver FASE0.md §9.)*
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
 - **Salida:** ✅ las tres verticales vivas y respondiendo **desde el server 24/7**, con respaldo nocturno.
 

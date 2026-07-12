@@ -302,23 +302,35 @@ voz definida en su SOUL.md.
 
 ---
 
-## 9. GitHub + cron de sync nocturno (un repo por vertical)
+## 9. GitHub + cron de respaldo nocturno (UN host-job, UN repo)
 
-Esto es lo PRIMERO que recomienda la doc de Hermes tras el setup: te da skill +
-cron + respaldo de un solo prompt.
+> ⚠️ **Corregido el 2026-07-11.** La doc de Hermes recomienda "un repo por vertical,
+> que cada bot haga su propio commit+push por cron". **Aquí NO se hace así.** Ese
+> plan (3 repos privados `businessos-{personal,negocio,clientes}`, crons escalonados
+> 2:00/2:10/2:20 pedidos al bot en lenguaje natural) **nunca se implementó y quedó
+> descartado**. Lo que corre —y lo que debes montar— es lo de abajo. Motivo del
+> cambio en la tabla al final de esta sección.
 
-**Modelo de respaldo:** cada vertical solo monta su propio volumen, así que cada
-una respalda SU workspace a SU repo privado, con horarios escalonados para que
-no choquen. Crea **3 repos PRIVADOS** en GitHub y dale acceso a Hermes (token en
-el wizard, o por MCP):
+**Modelo real:** el respaldo lo hace **un job de confianza del host**, no el agente.
+Los volúmenes `.hermes` son `uid 10000 / 0700`: el bot **no puede leerlos** (y no
+debe: ahí viven sus sesiones y su `.env`). El host sí.
 
-| Vertical | Repo | Hora del cron |
-|----------|------|---------------|
-| personal | `businessos-personal` | 2:00 |
-| negocio  | `businessos-negocio`  | 2:10 |
-| clientes | `businessos-clientes` | 2:20 |
+**Un solo repo PRIVADO** en GitHub para los respaldos de las tres verticales:
 
-Fija la zona horaria del servidor para que las horas signifiquen lo que crees
+| Qué | Dónde |
+|-----|-------|
+| Repo de respaldo | `lisagomez/hermes-os-a2a-backups` (privado) |
+| Script | `businessos/backup-verticales.sh` (corre como `hermes`, sin sudo) |
+| Cron | **04:17** diario, una sola entrada |
+| Contenido | tarball de los 3 volúmenes `.hermes` + rotación de los últimos 7 c/u |
+| Clon local en el server | `/home/hermes/hermes-os-a2a-backups` |
+
+Cómo funciona (por qué así): lee cada volumen con un contenedor privilegiado
+(`docker run --rm -v <vol>:/data:ro alpine tar …`), rota localmente en
+`~/backups/`, y espeja off-box al repo con **historia de 1 commit** (rama huérfana
++ `push -f`) para que los blobs viejos se recojan y el repo no crezca sin fin.
+
+Fija la zona horaria del servidor para que la hora signifique lo que crees
 (los servidores cloud vienen en UTC por defecto):
 
 ```bash
@@ -326,17 +338,25 @@ sudo timedatectl set-timezone America/Mexico_City
 timedatectl        # verifica Time zone
 ```
 
-Abre una sesión con **cada** vertical (o por Telegram a cada bot) y dile, en
-lenguaje natural, ajustando repo y hora según la tabla:
+Instalación (una vez, como usuario `hermes` en el server):
 
-> "Cada noche a las 2:00 hora de México, haz commit y push de los cambios de mi
-> espacio de trabajo a este repo de GitHub: <URL_DE_businessos-personal>. No
-> incluyas el archivo .env, la carpeta .hermes, ni ningún secreto. Configúralo
-> como cron recurrente."
+```bash
+gh repo create hermes-os-a2a-backups --private            # o créalo en la web
+git clone git@github.com:lisagomez/hermes-os-a2a-backups.git ~/hermes-os-a2a-backups
+crontab -e   # añade:  17 4 * * *  /home/hermes/businessos/backup-verticales.sh
+```
 
-Repite con negocio (2:10 → `businessos-negocio`) y clientes (2:20 →
-`businessos-clientes`). Hermes crea la skill y el cron solo. Verifica con:
-pídele a cada uno "muéstrame los cron jobs activos".
+Verifica al día siguiente: el último commit del repo debe decir
+`backup <STAMP> (N copias, 3 verticales)` y el log vive en `~/backups/backup.log`.
+
+**Por qué se descartó el modelo de la doc:**
+
+| Modelo de la doc (3 repos, el bot pushea) | Modelo real (1 host-job, 1 repo) |
+|---|---|
+| El bot necesita leer su volumen `.hermes` | Es `0700 uid-10000`: **no puede** — y darle acceso sería darle sus propios secretos |
+| 3 crons dentro de 3 agentes = 3 puntos de falla silenciosa | 1 cron del host, 1 log |
+| Respalda el *workspace* (archivos sueltos) | Respalda el **volumen entero**: memoria + sesiones (`state.db`) |
+| Gasta tokens cada noche | **Cero tokens** |
 
 ---
 
@@ -347,8 +367,9 @@ pídele a cada uno "muéstrame los cron jobs activos".
 - [ ] `ssh hermes@IP` funciona con llave y `ssh root@IP` ya **no** (lockdown OK)
 - [ ] El dashboard abre por túnel: `ssh -L 9119:localhost:9119 hermes@IP`, luego
       `http://localhost:9119` en tu navegador
-- [ ] Cada vertical tiene su cron de sync (personal 2:00, negocio 2:10, clientes
-      2:20) — pídele a cada bot "lista de crons" y confirma que apunta a SU repo
+- [ ] El cron de respaldo del **host** corre (`crontab -l` como `hermes` muestra
+      `17 4 * * * …/backup-verticales.sh`) y el repo `hermes-os-a2a-backups` tiene
+      un commit "backup … (N copias, 3 verticales)" de hoy
 - [ ] Reinicia el servidor (`sudo reboot`) y confirma que los contenedores
       vuelven solos (`restart: unless-stopped`)
 - [ ] `free -h` muestra el swap activo

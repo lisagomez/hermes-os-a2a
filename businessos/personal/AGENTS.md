@@ -36,10 +36,11 @@ mecánica.
   pendientes de la bóveda. Máximo 200 palabras. Entrega a Telegram.
 - "Dreaming" nocturno 2:00: revisa lo capturado el día, consolida en MEMORY.md,
   archiva notas de `inbox/` a su carpeta. Máximo 300 palabras de resumen.
-- Sync nocturno a GitHub **2:00** del workspace de personal a su **repo privado
-  propio** (`businessos-personal`). Cada vertical respalda SU propio workspace a
-  SU propio repo; los horarios van escalonados (personal 2:00, negocio 2:10,
-  clientes 2:20) para no chocar. No incluyas `.env` ni ningún secreto.
+- Respaldo nocturno: **NO es tuyo, no lo hagas**. Un job de confianza del host
+  (`backup-verticales.sh`, cron 04:17) respalda los volúmenes de las 3 verticales
+  al repo privado `hermes-os-a2a-backups`. Tu volumen es `0700`/uid-10000: no
+  puedes leerlo y no debes intentarlo. Si te preguntan por el respaldo, explica
+  esto; nunca ofrezcas hacer commit/push de tu memoria.
 
 ## Límites
 - Pon siempre tope de palabras en los crons; la salida es 5× más cara que la
