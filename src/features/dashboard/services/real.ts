@@ -11,8 +11,10 @@ import {
   gastoPorModeloSchema,
   presupuestoMesSchema,
   saludConocimientoSchema,
+  tareaSchema,
   verticalPantheonSchema,
   type AiSpend,
+  type DesarrolloVista,
   type GrafoVista,
   type Pantheon,
 } from '../types'
@@ -172,4 +174,16 @@ export async function realPantheon(): Promise<Pantheon> {
       latencia_ms: health?.latencia_ms ?? null,
     })
   })
+}
+
+export async function realDesarrollo(): Promise<DesarrolloVista> {
+  // Últimas 20 tareas del trío (Ejecutor + Supervisor). La tabla `tareas` la
+  // escriben los servicios A2A con service_role (Fase 6/7); aquí solo se lee.
+  // Sin catch: si Supabase cae, la página falla honestamente (igual que
+  // contratos/cobros en realGrafoVista). El "0 filas" se resuelve como empty
+  // state en la UI, no como error.
+  return sb(
+    'tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20',
+    z.array(tareaSchema)
+  )
 }
