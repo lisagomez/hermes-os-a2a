@@ -748,4 +748,38 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier repo con equipo. Migrar a una Organización (gratis) da roles
   reales; con cuenta personal, el único candado es la protección de rama.
 
+### 2026-07-12: 1ª corrida real del trío desde Slack — el cliente mató a su propio servidor
+- **Error(es)**: (1) el bot, al pedirle una feature en `#dep-desarrollo`, **se puso a programar
+  él mismo** (`claude` en su terminal, `find /opt/data` buscando un repo que NO tiene montado):
+  la frontera "tú no programas" vivía en el *skill* y en el `channel_prompt`, y **`AGENTS.md`
+  —que está SIEMPRE en contexto— les gana**. Desde que el terminal funciona (fix TERMINAL_ENV),
+  el agente PUEDE improvisar fuera de su carril: la frontera hay que escribirla donde siempre
+  lee. (2) Con la regla ya en AGENTS.md repartió bien la tarea… **con timeout de 30 s**. La
+  corrida dura minutos → al desconectarse el cliente, el servidor **canceló la petición y mató
+  el proceso del motor**; el bot entonces reportó "probablemente el trío no está levantado"
+  (lo contrario de la verdad: él lo abortó).
+- **Diagnóstico sin logs** (el Ejecutor NO loguea el error del motor: solo lo manda por A2A, y
+  si el cliente ya se fue, se pierde): el POST **no aparece** en el access log = la petición
+  nunca terminó; la transcripción del CLI (`/root/.claude/projects/*/*.jsonl` dentro del
+  contenedor) acaba sin entrada `result` = proceso muerto a media faena; `token_usage` sin
+  filas = reventó antes de registrar (el `raise` del `except` va ANTES del `registrar()`,
+  contradiciendo su propio comentario).
+- **Reglas**: un cliente que se desconecta **jamás** debe cancelar trabajo del servidor
+  (`asyncio.shield`); todo cliente de una tarea larga declara timeout ≥ 900 s y **nunca**
+  concluye "el servicio está caído" por un timeout (consulta el estado); y todo error de
+  motor se loguea localmente ANTES de viajar por el protocolo. Detalle y plan:
+  `businessos/PENDIENTES-TRIO.md`.
+- **Aplicar en**: todo servicio A2A largo y todo agente con terminal (la capacidad crea la
+  tentación: si no quieres que lo haga, prohíbelo en AGENTS.md, no en un skill).
+
+### 2026-07-12: Slack — el home channel no se hereda del `.env` como en Telegram
+- **Error**: el bot avisaba *"No home channel is set for Slack"* aunque `SLACK_CHANNEL_ID`
+  estaba puesto. El gateway cablea `home_channel` desde el env para **telegram/discord/whatsapp
+  pero NO para slack**: la var que mira es **`SLACK_HOME_CHANNEL`** (`cron/scheduler.py`,
+  `_HOME_TARGET_ENV_VARS`). Es donde entrega resultados de crons y mensajes cross-plataforma.
+- **Fix**: `SLACK_HOME_CHANNEL=<C…>` en el `.env` del volumen + restart. La alternativa por chat
+  es `/hermes sethome` (en Slack **el `/sethome` pelado NO existe**: todos los comandos van por
+  el slash command padre `/hermes`).
+- **Aplicar en**: toda vertical que sume Slack.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
