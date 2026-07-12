@@ -254,3 +254,60 @@ Host-jobs (cron de SO, en el servidor, sin LLM): `nightly-jobs.sh` 03:10 (ingest
 tokens → snapshot de presupuesto → SOUL → dashboard → **auditoría de CLIs**),
 `backup-verticales.sh` 04:17, `weekly-jobs.sh` lunes 03:30 (vigencias del grafo),
 `alerta-presupuesto.sh` 08:00 (solo dispara si cruzas el 80%).
+
+---
+
+## (f) Slack en producción — canales vivos y el flujo de `#dep-desarrollo` (2026-07-12)
+
+Cinco canales cableados en `platforms.slack` (`require_mention: true`, respuestas
+en hilo). Cada uno con su **`channel_prompt`**: el agente sabe dónde está y qué
+puede hacer ahí. Config: `negocio/slack-config-fragment.yaml` (fuente de verdad;
+`slack-piloto.sh` REEMPLAZA `platforms.slack` entero con ese fragmento → si añades
+un canal a mano en el volumen, añádelo también al fragmento o el próximo run lo borra).
+
+| Canal | ID | Papel |
+|---|---|---|
+| `#dep-negocio` | `C0BG28N7E6Q` | Presupuesto, KPIs, cobros |
+| `#dep-legal` | `C0BH2RKA8QG` | Cumplimiento (SIEMPRE vía grafo, nunca opinión propia) |
+| `#dep-desarrollo` | `C0BGL2DMNLB` | **El equipo le encarga software al trío** |
+| `#dep-adquisicionclientes` | `C0BGHPQ1U78` | Leads y prospectos (Fase 9). **Ningún envío sin visto bueno humano** |
+| `#alertas` | `C0BGU77F31P` | El bot publica; no conversa |
+
+### El flujo: una tarea = un hilo
+
+```
+Humano:   @hermes_negocio necesitamos X
+Hermes:   (hilo) Faltan 3 cosas antes de repartir:
+          · criterios de aceptación VERIFICABLES (es lo que el Supervisor mide)
+          · alcance (qué parte del repo)
+          · límites: modelo (GLM-5.2) y presupuesto ($2) — el enjambre corta al tope
+Humano:   [los da en el hilo]
+Hermes:   task_id · plan (sub-tareas) · gates · veredicto del Supervisor · costo real vs tope
+          → la rama queda EN EL SERVIDOR. Publicar y abrir el PR es un paso HUMANO.
+```
+
+**Sobre qué repo programa:** `lisagomez/hermes-os-a2a` (la propia fábrica), montado
+en `/repo` de los 3 servicios del trío vía `TRIO_REPO_HOST` (el seam ya existía en el
+compose: no hubo que tocar arquitectura). Clonado con una **deploy key de SOLO
+LECTURA** — verificado: `ERROR: The key you are authenticating with has been marked
+as read only`.
+
+### Las compuertas, y dónde viven de verdad
+
+- **El trío NO puede tocar `master`**: no hace `git push` (ni una llamada en su código)
+  y su llave es de solo lectura. El candado es **estructural**, no de confianza.
+- **Protección de rama en GitHub: NO disponible** — requiere GitHub Pro (~$4/mes) en
+  repos privados (`403: Upgrade to GitHub Pro`). Mientras no se pague, un **humano** con
+  acceso al repo puede hacer push directo a `master`: ese es el único agujero real.
+- **El allowlist de Slack es plano**: los 5 pueden escribir lo mismo. La matriz de roles
+  (CFO aprueba dinero, Developer aprueba merge) hoy la sostiene **el juicio humano**, no
+  la configuración. Los botones `[Aprobar][Rechazar]` (Slack App con interactividad)
+  serían comodidad, no seguridad.
+
+### Gates reales de este repo (no declarar gates que no existen)
+
+`npm run typecheck` · `npm run lint` · `npm run build`. **No hay `npm test`** (los
+servicios Python usan pytest). Un gate no ejecutable = `no_ejecutable` = **rechazo de
+trabajo bueno** (aprendizaje 2026-07-11). De hecho, al preparar esto se descubrió que
+`npm run lint` llevaba roto desde la migración a Next 16 (`next lint` fue eliminado) y
+el repo no tenía config de ESLint: arreglado en el PR #34 antes de dejar entrar al trío.
