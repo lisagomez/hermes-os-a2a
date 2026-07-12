@@ -67,8 +67,26 @@ técnico; **un humano con el rol correcto** aprueba lo irreversible.
 *Rol externo opcional:* **Cliente invitado** — leer/comentar **solo** en su `#cli-*`; nunca
 aprueba; nunca ve otros clientes.
 
-> ⚠️ Falta el mapa **`slack_user_id → rol`** (los IDs de Slack de las 4 personas), el
-> equivalente con rol del `TELEGRAM_ALLOWED_USERS` de hoy. Se llena al cablear Slack.
+### Personas reales (IDs cableados el 2026-07-12)
+
+| Persona | Slack (member ID) | Telegram (user ID) | Rol |
+|---|---|---|---|
+| **Elisa Gómez** | `U0BG072S4CR` (owner) | `7022378429` | **CEO** (dueña) |
+| Luis Trujillo | `U0BG24A4X1S` | `5239096821` | ⚠️ **sin asignar** |
+| Víctor Huerta | `U0BGSN36CAC` | (en el grupo) | ⚠️ **sin asignar** |
+| Johann/Oswaldo Valderrama | `U0BFS4ZA8KV` | (en el grupo) | ⚠️ **sin asignar** |
+| Ricardo Silva | `U0BFYCEP3BL` | *(no está en el grupo de TG)* | ⚠️ **sin asignar** |
+
+Los 5 están en `SLACK_ALLOWED_USERS` (`.env` del volumen de negocio) y los del grupo de
+Telegram entran por `group_allowed_chats` (ver §(d)). Los IDs de Slack/Telegram **no son
+secretos**; los tokens sí (viven solo en el `.env` del volumen).
+
+> ⚠️ **Sigue faltando el mapa `persona → rol`.** Hoy el allowlist es **plano**: los 5
+> pueden hablarle al agente por igual, sin distinción de autoridad. Eso importa porque
+> según la matriz de abajo el **CFO** es el único que aprueba **mover dinero** y el
+> **Developer** el único que aprueba **merge a `main`**. Mientras el mapa no exista, esas
+> compuertas las sostiene **solo el juicio humano en el canal**, no la configuración.
+> Lo llena la dueña (decisión de negocio, no técnica).
 
 ### Matriz (acción → quién aprueba)
 | Acción | Aprueba |
@@ -189,3 +207,50 @@ Esto es la **capa humana de los departamentos**: un canal = la cara de un depart
 cliente; Hermes opera dentro; el `#cli-*` privado es el aislamiento white-label hecho
 visible. Refuerza la venta: un cliente puede recibir **su canal/workspace**. Ver
 [[white-label]] y `SPEC-trio.md`.
+
+---
+
+## (d) Canal rápido: grupo de Telegram del equipo (2026-07-12)
+
+**Decisión de la dueña:** el equipo también entra a Telegram. Corrige el diseño
+original ("Telegram = canal personal; el equipo vive en Slack"). Convive con Slack:
+
+| | Telegram (`A2ATeamGroup`) | Slack (`#dep-*`) |
+|---|---|---|
+| Para qué | Reportes, agendas, datos informativos, instrucciones al vuelo | Centro de trabajo: seguimiento, hilos, compuertas de aprobación |
+| Quién | Elisa + Luis + Víctor + Oswaldo + `@a2aTeamBot` | El equipo + `@hermes_negocio` |
+| Rutinas que caen ahí | **digest diario 08:00** y **cierre semanal (lun 08:00)** | trabajo por hilos |
+| Acceso | **membresía del grupo** (`group_allowed_chats: -5449291632`) | `SLACK_ALLOWED_USERS` (IDs uno por uno) |
+
+Config y gotchas: `businessos/negocio/telegram-config-fragment.yaml`. Los dos que
+cuestan una noche si se olvidan:
+
+1. ⚠️ **El modo privacidad de Telegram debe estar APAGADO** (BotFather → Group
+   Privacy → Turn off, y **re-añadir el bot al grupo**: el ajuste solo se aplica al
+   entrar). Con privacidad ON, Telegram entrega los `/comandos` pero **NO las
+   @menciones** → el bot queda mudo sin un solo error en ningún log.
+2. Con privacidad OFF, Telegram entrega **todo** el chat del grupo → el freno de
+   costo lo pone Hermes: `require_mention: true` (su default es `false`: sin eso el
+   agente contesta CADA mensaje del equipo y quema tokens en toda la charla).
+
+## (e) Rutinas automáticas — quién manda qué y cuándo (2026-07-12)
+
+Hasta hoy los `AGENTS.md` **prometían** rutinas que **no existían** (`hermes cron
+list` = *"No scheduled jobs"* en las 3 verticales): el bot creía tenerlas y nunca
+mandaba nada. Creadas y activas:
+
+| Cron | Vertical | Hora (CST) | Entrega |
+|---|---|---|---|
+| `digest-negocio` | negocio | 08:00 diario | grupo de Telegram del equipo |
+| `cierre-semanal` | negocio | lunes 08:00 | grupo de Telegram del equipo |
+| `repaso-clientes` | clientes | 08:00 diario | DM de la dueña |
+| `dreaming-personal` | personal | 02:00 diario | sin mensaje (consolida memoria) |
+
+> ⚠️ **Los contenedores corren en UTC; el server en CST (-6h).** `hermes cron` agenda
+> en la hora del CONTENEDOR: para las 08:00 CST hay que escribir `0 14 * * *`. Un
+> `0 8 * * *` entregaría el digest a las 2 de la mañana.
+
+Host-jobs (cron de SO, en el servidor, sin LLM): `nightly-jobs.sh` 03:10 (ingesta de
+tokens → snapshot de presupuesto → SOUL → dashboard → **auditoría de CLIs**),
+`backup-verticales.sh` 04:17, `weekly-jobs.sh` lunes 03:30 (vigencias del grafo),
+`alerta-presupuesto.sh` 08:00 (solo dispara si cruzas el 80%).

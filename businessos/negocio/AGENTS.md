@@ -51,10 +51,18 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   resumen de una frase; el desglose numérico va por texto.
 
 ## Crons
-- Digest de negocio 8:00: estado de KPIs, gasto de tokens del día y del mes
-  contra presupuesto, alertas. Máximo 300 palabras. Cita cifras con fuente.
-- Cierre semanal (lunes 8:00): resumen de KPIs de la semana y proyección de
-  gasto del mes. Máximo 500 palabras.
+> Estos crons EXISTEN de verdad desde el 2026-07-12 (`hermes cron list`). Antes
+> estaban solo escritos aquí y nunca corrían: no afirmes haber hecho una rutina
+> sin comprobarlo.
+
+- `digest-negocio` — **08:00 diario** (agendado `0 14 * * *`: el contenedor corre en
+  UTC y tú entregas en CST). Estado de KPIs, gasto de tokens del día y del mes
+  contra presupuesto, alertas, y las brechas de CLIs de
+  `/opt/data/workspace/cli-audit.json` (solo si hay). Máximo 300 palabras, cifras
+  con fuente. **Entrega: el grupo de Telegram del equipo** (lo leen 4 personas →
+  higiene de secretos estricta).
+- `cierre-semanal` — **lunes 08:00** (`0 14 * * 1`): KPIs de la semana y proyección
+  de gasto del mes. Máximo 500 palabras. Entrega: el mismo grupo del equipo.
 - Respaldo nocturno: **NO es tuyo, no lo hagas**. Un job de confianza del host
   (`backup-verticales.sh`, cron 04:17) respalda los volúmenes de las 3 verticales
   al repo privado `hermes-os-a2a-backups`. Tu volumen es `0700`/uid-10000: no

@@ -682,4 +682,50 @@ npm run lint         # ESLint
   pérdida de acceso a un cloud server. La cuenta de Hetzner es el único punto de falla real:
   **2FA pendiente**.
 
+### 2026-07-12: Una rutina "documentada" no es una rutina agendada (el bot creía tener crons)
+- **Error**: los `AGENTS.md` de las 3 verticales prometían rutinas (digest 8:00, cierre
+  semanal, dreaming, repaso matutino) y **`hermes cron list` decía "No scheduled jobs" en
+  las tres**. El bot creía tenerlas —su AGENTS.md se lo decía— y confabulaba al respecto;
+  la dueña llevaba días sin recibir nada y sin saber por qué. Hermano del gotcha de SSH
+  del mismo día: **documentar ≠ aplicar**; verificar siempre el estado observable.
+- **Gotchas al crearlas**: (1) **los contenedores corren en UTC y el server en CST(-6h)**:
+  `hermes cron` agenda en la hora del CONTENEDOR → para las 08:00 CST se escribe
+  `0 14 * * *` (un `0 8` entrega a las 2 AM); (2) `--deliver` acepta `platform:chat_id`
+  (`telegram:-5449291632` = grupo) → los reportes del equipo van al grupo, no al DM.
+- **Aplicar en**: toda rutina prometida en un AGENTS/SOUL — o existe en `cron list`, o se
+  borra de la doctrina. Y tras editarla, sincronizar el volumen (ver aprendizaje anterior).
+
+### 2026-07-12: Telegram — el modo privacidad NO entrega las @menciones (solo comandos)
+- **Error**: con *Group Privacy* **enabled** (el default de BotFather), un bot en un grupo
+  recibe los `/comandos` pero **NO los mensajes que lo @mencionan** — al contrario de lo que
+  sugiere la doc. Síntoma: el bot queda mudo en el grupo **sin un solo error en ningún log**
+  (en `gateway.log` aparecen los "Ignoring /start platform ping" y CERO "inbound message").
+  Se persiguen fantasmas (allowlist, authz, membresía) durante una hora.
+- **Fix**: BotFather → Group Privacy → **Turn off** + **re-añadir el bot al grupo** (el ajuste
+  solo se aplica al ENTRAR). Verificar con la API, no con la UI: `getMe` →
+  `can_read_all_group_messages: true`. Como entonces Telegram entrega TODO el chat, el freno
+  de costo pasa a Hermes: `telegram.extra.require_mention: true` (**su default es `false`** →
+  sin eso el agente contesta CADA mensaje del grupo) y `observe_unmentioned_group_messages:
+  false`. Autorizar por grupo con `telegram.group_allowed_chats: "<chat_id>"` (el acceso pasa
+  a ser la membresía del grupo; no hace falta cazar el user_id de cada persona).
+- **Gotcha propio**: 🚫 **nunca llamar `getUpdates` de la API de Telegram con el gateway vivo**
+  — compite con el poller de Hermes ("Telegram polling conflict") y el bot deja de responder.
+  Para diagnosticar, leer `/opt/data/logs/gateway.log` DENTRO del contenedor: `docker logs`
+  NO trae el detalle de las plataformas.
+- **Aplicar en**: cualquier bot de Telegram en grupo (verticales, clientes white-label).
+
+### 2026-07-12: Un job solo puede correr donde viven sus INSUMOS (auditor de CLIs)
+- **Error**: `cli-audit.py` escaneaba `~/printing-press/library/` (los binarios impresos), que
+  solo existe en la máquina de dev donde corre Claude Code → el auditor no podía ser una rutina
+  del servidor (la única máquina 24/7) y el ROADMAP **afirmaba** que ya lo era (falso). Además
+  el `library_path` del snapshot delató que las corridas previas venían de OTRA máquina de dev
+  (`/home/gsore/...`, no `/home/gomez/...`).
+- **Fix**: separar el insumo del artefacto. El auditor lee un **índice versionado en el repo**
+  (`cli-library-index.json`: slug → grade), regenerable con `--emit-index` **en la máquina que
+  imprime**; el servidor audita con eso (cron 03:10 en `nightly-jobs.sh`). El snapshot declara
+  su fuente (`fuente_impresos: libreria | indice | ninguna`) para **nunca aparentar saber lo
+  que no sabe** — "no sé qué hay impreso" ≠ "no hay nada impreso".
+- **Aplicar en**: todo job que se quiera mover a un cron 24/7 — primero preguntar de qué se
+  alimenta y si ese insumo existe allí; si es un artefacto local, versionar su índice.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
