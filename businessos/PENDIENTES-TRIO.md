@@ -5,6 +5,9 @@
 > **Resultado: `escalada` sin veredicto.** El motor (GLM-5.2) escribió el código
 > correctamente; el sistema lo mató. Los 5 hallazgos son de DISEÑO NUESTRO, no del
 > modelo ni del código generado.
+>
+> **Estado (2026-07-12): los 5 arreglados en código.** Falta DESPLEGAR (ver abajo) y
+> relanzar la tarea. Todo lo de esta sección se conserva como autopsia.
 
 ## Qué pasó, con evidencia
 
@@ -23,31 +26,56 @@ minutos (motor + gates). Al cerrarse la conexión, el servidor canceló la petic
 con ella el proceso del motor. Y el bot **reportó lo contrario de lo que pasó**:
 *"probablemente el trío no está levantado"* — cuando él mismo lo había abortado.
 
-## Los 5 arreglos (en orden de importancia)
+## Los 5 arreglos — HECHOS
 
-1. **Un cliente que se desconecta JAMÁS debe matar el trabajo del servidor.**
-   `asyncio.shield` alrededor de `self._engine.run(...)` en `ejecutor-a2a/executor.py`.
-   Es el bug estructural: hoy cualquier cliente impaciente destruye una corrida de minutos.
-2. **El skill `trio-software` debe exigir timeout ≥ 900 s** en la llamada HTTP, y
-   **PROHIBIR** explícitamente concluir "el trío está caído" por un timeout (la tarea
-   sigue viva: hay que consultar el estado, no adivinar).
-3. **El error del motor no queda en NINGÚN log.** El Ejecutor solo lo manda por A2A; si
-   el cliente ya se fue, se pierde. Loguear a stdout en `_fallar()` (sin esto, cada fallo
-   es una autopsia a ciegas — esta nos costó media hora).
-4. **`token_usage` no se escribe si la corrida falla.** `claude_engine.py` promete en un
-   comentario que "el gasto se registra SIEMPRE (también en error)" y **no lo hace**: el
-   `raise EngineError` del `except` ocurre ANTES del `registrar()`. Tokens quemados que
-   no aparecen en el presupuesto.
-5. **El bot no puede consultar el estado de una tarea** (no tiene credenciales, por diseño).
-   Falta un snapshot `tareas.json` en el volumen — el patrón que ya usan `presupuesto.json`
-   y `cli-audit.json` (host-job escribe, agente lee).
+| # | Arreglo | Dónde | Test que lo fija |
+|---|---------|-------|------------------|
+| 1 | La corrida sobrevive a la desconexión del cliente (`asyncio.shield`) | `ejecutor-a2a/executor.py` | `test_cliente_que_se_desconecta_no_mata_la_corrida` |
+| 2 | Timeout ≥ 900 s obligatorio + prohibido concluir "el trío está caído" por un timeout | `negocio/skills/trio-software/SKILL.md` | — (doctrina) |
+| 3 | Todo fallo se loguea LOCAL antes de viajar por A2A | `ejecutor-a2a/executor.py::_fallar` | — |
+| 4 | El gasto se registra aunque la corrida muera a media faena (acumulado turno a turno) | `ejecutor-a2a/claude_engine.py` | `test_corrida_muerta_a_media_faena_registra_el_gasto_parcial` |
+| 5 | Snapshot `tareas.json` en el volumen: el bot consulta estado sin credenciales | `businessos/snapshot-tareas.py` | — |
 
-## Para retomar
+Notas de diseño:
+
+- **(1)** es el bug estructural. La corrida va en una task independiente; si el cliente
+  cuelga, `execute` propaga la cancelación (buen ciudadano asyncio) pero el trabajo
+  **sigue** y deja su estado final en `tareas`. Verificado: el test **falla** contra el
+  executor viejo (la corrida moría) y pasa con el nuevo.
+- **(4)** el `ResultMessage` sigue siendo autoritativo cuando llega (no se duplica el
+  gasto); el acumulado parcial solo aplica si la corrida no llegó a entregarlo. Va con
+  `costo_usd = 0` a propósito: el motor no sabe tarifar (con GLM el CLI ni siquiera
+  tarifa bien) — los tokens son el dato real y el costo lo recalcula el host-job.
+- **(5)** el snapshot trae `generado`: el skill obliga a citar la antigüedad y, si la
+  tarea no aparece, a decir *"aún no tengo estado confirmado"* — **nunca** "falló".
+
+## Para desplegar (nada de esto está vivo aún)
+
+El repo NO es el runtime (aprendizaje 2026-07-12). En el servidor:
+
+1. `git pull` en `/home/hermes/repo` (tras mergear el PR).
+2. **Rebuild del Ejecutor** — es imagen, no script: `docker compose up -d --build ejecutor-a2a`.
+3. **Sincronizar el skill al volumen de negocio** (el bot lee el volumen, no el repo):
+   copiar `negocio/skills/trio-software/SKILL.md` a `~/businessos/negocio/.hermes/skills/`
+   → `chown 10000:10000` → `docker restart hermes-negocio`. **Diffear antes de pisar.**
+4. **Agendar el snapshot** (una rutina documentada no es una rutina agendada, 2026-07-12):
+   cron de SO cada 5 min — `*/5 * * * * cd /home/hermes/repo/businessos && set -a && . ./.env && set +a && python3 snapshot-tareas.py >> /home/hermes/logs/host-jobs.log 2>&1`.
+   El skill promete "se refresca cada pocos minutos": o el cron existe, o esa frase miente.
+   (También quedó en `nightly-jobs.sh`, pero una vez al día no sirve para consultar una
+   corrida en curso.)
+5. Verificar: `docker exec -u hermes hermes-negocio cat /opt/data/workspace/tareas.json`.
+
+## Para relanzar la tarea
 
 - El código de GLM sigue en el worktree `/workspace/worktree/mission-control-2026-0001`
-  (rama `tarea/mission-control-2026-0001`), a medias pero bien encaminado: creó
-  `src/app/(main)/desarrollo/`, sus componentes, y tocó `services/{index,real,mock}.ts`,
-  `types/index.ts` y el `layout.tsx` de navegación — exactamente lo que pedían los criterios.
-- Tras los arreglos: relanzar la tarea (mismo `task_id`) con presupuesto realista
-  (**$5**, no $1.50 — `next build` + una feature completa no caben en $1.50) y dejar que
-  llegue a los gates.
+  (rama `tarea/mission-control-2026-0001`), a medias pero bien encaminado.
+- Relanzar con el MISMO `task_id` y presupuesto realista (**$5**, no $1.50 — `next build`
+  + una feature completa no caben en $1.50) y dejar que llegue a los gates.
+
+## Sabido y NO arreglado (mismo tipo, otro servicio)
+
+- El **Coordinador** (Fase 7, enjambre) tiene la misma exposición que tenía el Ejecutor:
+  su `execute` no está blindado y una corrida de enjambre es la MÁS larga del sistema.
+  Hoy no lo dispara ningún skill (solo smokes/dogfood), por eso no urge. Cuando el bot
+  pueda encargar features al enjambre, aplicarle el mismo patrón (`asyncio.shield` +
+  test de desconexión) ANTES de exponerlo.

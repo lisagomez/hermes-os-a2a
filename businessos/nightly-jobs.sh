@@ -23,5 +23,8 @@ mkdir -p /home/hermes/logs
   # única máquina 24/7; lee lo impreso del índice versionado (cli-library-index.json),
   # no de la librería de binarios, que solo existe en la máquina donde se imprime.
   python3 cli-audit.py
+  # estado del trio -> tareas.json en el volumen de negocio. El bot NO tiene credenciales
+  # (por diseño): sin este snapshot no puede consultar una tarea y ADIVINA (1a corrida real).
+  python3 snapshot-tareas.py
   echo "=== $(date -Is) nightly fin ==="
 } >> /home/hermes/logs/host-jobs.log 2>&1

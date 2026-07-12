@@ -7,7 +7,10 @@ nunca contra blogs.
 
 Presupuesto: cada corrida escribe su gasto en `token_usage` (vertical='trio',
 una fila por modelo usado — `ResultMessage.model_usage`), best-effort como
-estado.py: el registro nunca tumba la tarea. Limites de la TAREA respetados:
+estado.py: el registro nunca tumba la tarea. Si la corrida MUERE antes del
+ResultMessage, se registra el gasto acumulado turno a turno (`acumular_parcial`):
+los tokens quemados son reales aunque el trabajo se haya perdido. Limites de la
+TAREA respetados:
 `modelo_pref` → options.model, `presupuesto_usd` → options.max_budget_usd,
 `max_turns` → options.max_turns.
 
@@ -95,6 +98,42 @@ def _entero(u: dict, *claves: str) -> int:
     return 0
 
 
+def acumular_parcial(parciales: dict[str, dict[str, int]], mensaje: Any) -> None:
+    """Suma el gasto de un AssistantMessage al acumulador por modelo.
+
+    Es la UNICA fuente de gasto cuando la corrida muere antes del ResultMessage
+    (motor abortado, CLI caido): esos tokens ya se quemaron y deben contarse. El
+    ResultMessage, cuando llega, es autoritativo y REEMPLAZA a este acumulado.
+    """
+    usage = getattr(mensaje, "usage", None)
+    if not isinstance(usage, dict):
+        return
+    modelo = getattr(mensaje, "model", None) or "desconocido"
+    fila = parciales.setdefault(modelo, {"tokens_in": 0, "tokens_out": 0})
+    fila["tokens_in"] += _entero(usage, "inputTokens", "input_tokens")
+    fila["tokens_out"] += _entero(usage, "outputTokens", "output_tokens")
+
+
+def filas_parciales(
+    parciales: dict[str, dict[str, int]], task_id: str | None = None
+) -> list[dict]:
+    """Gasto de una corrida MUERTA a media faena. Sin costo: el precio por token no
+    lo sabe el motor (con GLM el CLI ni siquiera tarifa bien) y los tokens son el dato
+    real. `costo_usd=0` es honesto — el recalculo es del host-job, no de aqui."""
+    return [
+        {
+            "vertical": VERTICAL_TRIO,
+            "task_id": task_id,
+            "modelo": modelo,
+            "tokens_in": t["tokens_in"],
+            "tokens_out": t["tokens_out"],
+            "costo_usd": 0.0,
+        }
+        for modelo, t in parciales.items()
+        if t["tokens_in"] or t["tokens_out"]
+    ]
+
+
 def filas_token_usage(result: Any, modelo_pedido: str | None, task_id: str | None = None) -> list[dict]:
     """Una fila por modelo de `model_usage`; si no viene, una fila con el total.
 
@@ -157,20 +196,30 @@ class ClaudeAgentEngine:
             max_budget_usd=limites.get("presupuesto_usd"),
         )
 
+        task_id = tarea.get("task_id")
         result = None
+        # Gasto acumulado turno a turno: si la corrida muere antes del ResultMessage
+        # (1a corrida real, 2026-07-12: el motor abortado no registro NADA) este es el
+        # unico rastro de los tokens quemados.
+        parciales: dict[str, dict[str, int]] = {}
         try:
             async for mensaje in self._query(prompt=_prompt_de(tarea), options=options):
                 if isinstance(mensaje, ResultMessage):
                     result = mensaje
-        except Exception as exc:  # CLI ausente, transporte roto, etc.
+                else:
+                    acumular_parcial(parciales, mensaje)
+        except Exception as exc:  # CLI ausente, transporte roto, motor abortado, etc.
+            await self._registrar_parcial(parciales, task_id, f"{type(exc).__name__}: {exc}")
             raise EngineError(f"claude-agent-sdk: {type(exc).__name__}: {exc}") from exc
 
         if result is None:
+            await self._registrar_parcial(parciales, task_id, "sin ResultMessage")
             raise EngineError("claude-agent-sdk: la corrida no entrego ResultMessage")
 
         # El gasto se registra SIEMPRE (tambien en error): tokens quemados son reales.
+        # Aqui SI hay ResultMessage → es autoritativo y reemplaza al acumulado parcial.
         # task_id atribuye el gasto a la (sub-)tarea → corte exacto de presupuesto (Fase 7).
-        await self._registro.registrar(filas_token_usage(result, options.model, tarea.get("task_id")))
+        await self._registro.registrar(filas_token_usage(result, options.model, task_id))
 
         if result.is_error:
             detalle = result.result or "; ".join(result.errors or []) or result.subtype
@@ -186,3 +235,22 @@ class ClaudeAgentEngine:
             },
             "notas": (result.result or "")[:2000],
         }
+
+    async def _registrar_parcial(
+        self, parciales: dict[str, dict[str, int]], task_id: str | None, motivo: str
+    ) -> None:
+        """Registra el gasto de una corrida que reventó, y lo DICE en el log."""
+        filas = filas_parciales(parciales, task_id)
+        if not filas:
+            print(
+                f"[token_usage] corrida {task_id} murio ({motivo}) sin gasto registrable",
+                flush=True,
+            )
+            return
+        tokens = sum(f["tokens_in"] + f["tokens_out"] for f in filas)
+        print(
+            f"[token_usage] corrida {task_id} murio ({motivo}): registrando gasto PARCIAL "
+            f"de {tokens} tokens en {len(filas)} modelo(s) (costo sin tarifar)",
+            flush=True,
+        )
+        await self._registro.registrar(filas)

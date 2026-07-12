@@ -56,18 +56,40 @@ class SupervisorFake:
         return v
 
 
+ESTADOS_FINALES = {"aprobada", "rechazada", "escalada"}
+
+
 class EstadoEspia:
     """Doble de EstadoTareas: registra transiciones sin tocar Supabase."""
 
     def __init__(self) -> None:
         self.transiciones: list[tuple[str, str]] = []
         self.ejecuciones: list[str] = []
+        self.terminado = asyncio.Event()  # se dispara al llegar a estado final
 
     async def registrar_ejecucion(self, tarea: dict) -> None:
         self.ejecuciones.append(tarea["task_id"])
 
     async def transicionar(self, task_id: str, estado: str, **campos) -> None:
         self.transiciones.append((task_id, estado))
+        if estado in ESTADOS_FINALES:
+            self.terminado.set()
+
+
+class MotorLento:
+    """Motor que avisa cuando empieza y tarda: permite cancelar a media faena."""
+
+    def __init__(self) -> None:
+        self.empezado = asyncio.Event()
+        self.completado = False
+
+    async def run(self, tarea: dict, worktree: Path) -> dict:
+        self.empezado.set()
+        await asyncio.sleep(0.05)  # el motor real tarda MINUTOS
+        (worktree / "src").mkdir(parents=True, exist_ok=True)
+        (worktree / "src" / "x.ts").write_text("export const x = 1\n")
+        self.completado = True
+        return {"artefactos": {"engine": "lento"}, "notas": "terminado pese a la desconexion"}
 
 
 # ---------- fixtures / helpers ----------
@@ -222,6 +244,40 @@ def test_rechazo_del_supervisor_completa_con_veredicto_rechazado(repo, tmp_path)
     assert entregado["veredicto"]["veredicto"] == "rechazado"
     assert entregado["veredicto"]["hallazgos"][0]["regla"] == "tests_verdes"
     assert estado.transiciones[-1] == ("t-102", "rechazada")
+
+
+# ---------- durabilidad: el cliente que se va no mata el trabajo ----------
+
+def test_cliente_que_se_desconecta_no_mata_la_corrida(repo, tmp_path):
+    """El bug estructural de la 1a corrida real (2026-07-12): el bot llamo con timeout
+    de 30 s, se desconecto y el servidor CANCELO la peticion — matando el proceso del
+    motor a media faena. Ahora la corrida sobrevive, pide veredicto y deja estado final."""
+    motor = MotorLento()
+    supervisor = SupervisorFake(veredicto=VEREDICTO_APROBADO)
+    estado = EstadoEspia()
+    ejecutor = EjecutorA2A(
+        engine=motor, supervisor=supervisor, estado=estado,
+        repo=repo, workspace_root=tmp_path / "espacio",
+    )
+
+    async def escenario():
+        cola = ColaEspia()
+        corrida = asyncio.create_task(
+            ejecutor.execute(contexto_con(new_data_message(tarea_valida("t-110"))), cola)
+        )
+        await asyncio.wait_for(motor.empezado.wait(), 5)  # el motor esta a media faena
+        corrida.cancel()  # el cliente cuelga
+        with pytest.raises(asyncio.CancelledError):
+            await corrida
+        # …y el trabajo del servidor SIGUE hasta el final.
+        await asyncio.wait_for(estado.terminado.wait(), 5)
+        return cola
+
+    asyncio.run(escenario())
+
+    assert motor.completado  # el motor no murio a media faena
+    assert supervisor.resultados_recibidos[0]["task_id"] == "t-110"  # hubo revision
+    assert estado.transiciones == [("t-110", "en_revision"), ("t-110", "aprobada")]
 
 
 # ---------- errores → failed con razon clara ----------

@@ -79,8 +79,30 @@ Gotchas verificados (no los descubras de nuevo):
 - El método es `SendMessage` (NO `message/send`) y el header `A2A-Version: 1.0` es
   obligatorio (sin él: error -32009).
 - `parts[0].data` lleva la tarea DIRECTA (sin anidarla en otro `{"data": ...}`).
-- UNA tarea por mensaje. La ejecución tarda: el Ejecutor trabaja y el Supervisor
-  re-ejecuta build/tests (minutos, no segundos).
+- UNA tarea por mensaje.
+
+### ⏳ El timeout: mínimo 900 s (NO negociable)
+
+Una corrida dura **minutos**: el motor escribe código y el Supervisor re-ejecuta
+build + typecheck + lint + tests sobre el resultado. **Usa timeout ≥ 900 s (15 min)
+en la llamada HTTP.** Con `curl`: `--max-time 1800`. Con Python: `timeout=1800`.
+
+Si dejas el timeout por default (30 s) **matas la corrida**: así se perdió la primera
+tarea real (`mission-control-2026-0001`, 2026-07-12) — el código estaba bien escrito y
+el sistema lo tiró a la basura.
+
+### 🚫 Un timeout NO significa "el trío está caído"
+
+Si tu llamada expira, **la tarea SIGUE VIVA en el servidor** (el Ejecutor está blindado:
+tu desconexión ya no la mata). Está prohibido concluir "el trío no está levantado",
+"parece que falló" o cualquier variante. Lo que haces es **consultar el estado** (ver
+"Consultar estado sin credenciales") y reportar lo que el estado diga:
+
+> "La tarea `app-2026-0001` lleva más de 15 minutos; sigue corriendo en el servidor.
+> Te aviso en cuanto haya veredicto."
+
+"El trío está caído" solo se dice cuando el servicio **no acepta la conexión**
+(connection refused / DNS), nunca por lentitud.
 
 ## Paso 3 — Interpretar la respuesta
 
@@ -144,9 +166,24 @@ Tú no mergeas jamás.
 
 - La respuesta A2A del Paso 3 ya trae todo lo operativo.
 - La trazabilidad completa vive en la tabla `tareas` de Supabase, que escriben los
-  servicios del trío — **tú no puedes ni debes escribirla/leerla directo**. Si Elisa
-  pide historial y existe un snapshot del host en `/opt/data/workspace/` (patrón
-  cli-audit), léelo de ahí; si no existe, dile que el host-job aún no corre.
+  servicios del trío — **tú no puedes ni debes leerla/escribirla directo** (no tienes
+  credenciales, por diseño).
+- Lo que SÍ tienes es el snapshot **`/opt/data/workspace/tareas.json`**, que un job de
+  confianza del host refresca cada pocos minutos. Léelo con `read_file`.
+
+Cada tarea trae: `estado`, `en_curso`, `intentos`, `veredicto`, `gates`, `hallazgos`,
+`rama`, `archivos` y `actualizada`. Úsalo para responder "¿cómo va X?" y **siempre que
+tu llamada HTTP expire**.
+
+Dos reglas de honestidad al leerlo:
+
+1. **Mira `generado`** (cuándo se hizo el snapshot). Si es de hace horas, dilo:
+   *"según el último snapshot (de las 03:10)…"*. Nunca presentes un dato viejo como
+   si fuera de ahora.
+2. **Si la tarea no aparece o el snapshot es más viejo que la tarea**, la respuesta
+   correcta es *"aún no tengo estado confirmado; sigue corriendo"* — **NO** "falló" ni
+   "el trío está caído". No sabes ≠ salió mal. Nunca rellenes el hueco con una
+   suposición.
 
 ## Si algo no está disponible
 
