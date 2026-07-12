@@ -32,9 +32,14 @@ COPY ejecutor-a2a/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY trio-contrato/contrato.py .
+# OJO: el COPY es EXPLICITO. Un modulo nuevo sin su linea aqui = ModuleNotFoundError y
+# crash-loop en runtime, y los tests de dev NO lo cazan (paso el 2026-07-10). Los cuatro
+# ultimos son la COLA (PRP-010): cola, worker, pipeline y su tope de gasto.
 COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
      ejecutor-a2a/claude_engine.py ejecutor-a2a/workspace.py \
      ejecutor-a2a/estado.py ejecutor-a2a/supervisor_cliente.py \
+     ejecutor-a2a/cola.py ejecutor-a2a/worker.py ejecutor-a2a/pipeline.py \
+     ejecutor-a2a/presupuesto.py \
      ejecutor-a2a/app.py ./
 
 EXPOSE 4100

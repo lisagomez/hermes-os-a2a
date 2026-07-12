@@ -33,13 +33,22 @@ ESTADOS = (
 )
 
 # Transiciones validas: quien escribe `tareas` DEBE respetarlas.
+#
+# La COLA (PRP-010) anade tres vueltas a `recibida` — todas son "vuelve a la fila", nunca
+# un atajo para saltarsela:
+#   en_ejecucion → recibida  : recuperacion de reinicio (huerfana que nadie esta corriendo)
+#   rechazada    → recibida  : reintento re-encolado, al FINAL de la cola (FIFO justo)
+#   escalada     → recibida  : relanzar tras escalada (analoga a escalada → en_ejecucion)
+# `recibida → en_ejecucion` (el pick del worker) no cambia: sigue siendo la unica puerta
+# de entrada a la ejecucion.
 TRANSICIONES: dict[str, frozenset[str]] = {
     "recibida": frozenset({"en_ejecucion", "cancelada"}),
-    "en_ejecucion": frozenset({"en_revision", "escalada", "cancelada"}),
+    "en_ejecucion": frozenset({"en_revision", "escalada", "cancelada", "recibida"}),
     "en_revision": frozenset({"aprobada", "rechazada"}),
-    "rechazada": frozenset({"en_ejecucion", "escalada", "cancelada"}),  # reintento | tope
+    # reintento (directo o re-encolado) | tope
+    "rechazada": frozenset({"en_ejecucion", "recibida", "escalada", "cancelada"}),
     "aprobada": frozenset({"concretada", "cancelada"}),  # concretar = gate humano antes
-    "escalada": frozenset({"en_ejecucion", "cancelada"}),  # el humano decide
+    "escalada": frozenset({"en_ejecucion", "recibida", "cancelada"}),  # el humano decide
     "concretada": frozenset(),
     "cancelada": frozenset(),
 }

@@ -102,42 +102,55 @@ Gotchas verificados (no los descubras de nuevo):
 - `parts[0].data` lleva la tarea DIRECTA (sin anidarla en otro `{"data": ...}`).
 - UNA tarea por mensaje.
 
-### ⏳ El timeout: mínimo 900 s (NO negociable)
+### ⏳ La respuesta es INMEDIATA: te dan la posición en la cola, no el veredicto
 
-Una corrida dura **minutos**: el motor escribe código y el Supervisor re-ejecuta
-build + typecheck + lint + tests sobre el resultado. **Usa timeout ≥ 900 s (15 min)
-en la llamada HTTP.** Con `curl`: `--max-time 1800`. Con Python: `timeout=1800`.
+El Ejecutor **encola** la tarea y contesta en segundos. **NO esperes el veredicto en esta
+llamada: no viene.** Timeout 60 s de sobra (`--max-time 60`).
 
-Si dejas el timeout por default (30 s) **matas la corrida**: así se perdió la primera
-tarea real (`mission-control-2026-0001`, 2026-07-12) — el código estaba bien escrito y
-el sistema lo tiró a la basura.
+Varias personas pueden pedir features a la vez: se ejecutan **de una en una**, en orden.
+La respuesta te dice exactamente dónde quedaste:
+
+```json
+{"encolada": true, "task_id": "app-2026-0001", "posicion": 2,
+ "en_ejecucion": "dash-2026-0007",
+ "cola": [{"pos": 1, "task_id": "dash-2026-0008"}, {"pos": 2, "task_id": "app-2026-0001"}]}
+```
+
+Lo que respondes en el canal (di la verdad, incluida la espera):
+
+> "Encolada como `app-2026-0001`, **posición 2**. Ahora mismo corre `dash-2026-0007`.
+> Te aviso aquí cuando haya veredicto."
 
 ### 🚫 Un timeout NO significa "el trío está caído"
 
-Si tu llamada expira, **la tarea SIGUE VIVA en el servidor** (el Ejecutor está blindado:
-tu desconexión ya no la mata). Está prohibido concluir "el trío no está levantado",
-"parece que falló" o cualquier variante. Lo que haces es **consultar el estado** (ver
-"Consultar estado sin credenciales") y reportar lo que el estado diga:
+Si tu llamada expira, **la tarea puede estar encolada igualmente**. Está prohibido concluir
+"el trío no está levantado", "parece que falló" o cualquier variante. Consulta el estado
+(abajo) y reporta lo que el estado diga. "El trío está caído" solo se dice cuando el
+servicio **no acepta la conexión** (connection refused / DNS), nunca por lentitud.
 
-> "La tarea `app-2026-0001` lleva más de 15 minutos; sigue corriendo en el servidor.
-> Te aviso en cuanto haya veredicto."
+### 🚫 Tú NO reordenas la cola
 
-"El trío está caído" solo se dice cuando el servicio **no acepta la conexión**
-(connection refused / DNS), nunca por lentitud.
+Si alguien te dice "lo mío es urgente, ponlo primero": **no puedes, y no debes**. La
+prioridad la cambia **solo Elisa** (tiene la credencial; tú no, por diseño — si cualquiera
+pudiera colarse en la fila, el orden no significaría nada). Lo que haces es **pedírselo**:
 
-## Paso 3 — Interpretar la respuesta
+> "Ana pide adelantar `app-2026-0001` (ahora en posición 4). ¿Lo prioritizo?
+> Si dices que sí, lo hace el host: `ssh hetzner 'python3 ~/repo/businessos/cola-trio.py prioriza app-2026-0001'`"
+
+## Paso 3 — Interpretar la respuesta (es el ACUSE, no el veredicto)
 
 En `result.task`:
 
-- `status.state == "TASK_STATE_COMPLETED"` → hay veredicto en
-  `artifacts[0].parts[0].data`, con dos llaves:
-  - `resultado`: lo que hizo el Ejecutor (`worktree`, `diff`, `archivos`, `notas`).
-  - `veredicto`: el juicio del Supervisor — `veredicto` (`aprobado`/`rechazado`),
-    `gates` (regla, estado, evidencia) y `hallazgos` (regla, evidencia, archivo).
-- `status.state == "TASK_STATE_FAILED"` → el texto en `status.message.parts[0].text`
-  dice por qué (tarea inválida, workspace roto, motor caído, supervisor caído).
-  Corrige la tarea si es tu error de formato; si es infraestructura, repórtalo a Elisa
-  tal cual — NO lo intentes arreglar tú.
+- `status.state == "TASK_STATE_COMPLETED"` → en `artifacts[0].parts[0].data` está el acuse
+  de la cola: `{encolada, task_id, posicion, en_ejecucion, cola}`. **Eso es todo lo que hay
+  por ahora**: reporta la posición y espera. El veredicto llegará **solo** (el host avisa en
+  `#dep-desarrollo`) o lo consultas en `tareas.json`.
+- `status.state == "TASK_STATE_FAILED"` → el texto en `status.message.parts[0].text` dice por
+  qué **no se encoló** (tarea inválida, o la cola no pudo escribirse). Corrige la tarea si es
+  tu error de formato; si es infraestructura, repórtalo a Elisa tal cual — NO lo arregles tú.
+
+⚠️ Si la tarea falló, **NO está encolada**: no digas "ya quedó en cola". El Ejecutor jamás
+dice "encolada" sin haber escrito la fila, y tú tampoco.
 
 ## Paso 4 — El lazo de reintento (con tope)
 
@@ -146,6 +159,12 @@ Si `veredicto == "rechazado"` y quedan intentos (`intento < intentos_max`):
 1. Formatea cada hallazgo como observación: `"<regla>: <evidencia> (<archivo>)"`.
 2. Reenvía la MISMA tarea (mismo `task_id`) agregando `"observaciones": [...]`.
 3. Lleva la cuenta: intento 1, 2, 3…
+
+El reintento **vuelve al FINAL de la cola** (no conserva su turno): en ejecución serial, una
+tarea que falla no puede comerse tres turnos seguidos mientras otros esperan. Dilo tal cual:
+
+> "`app-2026-0001` fue rechazada (gate `tests`). La reencolo con las observaciones:
+> vuelve a la cola en **posición 4**."
 
 Si se agota el tope, **ESCALA a Elisa** — nunca sigas reintentando:
 
@@ -192,9 +211,15 @@ Tú no mergeas jamás.
 - Lo que SÍ tienes es el snapshot **`/opt/data/workspace/tareas.json`**, que un job de
   confianza del host refresca cada pocos minutos. Léelo con `read_file`.
 
-Cada tarea trae: `estado`, `en_curso`, `intentos`, `veredicto`, `gates`, `hallazgos`,
-`rama`, `archivos` y `actualizada`. Úsalo para responder "¿cómo va X?" y **siempre que
-tu llamada HTTP expire**.
+Trae `en_ejecucion` (lo que corre ahora), `cola` (**el orden real de ejecución**, con la
+`posicion` de cada tarea) y `tareas` (cada una con `estado`, `intentos`, `veredicto`,
+`gates`, `hallazgos`, `rama`, `archivos`, `actualizada`).
+
+Con eso respondes lo que el equipo pregunta de verdad — *"¿cómo va lo mío?"*, *"¿cuándo me
+toca?"*, *"¿qué hay en cola?"*:
+
+> "`app-2026-0001` va **3ª en la cola**; ahora mismo corre `dash-2026-0007`
+> (según el snapshot de las 14:05)."
 
 Dos reglas de honestidad al leerlo:
 
