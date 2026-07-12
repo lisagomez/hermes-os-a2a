@@ -574,12 +574,24 @@ Cómo funciona (archivos en la raíz de `businessos/`):
 - Printing Press corre en Claude Code en tu máquina de desarrollo, no en el
   servidor (necesita Go 1.26.4+ y Claude Code)
 
-Detector + aviso (Nivel 2-prep, decidido 2026-06-30): `cli-audit.py` corre por
-cron de SO en el servidor (2:30, escalonado tras la ingesta de tokens) y deja
-`/opt/data/workspace/cli-audit.json`; el digest 8:00 de negocio reporta las
-brechas con el comando exacto. La impresión y la mejora de un CLI siguen siendo
-acción humana en Claude Code (`/printing-press`, `/printing-press-amend`,
-`/code-review`): el cron solo detecta y avisa, nunca imprime (Nivel 3 descartado).
+Detector + aviso (Nivel 2-prep, decidido 2026-06-30; **realmente agendado el
+2026-07-12**): `cli-audit.py` corre en el **servidor** dentro de `nightly-jobs.sh`
+(03:10, tras la ingesta de tokens) y deja `/opt/data/workspace/cli-audit.json`;
+el digest 08:00 de negocio reporta las brechas con el comando exacto. La impresión
+y la mejora de un CLI siguen siendo acción humana en Claude Code
+(`/printing-press`, `/printing-press-amend`, `/code-review`): el cron solo detecta
+y avisa, nunca imprime (Nivel 3 descartado).
+
+> ⚠️ **Cómo sabe el auditor qué está impreso, sin la librería.** La librería de
+> binarios (`~/printing-press/library/`) solo existe **en la máquina donde se
+> imprime** (Claude Code + Go) — el servidor no la tiene y no debe tenerla. Por eso
+> el auditor lee un **índice versionado en el repo**: `cli-library-index.json`
+> (slug → grade). **Tras imprimir o mejorar cualquier CLI hay que regenerarlo y
+> commitearlo**: `python3 cli-audit.py --emit-index` (en la máquina con librería).
+> Si no, ese CLI aparecerá como "faltante" en el digest. El snapshot declara su
+> fuente (`fuente_impresos: libreria | indice | ninguna`) para que nunca aparente
+> saber lo que no sabe. *(Hasta el 2026-07-12 el auditor corría a mano en la máquina
+> de dev y empujaba por ssh; el ROADMAP decía "cron 2:30 en el servidor" y era falso.)*
 
 Qué CLI por fase:
 - Fase 0-1: ~~DigitalOcean~~ superseded → **hcloud** (Hetzner, impreso 2026-07-04,
@@ -636,6 +648,14 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 
 - **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
   al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
+  - **Grupo del equipo `A2ATeamGroup` (2026-07-12)** — *corrige el "Telegram es solo
+    personal" del diseño original*: el equipo también vive aquí para reportes, agendas
+    y datos informativos. Miembros: Elisa, Luis Trujillo, Víctor Huerta, Oswaldo
+    Valderrama + `@a2aTeamBot`. Ahí caen el **digest diario 08:00** y el **cierre
+    semanal (lunes 08:00)**. Config, `chat_id` y gotchas (⚠️ el modo privacidad de
+    Telegram debe estar **APAGADO** o el bot no recibe las @menciones):
+    `negocio/telegram-config-fragment.yaml`. Acceso = **membresía del grupo**
+    (`group_allowed_chats`); los DMs siguen siendo solo de la dueña.
 - **Slack** (interno, se SUMA a Telegram — **piloto VIVO desde 2026-07-08**): centro de trabajo
   del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
   de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos

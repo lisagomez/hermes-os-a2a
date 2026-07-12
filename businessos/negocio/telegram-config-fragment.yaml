@@ -1,0 +1,50 @@
+# telegram-config-fragment.yaml — fragmento del config.yaml del volumen de la
+# vertical NEGOCIO. FUENTE DE VERDAD del estado real (2026-07-12): DM de la dueña
+# + grupo del equipo "A2ATeamGroup". Ver departamentos/equipo-y-slack.md.
+#
+# Aplicado en runtime con (NO editar config.yaml a mano: deja el .env rancio):
+#   docker exec -u hermes hermes-negocio hermes config set telegram.extra.require_mention true
+#   docker exec -u hermes hermes-negocio hermes config set telegram.extra.observe_unmentioned_group_messages false
+#   docker exec -u hermes hermes-negocio hermes config set telegram.group_allowed_chats "-5449291632"
+#   docker restart hermes-negocio
+#
+# GOTCHAS (todos pagados con sangre el 2026-07-12):
+#
+# - ⚠️ EL MODO PRIVACIDAD DE TELEGRAM DEBE ESTAR **APAGADO** (BotFather → /mybots →
+#   @a2aTeamBot → Bot Settings → Group Privacy → Turn off). Con privacidad ON,
+#   Telegram entrega al bot los `/comandos` PERO **NO las @menciones** — el bot
+#   queda mudo en el grupo sin un solo error en ningún log (parece un bug del
+#   server y no lo es). Síntoma exacto: en gateway.log aparecen los
+#   "Ignoring /start platform ping" y NINGÚN "inbound message".
+#   El cambio de privacidad SOLO se aplica cuando el bot ENTRA al grupo → hay que
+#   sacarlo y volverlo a añadir. Verificar con la API, no con la UI:
+#     GET /getMe → can_read_all_group_messages == true  (true = privacidad OFF)
+#
+# - Con la privacidad apagada Telegram entrega TODOS los mensajes del grupo → el
+#   freno de costo pasa a ser de Hermes: `require_mention: true` (su default es
+#   **false**: sin esto el agente contestaría CADA mensaje del equipo, quemando
+#   tokens en toda la charla). `observe_unmentioned_group_messages: false` evita
+#   incluso almacenarlos como contexto.
+#
+# - `group_allowed_chats` autoriza el GRUPO ENTERO por chat_id: cualquiera que
+#   esté en el grupo puede usar al agente AHÍ, sin cazar el user_id de cada
+#   persona. El control de acceso pasa a ser la membresía del grupo (la dueña la
+#   administra). Los DMs siguen restringidos a TELEGRAM_ALLOWED_USERS (solo Elisa).
+#   Los chat_id de grupo son negativos y NO son secretos (es seguro versionarlos).
+#
+# - 🚫 NUNCA llamar a la API getUpdates de Telegram contra un bot cuyo gateway está
+#   corriendo: compite con el poller de Hermes → "Telegram polling conflict" y el
+#   bot deja de responder unos segundos. Para diagnosticar, LEER
+#   /opt/data/logs/gateway.log dentro del contenedor (docker logs NO trae el
+#   detalle de las plataformas).
+
+platforms:
+  telegram:
+    reactions: false
+    # Autoriza el grupo del equipo COMPLETO (miembros: Elisa, Luis Trujillo,
+    # Víctor Huerta, Oswaldo Valderrama). El acceso = estar en el grupo.
+    group_allowed_chats: "-5449291632"   # A2ATeamGroup
+    extra:
+      rich_messages: true
+      require_mention: true                        # solo responde si lo @mencionan
+      observe_unmentioned_group_messages: false    # ni siquiera guarda el resto

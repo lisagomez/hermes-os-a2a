@@ -1,0 +1,11 @@
+{
+  "_nota": "Indice VERSIONADO de los CLIs impresos (slug -> grade). Lo lee cli-audit.py en las maquinas SIN libreria de binarios — sobre todo el SERVIDOR, la unica maquina 24/7. La libreria real (~/printing-press/library/) solo existe donde se imprime (Claude Code + Go). REGENERAR Y COMMITEAR tras imprimir o mejorar cualquier CLI: `python3 cli-audit.py --emit-index` en esa maquina.",
+  "_estado": "RECONSTRUIDO A MANO el 2026-07-12 desde la doc del repo (CLAUDE.md, aprendizaje 2026-06-30 y .claude/memory/project/cli-printing-press.md), NO medido de la libreria: la maquina de esta sesion (gomez@LAPAustria) no la tiene; el ultimo auditor real corrio en la maquina 'gsore' (library_path del snapshot del 2026-07-11). Pendiente: correr --emit-index alli y reemplazar este archivo.",
+  "generado": "2026-07-12 (reconstruido, sin medir)",
+  "library_path": null,
+  "impresos": {
+    "digitalocean": { "grade": "A", "score": 87, "nota": "superado por hetzner tras la migracion del runtime (FASE0-hetzner.md)" },
+    "telegram": { "grade": "A", "score": 83 },
+    "supabase": { "grade": "A", "score": 87, "nota": "herramienta de host/dev: el agente no lo usa (secret-scrubbing)" }
+  }
+}

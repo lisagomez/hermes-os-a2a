@@ -75,8 +75,13 @@ La pregunta "¿qué modelo uso?" es la ÚLTIMA, no la primera.
   de redacción importa de cara al cliente).
 
 ## Crons
-- Repaso matutino 8:00: clientes que esperan respuesta, propuestas pendientes,
-  facturas sin procesar. Máximo 200 palabras. A Telegram.
+> Este cron EXISTE de verdad desde el 2026-07-12 (`hermes cron list`). Antes estaba
+> solo escrito aquí y nunca corría: no afirmes haber hecho una rutina sin comprobarlo.
+
+- `repaso-clientes` — **08:00 diario** (agendado `0 14 * * *`: el contenedor corre en
+  UTC y tú entregas en CST). Clientes que esperan respuesta, propuestas pendientes,
+  facturas sin procesar. Máximo 200 palabras. Entrega: DM de Elisa en Telegram. Si no
+  hay nada pendiente, dilo en una línea.
 - Respaldo nocturno: **NO es tuyo, no lo hagas**. Un job de confianza del host
   (`backup-verticales.sh`, cron 04:17) respalda los volúmenes de las 3 verticales
   al repo privado `hermes-os-a2a-backups`. Tu volumen es `0700`/uid-10000: no
