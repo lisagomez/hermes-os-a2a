@@ -42,7 +42,7 @@ Construye este JSON (el contrato exige TODOS estos campos):
     "flujo de login probado en browser",
     "RLS habilitado en tablas nuevas"
   ],
-  "limites": {"intentos_max": 3}
+  "limites": {"intentos_max": 3, "max_turns": 120, "presupuesto_usd": 5}
 }
 ```
 
@@ -65,8 +65,14 @@ Elisa casi nunca va a pedirte tests: **es tu trabajo añadir el criterio**, siem
 Y ya que estás, los gates que el Supervisor siempre corre son: `build`, `typecheck`,
 `lint`, `tests`, `sin_any`, `sin_secretos`, `archivos_max_500`, `rls_en_migraciones`.
 Un criterio que contradiga a cualquiera de ellos es una tarea imposible: no la mandes.
-- `limites.intentos_max`: tope del lazo de reintento (default 3). Opcionales:
-  `modelo_pref` (string) y `presupuesto_usd` (número).
+- `limites.intentos_max`: tope del lazo de reintento (default 3).
+- `limites.max_turns`: **ponlo SIEMPRE en 120** para una feature. El default del motor es
+  **40 turnos** y NO alcanza: una feature completa + su test + iterar hasta dejar los gates
+  verdes no cabe. Al topar el límite la corrida MUERE a media faena y la tarea se escala
+  (le pasó a `mission-control-2026-0001` el 2026-07-12: trabajo bueno, tirado por el techo).
+  Para un arreglo pequeño (un bug de una línea) 40 basta, pero **si dudas, 120**.
+- `limites.presupuesto_usd`: **5** para una feature (1.5 no alcanza: un `next build` + una
+  feature completa se lo comen). Opcional: `modelo_pref` (string).
 - En **reintentos** agrega `"observaciones": ["..."]` (ver Paso 4) y usa el
   **MISMO** `task_id`.
 
