@@ -50,6 +50,21 @@ Construye este JSON (el contrato exige TODOS estos campos):
   (se usa como directorio del worktree). Formato sugerido: `<proyecto>-<año>-<consecutivo>`.
 - `criterios_aceptacion`: SIEMPRE explícitos y verificables — tú entregas el QUÉ
   medible; nunca mandes una tarea sin criterios.
+
+### ⚠️ SIEMPRE incluye un criterio de test (o la tarea nace rechazada)
+
+El Supervisor corre el gate `tests` (`npx playwright test`) en **todas** las tareas, y
+si no encuentra ningún test **falla** (`Error: No tests found`) → rechazo automático,
+por perfecto que sea el código. Así se rechazó `mission-control-2026-0001` con build,
+typecheck y lint verdes (2026-07-12).
+
+Elisa casi nunca va a pedirte tests: **es tu trabajo añadir el criterio**, siempre:
+
+> `"Incluye al menos un test de Playwright que cubra <lo que se construyó>"`
+
+Y ya que estás, los gates que el Supervisor siempre corre son: `build`, `typecheck`,
+`lint`, `tests`, `sin_any`, `sin_secretos`, `archivos_max_500`, `rls_en_migraciones`.
+Un criterio que contradiga a cualquiera de ellos es una tarea imposible: no la mandes.
 - `limites.intentos_max`: tope del lazo de reintento (default 3). Opcionales:
   `modelo_pref` (string) y `presupuesto_usd` (número).
 - En **reintentos** agrega `"observaciones": ["..."]` (ver Paso 4) y usa el
