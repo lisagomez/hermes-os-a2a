@@ -66,6 +66,17 @@ class EjecutorCliente:
             if not tarea_final.artifacts:
                 raise EjecutorError("el ejecutor completó sin artifact de resultado")
             datas = get_data_parts(tarea_final.artifacts[0].parts)
+            # GUARD de la COLA (PRP-010, Fase 7 diferida). El Ejecutor ya no construye al
+            # recibir: ENCOLA y responde {encolada, posicion}. El enjambre todavia espera un
+            # veredicto sincrono, asi que aqui rompe — y debe romper DICIENDO LA VERDAD, no
+            # con un "no trae veredicto" que manda a buscar el bug en el sitio equivocado.
+            if datas and isinstance(datas[0], dict) and datas[0].get("encolada"):
+                raise EjecutorError(
+                    f"el Ejecutor ENCOLO la sub-tarea (posicion {datas[0].get('posicion')}) en vez "
+                    "de ejecutarla: el enjambre aun no habla con la cola (PRP-010, Fase 7 "
+                    "diferida). NO reintentar por aqui — la sub-tarea esta en la cola y el "
+                    "worker la ejecutara sola; el enjambre no debe correr mientras tanto."
+                )
             if not datas or not isinstance(datas[0], dict) or "veredicto" not in datas[0]:
                 raise EjecutorError("el artifact del ejecutor no trae {resultado, veredicto}")
             return datas[0]

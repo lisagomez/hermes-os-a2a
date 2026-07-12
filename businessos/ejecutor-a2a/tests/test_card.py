@@ -9,12 +9,13 @@ from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 
 from app import build_app
 from card import DEFAULT_PUBLIC_URL, build_card
+from cola import ColaMemoria
 from executor import EjecutorA2A
 
 
 def app_de_prueba():
     """App sin dependencias reales (el executor no se ejercita en estos tests)."""
-    return build_app(executor=EjecutorA2A(supervisor=object(), estado=object()))
+    return build_app(executor=EjecutorA2A(cola=ColaMemoria()), worker=None)
 
 
 def test_card_servida_en_well_known():

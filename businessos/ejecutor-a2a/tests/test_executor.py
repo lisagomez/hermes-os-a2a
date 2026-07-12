@@ -1,15 +1,17 @@
-"""Tests del EjecutorA2A (Fase 2 del PRP-006), con MockEngine y dobles — cero red/tokens.
+"""Tests del EjecutorA2A tras la COLA (PRP-010): `execute` ya NO construye — ENCOLA.
 
-Cubren la validacion de la fase: worktree creado y aislado (nunca main), resultado
-bien formado (diff real desde git, no testimonio), veredicto del Supervisor de vuelta
-en el artifact, y TODO error (entrada, workspace, motor, supervisor) → tarea failed
-con razon clara + transicion de estado correcta.
+Lo que se fija aqui:
+  - encolar responde rapido y NUNCA toca el motor (esa es toda la razon de ser de la cola);
+  - jamas se dice "encolada" sin fila escrita (si la cola falla, la tarea A2A falla);
+  - el contrato se valida ANTES de encolar (basura no entra a la cola);
+  - las posiciones son las de verdad (1, 2, 3...).
+
+El trabajo (worktree → motor → Supervisor) se testea en test_pipeline.py, y el drenado
+serial en test_worker.py.
 """
 from __future__ import annotations
 
 import asyncio
-import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -24,9 +26,8 @@ from a2a.types import (
     TaskStatusUpdateEvent,
 )
 
-from engine import MockEngine
+from cola import ColaError, ColaMemoria
 from executor import EjecutorA2A
-from supervisor_cliente import SupervisorError
 
 
 # ---------- dobles ----------
@@ -39,97 +40,40 @@ class ColaEspia:
         self.eventos.append(evento)
 
 
-class SupervisorFake:
-    """Doble del cliente A2A al Supervisor: veredicto fijo o excepcion."""
+class ColaRota:
+    """Supabase caido: encolar DEBE fallar ruidosamente, no mentir."""
 
-    def __init__(self, veredicto=None, error: Exception | None = None) -> None:
-        self._veredicto = veredicto
-        self._error = error
-        self.resultados_recibidos: list[dict] = []
+    async def encolar(self, tarea: dict) -> dict:
+        raise ColaError("HTTP 503: Supabase no responde")
 
-    async def evaluar(self, resultado: dict) -> dict:
-        self.resultados_recibidos.append(resultado)
-        if self._error is not None:
-            raise self._error
-        v = dict(self._veredicto)
-        v.setdefault("task_id", resultado["task_id"])
-        return v
+    async def estado_cola(self) -> dict:
+        raise ColaError("HTTP 503")
 
+    async def reclamar(self):
+        return None
 
-ESTADOS_FINALES = {"aprobada", "rechazada", "escalada"}
+    async def recuperar_huerfanas(self) -> list[str]:
+        return []
 
 
-class EstadoEspia:
-    """Doble de EstadoTareas: registra transiciones sin tocar Supabase."""
+class MotorEspia:
+    """Si el motor se toca al encolar, la cola no sirve para nada. Debe quedarse a cero."""
 
     def __init__(self) -> None:
-        self.transiciones: list[tuple[str, str]] = []
-        self.ejecuciones: list[str] = []
-        self.terminado = asyncio.Event()  # se dispara al llegar a estado final
+        self.corridas = 0
 
-    async def registrar_ejecucion(self, tarea: dict) -> None:
-        self.ejecuciones.append(tarea["task_id"])
-
-    async def transicionar(self, task_id: str, estado: str, **campos) -> None:
-        self.transiciones.append((task_id, estado))
-        if estado in ESTADOS_FINALES:
-            self.terminado.set()
+    async def run(self, tarea, worktree):
+        self.corridas += 1
+        return {"artefactos": {}, "notas": ""}
 
 
-class MotorLento:
-    """Motor que avisa cuando empieza y tarda: permite cancelar a media faena."""
-
-    def __init__(self) -> None:
-        self.empezado = asyncio.Event()
-        self.completado = False
-
-    async def run(self, tarea: dict, worktree: Path) -> dict:
-        self.empezado.set()
-        await asyncio.sleep(0.05)  # el motor real tarda MINUTOS
-        (worktree / "src").mkdir(parents=True, exist_ok=True)
-        (worktree / "src" / "x.ts").write_text("export const x = 1\n")
-        self.completado = True
-        return {"artefactos": {"engine": "lento"}, "notas": "terminado pese a la desconexion"}
-
-
-# ---------- fixtures / helpers ----------
-
-VEREDICTO_APROBADO = {
-    "veredicto": "aprobado",
-    "gates": [{"regla": "build", "estado": "paso", "evidencia": "npm run build → exit 0"}],
-    "hallazgos": [],
-}
-
-VEREDICTO_RECHAZADO = {
-    "veredicto": "rechazado",
-    "gates": [{"regla": "tests", "estado": "fallo", "evidencia": "1 failed: callback OAuth 500"}],
-    "hallazgos": [
-        {"regla": "tests_verdes", "evidencia": "callback OAuth 500", "archivo": "src/auth.ts"}
-    ],
-}
-
-
-@pytest.fixture()
-def repo(tmp_path: Path) -> Path:
-    r = tmp_path / "repo"
-    r.mkdir()
-    for cmd in (
-        ["git", "init", "-b", "main"],
-        ["git", "config", "user.email", "test@test"],
-        ["git", "config", "user.name", "test"],
-    ):
-        subprocess.run(cmd, cwd=r, check=True, capture_output=True)
-    (r / "README.md").write_text("hola\n")
-    subprocess.run(["git", "add", "-A"], cwd=r, check=True, capture_output=True)
-    subprocess.run(["git", "commit", "-m", "init"], cwd=r, check=True, capture_output=True)
-    return r
-
+# ---------- helpers ----------
 
 def tarea_valida(task_id: str = "t-100", **extra) -> dict:
     base = {
         "task_id": task_id,
         "objetivo": "crear el modulo x",
-        "contexto": {"mock_cambios": {"src/x.ts": "export const x = 1\n"}},
+        "contexto": {},
         "criterios_aceptacion": ["build verde"],
         "limites": {"intentos_max": 3},
     }
@@ -144,18 +88,6 @@ def contexto_con(mensaje) -> RequestContext:
         task_id="tarea-a2a-1",
         context_id="ctx-1",
     )
-
-
-def ejecutor_con(repo: Path, tmp_path: Path, supervisor, estado=None) -> tuple[EjecutorA2A, EstadoEspia]:
-    estado = estado or EstadoEspia()
-    ej = EjecutorA2A(
-        engine=MockEngine(),
-        supervisor=supervisor,
-        estado=estado,
-        repo=repo,
-        workspace_root=tmp_path / "espacio",
-    )
-    return ej, estado
 
 
 def ejecutar(ejecutor: EjecutorA2A, mensaje) -> ColaEspia:
@@ -179,186 +111,113 @@ def razon_de_fallo(cola: ColaEspia) -> str:
     return fallos[-1].status.message.parts[0].text
 
 
-def rama_de(directorio: Path) -> str:
-    r = subprocess.run(
-        ["git", "-C", str(directorio), "branch", "--show-current"],
-        capture_output=True, text=True,
-    )
-    return r.stdout.strip()
+# ---------- encolar ----------
 
-
-# ---------- happy path ----------
-
-def test_tarea_valida_entrega_resultado_y_veredicto(repo, tmp_path):
-    supervisor = SupervisorFake(veredicto=VEREDICTO_APROBADO)
-    ejecutor, estado = ejecutor_con(repo, tmp_path, supervisor)
-    cola = ejecutar(ejecutor, new_data_message(tarea_valida()))
+def test_encolar_responde_posicion_y_no_toca_el_motor():
+    motor = MotorEspia()
+    ejecutor = EjecutorA2A(cola=ColaMemoria())
+    cola_ev = ejecutar(ejecutor, new_data_message(tarea_valida()))
 
     # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
-    assert isinstance(cola.eventos[0], Task)
-    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
+    assert isinstance(cola_ev.eventos[0], Task)
+    assert estados(cola_ev)[-1] == TaskState.TASK_STATE_COMPLETED
 
-    [artifact] = artifacts(cola)
-    assert artifact.name == "resultado-revisado"
-    [entregado] = get_data_parts(artifact.parts)
-    resultado, veredicto = entregado["resultado"], entregado["veredicto"]
+    [artifact] = artifacts(cola_ev)
+    assert artifact.name == "encolada"
+    [datos] = get_data_parts(artifact.parts)
+    assert datos["encolada"] is True
+    assert datos["task_id"] == "t-100"
+    assert datos["posicion"] == 1
+    assert datos["en_ejecucion"] is None
+    assert [f["task_id"] for f in datos["cola"]] == ["t-100"]
 
-    # Resultado bien formado: diff REAL desde git, no testimonio del motor.
-    assert resultado["task_id"] == "t-100"
-    assert resultado["departamento"] == "software"  # el Supervisor rutea por esto (Fase 9)
-    assert resultado["worktree"] == "worktree/t-100"
-    assert "export const x = 1" in resultado["diff"]
-    assert resultado["archivos"] == ["src/x.ts"]
-    assert resultado["artefactos"]["engine"] == "mock"
-
-    # El veredicto vuelve integro (gates con evidencia).
-    assert veredicto["veredicto"] == "aprobado"
-    assert veredicto["gates"][0]["evidencia"] == "npm run build → exit 0"
-
-    # El Supervisor recibio ESE resultado, no otra cosa.
-    assert supervisor.resultados_recibidos[0]["task_id"] == "t-100"
-
-    # Trazabilidad: en_ejecucion → en_revision → aprobada.
-    assert estado.ejecuciones == ["t-100"]
-    assert estado.transiciones == [("t-100", "en_revision"), ("t-100", "aprobada")]
+    assert motor.corridas == 0  # LA razon de ser de la cola: encolar no construye
 
 
-def test_worktree_aislado_nunca_main(repo, tmp_path):
-    ejecutor, _ = ejecutor_con(repo, tmp_path, SupervisorFake(veredicto=VEREDICTO_APROBADO))
-    ejecutar(ejecutor, new_data_message(tarea_valida("t-101")))
-
-    wt = tmp_path / "espacio" / "worktree" / "t-101"
-    assert wt.is_dir()
-    assert rama_de(wt) == "tarea/t-101"
-    assert rama_de(repo) == "main"  # el repo base no se mueve
-    assert not (repo / "src" / "x.ts").exists()  # el cambio vive SOLO en el worktree
-
-
-def test_rechazo_del_supervisor_completa_con_veredicto_rechazado(repo, tmp_path):
-    """Un rechazo NO es un fallo A2A: es un veredicto que Hermes usa para reintentar."""
-    ejecutor, estado = ejecutor_con(repo, tmp_path, SupervisorFake(veredicto=VEREDICTO_RECHAZADO))
-    cola = ejecutar(ejecutor, new_data_message(tarea_valida("t-102")))
-
-    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
-    [entregado] = get_data_parts(artifacts(cola)[0].parts)
-    assert entregado["veredicto"]["veredicto"] == "rechazado"
-    assert entregado["veredicto"]["hallazgos"][0]["regla"] == "tests_verdes"
-    assert estado.transiciones[-1] == ("t-102", "rechazada")
+def test_las_posiciones_son_las_de_verdad():
+    ejecutor = EjecutorA2A(cola=ColaMemoria())
+    posiciones = []
+    for i in (1, 2, 3):
+        ev = ejecutar(ejecutor, new_data_message(tarea_valida(f"t-{i}")))
+        [datos] = get_data_parts(artifacts(ev)[0].parts)
+        posiciones.append(datos["posicion"])
+    assert posiciones == [1, 2, 3]
 
 
-# ---------- durabilidad: el cliente que se va no mata el trabajo ----------
+def test_reintento_del_mismo_task_id_va_al_FINAL_de_la_cola():
+    """Decision de la dueña: en serie, una tarea que falla no puede comerse tres turnos
+    seguidos mientras cinco personas esperan."""
+    memoria = ColaMemoria()
+    ejecutor = EjecutorA2A(cola=memoria)
+    for i in (1, 2, 3):
+        ejecutar(ejecutor, new_data_message(tarea_valida(f"t-{i}")))
 
-def test_cliente_que_se_desconecta_no_mata_la_corrida(repo, tmp_path):
-    """El bug estructural de la 1a corrida real (2026-07-12): el bot llamo con timeout
-    de 30 s, se desconecto y el servidor CANCELO la peticion — matando el proceso del
-    motor a media faena. Ahora la corrida sobrevive, pide veredicto y deja estado final."""
-    motor = MotorLento()
-    supervisor = SupervisorFake(veredicto=VEREDICTO_APROBADO)
-    estado = EstadoEspia()
-    ejecutor = EjecutorA2A(
-        engine=motor, supervisor=supervisor, estado=estado,
-        repo=repo, workspace_root=tmp_path / "espacio",
-    )
-
-    async def escenario():
-        cola = ColaEspia()
-        corrida = asyncio.create_task(
-            ejecutor.execute(contexto_con(new_data_message(tarea_valida("t-110"))), cola)
-        )
-        await asyncio.wait_for(motor.empezado.wait(), 5)  # el motor esta a media faena
-        corrida.cancel()  # el cliente cuelga
-        with pytest.raises(asyncio.CancelledError):
-            await corrida
-        # …y el trabajo del servidor SIGUE hasta el final.
-        await asyncio.wait_for(estado.terminado.wait(), 5)
-        return cola
-
-    asyncio.run(escenario())
-
-    assert motor.completado  # el motor no murio a media faena
-    assert supervisor.resultados_recibidos[0]["task_id"] == "t-110"  # hubo revision
-    assert estado.transiciones == [("t-110", "en_revision"), ("t-110", "aprobada")]
+    # t-1 se re-encola (reintento con observaciones) → se va al final, no conserva su turno
+    ev = ejecutar(ejecutor, new_data_message(
+        tarea_valida("t-1", observaciones=["tests: falla el callback"])))
+    [datos] = get_data_parts(artifacts(ev)[0].parts)
+    assert datos["posicion"] == 3
+    assert [f["task_id"] for f in datos["cola"]] == ["t-2", "t-3", "t-1"]
 
 
-# ---------- errores → failed con razon clara ----------
+# ---------- honestidad: nunca "encolada" sin fila ----------
 
-def test_mensaje_sin_datapart_falla_sin_tocar_nada(repo, tmp_path):
-    supervisor = SupervisorFake(veredicto=VEREDICTO_APROBADO)
-    ejecutor, estado = ejecutor_con(repo, tmp_path, supervisor)
-    cola = ejecutar(ejecutor, new_text_message("hazme un login"))
+def test_si_la_cola_falla_la_tarea_falla_y_NO_dice_encolada():
+    ejecutor = EjecutorA2A(cola=ColaRota())
+    ev = ejecutar(ejecutor, new_data_message(tarea_valida("t-200")))
 
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "tarea invalida" in razon_de_fallo(cola)
-    assert supervisor.resultados_recibidos == []
-    assert estado.ejecuciones == []  # ni se registro ejecucion
-    assert not (tmp_path / "espacio").exists()  # ni se toco el workspace
+    assert estados(ev)[-1] == TaskState.TASK_STATE_FAILED
+    assert "cola:" in razon_de_fallo(ev)
+    assert artifacts(ev) == []  # ni un solo "encolada" sale de aqui
 
 
-def test_dos_dataparts_falla(repo, tmp_path):
+# ---------- el contrato se valida ANTES de encolar ----------
+
+def test_mensaje_sin_datapart_falla_sin_encolar():
+    memoria = ColaMemoria()
+    ev = ejecutar(EjecutorA2A(cola=memoria), new_text_message("hazme un login"))
+
+    assert estados(ev)[-1] == TaskState.TASK_STATE_FAILED
+    assert "tarea invalida" in razon_de_fallo(ev)
+    assert asyncio.run(memoria.estado_cola())["cola"] == []  # basura no entra a la cola
+
+
+def test_dos_dataparts_falla():
     m = new_data_message(tarea_valida("t-103"))
     m.parts.append(new_data_message(tarea_valida("t-104")).parts[0])
-    ejecutor, _ = ejecutor_con(repo, tmp_path, SupervisorFake(veredicto=VEREDICTO_APROBADO))
-    cola = ejecutar(ejecutor, m)
+    ev = ejecutar(EjecutorA2A(cola=ColaMemoria()), m)
 
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "UNA tarea por mensaje" in razon_de_fallo(cola)
+    assert estados(ev)[-1] == TaskState.TASK_STATE_FAILED
+    assert "UNA tarea por mensaje" in razon_de_fallo(ev)
 
 
-def test_tarea_sin_criterios_falla_con_razon_del_contrato(repo, tmp_path):
+def test_tarea_sin_criterios_falla_con_razon_del_contrato():
     tarea = tarea_valida("t-105")
     del tarea["criterios_aceptacion"]
-    ejecutor, _ = ejecutor_con(repo, tmp_path, SupervisorFake(veredicto=VEREDICTO_APROBADO))
-    cola = ejecutar(ejecutor, new_data_message(tarea))
+    ev = ejecutar(EjecutorA2A(cola=ColaMemoria()), new_data_message(tarea))
 
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "criterios_aceptacion" in razon_de_fallo(cola)
-
-
-def test_workspace_roto_falla_y_escala(tmp_path):
-    ejecutor, estado = ejecutor_con(
-        tmp_path / "repo-que-no-existe", tmp_path, SupervisorFake(veredicto=VEREDICTO_APROBADO)
-    )
-    cola = ejecutar(ejecutor, new_data_message(tarea_valida("t-106")))
-
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "workspace:" in razon_de_fallo(cola)
-    assert estado.transiciones == [("t-106", "escalada")]
+    assert estados(ev)[-1] == TaskState.TASK_STATE_FAILED
+    assert "criterios_aceptacion" in razon_de_fallo(ev)
 
 
-def test_motor_que_truena_falla_y_escala(repo, tmp_path):
-    tarea = tarea_valida("t-107", contexto={"mock_falla": "presupuesto agotado"})
-    supervisor = SupervisorFake(veredicto=VEREDICTO_APROBADO)
-    ejecutor, estado = ejecutor_con(repo, tmp_path, supervisor)
-    cola = ejecutar(ejecutor, new_data_message(tarea))
+def test_cliente_que_cuelga_no_deja_la_fila_a_medias():
+    """Hermano del shield del PR #37: el encolado es corto, pero una vez empezado se
+    termina — si no, el que pidio se queda sin saber y la fila queda a medias."""
+    memoria = ColaMemoria()
+    ejecutor = EjecutorA2A(cola=memoria)
 
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "motor: presupuesto agotado" in razon_de_fallo(cola)
-    assert estado.transiciones == [("t-107", "escalada")]
-    assert supervisor.resultados_recibidos == []  # sin resultado no hay revision
+    async def escenario():
+        ev = ColaEspia()
+        corrida = asyncio.create_task(
+            ejecutor.execute(contexto_con(new_data_message(tarea_valida("t-300"))), ev)
+        )
+        await asyncio.sleep(0)  # deja arrancar el encolado
+        corrida.cancel()
+        try:
+            await corrida
+        except asyncio.CancelledError:
+            pass
+        return await memoria.estado_cola()
 
-
-def test_supervisor_caido_falla_con_razon(repo, tmp_path):
-    ejecutor, estado = ejecutor_con(
-        repo, tmp_path, SupervisorFake(error=SupervisorError("supervisor no disponible"))
-    )
-    cola = ejecutar(ejecutor, new_data_message(tarea_valida("t-108")))
-
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "supervisor: supervisor no disponible" in razon_de_fallo(cola)
-    # Llego a en_revision; el veredicto nunca llego, no hay aprobada/rechazada.
-    assert estado.transiciones == [("t-108", "en_revision")]
-
-
-def test_veredicto_contradictorio_no_se_acepta(repo, tmp_path):
-    """Anti-sello-de-goma end-to-end: aprobado con gate en fallo = payload invalido."""
-    contradictorio = {
-        "veredicto": "aprobado",
-        "gates": [{"regla": "tests", "estado": "fallo", "evidencia": "1 failed"}],
-        "hallazgos": [],
-    }
-    ejecutor, _ = ejecutor_con(repo, tmp_path, SupervisorFake(veredicto=contradictorio))
-    cola = ejecutar(ejecutor, new_data_message(tarea_valida("t-109")))
-
-    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
-    assert "veredicto del supervisor invalido" in razon_de_fallo(cola)
-    assert artifacts(cola) == []  # nada contradictorio sale del Ejecutor
+    cola = asyncio.run(escenario())
+    assert [f["task_id"] for f in cola["cola"]] == ["t-300"]  # la fila SI se escribio

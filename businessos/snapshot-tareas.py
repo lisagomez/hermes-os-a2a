@@ -114,9 +114,33 @@ def escribir(snapshot: dict) -> None:
         sys.exit(1)  # que el fallo SE VEA en host-jobs.log: un snapshot rancio miente
 
 
+def leer_cola() -> list[dict]:
+    """La COLA en su orden REAL de ejecucion (PRP-010): prioridad primero, luego FIFO.
+
+    Es el mismo `order` que usa el worker para su pick, asi que lo que el bot le cuenta al
+    equipo es exactamente lo que va a pasar — no una version aproximada.
+    """
+    req = urllib.request.Request(
+        f"{URL}/rest/v1/tareas?estado=eq.recibida&select=task_id,objetivo,prioridad,encolada_en"
+        "&order=prioridad.desc,encolada_en.asc",
+        headers={"apikey": KEY, "Authorization": "Bearer " + KEY, "User-Agent": "curl/8.0"},
+    )
+    return [
+        {
+            "posicion": i,
+            "task_id": t["task_id"],
+            "objetivo": corta(t.get("objetivo"), OBJETIVO_MAX),
+            "prioridad": t.get("prioridad", 0),
+            "encolada_en": t.get("encolada_en"),
+        }
+        for i, t in enumerate(json.load(urllib.request.urlopen(req, timeout=30)), start=1)
+    ]
+
+
 def main() -> None:
     try:
         tareas = leer_tareas()
+        cola = leer_cola()
     except urllib.error.HTTPError as e:
         print("SNAPSHOT ERROR", e.code, e.read().decode()[:300])
         sys.exit(1)
@@ -125,18 +149,22 @@ def main() -> None:
     por_estado: dict[str, int] = {}
     for f in filas:
         por_estado[f["estado"]] = por_estado.get(f["estado"], 0) + 1
+    ejecutando = next((f["task_id"] for f in filas if f["estado"] == "en_ejecucion"), None)
 
     escribir({
         # `generado` es obligatorio: sin el, el bot no puede distinguir "no hay tareas"
         # de "el job no corre desde hace una semana" (leccion del cli-audit rancio).
         "generado": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "fuente": "supabase.tareas (host-job snapshot-tareas.py)",
+        # La COLA: lo que el equipo pregunta de verdad ("¿cuándo me toca?").
+        "en_ejecucion": ejecutando,
+        "cola": cola,
         "total": len(filas),
         "por_estado": por_estado,
         "tareas": filas,
     })
-    en_curso = [f["task_id"] for f in filas if f["en_curso"]]
-    print(f"{len(filas)} tareas ({por_estado}); en curso: {en_curso or 'ninguna'}")
+    print(f"{len(filas)} tareas ({por_estado}); ejecutando: {ejecutando or 'nada'}; "
+          f"en cola: {[c['task_id'] for c in cola] or 'ninguna'}")
 
 
 if __name__ == "__main__":

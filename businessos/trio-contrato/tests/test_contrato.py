@@ -72,6 +72,31 @@ def test_no_hay_atajos_peligrosos():
     assert not transicion_valida("rechazada", "aprobada")  # rechazo no se vuelve aprobado solo
 
 
+# --- la cola (PRP-010): tres vueltas a `recibida` ---
+
+def test_vuelve_a_la_cola_en_los_tres_casos():
+    """Las tres son 'vuelve a la FILA', nunca un atajo para saltarsela."""
+    # Recuperacion de reinicio: la huerfana que nadie corre vuelve a la cola.
+    assert transicion_valida("en_ejecucion", "recibida")
+    # Reintento re-encolado: entra por la cola, al final (FIFO justo).
+    assert transicion_valida("rechazada", "recibida")
+    # Relanzar tras escalada (analoga a la ya existente escalada → en_ejecucion).
+    assert transicion_valida("escalada", "recibida")
+
+
+def test_la_cola_no_abre_atajos_nuevos():
+    """Volver a `recibida` NO convierte a la cola en una puerta trasera."""
+    # Lo terminal sigue siendo terminal: nada resucita.
+    assert not transicion_valida("concretada", "recibida")
+    assert not transicion_valida("cancelada", "recibida")
+    # `recibida → en_ejecucion` sigue siendo la UNICA puerta a la ejecucion:
+    # nada salta de la cola directo a revision o aprobacion.
+    assert not transicion_valida("recibida", "en_revision")
+    assert not transicion_valida("recibida", "aprobada")
+    # Y una tarea aprobada no vuelve a la cola por la puerta de atras.
+    assert not transicion_valida("aprobada", "recibida")
+
+
 # --- tarea ---
 
 def test_tarea_valida_y_normalizada():

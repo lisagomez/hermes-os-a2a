@@ -1,23 +1,24 @@
-"""executor.py — el AgentExecutor A2A del Ejecutor del trio (PRP-006, Fase 2).
+"""executor.py — el AgentExecutor A2A del Ejecutor (PRP-006 Fase 2 → PRP-010: la cola).
 
-Flujo: TAREA (DataPart) → validar contrato → worktree/<task_id> (nunca main) →
-engine (pluggable) → RESULTADO (diff real desde git, no testimonio) → Supervisor
-via A2A → VEREDICTO → artifact {resultado, veredicto} de vuelta al caller (Hermes).
+Ya NO construye software aqui: **valida y ENCOLA**, y responde en segundos
+`{encolada, posicion, en_ejecucion, cola}`. El trabajo lo hace el WORKER (uno solo, serial)
+leyendo la cola de `tareas` — ver `worker.py` y `pipeline.py`.
 
-Fronteras (SPEC-trio §2): no decide QUE hacer, no se auto-aprueba. Si algo falla
-(entrada, workspace, motor, supervisor) la tarea A2A es `failed` con razon clara.
+Por que cambio (PRP-010): el bot se quedaba BLOQUEADO 15+ min esperando el veredicto, y si
+dos personas de #dep-desarrollo pedian features a la vez se lanzaban dos motores + dos
+`npm build` en un servidor de 8 GB. Ahora la peticion se acepta (o se rechaza) al instante y
+la ejecucion se serializa.
 
-Durabilidad (2026-07-12, 1a corrida real): la corrida va BLINDADA contra la
-desconexion del cliente (`asyncio.shield`). Un cliente impaciente cancelaba la
-peticion HTTP y con ella el proceso del motor a media faena: minutos de trabajo y
-tokens quemados a la basura, sin veredicto y sin rastro. El trabajo del servidor lo
-termina el servidor; el cliente solo decide si sigue escuchando.
+Honestidad (lo que mas importa aqui): **jamas se dice "encolada" sin fila escrita**. El
+encolado es autoritativo — si Supabase falla, la tarea A2A falla con razon clara. Mentirle
+al equipo es peor que fallar (`cola.py`, invariante 1).
+
+Fronteras (SPEC-trio §2), intactas: no decide QUE hacer, no se auto-aprueba.
 """
 from __future__ import annotations
 
 import asyncio
 import os
-from pathlib import Path
 
 from a2a.helpers import get_data_parts, new_data_part, new_task, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
@@ -25,52 +26,23 @@ from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 
-import workspace as ws
-from contrato import ContratoInvalido, validar_resultado, validar_tarea, validar_veredicto
-from engine import Engine, EngineError, crear_engine
-from estado import EstadoTareas
-from supervisor_cliente import SupervisorCliente, SupervisorError
-
-DEFAULT_WORKSPACE = "/workspace"
+from cola import Cola, ColaError, crear_cola
+from contrato import ContratoInvalido, validar_tarea
 
 
 class EjecutorA2A(AgentExecutor):
-    """Todas las dependencias son inyectables (tests con dobles, cero red/tokens)."""
+    """Solo encola. La cola es inyectable (tests con `ColaMemoria`, cero red)."""
 
-    def __init__(
-        self,
-        engine: Engine | None = None,
-        supervisor: SupervisorCliente | None = None,
-        estado: EstadoTareas | None = None,
-        repo: Path | None = None,
-        workspace_root: Path | None = None,
-    ) -> None:
-        self._engine = engine or crear_engine(os.environ.get("EJECUTOR_ENGINE", "mock"))
-        self._supervisor = supervisor or SupervisorCliente()
-        self._estado = estado or EstadoTareas()
-        self._repo = repo or Path(os.environ.get("TRIO_REPO", "/repo"))
-        self._workspace_root = workspace_root or Path(
-            os.environ.get("TRIO_WORKSPACE", DEFAULT_WORKSPACE)
-        )
+    def __init__(self, cola: Cola | None = None) -> None:
+        self._cola = cola or crear_cola(os.environ.get("EJECUTOR_COLA"))
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """Blinda la corrida: si el cliente se va, el trabajo del servidor SIGUE."""
-        corrida = asyncio.ensure_future(self._ejecutar(context, event_queue))
-        try:
-            await asyncio.shield(corrida)
-        except asyncio.CancelledError:
-            # El caller cerro la conexion (timeout corto, Ctrl-C, red). La corrida
-            # sigue viva: terminara el motor, pedira veredicto y dejara el estado
-            # final en `tareas` — de donde el cliente puede recuperarlo despues.
-            corrida.add_done_callback(_reportar_huerfana)
-            print(
-                f"[ejecutor] cliente desconectado; la tarea {context.task_id} sigue "
-                "corriendo y dejara su estado final en `tareas`",
-                flush=True,
-            )
-            raise
+        # El encolado es corto, pero una vez empezado se termina: un cliente que cuelga a
+        # media escritura no debe dejar la fila a medias (hermano del shield del PR #37,
+        # que ahora protege al worker — que ya no depende de ninguna conexion HTTP).
+        await asyncio.shield(asyncio.ensure_future(self._encolar(context, event_queue)))
 
-    async def _ejecutar(self, context: RequestContext, event_queue: EventQueue) -> None:
+    async def _encolar(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
         if context.current_task is None:
             await event_queue.enqueue_event(
@@ -93,56 +65,27 @@ class EjecutorA2A(AgentExecutor):
             await self._fallar(updater, f"tarea invalida: {exc}")
             return
 
-        await self._estado.registrar_ejecucion(tarea)
-
         try:
-            worktree = ws.preparar(self._repo, self._workspace_root, tarea["task_id"])
-        except Exception as exc:  # WorkspaceError o fallo git inesperado
-            await self._fallar(updater, f"workspace: {exc}")
-            await self._estado.transicionar(tarea["task_id"], "escalada")
+            cola = await self._cola.encolar(tarea)
+        except ColaError as exc:
+            # NO se responde "encolada" si la fila no se escribio.
+            await self._fallar(updater, f"cola: {exc}")
             return
 
-        try:
-            salida_motor = await self._engine.run(tarea, worktree)
-        except EngineError as exc:
-            await self._fallar(updater, f"motor: {exc}")
-            await self._estado.transicionar(tarea["task_id"], "escalada")
-            return
-
-        try:
-            resultado = validar_resultado(
-                {
-                    "task_id": tarea["task_id"],
-                    "departamento": tarea["departamento"],  # el Supervisor rutea reglas por esto
-                    "worktree": f"worktree/{tarea['task_id']}",
-                    "diff": ws.diff_de(worktree),
-                    "archivos": ws.archivos_cambiados(worktree),
-                    "artefactos": salida_motor.get("artefactos", {}),
-                    "notas": salida_motor.get("notas", ""),
-                }
-            )
-        except (ContratoInvalido, ws.WorkspaceError) as exc:
-            await self._fallar(updater, f"resultado invalido: {exc}")
-            await self._estado.transicionar(tarea["task_id"], "escalada")
-            return
-
-        await self._estado.transicionar(tarea["task_id"], "en_revision", resultado=resultado)
-
-        try:
-            veredicto = validar_veredicto(await self._supervisor.evaluar(resultado))
-        except SupervisorError as exc:
-            await self._fallar(updater, f"supervisor: {exc}")
-            return
-        except ContratoInvalido as exc:
-            await self._fallar(updater, f"veredicto del supervisor invalido: {exc}")
-            return
-
-        estado_final = "aprobada" if veredicto["veredicto"] == "aprobado" else "rechazada"
-        await self._estado.transicionar(tarea["task_id"], estado_final, veredicto=veredicto)
-
+        print(
+            f"[ejecutor] encolada {tarea['task_id']} en posicion {cola.get('posicion')} "
+            f"(en ejecucion: {cola.get('en_ejecucion') or 'nada'})",
+            flush=True,
+        )
         await updater.add_artifact(
-            [new_data_part({"resultado": resultado, "veredicto": veredicto})],
-            name="resultado-revisado",
+            [new_data_part({
+                "encolada": True,
+                "task_id": tarea["task_id"],
+                "posicion": cola.get("posicion"),
+                "en_ejecucion": cola.get("en_ejecucion"),
+                "cola": cola.get("cola", []),
+            })],
+            name="encolada",
         )
         await updater.complete()
 
@@ -152,26 +95,8 @@ class EjecutorA2A(AgentExecutor):
 
     @staticmethod
     async def _fallar(updater: TaskUpdater, razon: str) -> None:
-        # El log LOCAL va primero: la razon viaja por A2A, y si el cliente ya se fue
-        # (o el fallo es justo el transporte) se pierde. Sin esta linea cada fallo es
-        # una autopsia a ciegas — la de la 1a corrida real costo media hora.
+        # El log LOCAL va primero: la razon viaja por A2A, y si el cliente ya se fue se
+        # pierde. Sin esta linea cada fallo es una autopsia a ciegas (aprendido en carne
+        # propia el 2026-07-12: media hora de forense por una linea que no estaba).
         print(f"[ejecutor] FALLO {updater.task_id}: {razon}", flush=True)
         await updater.failed(updater.new_agent_message(parts=[new_text_part(razon)]))
-
-
-def _reportar_huerfana(corrida: asyncio.Future) -> None:
-    """Cierra el ciclo de una corrida cuyo cliente ya no escucha (evita el
-    'exception was never retrieved' y deja el desenlace en el log)."""
-    if corrida.cancelled():
-        print("[ejecutor] corrida huerfana CANCELADA", flush=True)
-        return
-    exc = corrida.exception()
-    # Al final de una corrida huerfana los eventos van a una cola que ya nadie lee:
-    # que el encolado falle es esperable y NO invalida el trabajo (motor, veredicto y
-    # estado en `tareas` ya ocurrieron).
-    print(
-        f"[ejecutor] corrida huerfana terminada: {type(exc).__name__}: {exc}"
-        if exc
-        else "[ejecutor] corrida huerfana terminada ok",
-        flush=True,
-    )
