@@ -5,6 +5,7 @@ const vistas = [
   { href: '/dashboard', label: 'Pantheon' },
   { href: '/ai-spend', label: 'AI Spend' },
   { href: '/grafo', label: 'Grafo' },
+  { href: '/desarrollo', label: 'Desarrollo' },
 ]
 
 export default function MainLayout({
