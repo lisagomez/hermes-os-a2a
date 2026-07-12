@@ -80,7 +80,38 @@ log "estado=aprobada · objetivo: $DETALLE"
 # --- 2) la rama debe existir en el clon (la creo el Ejecutor en su worktree) ---
 git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$RAMA" || {
   log "ABORTADO: la rama '$RAMA' no existe en $REPO_DIR (¿el Ejecutor no la creo?)"; exit 1; }
-COMMITS=$(git -C "$REPO_DIR" rev-list --count "origin/master..$RAMA" 2>/dev/null || echo "?")
+
+# --- 2b) COMMITEAR el trabajo aprobado (2026-07-12) -------------------------------------
+# NADIE commitea en el trio: el Ejecutor solo hace `git add -A` para CALCULAR el diff, y el
+# Supervisor juzga el working tree. El trabajo aprobado se queda staged, sin commit — asi que
+# esta rama se publicaba VACIA (`mission-control-2026-0001`: 0 commits, 0 archivos) y encima se
+# anunciaba en Slack como publicada. Antes solo "funcionaba" cuando el modelo commiteaba por su
+# cuenta: el circuito dependia del capricho del motor. Lo commitea el host, que es de confianza.
+WT="/workspace/worktree/$TASK_ID"                    # el worktree vive en el volumen del Ejecutor
+CONTENEDOR="${TRIO_EJECUTOR:-ejecutor-a2a}"
+if [ "$DRY" = "--dry-run" ]; then
+  log "DRY-RUN: no se commitea nada (el commit del trabajo aprobado se hace al publicar)."
+elif docker exec "$CONTENEDOR" test -d "$WT" 2>/dev/null; then
+  if ! docker exec "$CONTENEDOR" git -C "$WT" diff --quiet HEAD 2>/dev/null; then
+    MSG="feat($TASK_ID): $DETALLE"
+    docker exec "$CONTENEDOR" sh -c \
+      "cd '$WT' && git add -A && git -c user.email='trio@hermes-os' -c user.name='Trio (Ejecutor)' commit -q -m \"\$1\"" \
+      _ "$MSG" 2>&1 | tee -a "$LOG"
+    log "trabajo aprobado commiteado en '$RAMA'"
+  else
+    log "worktree sin cambios pendientes (ya estaba commiteado)"
+  fi
+else
+  log "AVISO: worktree $WT no accesible en '$CONTENEDOR'; se publica lo que tenga la rama"
+fi
+
+COMMITS=$(git -C "$REPO_DIR" rev-list --count "origin/master..$RAMA" 2>/dev/null || echo "0")
+# Fail-safe: una rama vacia NO se publica y NO se anuncia. Publicar la nada y avisar al equipo
+# de que hay algo que revisar es MENTIR (paso el 2026-07-12 y el link llevaba a un diff vacio).
+if [ "$COMMITS" = "0" ] || [ "$COMMITS" = "?" ]; then
+  log "ABORTADO: '$RAMA' no tiene commits sobre master (nada que publicar). No se anuncia nada."
+  exit 1
+fi
 log "rama '$RAMA' lista ($COMMITS commits sobre master)"
 
 # --- 3) publicar (nunca merge, nunca master) ---

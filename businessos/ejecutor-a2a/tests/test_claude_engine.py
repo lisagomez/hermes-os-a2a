@@ -204,6 +204,40 @@ def test_corrida_muerta_a_media_faena_registra_el_gasto_parcial(tmp_path):
     assert fila["costo_usd"] == 0.0  # el motor no tarifa: honesto en vez de inventado
 
 
+def test_max_turns_registra_el_gasto_del_result_no_el_parcial(tmp_path):
+    """Lo que pasó de verdad (2026-07-12, intento 3 de mission-control-2026-0001): al topar
+    `max_turns` el CLI emite un ResultMessage is_error CON su model_usage y DESPUÉS sale con
+    exit!=0, que el SDK convierte en excepción. El gasto bueno ya llegó: hay que registrar ESE,
+    no el acumulado turno a turno (que en la corrida real vino vacío → 'sin gasto registrable',
+    y ~$1 de tokens quemados desapareció del presupuesto)."""
+    registro = RegistroEspia()
+
+    def query_max_turns(*, prompt, options=None):
+        async def gen():
+            yield turno("glm-5.2", 1000, 200)  # los turnos NO traen usage en el CLI real
+            yield result_message(
+                is_error=True,
+                subtype="error_max_turns",
+                model_usage={"glm-5.2": {"inputTokens": 64979, "outputTokens": 23038,
+                                         "costUSD": 1.4753}},
+            )
+            raise RuntimeError(
+                "Claude Code returned an error result: Reached maximum number of turns (40)"
+            )
+
+        return gen()
+
+    engine = ClaudeAgentEngine(query_fn=query_max_turns, registro=registro)
+    with pytest.raises(EngineError, match="maximum number of turns"):
+        correr(engine, tarea(), tmp_path)
+
+    [fila] = registro.filas  # el ResultMessage manda: cifras reales, no el parcial
+    assert fila["modelo"] == "glm-5.2"
+    assert (fila["tokens_in"], fila["tokens_out"]) == (64979, 23038)
+    assert fila["costo_usd"] == 1.4753
+    assert fila["task_id"] == "t-200"
+
+
 def test_sin_result_message_pero_con_turnos_registra_lo_quemado(tmp_path):
     registro = RegistroEspia()
     engine = ClaudeAgentEngine(
