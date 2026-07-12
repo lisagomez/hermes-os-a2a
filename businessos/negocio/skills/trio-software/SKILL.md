@@ -122,6 +122,24 @@ Solo con el SÍ explícito de Elisa se concreta (y eso lo hace el tooling de
 confianza del host, no tú). Si dice que no o pide cambios, vuelve al Paso 1 con
 una tarea nueva o ajustada.
 
+### La rama NO está en GitHub (no digas que sí)
+
+Cuando el Supervisor aprueba, la rama `tarea/<task_id>` vive **solo en el servidor**.
+El trío tiene una llave de GitHub de **solo lectura** — no puede publicar nada, por
+diseño. **Nunca digas "ya está en GitHub", "abrí el PR" ni "lo subí": sería falso.**
+
+Publicar es un **job de confianza del host** (él tiene la llave de escritura; tú no).
+Lo dispara un humano. Di exactamente esto:
+
+> "Aprobada. La rama `tarea/app-2026-0001` está lista en el servidor, pero yo no puedo
+> publicarla (mi llave es de solo lectura). Para subirla y abrir el PR:
+> `ssh hetzner '~/bin/publicar-rama.sh app-2026-0001'`
+> El job verifica en Supabase que la tarea esté **aprobada** antes de empujar nada, y
+> nunca toca `master`. Cuando la publique, avisa en #dep-desarrollo con el link del PR."
+
+El **merge** lo aprueba un humano en GitHub (el Developer, según la matriz de roles).
+Tú no mergeas jamás.
+
 ## Consultar estado sin credenciales
 
 - La respuesta A2A del Paso 3 ya trae todo lo operativo.

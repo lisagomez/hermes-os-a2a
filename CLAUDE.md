@@ -728,4 +728,24 @@ npm run lint         # ESLint
 - **Aplicar en**: todo job que se quiera mover a un cron 24/7 — primero preguntar de qué se
   alimenta y si ese insumo existe allí; si es un artefacto local, versionar su índice.
 
+### 2026-07-12: GitHub — el permiso NO es el candado (repos personales) y el admin se salta la regla
+- **Hallazgos duros, verificados contra la API (no contra la doc)**:
+  (1) **En un repo de cuenta personal TODO colaborador es `write`**. `PUT /collaborators/{u}`
+  con `permission=pull` (o `triage`) devuelve **204 OK y lo ignora en silencio** — los roles
+  son función de **organizaciones**. Consecuencia: 4 personas podían hacer push directo a
+  `master` del repo que corre toda la infra, y *no había forma de bajarlos a lectura*.
+  (2) La **protección de rama no existe en repos privados del plan gratuito**
+  (`403: Upgrade to GitHub Pro`). Con Pro: `master` exige PR + review; el force-push falla
+  **incluso para el admin** (`GH006`).
+  (3) ⚠️ **`enforce_admins: false` deja pasar al admin — y el agente usa el token del admin.**
+  Un `git push origin master` "de prueba" ENTRÓ (`remote: Bypassed rule violations`). La
+  protección NO protege del agente: solo la disciplina lo hace.
+- **Reglas que quedan**: el agente **jamás** hace `git push origin master` (todo por PR, sin
+  excepciones); antes de "arreglar" permisos, VERIFICAR que el cambio se aplicó (`GET
+  /collaborators/{u}/permission`), porque GitHub acepta y descarta sin error; y `git reset
+  --hard` tras un `git checkout` de rama **borra ediciones sin commitear** (así perdí una;
+  se recuperó del volumen del server, que ya tenía la copia sincronizada).
+- **Aplicar en**: cualquier repo con equipo. Migrar a una Organización (gratis) da roles
+  reales; con cuenta personal, el único candado es la protección de rama.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

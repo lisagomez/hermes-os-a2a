@@ -69,13 +69,22 @@ aprueba; nunca ve otros clientes.
 
 ### Personas reales (IDs cableados el 2026-07-12)
 
-| Persona | Slack (member ID) | Telegram (user ID) | Rol |
-|---|---|---|---|
-| **Elisa Gómez** | `U0BG072S4CR` (owner) | `7022378429` | **CEO** (dueña) |
-| Luis Trujillo | `U0BG24A4X1S` | `5239096821` | ⚠️ **sin asignar** |
-| Víctor Huerta | `U0BGSN36CAC` | (en el grupo) | ⚠️ **sin asignar** |
-| Johann/Oswaldo Valderrama | `U0BFS4ZA8KV` | (en el grupo) | ⚠️ **sin asignar** |
-| Ricardo Silva | `U0BFYCEP3BL` | *(no está en el grupo de TG)* | ⚠️ **sin asignar** |
+| Persona | Slack | Telegram | GitHub | Merge a `master` |
+|---|---|---|---|---|
+| **Elisa Gómez** | `U0BG072S4CR` (owner) | `7022378429` | `lisagomez` (admin) | ✅ **la única** |
+| Luis Trujillo | `U0BG24A4X1S` | `5239096821` | `ZELANDIAIO` | ❌ (revisa y aprueba) |
+| Víctor Huerta | `U0BGSN36CAC` | (en el grupo) | `HuertaVictor` | ❌ (revisa y aprueba) |
+| Johann/Oswaldo Valderrama | `U0BFS4ZA8KV` | (en el grupo) | `Johann-Valderrama` | ❌ (revisa y aprueba) |
+| Ricardo Silva | `U0BFYCEP3BL` | *(no está en el grupo de TG)* | `makeflowia-lab` | ❌ (revisa y aprueba) |
+
+> ⚠️ **En un repo de cuenta personal, TODO colaborador es `write`.** Los permisos de solo
+> lectura (read/triage) son función de **organizaciones**: la API acepta
+> `PUT permission=pull` con un `204 OK` y **lo ignora en silencio** (verificado el
+> 2026-07-12). Por eso el candado real no es el permiso, es la **protección de rama**
+> (GitHub Pro, activada el 2026-07-12): `master` exige PR + 1 review, sin force-push ni
+> borrado. Los 4 pueden revisar y **aprobar**; solo Elisa mergea.
+> *(Migrar el repo a una Organización daría roles reales y es gratis — pendiente.)*
+> *(Se eliminó a `paco6093-ux`, colaborador con write y sin un solo commit.)*
 
 Los 5 están en `SLACK_ALLOWED_USERS` (`.env` del volumen de negocio) y los del grupo de
 Telegram entran por `group_allowed_chats` (ver §(d)). Los IDs de Slack/Telegram **no son
@@ -296,9 +305,16 @@ as read only`.
 
 - **El trío NO puede tocar `master`**: no hace `git push` (ni una llamada en su código)
   y su llave es de solo lectura. El candado es **estructural**, no de confianza.
-- **Protección de rama en GitHub: NO disponible** — requiere GitHub Pro (~$4/mes) en
-  repos privados (`403: Upgrade to GitHub Pro`). Mientras no se pague, un **humano** con
-  acceso al repo puede hacer push directo a `master`: ese es el único agujero real.
+- **Protección de rama: ACTIVA** (GitHub Pro, 2026-07-12). `master` exige **PR + 1 review
+  aprobatoria**; force-push y borrado bloqueados (verificado: el force-push falla incluso
+  para el admin — `GH006: Cannot force-push to this branch`).
+- ⚠️ **`enforce_admins: false`** → la dueña (y cualquier agente que use su token) **puede
+  saltarse la regla**. Es su escotilla de emergencia, pero obliga a una disciplina que
+  también aplica al agente: **nunca `git push origin master`; todo va por PR.**
+- **`publicar-rama.sh`** (host-job) es el único camino de la rama del trío a GitHub: valida
+  contra Supabase que la tarea esté **aprobada**, nunca empuja `master`, y avisa en
+  `#dep-desarrollo` con el link del PR. La llave de escritura vive en `~/.ssh` del host —
+  los contenedores no la tienen (ni siquiera tienen `ssh`).
 - **El allowlist de Slack es plano**: los 5 pueden escribir lo mismo. La matriz de roles
   (CFO aprueba dinero, Developer aprueba merge) hoy la sostiene **el juicio humano**, no
   la configuración. Los botones `[Aprobar][Rechazar]` (Slack App con interactividad)
