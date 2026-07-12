@@ -209,17 +209,24 @@ class ClaudeAgentEngine:
                 else:
                     acumular_parcial(parciales, mensaje)
         except Exception as exc:  # CLI ausente, transporte roto, motor abortado, etc.
-            await self._registrar_parcial(parciales, task_id, f"{type(exc).__name__}: {exc}")
+            # GOTCHA (2026-07-12): cuando el CLI aborta por sus propios limites (p.ej.
+            # error_max_turns) PRIMERO emite un ResultMessage con is_error=True — con su
+            # `model_usage` completo — y LUEGO sale con exit!=0, que el SDK convierte en
+            # excepcion (query.py: "Claude Code returned an error result"). O sea: el gasto
+            # real ya llego. Si aqui solo miraramos el acumulado turno a turno, tirariamos
+            # el dato bueno (paso: la corrida de 40 turnos se registro como "sin gasto").
+            await self._registrar_gasto(result, parciales, options.model, task_id,
+                                        motivo=f"{type(exc).__name__}: {exc}")
             raise EngineError(f"claude-agent-sdk: {type(exc).__name__}: {exc}") from exc
 
         if result is None:
-            await self._registrar_parcial(parciales, task_id, "sin ResultMessage")
+            await self._registrar_gasto(result, parciales, options.model, task_id,
+                                        motivo="sin ResultMessage")
             raise EngineError("claude-agent-sdk: la corrida no entrego ResultMessage")
 
         # El gasto se registra SIEMPRE (tambien en error): tokens quemados son reales.
-        # Aqui SI hay ResultMessage → es autoritativo y reemplaza al acumulado parcial.
         # task_id atribuye el gasto a la (sub-)tarea → corte exacto de presupuesto (Fase 7).
-        await self._registro.registrar(filas_token_usage(result, options.model, task_id))
+        await self._registrar_gasto(result, parciales, options.model, task_id)
 
         if result.is_error:
             detalle = result.result or "; ".join(result.errors or []) or result.subtype
@@ -236,21 +243,32 @@ class ClaudeAgentEngine:
             "notas": (result.result or "")[:2000],
         }
 
-    async def _registrar_parcial(
-        self, parciales: dict[str, dict[str, int]], task_id: str | None, motivo: str
+    async def _registrar_gasto(
+        self,
+        result: Any,
+        parciales: dict[str, dict[str, int]],
+        modelo: str | None,
+        task_id: str | None,
+        motivo: str | None = None,
     ) -> None:
-        """Registra el gasto de una corrida que reventó, y lo DICE en el log."""
-        filas = filas_parciales(parciales, task_id)
-        if not filas:
-            print(
-                f"[token_usage] corrida {task_id} murio ({motivo}) sin gasto registrable",
-                flush=True,
+        """Escribe el gasto de la corrida, haya terminado bien o mal.
+
+        Orden de preferencia (el dato bueno gana): el ResultMessage —AUNQUE venga con
+        is_error— trae el `model_usage` real; solo si la corrida murio sin entregarlo se
+        usa el acumulado turno a turno. Si no hay ni uno ni otro, se DICE en el log: un
+        gasto perdido en silencio es como no tener presupuesto.
+        """
+        if result is not None:
+            filas, fuente = filas_token_usage(result, modelo, task_id), "ResultMessage"
+        else:
+            filas, fuente = filas_parciales(parciales, task_id), "acumulado parcial"
+
+        if motivo:
+            tokens = sum(f["tokens_in"] + f["tokens_out"] for f in filas)
+            detalle = (
+                f"registrando {tokens} tokens desde {fuente}"
+                if filas
+                else "SIN gasto registrable (tokens quemados que no veremos)"
             )
-            return
-        tokens = sum(f["tokens_in"] + f["tokens_out"] for f in filas)
-        print(
-            f"[token_usage] corrida {task_id} murio ({motivo}): registrando gasto PARCIAL "
-            f"de {tokens} tokens en {len(filas)} modelo(s) (costo sin tarifar)",
-            flush=True,
-        )
+            print(f"[token_usage] corrida {task_id} murio ({motivo}): {detalle}", flush=True)
         await self._registro.registrar(filas)
