@@ -6,9 +6,16 @@ via A2A → VEREDICTO → artifact {resultado, veredicto} de vuelta al caller (H
 
 Fronteras (SPEC-trio §2): no decide QUE hacer, no se auto-aprueba. Si algo falla
 (entrada, workspace, motor, supervisor) la tarea A2A es `failed` con razon clara.
+
+Durabilidad (2026-07-12, 1a corrida real): la corrida va BLINDADA contra la
+desconexion del cliente (`asyncio.shield`). Un cliente impaciente cancelaba la
+peticion HTTP y con ella el proceso del motor a media faena: minutos de trabajo y
+tokens quemados a la basura, sin veredicto y sin rastro. El trabajo del servidor lo
+termina el servidor; el cliente solo decide si sigue escuchando.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 from pathlib import Path
 
@@ -47,6 +54,23 @@ class EjecutorA2A(AgentExecutor):
         )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Blinda la corrida: si el cliente se va, el trabajo del servidor SIGUE."""
+        corrida = asyncio.ensure_future(self._ejecutar(context, event_queue))
+        try:
+            await asyncio.shield(corrida)
+        except asyncio.CancelledError:
+            # El caller cerro la conexion (timeout corto, Ctrl-C, red). La corrida
+            # sigue viva: terminara el motor, pedira veredicto y dejara el estado
+            # final en `tareas` — de donde el cliente puede recuperarlo despues.
+            corrida.add_done_callback(_reportar_huerfana)
+            print(
+                f"[ejecutor] cliente desconectado; la tarea {context.task_id} sigue "
+                "corriendo y dejara su estado final en `tareas`",
+                flush=True,
+            )
+            raise
+
+    async def _ejecutar(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
         if context.current_task is None:
             await event_queue.enqueue_event(
@@ -128,4 +152,26 @@ class EjecutorA2A(AgentExecutor):
 
     @staticmethod
     async def _fallar(updater: TaskUpdater, razon: str) -> None:
+        # El log LOCAL va primero: la razon viaja por A2A, y si el cliente ya se fue
+        # (o el fallo es justo el transporte) se pierde. Sin esta linea cada fallo es
+        # una autopsia a ciegas — la de la 1a corrida real costo media hora.
+        print(f"[ejecutor] FALLO {updater.task_id}: {razon}", flush=True)
         await updater.failed(updater.new_agent_message(parts=[new_text_part(razon)]))
+
+
+def _reportar_huerfana(corrida: asyncio.Future) -> None:
+    """Cierra el ciclo de una corrida cuyo cliente ya no escucha (evita el
+    'exception was never retrieved' y deja el desenlace en el log)."""
+    if corrida.cancelled():
+        print("[ejecutor] corrida huerfana CANCELADA", flush=True)
+        return
+    exc = corrida.exception()
+    # Al final de una corrida huerfana los eventos van a una cola que ya nadie lee:
+    # que el encolado falle es esperable y NO invalida el trabajo (motor, veredicto y
+    # estado en `tareas` ya ocurrieron).
+    print(
+        f"[ejecutor] corrida huerfana terminada: {type(exc).__name__}: {exc}"
+        if exc
+        else "[ejecutor] corrida huerfana terminada ok",
+        flush=True,
+    )
