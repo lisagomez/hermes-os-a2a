@@ -772,6 +772,21 @@ npm run lint         # ESLint
 - **Aplicar en**: todo servicio A2A largo y todo agente con terminal (la capacidad crea la
   tentación: si no quieres que lo haga, prohíbelo en AGENTS.md, no en un skill).
 
+### 2026-07-12: Un gate que SIEMPRE corre debe estar SIEMPRE en los criterios
+- **Error**: el Supervisor corre el gate `tests` (`npx playwright test`) en toda tarea, y sin
+  ningún test en el repo sale `exit 1: Error: No tests found` → **rechazo automático**. El
+  relanzamiento de `mission-control-2026-0001` (2º intento, ya con el trío arreglado) salió
+  con build ✅ typecheck ✅ lint ✅ y los 4 gates de calidad ✅… y **rechazado por el único gate
+  que nadie le pidió cumplir**: los `criterios_aceptacion` no mencionaban tests, así que el
+  motor no escribió ninguno. Las tareas aprobadas antes (`moneda`, `validar`) pasaban ese gate
+  solo porque *eran* tareas de utilidades con test; el `main` del repo no tiene tests.
+- **Fix**: quien arma la tarea (el skill `trio-software`) añade SIEMPRE el criterio *"incluye
+  al menos un test de Playwright que cubra X"*, aunque el humano no lo pida. Regla general:
+  **todo gate que el juez corre incondicionalmente es un requisito del contrato** — si no
+  aparece en los criterios, el ejecutor no lo sabe y el trabajo se tira a la basura. Al añadir
+  un gate nuevo al Supervisor, actualizar en el MISMO cambio los criterios que el skill emite.
+- **Aplicar en**: todo par juez/ejecutor (trío, enjambre, futuros departamentos).
+
 ### 2026-07-12: Slack — el home channel no se hereda del `.env` como en Telegram
 - **Error**: el bot avisaba *"No home channel is set for Slack"* aunque `SLACK_CHANNEL_ID`
   estaba puesto. El gateway cablea `home_channel` desde el env para **telegram/discord/whatsapp
