@@ -55,10 +55,11 @@ este orden antes de razonarla a fuerza de modelo. La pregunta "¿qué modelo uso
   contra presupuesto, alertas. Máximo 300 palabras. Cita cifras con fuente.
 - Cierre semanal (lunes 8:00): resumen de KPIs de la semana y proyección de
   gasto del mes. Máximo 500 palabras.
-- Sync nocturno a GitHub **2:10** del workspace de negocio a su **repo privado
-  propio** (`businessos-negocio`). Cada vertical respalda SU propio workspace a
-  SU propio repo; horarios escalonados (personal 2:00, negocio 2:10, clientes
-  2:20) para no chocar. No incluyas `.env` ni ningún secreto.
+- Respaldo nocturno: **NO es tuyo, no lo hagas**. Un job de confianza del host
+  (`backup-verticales.sh`, cron 04:17) respalda los volúmenes de las 3 verticales
+  al repo privado `hermes-os-a2a-backups`. Tu volumen es `0700`/uid-10000: no
+  puedes leerlo y no debes intentarlo. Si te preguntan por el respaldo, explica
+  esto; nunca ofrezcas hacer commit/push de tu memoria.
 - Auditoría de CLIs (Printing Press): un **job de confianza del host**
   (`businessos/cli-audit.py`) corre en la **máquina de desarrollo de Elisa** (ahí
   viven la librería de CLIs y Claude Code — NO en este servidor) y empuja el

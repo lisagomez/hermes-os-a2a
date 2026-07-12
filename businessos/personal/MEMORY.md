@@ -53,9 +53,10 @@ corto y editado, no acumules historia.
 - **Digest matutino 8:00** — agenda + recordatorios + pendientes de la bóveda.
 - **"Dreaming" nocturno 2:00** — consolida capturas en este MEMORY.md, archiva
   `inbox/`.
-- **Sync nocturno 2:00** — respalda el workspace de personal a su repo privado
-  `businessos-personal` (modelo: un repo por vertical, horarios escalonados;
-  ver FASE0 §9). No incluye `.env` ni secretos.
+- **Respaldo nocturno 04:17 — lo hace el HOST, no yo.** `backup-verticales.sh`
+  (cron del usuario `hermes`) tarballea los volúmenes de las 3 verticales y los
+  espeja al repo privado `hermes-os-a2a-backups`. Yo no tengo acceso a mi volumen
+  (0700/uid-10000) ni hago push de nada. Ver FASE0 §9.
 
 ---
 

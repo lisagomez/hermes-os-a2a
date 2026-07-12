@@ -73,9 +73,10 @@ Quedo atento/a a sus comentarios.
 
 - **Repaso matutino 8:00** — clientes que esperan respuesta, propuestas
   pendientes, facturas sin procesar. Máx. 200 palabras, a Telegram.
-- **Sync nocturno 2:20** — respalda el workspace de clientes a su repo privado
-  `businessos-clientes` (modelo: un repo por vertical, horarios escalonados;
-  ver FASE0 §9). No incluye `.env` ni secretos.
+- **Respaldo nocturno 04:17 — lo hace el HOST, no yo.** `backup-verticales.sh`
+  (cron del usuario `hermes`) tarballea los volúmenes de las 3 verticales y los
+  espeja al repo privado `hermes-os-a2a-backups`. Yo no tengo acceso a mi volumen
+  (0700/uid-10000) ni hago push de nada. Ver FASE0 §9.
 
 ---
 

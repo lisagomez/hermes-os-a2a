@@ -89,7 +89,8 @@ uid 10000/0700 y limpiando `gateway.lock`/`.dispatcher.lock` → copiar el `.env
 
 **Respaldo nocturno (HECHO 2026-07-06):** cron de `hermes` a las 04:17 corre `~/bin/backup-negocio.sh`
 (sin sudo): lee el volumen `.hermes` vía contenedor privilegiado (uid-10000/0700) → tarball, rota los
-últimos 7 en `~/backups/`, y espeja off-box al repo privado **`lisagomez/businessos-negocio`** con
+últimos 7 en `~/backups/`, y espeja off-box al repo privado **`lisagomez/hermes-os-a2a-backups`** con
+(renombrado el 2026-07-11 desde `businessos-negocio`; el repo de CÓDIGO es `lisagomez/hermes-os-a2a`)
 historia de 1 commit (tamaño acotado; ~14 MB comprimido). Acceso git aislado por deploy-key write
 (`~/.ssh/businessos_negocio_deploy` + Host `github-negocio` en `~/.ssh/config`). Primer respaldo
 verificado en GitHub. Restaurar = extraer el `.tgz` en un `.hermes` limpio preservando uid/perms
@@ -105,5 +106,24 @@ llave, con sudo pleno. (Nota: `hermes` ya estaba en el grupo `docker` = root-equ
 el NOPASSWD sudo no cambia la postura de seguridad real.) El agente tenía llave root en esta
 sesión; ese acceso queda cerrado tras el cambio.
 
-**Pendiente (residual):** migrar personal/clientes cuando se decida. Ver [[fase0-estado]] y
+**Pendiente (residual):** ~~migrar personal/clientes~~ (hecho 2026-07-08). Ver [[fase0-estado]] y
 [[maquinas-entornos]].
+
+## 2026-07-12: endurecimiento REAL de SSH + recuperación de acceso
+
+Dos hallazgos al perder la llave desde la máquina de dev:
+
+1. **El lockdown estaba a medias.** `99-hardening.conf` solo tenía `PermitRootLogin no`; el
+   `PasswordAuthentication no` del runbook **nunca se aplicó** → el server aceptó contraseñas
+   desde internet ~6 días. Comprobación sin credenciales:
+   `ssh -o PreferredAuthentications=none hermes@IP` → si responde
+   `Permission denied (publickey,password)` el password está abierto; el objetivo es
+   `(publickey)` a secas. Corregido: PermitRootLogin no + PasswordAuthentication no +
+   KbdInteractiveAuthentication no + PubkeyAuthentication yes, validado con `sshd -t` ANTES
+   del `systemctl reload ssh`, y `passwd -l hermes`.
+2. **Recuperar acceso a un server vivo sin llave**: la UI de Hetzner ("Add SSH Key") y
+   `hcloud ssh-keys create` NO instalan llaves en un server que ya corre — solo aplican al
+   crearlo. El camino: Rescue → *Reset root password* (no reinicia) → Actions → **Console**
+   (VNC, no es SSH → `PermitRootLogin no` no la bloquea) → `passwd hermes` temporal →
+   `ssh-copy-id` desde dev → volver a bloquear. Procedimiento completo en la memoria personal
+   `acceso-hetzner`. La cuenta de Hetzner es el único punto de falla real: **2FA pendiente**.

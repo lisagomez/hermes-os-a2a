@@ -651,4 +651,35 @@ npm run lint         # ESLint
   Al diagnosticar: `agent.log` dice qué entorno se creó ("local"/"docker") — esa línea es
   la verdad, no la doc ni la memoria.
 
+### 2026-07-12: Editar un `AGENTS.md`/`MEMORY.md` en el repo NO lo despliega — el runtime vive en el volumen
+- **Error**: `clientes/AGENTS.md` llevaba desde Fase 2 divergido: el repo tenía grafo (Fase 2),
+  Polar y contratos (Fase 3); el volumen (`~/businessos/clientes/.hermes/AGENTS.md`, lo que el
+  bot REALMENTE lee) seguía en 84 líneas diciendo *"Fase futura (cuando exista el servicio
+  grafo)"* — con el grafo corriendo hacía días. Nadie lo notó porque **ningún test ni deploy
+  toca los volúmenes**: `docker compose up` no re-copia los `.md`, solo monta el volumen.
+- **Fix**: los `.md` del repo son FUENTE, no despliegue. Sincronizar explícitamente
+  (`scp` + `sudo cp` al volumen + `chown 10000:10000` + `chmod 755` + `docker restart`), y
+  antes de sobrescribir, **diffear volumen vs repo**: si el diff es mayor que tu cambio, hay
+  ediciones de runtime o un desfase de fases — investigar, no pisar. Guardar copia previa.
+- **Aplicar en**: todo cambio a SOUL/AGENTS/MEMORY de cualquier vertical. Al cerrar una fase
+  que cambia doctrina del agente, la fase NO está terminada hasta que el volumen lo refleje.
+
+### 2026-07-12: Un paso de endurecimiento "documentado" no es un paso aplicado (y cómo recuperar SSH)
+- **Error(es)**: (1) el runbook de FASE0 manda `PasswordAuthentication no`, pero el
+  `99-hardening.conf` real solo tenía `PermitRootLogin no` → **el server aceptó contraseñas
+  desde internet 6 días** (verificable sin credenciales: `ssh -o PreferredAuthentications=none
+  user@host` lista los métodos → `Permission denied (publickey,password)` = password abierto;
+  el objetivo es `(publickey)` a secas). (2) La máquina de dev perdió la llave SSH, el binario
+  `hcloud-pp-cli` y el `HCLOUD_TOKEN` → cero acceso al server.
+- **Fix (recuperar acceso sin tocar los contenedores)**: `hcloud ssh-keys create` / "Add SSH
+  Key" de la UI **NO instalan nada en un server ya corriendo** (solo sirven al crearlo) — es
+  el callejón sin salida clásico. El camino real: consola web de Hetzner (Actions → Console;
+  **no es SSH**, así que `PermitRootLogin no` no la bloquea) → Rescue → *Reset root password*
+  (no reinicia) → login root en la consola → `passwd <usuario>` (temporal) → desde el dev
+  `ssh-copy-id -i ~/.ssh/id_ed25519.pub user@host` → verificar llave → `passwd -l <usuario>` +
+  `PasswordAuthentication no` + `sshd -t` ANTES de `systemctl reload ssh`.
+- **Aplicar en**: todo endurecimiento (verificar el estado observable, no el runbook) y toda
+  pérdida de acceso a un cloud server. La cuenta de Hetzner es el único punto de falla real:
+  **2FA pendiente**.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
