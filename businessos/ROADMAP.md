@@ -583,9 +583,20 @@ en `#dep-desarrollo` con el listado y el orden — porque la respuesta A2A ya no
 | `ejecutor-a2a/pipeline.py` | El trabajo (worktree→motor→Supervisor), ya **desacoplado de la conexión HTTP**. |
 | `aviso-cola.py` / `cola-trio.py` | Host-jobs: avisar al equipo (cron 2 min) y ver/priorizar/cancelar (solo Elisa). |
 
-**El enjambre (Fase 7) NO habla con la cola todavía** (decisión de la dueña: diferido). El
-Coordinador queda con un **guard explícito** que falla diciendo la verdad si el Ejecutor le
-encola en vez de ejecutarle. Nada lo dispara hoy; es el requisito antes de volver a exponerlo.
+**El enjambre YA habla con la cola** (2026-07-13, PR #45 — smoke real verificado): el
+Coordinador **encola** sus sub-tareas y **espera turno** como todo el mundo. Consecuencia que
+hay que decir en voz alta: **el enjambre ya no corre en paralelo** — las sub-tareas de una ola
+se encolan juntas pero el worker las ejecuta de una en una (concurrencia 1: 8 GB de RAM).
+`fan_out_max` ya no compra velocidad, compra **orden**. El enjambre sigue valiendo por lo que
+de verdad aporta: descomponer en DAG, respetar dependencias, integrar y **re-gatear el todo**.
+
+Detalle que costó sangre: el diff de cada sub-tarea se **relee de git**, nunca de la fila —
+`estado.py` lo recorta a 20 k para el jsonb y la integración hace `git apply`: un parche
+truncado corrompería el trabajo en silencio.
+
+**El `git fetch` de master lo hace un cron del HOST** (cada 5 min), no el contenedor: ahí
+dentro no hay llave de GitHub, y no debe haberla (corre el modelo con permisos amplios). Antes
+el fetch fallaba en silencio y el trío construía sobre un master de 11 commits atrás (PR #46).
 
 ---
 
