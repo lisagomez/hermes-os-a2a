@@ -13,6 +13,7 @@ por partes". Si algo falla (entrada, planner, supervisor) la tarea A2A queda
 """
 from __future__ import annotations
 
+import asyncio
 import os
 from pathlib import Path
 
@@ -104,6 +105,33 @@ class CoordinadorA2A(AgentExecutor):
         )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Blinda la corrida: si el cliente se va, el enjambre SIGUE.
+
+        Misma leccion que el Ejecutor (PR #37), y aqui pesa mas: una corrida de enjambre es
+        la MAS LARGA del sistema (N sub-tareas encoladas + integracion + verificacion final).
+        Un cliente impaciente no puede tirar horas de trabajo. Con la cola, ademas, las
+        sub-tareas ya viven en `tareas`: aunque esto muriera, el worker las terminaria — lo
+        que se perderia es la integracion. Razon de mas para no morir.
+        """
+        corrida = asyncio.ensure_future(self._ejecutar(context, event_queue))
+        try:
+            await asyncio.shield(corrida)
+        except asyncio.CancelledError:
+            corrida.add_done_callback(
+                lambda f: print(
+                    f"[coordinador] corrida huerfana terminada: "
+                    f"{f.exception() if not f.cancelled() else 'CANCELADA'}",
+                    flush=True,
+                )
+            )
+            print(
+                f"[coordinador] cliente desconectado; el enjambre {context.task_id} sigue "
+                "corriendo y dejara su estado final en `tareas`",
+                flush=True,
+            )
+            raise
+
+    async def _ejecutar(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
         if context.current_task is None:
             await event_queue.enqueue_event(

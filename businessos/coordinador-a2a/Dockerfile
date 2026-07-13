@@ -31,9 +31,12 @@ COPY coordinador-a2a/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY trio-contrato/contrato.py .
+# OJO: COPY EXPLICITO. Un modulo nuevo sin su linea aqui = ModuleNotFoundError y crash-loop
+# en runtime, que los tests de dev NO cazan (2026-07-10). `cola_espera.py` es de PRP-010.
 COPY coordinador-a2a/card.py coordinador-a2a/executor.py coordinador-a2a/planner.py \
      coordinador-a2a/claude_planner.py coordinador-a2a/estado.py coordinador-a2a/enjambre.py \
      coordinador-a2a/ejecutor_cliente.py coordinador-a2a/presupuesto.py \
+     coordinador-a2a/cola_espera.py \
      coordinador-a2a/integracion.py coordinador-a2a/supervisor_cliente.py coordinador-a2a/app.py ./
 
 EXPOSE 4300
