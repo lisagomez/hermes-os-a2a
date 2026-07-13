@@ -35,6 +35,9 @@ import httpx
 TIMEOUT_S = 10.0
 ESTADO_COLA = "recibida"
 ESTADO_EJECUTANDO = "en_ejecucion"
+# Los DOS estados "en vuelo": los escribe solo el worker, asi que una fila en cualquiera
+# de ellos tras un arranque es una huerfana (ver recuperar_huerfanas).
+ESTADO_REVISION = "en_revision"
 # Orden del pick: prioridad primero (solo Elisa la toca), luego FIFO puro.
 ORDEN_COLA = "prioridad.desc,encolada_en.asc"
 
@@ -179,31 +182,39 @@ class ColaSupabase:
         return payload
 
     async def recuperar_huerfanas(self) -> list[str]:
-        """Al arrancar: lo que quedo `en_ejecucion` no lo corre nadie (el proceso murio).
+        """Al arrancar: lo que quedo EN VUELO no lo corre nadie (el proceso murio).
 
-        Vuelve a la cola si le quedan intentos; si no, se escala. Nunca se pierde en el limbo.
+        En vuelo son DOS estados, no uno (bug cazado por el smoke de runtime del
+        2026-07-12): `en_ejecucion` (el motor trabajando) y `en_revision` (el Supervisor
+        juzgando — la ventana MAS LARGA: minutos de build/tests, la que mas restarts
+        pilla). Ambos los escribe solo el worker, asi que una fila ahi despues de un
+        arranque es, por definicion, huerfana. Si se olvida `en_revision`, la tarea se
+        queda en el LIMBO: nadie la ejecuta, no esta en la cola, y el equipo no se entera.
+
+        Vuelve a la cola si le quedan intentos; si no, se escala (que alguien la mire).
         """
         if not self.activo:
             raise ColaError("cola sin credenciales")
-        r = await self._pedir(
-            "GET",
-            f"tareas?estado=eq.{ESTADO_EJECUTANDO}&select=task_id,intentos,intentos_max",
-            headers=self._headers(),
-        )
         recuperadas: list[str] = []
-        for fila in r.json():
-            agoto = (fila.get("intentos") or 0) >= (fila.get("intentos_max") or 3)
-            destino = "escalada" if agoto else ESTADO_COLA
-            cuerpo: dict[str, Any] = {"estado": destino, "updated_at": "now()"}
-            if destino == ESTADO_COLA:
-                cuerpo["encolada_en"] = "now()"  # vuelve a la fila, no se cuela
-            await self._pedir(
-                "PATCH",
-                f"tareas?task_id=eq.{fila['task_id']}&estado=eq.{ESTADO_EJECUTANDO}",
+        for estado_vuelo in (ESTADO_EJECUTANDO, ESTADO_REVISION):
+            r = await self._pedir(
+                "GET",
+                f"tareas?estado=eq.{estado_vuelo}&select=task_id,intentos,intentos_max",
                 headers=self._headers(),
-                json=cuerpo,
             )
-            recuperadas.append(f"{fila['task_id']}→{destino}")
+            for fila in r.json():
+                agoto = (fila.get("intentos") or 0) >= (fila.get("intentos_max") or 3)
+                destino = "escalada" if agoto else ESTADO_COLA
+                cuerpo: dict[str, Any] = {"estado": destino, "updated_at": "now()"}
+                if destino == ESTADO_COLA:
+                    cuerpo["encolada_en"] = "now()"  # vuelve a la fila, no se cuela
+                await self._pedir(
+                    "PATCH",
+                    f"tareas?task_id=eq.{fila['task_id']}&estado=eq.{estado_vuelo}",
+                    headers=self._headers(),
+                    json=cuerpo,
+                )
+                recuperadas.append(f"{fila['task_id']} ({estado_vuelo})→{destino}")
         return recuperadas
 
 
