@@ -34,9 +34,10 @@ ESTADOS = (
 
 # Transiciones validas: quien escribe `tareas` DEBE respetarlas.
 #
-# La COLA (PRP-010) anade tres vueltas a `recibida` — todas son "vuelve a la fila", nunca
-# un atajo para saltarsela:
+# La COLA (PRP-010) anade vueltas a `recibida` — todas son "vuelve a la fila", nunca un
+# atajo para saltarsela:
 #   en_ejecucion → recibida  : recuperacion de reinicio (huerfana que nadie esta corriendo)
+#   en_revision  → recibida  : idem, muerta mientras el Supervisor la juzgaba (ver abajo)
 #   rechazada    → recibida  : reintento re-encolado, al FINAL de la cola (FIFO justo)
 #   escalada     → recibida  : relanzar tras escalada (analoga a escalada → en_ejecucion)
 # `recibida → en_ejecucion` (el pick del worker) no cambia: sigue siendo la unica puerta
@@ -44,7 +45,13 @@ ESTADOS = (
 TRANSICIONES: dict[str, frozenset[str]] = {
     "recibida": frozenset({"en_ejecucion", "cancelada"}),
     "en_ejecucion": frozenset({"en_revision", "escalada", "cancelada", "recibida"}),
-    "en_revision": frozenset({"aprobada", "rechazada"}),
+    # `en_revision` TAMBIEN vuelve a la cola. Es la ventana MAS LARGA del ciclo (el
+    # Supervisor re-ejecuta build/typecheck/lint/tests: minutos), o sea la que mas
+    # probablemente pille un reinicio. Sin esta salida, una tarea muerta ahi se queda en
+    # el LIMBO para siempre: no la corre nadie, no esta en la cola y desaparece del radar
+    # del equipo. Lo cazo el smoke de runtime (2026-07-12): `docker restart` con trabajo
+    # en vuelo. Ningun test de dev lo veia — en dev nadie mata el proceso a media faena.
+    "en_revision": frozenset({"aprobada", "rechazada", "recibida", "escalada"}),
     # reintento (directo o re-encolado) | tope
     "rechazada": frozenset({"en_ejecucion", "recibida", "escalada", "cancelada"}),
     "aprobada": frozenset({"concretada", "cancelada"}),  # concretar = gate humano antes
