@@ -118,7 +118,15 @@ class Worker:
         # Serial ⇒ cada tarea puede arrancar del master MAS FRESCO (con lo ya mergeado).
         # Es la mitigacion barata del choque entre ramas: lo que quede sera un conflicto en
         # GitHub, donde lo ve un humano — el trio detecta y escala, no resuelve merges.
-        ws.refrescar_master(self._repo)
+        #
+        # OJO (2026-07-13): dentro del contenedor NO hay ssh ni llave de GitHub — y no debe
+        # haberla (la llave del trio vive en el HOST; darsela al contenedor donde corre el
+        # modelo seria regalarle acceso a los repos privados de la cuenta). Asi que ESTE
+        # fetch falla siempre, y su resultado se LOGUEA en vez de tragarselo: quien refresca
+        # de verdad es un cron del host (`git -C <repo> fetch origin`), que si tiene la llave.
+        # Se descubrio porque el smoke construyo sobre un master de hace 11 commits: la
+        # promesa "cada tarea sale del master mas fresco" era MENTIRA en silencio.
+        print(f"[worker] fetch de master: {ws.refrescar_master(self._repo)}", flush=True)
 
         try:
             salida = await self._pipeline.procesar(tarea)

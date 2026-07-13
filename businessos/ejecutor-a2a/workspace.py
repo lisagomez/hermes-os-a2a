@@ -24,18 +24,27 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def refrescar_master(repo: Path) -> str:
-    """`git fetch` del remoto antes de cada tarea (PRP-010). Best-effort: si no hay remoto
-    (dev/tests) o no hay red, se sigue con lo que haya — no es motivo para no trabajar.
+    """Intenta refrescar el remoto. Devuelve QUE paso (el que llama lo LOGUEA, no lo tira).
 
-    Al ser la ejecucion SERIAL, cada tarea puede arrancar del master mas fresco (incluyendo
-    lo que ya se mergeo mientras esperaba en la cola): es la mitigacion barata del choque
-    entre ramas. La llave del trio es de solo lectura — puede `fetch`, no puede empujar.
+    Quien refresca de VERDAD en runtime es un cron del HOST (`git -C <repo> fetch origin`):
+    el contenedor del Ejecutor no tiene ssh ni llave de GitHub, y no debe tenerla — ahi
+    dentro corre el modelo con permisos amplios, y una llave (aunque sea de solo lectura) le
+    daria acceso a los repos privados de la cuenta. La llave se queda en el host, como todos
+    los secretos del trio.
+
+    Esta funcion se conserva porque en DEV (donde si hay credencial de usuario) mantiene la
+    promesa "cada tarea sale del master mas fresco", que es la mitigacion barata del choque
+    entre ramas. En runtime devolvera "fetch no disponible" — y eso se VE en el log, en vez
+    de fingir que el repo esta al dia (que es lo que hacia antes: mentir en silencio).
     """
     if not repo.is_dir():
         return "repo ausente"
     r = _git(repo, "fetch", "origin", "--prune")
     if r.returncode != 0:
-        return f"fetch no disponible ({(r.stderr or '').strip()[:80]})"
+        return (
+            f"NO refrescado ({(r.stderr or '').strip()[:60]}) — en runtime lo hace el cron "
+            "del host; si ESE cron no corre, las tareas salen de un master viejo"
+        )
     return "master refrescado"
 
 
