@@ -559,6 +559,36 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
 
 ---
 
+## FASE 10 — La COLA del trío (bandeja de entrada de #dep-desarrollo) ✅ VIVA en runtime (2026-07-13)
+
+PRP: `.claude/PRPs/prp-cola-tareas-trio.md`. Estado detallado en
+`.claude/memory/project/fase10-cola.md`.
+
+Nace de una pregunta de la dueña: *"¿y si varios del equipo piden features a la vez?"*.
+Antes, cada petición **bloqueaba al bot 15+ minutos** esperando el veredicto, y dos
+peticiones simultáneas lanzaban **dos motores + dos `npm build` + dos Playwright** en un
+servidor de 8 GB, sin que nadie acotara nada.
+
+Ahora el Ejecutor **acepta y encola** (responde `{encolada, posicion, cola}` en ~1 s) y un
+**worker único, serial** drena la cola: FIFO con prioridad, **solo Elisa reordena** (la
+autoridad es la credencial: no hay endpoint de reordenamiento, porque cualquiera del canal
+se colaría en la fila). La cola es **durable en Supabase** (sobrevive a `docker restart`),
+tiene **tope de gasto en tokens** antes de cada tarea, y el desenlace lo **avisa un host-job**
+en `#dep-desarrollo` con el listado y el orden — porque la respuesta A2A ya no trae veredicto.
+
+| Pieza | Qué |
+|---|---|
+| `ejecutor-a2a/cola.py` | La cola (pluggable: Supabase \| memoria). Encolado **autoritativo**: jamás se dice "encolada" sin fila. |
+| `ejecutor-a2a/worker.py` | Único y serial (`asyncio.Lock`), claim por **CAS**, recupera huérfanas, `git fetch` de master antes de cada tarea. |
+| `ejecutor-a2a/pipeline.py` | El trabajo (worktree→motor→Supervisor), ya **desacoplado de la conexión HTTP**. |
+| `aviso-cola.py` / `cola-trio.py` | Host-jobs: avisar al equipo (cron 2 min) y ver/priorizar/cancelar (solo Elisa). |
+
+**El enjambre (Fase 7) NO habla con la cola todavía** (decisión de la dueña: diferido). El
+Coordinador queda con un **guard explícito** que falla diciendo la verdad si el Ejecutor le
+encola en vez de ejecutarle. Nada lo dispara hoy; es el requisito antes de volver a exponerlo.
+
+---
+
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
 No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se

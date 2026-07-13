@@ -1,6 +1,6 @@
 # PRP-010: Cola de tareas del trío (FIFO, ejecución serial, aviso en #dep-desarrollo)
 
-> **Estado**: FASES 1–7 IMPLEMENTADAS (dev, 209 tests verdes) · FASE 8 (runtime) PENDIENTE
+> **Estado**: ✅ COMPLETO — VIVO en runtime (2026-07-13). Fases 1–8. El smoke de runtime destapó el bug del limbo (`en_revision`), arreglado y verificado en vivo (PR #43).
 > **Fecha**: 2026-07-12
 > **Proyecto**: businessos — trío Hermes→Ejecutor→Supervisor (Fase 6/7)
 
@@ -270,6 +270,24 @@ cola tenga tareas.
 ---
 
 ## 🧠 Aprendizajes (Self-Annealing)
+
+### 2026-07-13: El limbo de `en_revision` — lo que 209 tests verdes no podían ver
+- **Error**: la recuperación de huérfanas solo miraba `en_ejecucion`. Una tarea muerta en
+  **`en_revision`** (el Supervisor juzgándola) se quedaba ahí **para siempre**: no la corría
+  nadie, no estaba en la cola, y desaparecía del radar del equipo. Silencioso — el peor tipo.
+  Y es la ventana **más larga** del ciclo (build+typecheck+lint+tests son minutos), o sea la
+  que más reinicios pilla.
+- **Por qué ningún test lo cazó**: en dev **nadie mata el proceso a media faena**. Solo apareció
+  en el smoke de runtime de la Fase 8 (`docker restart` con trabajo en vuelo) — que es
+  exactamente para lo que la Fase 8 existe. Si me hubiera creído los 209 verdes, esto habría
+  mordido al equipo en producción.
+- **Fix**: `en_revision → {recibida, escalada}` en el contrato, y `recuperar_huerfanas` barre
+  **los dos** estados en vuelo. Verificado en vivo: la huérfana real se recuperó sola al
+  arrancar (`smoke-cola-2 (en_revision)→escalada`).
+- **Regla general**: si un estado lo escribe **solo** un proceso, una fila en ese estado tras
+  un arranque es, por definición, huérfana. **Enumera TODOS esos estados**, no el primero que
+  se te ocurra. Y antes de dar por viva una máquina de estados con trabajo largo, **mátala a
+  propósito en cada estado en vuelo** y comprueba que cada uno tiene salida.
 
 ### 2026-07-12: "Concurrencia 1" no es un comentario, es un candado
 - **Error**: el worker era serial *por construcción* (un solo bucle en el lifespan), y el
