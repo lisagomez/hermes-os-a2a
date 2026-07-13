@@ -772,6 +772,29 @@ npm run lint         # ESLint
 - **Aplicar en**: todo servicio A2A largo y todo agente con terminal (la capacidad crea la
   tentación: si no quieres que lo haga, prohíbelo en AGENTS.md, no en un skill).
 
+### 2026-07-13: El smoke de RUNTIME encuentra lo que 209 tests verdes no ven (la cola, PRP-010)
+- **Error**: la cola del trío pasó **209 tests en dev** y el bug que la habría roto en
+  producción solo apareció en el smoke de runtime (`docker restart` con trabajo en vuelo):
+  una tarea muerta en **`en_revision`** se quedaba en el **limbo para siempre** — el worker
+  solo recuperaba huérfanas de `en_ejecucion`. Nadie la ejecutaba, no estaba en la cola, y
+  **desaparecía del radar del equipo** (el peor fallo: silencioso). Y `en_revision` es la
+  ventana **más larga** del ciclo (el Supervisor corriendo build+tests son minutos): la que
+  más reinicios pilla. Los tests de dev no podían verlo porque **en dev nadie mata el proceso
+  a media faena**.
+- **Regla**: un test de dev solo prueba lo que el dev se atreve a hacer. Antes de dar por
+  viva una máquina de estados con procesos largos, **matarla a propósito en cada estado en
+  vuelo** y comprobar que cada uno tiene salida. Corolario: si un estado lo escribe **solo**
+  un proceso, una fila en ese estado tras un arranque es —por definición— huérfana; enumera
+  TODOS esos estados, no el primero que se te ocurra.
+- **Dos hermanos del mismo día**: (a) *"concurrencia 1" no es un comentario, es un candado* —
+  el worker era serial "por construcción" y el test que lanza dos bucles a la vez **falló**;
+  ahora hay `asyncio.Lock` (si la garantía depende de que nadie se equivoque, es una
+  costumbre, no una garantía). (b) *un test que reproduce la lógica que prueba no prueba
+  nada* — el primer test del guard repetía el guard dentro del test: verde sin ejercitar una
+  línea de producción. Pregunta de control: **si borro el código, ¿este test se pone rojo?**
+- **Aplicar en**: toda cola/worker/máquina de estados con trabajo largo, y todo test de
+  guard o invariante.
+
 ### 2026-07-12: Un gate que SIEMPRE corre debe estar SIEMPRE en los criterios
 - **Error**: el Supervisor corre el gate `tests` (`npx playwright test`) en toda tarea, y sin
   ningún test en el repo sale `exit 1: Error: No tests found` → **rechazo automático**. El
