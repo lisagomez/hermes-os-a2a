@@ -50,9 +50,31 @@ ssh hetzner "cd ~/repo/businessos && set -a && . ./.env && set +a && python3 col
 - El motor real es `EJECUTOR_ENGINE=claude` (GLM-5.2 vía z.ai). Para smokes: `mock` (cero
   tokens) — y **restaurarlo después**.
 
+## El enjambre (cerrado el 2026-07-13, PR #45)
+
+El Coordinador **encola** sus sub-tareas y **espera turno** (`cola_espera.py`, solo LEE
+`tareas`). Verificado con smoke real: encoló 2 sub-tareas y el worker las ejecutó **una
+detrás de otra**.
+
+- **El enjambre ya NO corre en paralelo.** Concurrencia 1 manda: `fan_out_max` compra
+  **orden**, no velocidad. Sigue valiendo por descomponer, dependencias, integrar y re-gatear
+  el todo.
+- **El diff se relee de GIT, nunca de la fila**: `estado.py` lo recorta a 20 k (jsonb) y la
+  integración hace `git apply` — un parche truncado corrompe el trabajo **en silencio**.
+- **Sin herencia de prioridad** (desviación consciente del PRP): el padre nunca está en la
+  cola, así que su prioridad es siempre 0; y dar al Coordinador poder de subir prioridades
+  reabriría lo que la cola cierra. La palanca es de Elisa: `cola-trio.py prioriza`.
+
+## El `git fetch` de master lo hace el HOST (PR #46)
+
+El contenedor del Ejecutor **no tiene llave de GitHub, y no debe tenerla** (ahí corre el
+modelo con permisos amplios; una llave, aunque sea de solo lectura, abre los repos privados
+de la cuenta). El `fetch` dentro del contenedor **fallaba en silencio** y el trío construyó
+días sobre un master de 11 commits atrás. Ahora: **cron del host cada 5 min**
+(`git -C ~/trio/hermes-os-a2a fetch origin --prune`) y el worker **loguea** el resultado.
+
 ## Abierto
 
-- **El enjambre no habla con la cola** (Fase 7 del PRP, diferida por decisión de la dueña).
-  El Coordinador tiene un **guard explícito** que falla diciendo la verdad. No exponerlo a
-  ningún canal hasta que encole+poll.
 - Cosmético: `posicion` viaja como `1.0` (protobuf Struct convierte todo número a float).
+- Los gates dejan artefactos (`test-results/`) que se cuelan en el diff de la sub-tarea si el
+  `.gitignore` del repo objetivo no los cubre. Vigilar en el primer enjambre real.

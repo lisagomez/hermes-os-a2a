@@ -772,6 +772,22 @@ npm run lint         # ESLint
 - **Aplicar en**: todo servicio A2A largo y todo agente con terminal (la capacidad crea la
   tentación: si no quieres que lo haga, prohíbelo en AGENTS.md, no en un skill).
 
+### 2026-07-13: Un best-effort que nadie loguea es un fallo INVISIBLE (el fetch fantasma)
+- **Error**: `workspace.refrescar_master` corría `git fetch` **dentro del contenedor** del
+  Ejecutor — que no tiene `ssh` ni llave de GitHub. Fallaba **siempre**, y como era
+  best-effort y nadie miraba su resultado, la promesa *"cada tarea sale del master más
+  fresco"* era **mentira en silencio**: el trío llevaba días construyendo sobre un master de
+  **11 commits atrás**. Lo cazó un smoke, no los tests.
+- **Fix (patrón de siempre)**: la credencial se queda en el HOST — cron cada 5 min
+  (`git -C <repo> fetch origin --prune`); el contenedor solo **lee** las refs del repo
+  montado. La llave **no debe** entrar al contenedor del Ejecutor: ahí corre el modelo con
+  permisos amplios y una llave de GitHub (aunque sea de solo lectura) abre los repos privados
+  de la cuenta. Y el worker ahora **loguea** el resultado del fetch.
+- **Regla**: todo `except: pass` / best-effort **imprime**. Si el camino degradado es
+  silencioso, no es degradado: es **invisible**. Y lo invisible es lo que muerde en
+  producción (van tres esta semana: `token_usage`, el limbo de `en_revision`, y esto).
+- **Aplicar en**: todo host-job, todo fallback y todo "no pasa nada si falla".
+
 ### 2026-07-13: El smoke de RUNTIME encuentra lo que 209 tests verdes no ven (la cola, PRP-010)
 - **Error**: la cola del trío pasó **209 tests en dev** y el bug que la habría roto en
   producción solo apareció en el smoke de runtime (`docker restart` con trabajo en vuelo):
