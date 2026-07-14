@@ -1,7 +1,7 @@
 # ERP Agéntico · Migraciones ERP-0 (fundación)
 
 Modelo de datos + seguridad estructural de la cadena mínima `ped → fac → cfd → cob (+ inv)`.
-Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) — **v10** (Parte IV, ERP-0).
+Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) — **v12** (Parte IV, ERP-0).
 **18 tablas** en el esquema `erp` (13 núcleo + 4 retail + 1 folios).
 
 > **v4 (estrategia D+I)** y **v5 (auditoría)** SÍ tocaron ERP-0 (migración 001):
@@ -17,9 +17,10 @@ Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) — **v10** (Parte IV, E
 > financieros, presupuesto; v7 §5B.8: cierres anuales/amarres/expediente) y `pln` (planeación
 > estratégica, ERP-7 — v8: "la fábrica es el producto", pipeline, % de reuso como métrica norte,
 > migración 007). Forward-compat en `003_folios.sql`: whitelist de prefijos —
-> `ACT- HAL- POL- DOC- PRO- CAS- DIF-` además de los de la cadena. También (v10) el pack
-> transversal **CRM conversacional** (ctc/cnv/cas/dif/agd, spec en `propuesta-crm-marca-blanca.md`,
-> fases CRM-0…CRM-5 propias). Decisiones D-07…D-27.
+> `ACT- HAL- POL- DOC- PRO- CAS- DIF- NOM- COT- PRM-` además de los de la cadena. Packs/deptos
+> posteriores: CRM conversacional (v10), **nómina `dep-nom`/ERP-5C** (v11: nom/per/asi, tarifas
+> fiscales como datos versionados, doble compuerta aprobar≠dispersar, CFDI de nómina, doble firma
+> contador+laboral), y motor comercial (cot/prc/prm). Decisiones D-07…D-31.
 
 ## Estado
 

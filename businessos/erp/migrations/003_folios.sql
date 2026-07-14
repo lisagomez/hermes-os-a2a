@@ -20,8 +20,10 @@ create table if not exists erp.sis_folio (
   -- para no retro-editar esta migración): ACT (activos, v3), HAL (hallazgo de
   -- auditoría, v5), POL (póliza) y DOC (documento contable/fiscal, dep-ctb v6),
   -- PRO (prospecto, dep-pln v8), CAS (caso CRM) y DIF (campaña) del pack CRM
-  -- conversacional transversal (v10, fabricación con cliente piloto).
-  prefijo     text   not null check (prefijo in ('PED','FAC','CFD','COB','REP','ACT','HAL','POL','DOC','PRO','CAS','DIF')),
+  -- conversacional (v10). NOM (recibo de nómina, dep-nom ERP-5C v11), COT
+  -- (cotización) y PRM (promoción) del pack motor comercial (v11).
+  prefijo     text   not null check (prefijo in
+    ('PED','FAC','CFD','COB','REP','ACT','HAL','POL','DOC','PRO','CAS','DIF','NOM','COT','PRM')),
   ultimo      bigint not null default 0 check (ultimo >= 0),
   primary key (cliente_id, prefijo)
 );
@@ -40,7 +42,8 @@ as $$
 declare
   v_num bigint;
 begin
-  if p_prefijo not in ('PED','FAC','CFD','COB','REP','ACT','HAL','POL','DOC','PRO','CAS','DIF') then
+  if p_prefijo not in
+       ('PED','FAC','CFD','COB','REP','ACT','HAL','POL','DOC','PRO','CAS','DIF','NOM','COT','PRM') then
     raise exception 'prefijo de folio inválido: %', p_prefijo using errcode = 'check_violation';
   end if;
 

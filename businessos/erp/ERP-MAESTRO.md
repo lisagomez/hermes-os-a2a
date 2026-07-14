@@ -1,4 +1,4 @@
-# ERP AGÉNTICO — Documento maestro de implementación completa (v10)
+# ERP AGÉNTICO — Documento maestro de implementación completa (v12)
 
 Documento independiente y autocontenido. Todo lo necesario para implementar el
 ERP: arquitectura, nomenclatura, requisitos, instalación por fases con pasos y
@@ -71,6 +71,25 @@ del ERP. Especificación completa en el documento derivado
 "propuesta-crm-marca-blanca.md"; aquí queda su registro en el catálogo de
 packs, la nomenclatura de sus módulos y su decisión de portafolio (D-27).
 
+v11 integra la ADMINISTRACIÓN DE NÓMINA (dep-nom, ERP-5C): expediente del
+personal, incidencias, motor de cálculo determinista con tarifas fiscales
+como DATOS versionados con fuente, ciclo del periodo con doble compuerta
+humana (aprobar y dispersar), CFDI de nómina con el motor fiscal ya
+auditado, obligaciones patronales PREPARADAS (IMSS/INFONAVIT — el humano
+presenta), finiquitos con revisión laboral, y la regla nueva de datos
+personales sensibles. Ver ERP-5C, regla 20 y D-28 a D-31. Además registra
+en el catálogo los packs con blueprint ya generado: LOGÍSTICA, MOTOR
+COMERCIAL y LECTOR OCR (D-28).
+
+v12 integra TESORERÍA Y FINANZAS (dep-tes, ERP-5D): posición diaria de
+caja multi-banco, conciliación bancaria continua, flujo de efectivo a 13
+semanas que avisa antes del hoyo, ciclo de pagos con archivo hasheado y
+catálogo de beneficiarios blindado (verificación fuera de banda contra el
+fraude de cambio de CLABE), deuda con calendario y covenants, inversión de
+excedentes solo por política escrita — y la regla de oro del grupo: ningún
+agente mueve, invierte ni cubre dinero; los agentes preparan, concilian y
+avisan. Ver ERP-5D, regla 21 y D-32 a D-34.
+
 Servidor: Hetzner Cloud (Docker). Datos: Supabase/Postgres. Orquestador:
 Hermes-Negocio (ya vivo en Slack). Ejecutores de código: Claude Code.
 
@@ -94,6 +113,9 @@ NÚCLEO UNIVERSAL (idéntico en toda industria — todo negocio cobra, paga,
 factura, timbra, contabiliza y compra):
 
 - Finanzas: cob, pag, tes, fac, cfd, ctb, mon, pas, act
+- Nómina/personal: nom (nómina), per (personal/expediente), asi
+  (asistencia/incidencias) — casi todo negocio con empleados; se activa
+  por perfil
 - Compras: cmp, aba
 - Base: cat, mig, sis, api
 - Dirección: rep, bi, ger
@@ -105,6 +127,14 @@ PACKS VERTICALES (operación del dominio; se cargan por cliente):
   producto salido del blueprint de dep-pln): ctc, cnv, cas, dif, agd —
   especificación en propuesta-crm-marca-blanca.md; fabricación SOLO con
   cliente piloto real (la regla de packs aplica igual, D-27)
+- LOGÍSTICA/FULFILLMENT (transversal, tipo marketplace): rcb, srt, emp,
+  env, ras, dev, trn, mkc — blueprint en propuesta-erp-logistica.md + su
+  anexo técnico (incluye grafo por niveles y Carta Porte); D-28
+- MOTOR COMERCIAL (transversal: cotización, pricing, promociones): cot,
+  prc, prm — blueprint en propuesta-motor-comercial.md; D-28
+- LECTOR OCR/DOCUMENTAL (transversal, los "ojos" de la fábrica): doc —
+  blueprint en propuesta-lector-ocr.md; alimenta a ctb, logística y
+  expedientes; D-28
 - HOTELERÍA (futuro, con cliente real): rsv, hab, trf, ama, rec, ota, evt
 - HOSPITALARIO (futuro lejano, máximo riesgo): pac, cit, cam, frm, lab, urg
 
@@ -332,6 +362,15 @@ VENTAS: ped (pedidos) · lea←cfr (lealtad)
 CRM CONVERSACIONAL (pack transversal): ctc (contactos) · cnv
 (conversaciones) · cas (casos/tickets) · dif (difusión/campañas — siempre
 con compuerta humana) · agd (agenda/citas)
+NÓMINA/PERSONAL (núcleo activable): nom (nómina: cálculo, timbrado,
+dispersión) · per (personal: expediente, contratos, salarios) · asi
+(asistencia: incidencias, tiempo, vacaciones)
+LOGÍSTICA (pack transversal): rcb (recibo) · srt (surtido) · emp
+(empaque) · env (envíos) · ras (rastreo) · dev (devoluciones) · trn
+(transportistas) · mkc (marketplaces)
+MOTOR COMERCIAL (pack transversal): cot (cotizaciones) · prc (pricing) ·
+prm (promociones)
+LECTOR DOCUMENTAL (pack transversal): doc (OCR y estructuración)
 COMPRAS: cmp←cpr (compras) · aba←pcr (abasto)
 DIRECCIÓN: rep←est (reportes) · bi←dwh · ger (gerencial) · aud (auditoría:
 al ERP, a los agentes y de trazabilidad — dep-aud, ver 1.8) · pln
@@ -364,7 +403,8 @@ Notas de verbos:
 - Folios: PREFIJO-número → PED-1042, FAC-0873, CFD-0091, COB-0455,
   REP-0012, ACT-0031, HAL-0007 (hallazgo de auditoría), POL-0284 (póliza),
   DOC-0930 (documento contable/fiscal recibido), PRO-0044 (prospecto),
-  CAS-0102 (caso CRM), DIF-0009 (campaña)
+  CAS-0102 (caso CRM), DIF-0009 (campaña), NOM-0781 (recibo de nómina),
+  COT-0217 (cotización), PRM-0033 (promoción)
 - Trazas: traza_id (uuid) generado por sis_encargo; todo CLI lo acepta
   (--traza) y toda escritura lo registra. Verbo de reconstrucción:
   aud trazar --folio <X> | --traza <id>
@@ -1146,6 +1186,266 @@ k) Expediente: exportado completo, hasheado y archivado; el contador
 
 ──────────────────────────────────────────────
 
+## ERP-5C — Grupo de nómina (dep-nom): especificación completa
+
+──────────────────────────────────────────────
+OBJETIVO: administrar la nómina de punta a punta — expediente, incidencias,
+cálculo, timbrado, dispersión, obligaciones patronales y separaciones — con
+la disciplina de la fábrica en el dominio donde el error cuesta demandas y
+multas: dinero + ley laboral + fiscal + seguridad social, todo junto.
+PRINCIPIO RECTOR: el sistema CALCULA con datos versionados y PREPARA las
+obligaciones; el humano aprueba, dispersa y presenta. Y una novedad de
+estructura: la auditoría de reglas aquí exige DOS firmas — el contador
+(fiscal) y un ESPECIALISTA LABORAL (LFT/IMSS), figura nueva en
+pln_estructura con su umbral disparador: BLOQUEANTE antes del primer
+periodo real (D-31).
+
+### 5C.1 Expediente y datos sensibles (per, asi)
+
+· per_empleado — el expediente: datos, contrato (tipo, jornada), salario y
+  su historial (TODO cambio de salario con aprobación humana y bitácora),
+  SDI/SBC calculado con snapshot, NSS, fecha de alta, estatus
+· per_documento — expediente documental (contrato firmado, identificaciones,
+  altas IMSS): el LECTOR OCR de la casa lo digitaliza y estructura — el
+  cruce natural entre packs
+· asi_incidencia — el insumo del cálculo: faltas, retardos, horas extra
+  (con tope legal vigilado), vacaciones y prima, incapacidades (IMSS),
+  permisos; cargable por CLI, por el panel, o CONVERSACIONALMENTE por el
+  CRM de la casa (el empleado pide vacaciones por WhatsApp; el flujo
+  aprueba con compuerta del jefe humano)
+DATOS PERSONALES SENSIBLES (regla 20): la nómina concentra lo más delicado
+del negocio — salarios, salud (incapacidades), pensiones alimenticias.
+Tablas per_*/nom_* con cifrado, RLS reforzado por ROL (no todo agente de la
+casa ve salarios: la tarjeta de agente lo acota), bitácora de acceso por
+registro, y ARCO atendible.
+
+### 5C.2 Motor de cálculo (determinista, con el porqué)
+
+· PERCEPCIONES (sueldo, extra, prima dominical, aguinaldo, vacaciones y
+  prima, PTU) − DEDUCCIONES (ISR por tarifa, cuota obrera IMSS, INFONAVIT,
+  pensión alimenticia SOLO con orden registrada, otras) = NETO — todo
+  mapeado al catálogo SAT de nómina para el timbrado.
+· TARIFAS Y VALORES COMO DATOS VERSIONADOS (D-29): tarifas ISR y subsidio,
+  UMA, salarios mínimos, cuotas IMSS — viven como datos con FUENTE y
+  VIGENCIA (patrón G2/C2 del grafo), JAMÁS hardcodeados ni "recordados"
+  por un agente. Calcular con tarifa vencida es imposible: el CLI lo
+  bloquea con exit 1. Actualizar tarifas = carga con fuente + botón.
+· SNAPSHOT DEL CÁLCULO: cada recibo guarda su porqué — tarifas usadas,
+  SDI, incidencias aplicadas. "¿Por qué este neto?" es un comando (nom
+  porque --recibo NOM-0781), no una discusión. Ante una demanda laboral,
+  el porqué reconstruible ES la defensa.
+· SUITE AUDITADA: los casos del motor (con las dos firmas de D-31) se
+  congelan como suite ejecutable que corre en cada cambio de tarifas o
+  reglas — el estándar de ERP-2, aplicado al dominio más litigioso.
+
+### 5C.3 El ciclo del periodo (doble compuerta)
+
+1. CIERRE DE INCIDENCIAS del periodo (asi) — lo pendiente se resuelve o el
+   periodo no avanza (la incidencia fantasma de "luego lo ajustamos" es la
+   madre de los errores de nómina).
+2. PRENÓMINA (dry-run): cálculo completo + COMPARATIVA contra el periodo
+   anterior con variaciones resaltadas (quién sube, quién baja, por qué) —
+   la revisión humana ve las diferencias, no seiscientas filas iguales.
+3. sup-nom valida (línea 2): atípicos (neto que cae 40%, horas extra
+   sistemáticas de un área, percepción nueva sin soporte).
+4. DOBLE BOTÓN humano (garantías de ERP-3): APROBAR la nómina (el cálculo)
+   y DISPERSAR (el dinero) son dos aprobaciones distintas — quien aprueba
+   el cálculo puede no ser quien suelta el dinero.
+5. TIMBRADO CFDI de nómina: con el motor cfd YA auditado (mismo PAC,
+   mock→sandbox→real, idempotencia, estados intermedios) — el reuso más
+   valioso del grupo. Recibo timbrado ANTES de dispersar o junto, según
+   política; jamás dispersión de recibo que no puede timbrarse.
+6. DISPERSIÓN (D-30): el sistema PREPARA el archivo bancario (layout del
+   banco del cliente) y el humano lo ejecuta en su banca electrónica —
+   hasta que exista tes con conexión bancaria, el dinero lo mueve el
+   humano con el archivo verificado (hash del archivo en bitácora: lo que
+   se dispersó ES lo aprobado).
+7. PÓLIZA AUTOMÁTICA a ctb (plantilla del perfil, 5B.3): sueldos,
+   retenciones por pagar, cuotas patronales provisionadas — la nómina
+   cuadra contra contabilidad por construcción.
+8. ENTREGA de recibos al empleado (PDF/XML) — por el CRM de la casa
+   (WhatsApp, con consentimiento) o correo; entrega registrada.
+
+### 5C.4 Obligaciones patronales (preparar, no presentar)
+
+El patrón D-20 extendido: el sistema PREPARA con evidencia; el humano
+presenta y paga.
+· IMSS/INFONAVIT: movimientos afiliatorios (altas, bajas, modificaciones
+  de salario) generados al ocurrir el evento y PREPARADOS para IDSE;
+  cuotas calculadas y preparadas para SUA; diferencias contra emisión
+  como hallazgo.
+· ISR retenido → al flujo de declaraciones del perfil (5B); PTU anual con
+  su cálculo trazable; prima de riesgo anual preparada.
+· CALENDARIO patronal integrado al perfil regulatorio (ctb_perfil se
+  extiende): cada obligación alerta con anticipación en #ops-alertas.
+· REPSE: si el cliente presta o recibe servicios especializados, la
+  verificación de cumplimiento entra al perfil — lo revisa el
+  especialista laboral (D-31), no lo interpreta el sistema.
+
+### 5C.5 Separaciones (finiquito y liquidación)
+
+Cálculo DETERMINISTA con snapshot (partes proporcionales, prima de
+antigüedad, indemnizaciones según causa) — y compuerta reforzada: TODA
+separación es N2 mínimo; una LIQUIDACIÓN (despido) exige además revisión
+del especialista laboral ANTES del botón — es el evento de mayor riesgo
+de demanda del dominio y no se automatiza la decisión, solo el cálculo y
+el papeleo (documentos para firma generados, timbrado del recibo final,
+baja IMSS preparada, expediente archivado inmutable como el del ejercicio,
+D-21).
+
+### 5C.6 Trío, auditoría y validación
+
+exe-nom y sup-nom con tarjeta (los permisos sobre per_*/nom_* son los más
+acotados de la casa); reglas/dep-nom.md con DOBLE FIRMA (D-31). dep-aud
+extiende su programa: recibos vs dispersión vs póliza cuadran; NADIE
+cobra sin existir en per con contrato vigente (el empleado fantasma es el
+fraude clásico de nómina — aquí es un cruce automático); todo cambio de
+salario con botón; toda pensión alimenticia con orden registrada.
+
+VALIDACIÓN DE CIERRE (un periodo completo en staging, 10 empleados
+ficticios con casos variados: horas extra, falta, incapacidad, pensión
+alimenticia, alta y baja dentro del periodo):
+a) La prenómina cuadra contra el cálculo MANUAL del contador, peso por
+   peso, y las variaciones vs periodo anterior se explican solas.
+b) Sembrar 6 malos: tarifa ISR vencida (bloqueado por CLI), neto negativo
+   (bloqueado), empleado fantasma en la dispersión (cazado por el cruce),
+   cambio de salario sin botón (rechazado), dispersión de recibo no
+   timbrable (rechazada), baja sin movimiento IMSS preparado (hallazgo).
+c) Doble botón probado con identidades distintas; el archivo de dispersión
+   hasheado coincide con lo aprobado.
+d) Un recibo timbrado en el sandbox del PAC, su póliza en ctb y nom porque
+   reconstruyéndolo hasta la incidencia de origen (aud trazar completo).
+e) Un finiquito calculado, revisado y firmado en flujo; una liquidación
+   detenida SIN la revisión laboral (la compuerta funciona).
+f) Las dos firmas (contador + laboral) en reglas/dep-nom.md con fecha.
+
+──────────────────────────────────────────────
+
+## ERP-5D — Grupo de tesorería y finanzas (dep-tes): especificación completa
+
+──────────────────────────────────────────────
+OBJETIVO: la administración del dinero mismo — posición, conciliación,
+flujo, pagos, deuda, excedentes y monedas — con la regla de oro del grupo
+por delante: NINGÚN AGENTE MUEVE, INVIERTE NI CUBRE DINERO. Los agentes
+preparan, concilian, proyectan y avisan; el dinero lo aprueba y lo suelta
+un humano, siempre, sin nivel de automatización futuro que lo cambie sin
+decisión registrada. Activa por fin los módulos tes/pas/mon del núcleo y
+completa el ciclo que 5B (contabilidad) y 5C (nómina) dejaron abierto: el
+peso que entra y sale del banco.
+
+### 5D.1 Cuentas y posición (tes)
+
+· tes_cuenta — cuentas bancarias por banco/moneda/uso (operativa, nómina,
+  impuestos, reserva), con titulares y firmantes registrados
+· tes_movimiento — cada cargo/abono del banco, con origen (estado de
+  cuenta) y su match de conciliación
+· POSICIÓN DIARIA consolidada: multi-banco, multi-moneda (mon revalúa),
+  con lo comprometido del día (pagos programados, nómina, impuestos) —
+  el saldo "real disponible", no el saldo del portal
+· SEGREGACIÓN: los saldos son de los datos más sensibles de la casa; la
+  tarjeta de agente acota quién los lee (como salarios en 5C), y todo
+  acceso queda en bitácora
+
+### 5D.2 Conciliación bancaria (continua, no mensual)
+
+· FUENTE: estados de cuenta por carga de archivo o PDF vía el LECTOR OCR
+  de la casa (el cruce natural: el banco que no da archivo, da PDF); la
+  conexión directa por API llega después (D-32)
+· MATCH AUTOMÁTICO por reglas deterministas (monto+fecha+referencia,
+  folios COB-/PAG-/NOM- en la referencia — la disciplina de folios de la
+  casa por fin paga en el banco); lo no matcheado recibe SUGERENCIAS del
+  agente con confianza (patrón OCR: sugerir sí, decidir no) y se resuelve
+  por humano o por regla aprobada
+· PARTIDAS EN CONCILIACIÓN con antigüedad vigilada: una partida vieja es
+  hallazgo, no paisaje; la conciliación del periodo es prerequisito del
+  cierre mensual de 5B (amarre nuevo: banco vs ctb vs tesorería)
+· El enjambre nocturno suma el ángulo tes que ERP-4 dejó enunciado:
+  movimientos sin conciliar, cargos no reconocidos (alerta INMEDIATA — el
+  cargo fantasma se disputa en horas, no en el cierre), comisiones fuera
+  de contrato
+
+### 5D.3 Flujo de efectivo (el que avisa antes del hoyo)
+
+· PROYECCIÓN RODANTE A 13 SEMANAS, determinista y por fuentes vivas:
+  cobranzas esperadas (cob por vencimiento y comportamiento real de pago
+  del cliente — el histórico, no el optimismo), pagos programados (pag),
+  nómina del calendario (5C), impuestos del calendario del perfil (5B),
+  servicio de deuda (5D.5) — cada línea con su fuente, estilo D-25
+· ESCENARIOS ligados a pln (base/estrés): "¿y si el cliente grande paga a
+  90?" se pregunta en G4/C4, no se descubre en el banco
+· ALERTAS DE ESTRÉS con anticipación configurable: semana proyectada bajo
+  el mínimo de caja → alerta a #ops-alertas con las palancas calculadas
+  (adelantar cobranza, reprogramar pagos no críticos, disponer línea) —
+  palancas PROPUESTAS con números; decidir es humano
+· El flujo proyectado hereda la regla 19: jamás es promesa, siempre lleva
+  supuestos
+
+### 5D.4 Ciclo de pagos (el patrón D-30, generalizado)
+
+1. PROPUESTA de pago (pag): facturas de proveedor por vencer, con su
+   recepción validada (cmp cuando exista) y su CFDI en el buzón (5B)
+2. PROGRAMACIÓN contra el flujo (5D.3): el agente propone el calendario
+   de pagos de la semana que cuida caja y descuentos por pronto pago
+3. VALIDACIÓN sup-tes: beneficiario vigente, importe vs factura, duplicado
+   (misma factura dos veces = clásico), presupuesto
+4. BOTÓN humano (identidad, caducidad, re-validación) → ARCHIVO BANCARIO
+   hasheado contra lo aprobado → el humano lo ejecuta en su banca (D-32:
+   la ejecución directa llegará con conexión bancaria y SUS compuertas)
+5. La conciliación (5D.2) CIERRA el ciclo: pago aprobado = pago dispersado
+   = cargo en el banco = póliza en ctb — cuadratura por construcción
+CATÁLOGO DE BENEFICIARIOS BLINDADO (D-34): el alta y TODO cambio de cuenta
+(CLABE) de un beneficiario exige verificación FUERA DE BANDA (llamada al
+contacto ya registrado del proveedor, no al teléfono del correo que pidió
+el cambio) + botón de un aprobador distinto al solicitante. El fraude de
+cambio de CLABE por correo falso es el robo más común de tesorería en
+México; aquí es estructuralmente inviable, no improbable.
+
+### 5D.5 Deuda, excedentes y monedas (pas + mon)
+
+· DEUDA (pas): cada crédito con su calendario de amortización e intereses
+  (alimenta el flujo), sus COVENANTS como reglas con fuente (razones
+  financieras calculadas de ctb cada cierre — acercarse al covenant alerta
+  ANTES de romperlo, patrón reputación/umbral de la casa) y sus garantías
+  registradas
+· EXCEDENTES (D-33): invertir excedentes SOLO dentro de una política
+  escrita y auditada (instrumentos permitidos, plazos, contrapartes,
+  montos máximos) y SIEMPRE con botón humano. No existe el trading
+  agéntico en esta casa: el agente calcula el excedente invertible y
+  propone dentro de política; jamás ejecuta
+· MONEDAS (mon): posición por divisa, revaluación a ctb en el cierre,
+  exposición proyectada en el flujo; coberturas (forwards) son decisión
+  N3 humana con escenarios — el agente mide la exposición, no la apuesta
+
+### 5D.6 Trío, auditoría y validación
+
+exe-tes y sup-tes con tarjetas (permisos sobre tes_* tan acotados como
+nómina); reglas/dep-tes.md auditadas por el contador (y el asesor
+financiero del cliente si existe). dep-aud extiende su programa: pagos vs
+aprobaciones vs archivo hasheado vs cargo bancario (la cadena completa,
+sin eslabón suelto), beneficiarios con su verificación fuera de banda
+documentada, partidas en conciliación por antigüedad, covenants
+calculados con evidencia, y CERO movimientos de inversión sin política y
+botón.
+
+VALIDACIÓN DE CIERRE (un mes de tesorería en staging, 2 bancos ficticios):
+a) Posición diaria consolidada cuadra contra los estados de cuenta
+   sembrados, multi-moneda incluida.
+b) Conciliación: 95%+ match automático por folios en un lote realista;
+   las sugerencias del agente sobre el resto aceptadas/corregidas por
+   humano; una partida envejecida a propósito dispara hallazgo.
+c) Sembrar 6 malos: pago duplicado de la misma factura (bloqueado),
+   cambio de CLABE sin verificación fuera de banda (bloqueado), pago sin
+   CFDI en buzón (bloqueado), archivo bancario alterado tras aprobación
+   (hash no cuadra: rechazado), inversión fuera de política (bloqueada),
+   cargo bancario no reconocido (alerta inmediata, no en el cierre).
+d) Flujo a 13 semanas con fuentes vivas; un estrés sembrado (cliente
+   grande "paga" a 90 días) alerta con anticipación y palancas calculadas.
+e) Un covenant acercándose a su umbral alerta antes de romperse.
+f) aud trazar reconstruye un pago completo: factura → propuesta →
+   validación → botón → archivo (hash) → cargo → conciliación → póliza.
+
+──────────────────────────────────────────────
+
 ## ERP-6 — Marca blanca / multi-cliente
 
 ──────────────────────────────────────────────
@@ -1402,6 +1702,18 @@ las garantías de siempre. Las obligaciones del calendario fiscal de cada
 perfil (declaraciones, DIOT, balanza electrónica) alertan con anticipación
 en #ops-alertas.
 
+CADA DÍA HÁBIL (con dep-tes vivo): la posición de caja consolidada llega
+a Slack antes de arrancar el día — saldos reales, comprometidos del día y
+disponible verdadero; los cargos no reconocidos alertaron desde anoche.
+El calendario de pagos de la semana se propone contra el flujo; tú
+apruebas con botón y el archivo sale hasheado.
+
+CADA PERIODO DE NÓMINA (con dep-nom vivo): incidencias cerradas →
+prenómina con variaciones explicadas → doble botón (aprobar y dispersar,
+identidades distintas) → recibos timbrados → archivo bancario hasheado →
+póliza automática → recibos entregados. Los movimientos IMSS del periodo
+quedan preparados para IDSE y las cuotas para SUA; el humano presenta.
+
 CADA TRIMESTRE: revisión (soft close) con checklist automático — amarres
 corridos (CFDI vs contabilidad vs declarado), provisionales contra lo
 declarado, buzón resuelto. Los hallazgos del ejercicio se encuentran en
@@ -1494,6 +1806,20 @@ PARTE VI — REGLAS INQUEBRANTABLES Y RIESGOS
    adjuntos y firma humana. Y la estructura crece por umbrales de carga,
    no por calendario: los agentes escalan la operación, los humanos
    escalan el juicio y la responsabilidad.
+20. Nómina y datos sensibles: las tarifas fiscales son datos versionados
+   con fuente (calcular con tarifa vencida es imposible); aprobar y
+   dispersar son dos botones con identidades distintas; toda separación
+   es humana y la liquidación exige revisión laboral; nadie cobra sin
+   expediente vigente; los datos de personal son los más protegidos de la
+   casa (cifrado, acceso por tarjeta, bitácora por registro) — y las
+   reglas del dominio llevan doble firma: contador y especialista laboral.
+21. El dinero lo mueve un humano: todo pago con botón + archivo hasheado
+   contra lo aprobado; alta o cambio de cuenta de beneficiario con
+   verificación fuera de banda y aprobador distinto al solicitante;
+   inversión de excedentes solo por política escrita y botón — no existe
+   el trading agéntico; coberturas cambiarias son decisión humana con
+   escenarios; y la conciliación bancaria es prerequisito del cierre: un
+   cargo no reconocido alerta en horas, no en el corte mensual.
 
 MAPA DE DEPENDENCIAS:
 Fases 1-2 del proyecto validadas + respaldos probados + staging
@@ -1685,3 +2011,51 @@ PAC) y P-02 custodia de tokens de canal en vault (estándar D-18). La
 fabricación arranca SOLO con cliente piloto real (regla 10); mientras
 tanto, la exploración comercial del pack es investigación (gasto, eje D+I)
 y vive en el pipeline de dep-pln con su % de reuso estimado.
+
+D-28 · Registro de packs con blueprint — DECIDIDO en portafolio, PENDIENTE
+en fabricación (regla 10, cliente piloto real cada uno): LOGÍSTICA
+(propuesta-erp-logistica.md + anexo con grafo por niveles y Carta Porte;
+pendientes L-01 a L-05), MOTOR COMERCIAL (propuesta-motor-comercial.md;
+P-C1 a P-C4) y LECTOR OCR (propuesta-lector-ocr.md; P-O1 a P-O3). Los
+cuatro transversales (con el CRM) comparten núcleo y se potencian entre
+sí; dep-pln los prioriza por pipeline real, no por entusiasmo.
+
+D-29 · Tarifas fiscales de nómina como datos versionados — DECIDIDO:
+tarifas ISR/subsidio, UMA, mínimos y cuotas viven como datos con fuente y
+vigencia (patrón de conocimiento del grafo); el CLI bloquea cualquier
+cálculo con tarifa vencida. Ni hardcodeo ni memoria de agente: la ley
+cambia cada año y el sistema debe enterarse por carga aprobada, no por
+suerte.
+
+D-30 · Dispersión en dos tiempos — DECIDIDO: arranque con "el sistema
+prepara el archivo bancario (hasheado contra lo aprobado), el humano lo
+ejecuta en su banca"; la dispersión directa llegará con tes y conexión
+bancaria, con sus propias compuertas. El dinero de la nómina es el más
+sensible de la casa: se automatiza al final, no al principio.
+
+D-31 · Doble firma en reglas de nómina — DECIDIDO y BLOQUEANTE: contador
+(fiscal) + especialista laboral (LFT/IMSS/REPSE) auditan reglas/dep-nom.md
+antes del primer periodo real; el especialista laboral entra a
+pln_estructura como puesto planeado con umbral = activación de dep-nom.
+Las liquidaciones exigen su revisión caso por caso.
+
+D-32 · Conexión bancaria progresiva — DECIDIDO: fase 1, estados de cuenta
+por archivo/OCR y ejecución de pagos por archivo hasheado en la banca del
+cliente (el humano ejecuta); fase 2, conexión directa (API/host-to-host)
+SOLO cuando exista, con sus propias compuertas, doble aprobación y
+límites por operación/día — y nunca antes de que la fase 1 haya operado
+limpia. El estándar de custodia de credenciales bancarias es el de D-18,
+elevado: vault dedicado, dictamen legal, límites en el propio banco.
+
+D-33 · Política de inversión de excedentes — PENDIENTE y BLOQUEANTE para
+invertir un peso: instrumentos permitidos, plazos, contrapartes y montos
+máximos, escrita por el cliente con su asesor, auditada, cargada como
+regla con fuente. Sin política no hay inversión; con política, el agente
+propone dentro de ella y el humano aprueba. Jamás trading agéntico.
+
+D-34 · Beneficiarios con verificación fuera de banda — DECIDIDO: el
+cambio de CLABE por correo falso es el fraude más común de tesorería;
+todo alta/cambio de cuenta exige verificación por canal independiente ya
+registrado + aprobador distinto del solicitante, ambos documentados en el
+expediente del beneficiario. La prueba adversarial de ERP-6 incluye el
+intento de fraude sembrado.
