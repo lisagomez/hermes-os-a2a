@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>business-os-new</title>
+<style>
+  html, body {
+    margin: 0; height: 100%;
+    background: #0a0a0f; color: #fafafa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none; overflow: hidden;
+  }
+  .wrap { text-align: center; }
+  .logo {
+    width: 84px; height: 84px; border-radius: 22px;
+    box-shadow: 0 0 42px rgba(140, 39, 241, 0.35);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 42px rgba(140, 39, 241, 0.35); }
+    50% { transform: scale(1.04); box-shadow: 0 0 58px rgba(140, 39, 241, 0.55); }
+  }
+  h1 { margin: 18px 0 4px; font-size: 19px; font-weight: 700; letter-spacing: 0.02em; }
+  p { margin: 0; font-size: 12px; color: #9f9fa8; }
+  .bar {
+    margin: 20px auto 0; width: 160px; height: 3px; border-radius: 3px;
+    background: rgba(255,255,255,0.08); overflow: hidden; position: relative;
+  }
+  .bar::after {
+    content: ''; position: absolute; inset: 0; width: 40%;
+    border-radius: 3px; background: #8c27f1;
+    animation: slide 1.1s ease-in-out infinite;
+  }
+  @keyframes slide { 0% { left: -40%; } 100% { left: 100%; } }
+  #error { display: none; margin-top: 16px; max-width: 320px; font-size: 11px; color: #f87171; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="logo" src="icon-192.png" alt="business-os-new" />
+    <h1>business-os-new</h1>
+    <p>Arrancando tu sistema operativo de negocio…</p>
+    <div class="bar" id="bar"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    // Llamado desde Rust si el server local no pudo arrancar
+    window.__splashError = function (msg) {
+      var e = document.getElementById('error')
+      e.textContent = msg
+      e.style.display = 'block'
+      var b = document.getElementById('bar')
+      if (b) b.style.display = 'none'
+    }
+  </script>
+</body>
+</html>

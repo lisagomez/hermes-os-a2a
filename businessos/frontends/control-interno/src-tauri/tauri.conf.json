@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "business-os-new",
+  "version": "0.1.0",
+  "identifier": "com.businessos.app",
+  "build": {
+    "beforeDevCommand": "node scripts/desktop-dev-server.mjs",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "npm run build && node scripts/prepare-tauri-resources.mjs",
+    "frontendDist": "../public"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "business-os-new",
+        "create": false,
+        "url": "http://localhost:3000",
+        "width": 1440,
+        "height": 920,
+        "minWidth": 1080,
+        "minHeight": 720
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "icon": ["../public/icon-512.png"],
+    "macOS": {
+      "entitlements": "entitlements.plist"
+    },
+    "resources": {
+      "resources/next": "next"
+    }
+  }
+}
