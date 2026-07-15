@@ -721,6 +721,17 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 - **Web propia** (producto, futuro): el canal de clientes, con marca propia y
   aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
   prefiere.
+  - **Frontends web (código, desde 2026-07-13)** — `businessos/frontends/` reúne las
+    **tres superficies** (ver su README): **control-interno** (cabina del equipo,
+    NO de cara al cliente; Next 16 + Supabase + Tauri, vendored) ✅ integrado;
+    **cliente-web2** (producto marca-blanca) 🚧 aún sin carpeta; **cliente-a2a-web3**
+    (A2A card / web3) 🎨 solo demo de diseño. Los tres consumen el mismo contrato de
+    daemon (`/chat/stream` SSE + `/api/openclaw/action`) → punto de integración con
+    Hermes/A2A.
+  - **control-interno corre local (2026-07-14)**: `npm run dev` levanta la app (login
+    Titaniumorphism renderiza). Pendiente para operarla: **wire de Supabase real** +
+    el daemon Hermes implementando `/chat/stream`. Estado y cómo retomar en la memoria
+    `project/frontends-control-interno.md`. Trabajo en la rama `feat/erp-frontends`.
 
 ---
 

@@ -836,4 +836,21 @@ npm run lint         # ESLint
   el slash command padre `/hermes`).
 - **Aplicar en**: toda vertical que sume Slack.
 
+### 2026-07-14: master ahora tiene `enforce_admins:true` — el `--admin` YA NO saltea la revisión
+- **CORRIGE** el aprendizaje 2026-07-12 (GitHub) que daba `enforce_admins:false` y decía que el
+  admin (y por tanto el agente con su token) podía saltarse la protección. **Ya no**: master está
+  con `enforce_admins:true` + `required_approving_review_count:1` (verificado 2026-07-14).
+  Consecuencias al mergear un PR: (a) `gh pr merge --admin` **falla** con "At least 1 approving
+  review is required" — no hay bypass por token; (b) GitHub **prohíbe que el autor apruebe su
+  propio PR** → si el agente creó el PR con `lisagomez`, esa cuenta no puede aprobarlo; (c) los
+  **4 colaboradores con write** (`HuertaVictor`, `Johann-Valderrama`, `ZELANDIAIO`,
+  `makeflowia-lab`) sí pueden aprobar → camino sano.
+- **Bypass (solo con OK explícito de la dueña)**: respaldar la config completa a un JSON
+  (`gh api .../branches/master/protection`), bajar `required_approving_review_count` a 0 vía
+  `gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`, mergear, y
+  **RESTAURAR a 1 de inmediato** verificando el estado final. Usado así el 2026-07-14 para PRs
+  #49/#50 con autorización expresa. No es la vía por defecto: debilita la compuerta que
+  `enforce_admins:true` protege.
+- **Aplicar en**: todo merge a master. Detalle en `.claude/memory/reference/master-branch-protection.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
