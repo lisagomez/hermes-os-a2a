@@ -728,10 +728,16 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
     (A2A card / web3) 🎨 solo demo de diseño. Los tres consumen el mismo contrato de
     daemon (`/chat/stream` SSE + `/api/openclaw/action`) → punto de integración con
     Hermes/A2A.
-  - **control-interno corre local (2026-07-14)**: `npm run dev` levanta la app (login
-    Titaniumorphism renderiza). Pendiente para operarla: **wire de Supabase real** +
-    el daemon Hermes implementando `/chat/stream`. Estado y cómo retomar en la memoria
-    `project/frontends-control-interno.md`. Trabajo en la rama `feat/erp-frontends`.
+  - **control-interno CABLEADO en runtime (2026-07-15, PR #51)**: desplegado en Hetzner
+    como contenedor **`frontend-ci`** (`127.0.0.1:3001`), ahora **servicio del compose**
+    (project `businessos`) y en **`hermes-net`** (resuelve por DNS los servicios del
+    agente). **Supabase real cableado**: creds del proyecto **A2ABot** + las **31 tablas**
+    del frontend aplicadas ahí (reconciliando `profiles`/`handle_new_user` sin romper el
+    signup del negocio — ver aprendizaje CLAUDE.md 2026-07-15). Sigue en `next dev` (no
+    build de prod). **Pendiente**: (1) el **daemon** que sirva `/chat/stream` +
+    `/api/openclaw/action` (`CLAUDECLAW_URL` aún en `localhost:3099`, sin servicio que lo
+    sirva); (2) crear el usuario de Elisa; (3) opcional build de prod + exponer por `edge`.
+    Estado y cómo retomar en la memoria `project/frontends-control-interno.md`.
 
 ---
 
