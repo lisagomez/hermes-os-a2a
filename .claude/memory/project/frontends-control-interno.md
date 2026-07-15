@@ -13,17 +13,28 @@ Los tres consumen el mismo **contrato de daemon** (`/chat/stream` SSE +
 `/api/openclaw/action`, auth `OPENCLAW_GATEWAY_TOKEN`) → **punto de integración con
 Hermes/A2A**: nuestro backend puede ser ese daemon implementando `/chat/stream`.
 
-**control-interno — estado (2026-07-14)**:
-- **Corre local** en la máquina de dev: `cd businessos/frontends/control-interno && npm run dev`
-  → `http://localhost:3000` (redirige a `/login`). **Node 20.20.2 sirve** con Next 16 pese al
-  README que pide 22 (eso es por Tauri). `node_modules` git-ignored (~708 MB).
-- `.env.local` es **PLACEHOLDER** (Supabase dummy, git-ignored): el dev server bootea y el login
-  Titaniumorphism renderiza, pero **no se puede entrar** (sin auth ni datos reales).
-- **Pendiente para operarla** (retomar aquí): (1) **wire de Supabase real** — proyecto +
-  migraciones (`supabase/migrations/`: base_schema, finances, calendar, canvas, todoist) +
-  usuario de la dueña; (2) el chat necesita el **daemon Hermes/A2A** por `/chat/stream`.
-  Su esquema Supabase **coexiste** con el esquema `erp` (no chocan; reconciliar = trabajo aparte).
-- Trabajo en la rama `feat/erp-frontends` (desde master 2026-07-14).
+**control-interno — estado (2026-07-15: CABLEADO en runtime)**:
+- **Desplegado en Hetzner** como contenedor **`frontend-ci`** (`127.0.0.1:3001`), ahora
+  **servicio del compose** (`docker-compose.yml`, project `businessos`) y en **`hermes-net`**
+  (resuelve por DNS `hermes-negocio`, `grafo-a2a`, `a2abot`). Sigue en `next dev --turbopack`
+  sobre el código bind-monteado desde `${HOME}/frontend-control-interno` (no build de prod).
+  Antes se corría a mano con `docker run` (huérfano del compose) — corregido esta sesión.
+- **Supabase real cableado**: su `.env.local` (en el server) pasó de placeholders → claves
+  reales del proyecto **A2ABot** (`hsejpktzcqwkwkwholkw`), validadas (`auth/v1/settings` 200,
+  REST 200). Para VER la UI en dev local el `.env.local` del repo sigue en placeholder.
+- **Las 31 tablas del frontend aplicadas a A2ABot** (mismo proyecto que el negocio/trío, no uno
+  dedicado, porque ahí apuntan las creds). La única colisión (`profiles`) se reconcilió sin
+  romper el signup del negocio: se añadió la columna `role` (superset) y se instaló un
+  `handle_new_user` **fusionado** (inserta `avatar_url` del negocio **y** `role` del frontend,
+  `search_path=''`). Las 8 tablas del negocio y sus datos quedaron intactos. Ver el aprendizaje
+  de CLAUDE.md 2026-07-15.
+- **Pendiente para operarla del todo** (retomar aquí): (1) **daemon** que sirva `/chat/stream` +
+  `/api/openclaw/action` — el frontend ya lo alcanza por hermes-net, pero `CLAUDECLAW_URL` sigue
+  en `localhost:3099` (no hay servicio que sirva ese contrato aún): apuntarlo a
+  `http://<servicio>:<puerto>` cuando exista; (2) crear el **usuario de Elisa** (signup con
+  `OWNER_EMAIL`, el trigger fusionado le crea el profile); (3) opcional: build de prod + exponer
+  por `edge` con auth (hoy solo túnel SSH).
+- Trabajo consolidado en `master` vía PR #51 (2026-07-15, bypass autorizado de la protección).
 - Screenshots desde el agente: falta `libnspr4.so` para el chromium de Playwright →
   `sudo env "PATH=$PATH" npx playwright install-deps chromium` (el `sudo npx` pelado falla:
   root no tiene node en su PATH).
