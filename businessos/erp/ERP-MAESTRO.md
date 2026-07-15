@@ -1,4 +1,4 @@
-# ERP AGÉNTICO — Documento maestro de implementación completa (v12)
+# ERP AGÉNTICO — Documento maestro de implementación completa (v15)
 
 Documento independiente y autocontenido. Todo lo necesario para implementar el
 ERP: arquitectura, nomenclatura, requisitos, instalación por fases con pasos y
@@ -90,6 +90,34 @@ excedentes solo por política escrita — y la regla de oro del grupo: ningún
 agente mueve, invierte ni cubre dinero; los agentes preparan, concilian y
 avisan. Ver ERP-5D, regla 21 y D-32 a D-34.
 
+v13 integra el RECLUTAMIENTO DE RH (rcl, ERP-5E): la vacante nace de la
+estructura por umbrales (D-26) o de caso de negocio — jamás vacante
+fantasma —, criba de candidatos ASISTIDA pero nunca decisoria (criterios
+escritos y auditables, sin categorías protegidas, con el porqué de cada
+descarte reconstruible), pipeline conversacional por el CRM de la casa,
+lectura masiva de CVs por el Lector OCR, oferta contra tabulador y
+presupuesto, y contratación que fluye directo al expediente de nómina
+(per/5C). Además registra la disciplina FEATURE-30 de dep-dev y su
+catálogo de demos (D-35/D-36). Ver ERP-5E, regla 22 y D-35 a D-39.
+
+v14 integra el CONCEPTO de plataforma de Datos & AI como CAPA ANALÍTICA
+DE PRODUCCIÓN (ERP-8): el módulo bi deja de ser un nombre — se integra
+(no se construye) una plataforma tipo Arkham como lakehouse, ontología
+espejo del grafo, ML y copiloto analítico, con las reglas de producción
+que lo hacen seguro: extracción de solo lectura con contratos de datos,
+clasificación de sensibles, frescura declarada, y UNA sola puerta de
+regreso — sis_propuesta: la inteligencia externa propone, jamás ejecuta.
+Ver ERP-8, regla 23 y D-40 a D-42 (incluye el plan de autonomía del CRM,
+D-40).
+
+v15 adopta SIGMA AGÉNTICO (1.10, D-43): la columna estadística de Six
+Sigma sin su liturgia — cartas de control del enjambre (swm-sigma) sobre
+las series que la casa ya mide, DPMO real por clase de defecto en la CAPA
+DE JUICIO (la línea determinista no tiene sigma: tiene cero por
+constraint), CTQs formalizados sobre las métricas norte, y DMAIC como el
+nombre del ciclo que ya existe — con Control resuelto como lo resuelve la
+casa: la mejora se codifica, no se cuelga como póster.
+
 Servidor: Hetzner Cloud (Docker). Datos: Supabase/Postgres. Orquestador:
 Hermes-Negocio (ya vivo en Slack). Ejecutores de código: Claude Code.
 
@@ -114,8 +142,8 @@ factura, timbra, contabiliza y compra):
 
 - Finanzas: cob, pag, tes, fac, cfd, ctb, mon, pas, act
 - Nómina/personal: nom (nómina), per (personal/expediente), asi
-  (asistencia/incidencias) — casi todo negocio con empleados; se activa
-  por perfil
+  (asistencia/incidencias), rcl (reclutamiento) — casi todo negocio con
+  empleados; se activa por perfil
 - Compras: cmp, aba
 - Base: cat, mig, sis, api
 - Dirección: rep, bi, ger
@@ -335,6 +363,46 @@ con el real cada trimestre. Y con la frontera de siempre: los agentes
 ANALIZAN y PROPONEN (mercado, señales, escenarios); la ESTRATEGIA — qué se
 fabrica, a qué precio, con qué compromiso — la decides tú.
 
+## 1.10 Sigma agéntico (calidad estadística sin liturgia)
+
+La casa adopta la COLUMNA ESTADÍSTICA de Six Sigma y deja su ceremonia
+(belts, tollgates, proyectos de seis meses — contradicen FEATURE-30).
+Cuatro piezas, todas sobre datos que ya existen:
+
+1. DOS REGÍMENES DE CALIDAD, sin mezclarlos:
+   · La LÍNEA DETERMINISTA no tiene sigma: tiene CERO POR CONSTRAINT.
+   Una póliza descuadrada, una sobreventa o una escritura sin traza no
+   son defectos a reducir — son imposibilidades a probar (sabotajes).
+   · La CAPA DE JUICIO (respuestas N1 del CRM, campos OCR, criba,
+   clasificaciones, decisiones de torre) SÍ varía — y ahí la métrica
+   sigma es literal: DPMO por clase de defecto e intención/campo/tipo,
+   calculado de sis_bitacora y R3/G3, no estimado.
+2. SPC DEL ENJAMBRE: swm-sigma corre cartas de control sobre las series
+   que la casa ya mide (tasa de edición del copiloto, rechazos de sup,
+   exactitud OCR por campo, % de promesas cumplidas, incidentes por mil,
+   conciliación automática) — distingue CAUSA COMÚN (ruido: no se
+   persigue) de CAUSA ESPECIAL (señal: hallazgo con folio HAL-). El
+   patrón de deriva de la casa (modelos, autonomía, OCR, número WA) es
+   este mismo principio; swm-sigma lo unifica.
+3. CTQ FORMALIZADOS: cada producto declara sus critical-to-quality sobre
+   las métricas norte existentes, CON el matiz que evita el error
+   clásico: reducir variación aplica a HECHOS y CUMPLIMIENTO DE POLÍTICA,
+   no a la expresión — un CRM de tono idéntico es defecto comercial, no
+   virtud sigma.
+4. DMAIC COMO NOMENCLATURA DEL CICLO QUE YA EXISTE: Define (hallazgo o
+   spec READY) → Measure (trazas/R3) → Analyze (aud trazar es el
+   cinco-porqués automatizado) → Improve (FEATURE-30 o regla destilada)
+   → CONTROL, la fase donde el Six Sigma clásico fracasa y esta casa es
+   más fuerte: la mejora no se cuelga como póster — se CODIFICA
+   (constraint, regla versionada, degradación automática) y la siguiente
+   corrida la verifica. DFSS/DMADV = el blueprint con validación por
+   sabotaje, que ya es el patrón de fabricación.
+
+Colas raras antes que campanas: los agentes probabilísticos no fallan en
+gaussiana — fallan en colas catastróficas; por eso el techo estructural,
+el muestreo y la degradación automática valen más que cualquier Cpk, y
+ninguna métrica sigma sustituye una compuerta.
+
 ═══════════════════════════════════════════════════════════════════
 PARTE II — NOMENCLATURA (estándar único en todas las capas)
 ═══════════════════════════════════════════════════════════════════
@@ -364,7 +432,8 @@ CRM CONVERSACIONAL (pack transversal): ctc (contactos) · cnv
 con compuerta humana) · agd (agenda/citas)
 NÓMINA/PERSONAL (núcleo activable): nom (nómina: cálculo, timbrado,
 dispersión) · per (personal: expediente, contratos, salarios) · asi
-(asistencia: incidencias, tiempo, vacaciones)
+(asistencia: incidencias, tiempo, vacaciones) · rcl (reclutamiento:
+vacantes, candidatos, ofertas)
 LOGÍSTICA (pack transversal): rcb (recibo) · srt (surtido) · emp
 (empaque) · env (envíos) · ras (rastreo) · dev (devoluciones) · trn
 (transportistas) · mkc (marketplaces)
@@ -404,6 +473,7 @@ Notas de verbos:
   REP-0012, ACT-0031, HAL-0007 (hallazgo de auditoría), POL-0284 (póliza),
   DOC-0930 (documento contable/fiscal recibido), PRO-0044 (prospecto),
   CAS-0102 (caso CRM), DIF-0009 (campaña), NOM-0781 (recibo de nómina),
+  VAC-0006 (vacante), CAN-0148 (candidato),
   COT-0217 (cotización), PRM-0033 (promoción)
 - Trazas: traza_id (uuid) generado por sis_encargo; todo CLI lo acepta
   (--traza) y toda escritura lo registra. Verbo de reconstrucción:
@@ -728,7 +798,9 @@ PASOS DE INSTALACIÓN:
 2. Definir los workers swm-cierre-*: uno por ángulo — cob (vencidos), inv
    (quiebres/negativos), fac (márgenes atípicos), cfd (timbres en estado
    intermedio sin reconciliar — el swarm es el detector natural de estos),
-   tes si existe (conciliación).
+   tes si existe (conciliación). Y swm-sigma (1.10): cartas de control
+   sobre las series de calidad — causa especial = hallazgo HAL-; causa
+   común = ruido que no se persigue.
 3. Cron nocturno en hermes-negocio: lanza los workers en paralelo, consolida
    hallazgos, publica reporte a #ops-cierre (crear el canal). Tope de
    palabras al reporte (la salida es lo caro).
@@ -1446,6 +1518,120 @@ f) aud trazar reconstruye un pago completo: factura → propuesta →
 
 ──────────────────────────────────────────────
 
+## ERP-5E — Reclutamiento (rcl): especificación completa
+
+──────────────────────────────────────────────
+OBJETIVO: cerrar el ciclo del personal por el principio — de la vacante a
+la contratación — con la regla que gobierna todo el grupo: los agentes
+ADMINISTRAN el proceso y ASISTEN la evaluación; las decisiones sobre
+personas (a quién entrevistar, a quién ofertar, a quién contratar) son
+HUMANAS, siempre, con el porqué reconstruible. El dominio toca dignidad y
+ley antidiscriminatoria: aquí la trazabilidad no es eficiencia, es
+defensa — del candidato y del cliente.
+
+### 5E.1 La vacante (nace con causa, jamás fantasma)
+
+· rcl_vacante (folio VAC-): puesto, tabulador salarial (banda contra el
+  presupuesto y pln_estructura), perfil con CRITERIOS ESCRITOS de
+  evaluación, dueño humano, estado
+· ORIGEN OBLIGATORIO (D-39): la vacante nace de (a) el CRUCE DE UMBRAL de
+  pln_estructura (D-26 disparó: "soporte humano a N clientes" — el
+  sistema mismo pide la contratación que planeó), (b) una baja con
+  reposición aprobada, o (c) caso de negocio nuevo con botón. La vacante
+  sin causa registrada no puede abrirse — la nómina fantasma empieza con
+  la vacante fantasma.
+· PUBLICACIÓN con compuerta: el agente redacta el anuncio con el paquete
+  de marca y el perfil; publicar (bolsas, redes) es botón humano — el
+  anuncio compromete a la marca y a la banda salarial.
+
+### 5E.2 Candidatos y criba asistida (la sección delicada)
+
+· rcl_candidato (folio CAN-): datos, CV (leído y ESTRUCTURADO por el
+  Lector OCR de la casa — el lote de 300 PDFs es exactamente su caso),
+  fuente, etapa, evaluaciones, consentimiento de datos con evidencia
+· CRIBA ASISTIDA, JAMÁS DECISORIA (D-37):
+  - Los criterios de evaluación son ESCRITOS, versionados por vacante y
+    auditables — requisitos verificables del puesto (experiencia,
+    certificación, disponibilidad), nunca proxies
+  - CATEGORÍAS PROTEGIDAS estructuralmente fuera: edad, género, estado
+    civil, embarazo, apariencia, religión, origen — no son campos del
+    sistema, no entran a la criba, y solicitar prueba de embarazo o
+    similares está prohibido por LFT: la regla vive en las reglas del
+    supervisor con su fuente
+  - El agente PROPONE una lista corta CONTRA los criterios escritos, con
+    la evidencia de cada match; el humano decide a quién entrevistar
+  - rcl porque --candidato CAN-0148: el porqué de cada avance o descarte,
+    reconstruible — criterio citado + evidencia. Un descarte sin porqué
+    registrado es hallazgo de dep-aud
+  - SESGO VIGILADO: dep-aud muestrea descartes contra los criterios (¿el
+    descarte cita un criterio real o "no hizo clic"?); el patrón raro es
+    hallazgo. La herramienta asiste; el sesgo, si aparece, debe ser
+    visible y atribuible, nunca enterrado en un modelo
+· PIPELINE CONVERSACIONAL (CRM de la casa): acuse inmediato al aplicar,
+  FAQs del puesto en N0, precalificación en N1 SOLO con preguntas del
+  perfil aprobado, agenda de entrevistas con confirmación por WhatsApp,
+  y estado del proceso consultable — el silencio de semanas que quema
+  marca empleadora, eliminado. El rechazo también se comunica, con
+  respeto y a tiempo (plantilla aprobada).
+
+### 5E.3 Entrevista, oferta y contratación
+
+· ENTREVISTAS: agendadas por el sistema, evaluadas por humanos contra la
+  misma rúbrica escrita de la vacante (la rúbrica es de la vacante, no
+  del humor del entrevistador); el agente consolida las evaluaciones, no
+  las emite
+· OFERTA: monto DENTRO de la banda del tabulador y del presupuesto de
+  pln_estructura — fuera de banda es N3 (dueño) con el impacto calculado
+  en nómina y proyecciones; la oferta formal sale con botón y por escrito
+· CONTRATACIÓN = HANDOFF LIMPIO a 5C: aceptada la oferta, el sistema
+  genera el expediente per_empleado (los datos ya capturados fluyen, no
+  se recapturan), el contrato para firma, el ALTA IMSS preparada para
+  IDSE (5C.4), el checklist de onboarding con dueños y fechas, y —
+  cerrando el círculo — el puesto se marca CUBIERTO en pln_estructura:
+  la estructura planeada se vuelve estructura activa con folio.
+
+### 5E.4 Datos de candidatos (retención con reloj)
+
+Los datos de quien NO fue contratado tienen reloj (D-38): retención
+limitada y declarada en el aviso de privacidad; pasado el plazo, borrado
+verificable — o consentimiento EXPLÍCITO para bolsa de talento (renovable,
+no eterno). ARCO atendible por el mismo canal por el que aplicaron.
+dep-aud verifica el reloj: un CV de hace tres años sin consentimiento
+vigente es hallazgo.
+
+### 5E.5 Trío, métricas y validación
+
+exe-rcl/sup-rcl con tarjetas (acceso a rcl_*, seguido de per solo en el
+handoff); reglas/dep-rcl.md con revisión del especialista laboral (la
+misma firma de D-31 — antidiscriminación y requisitos LFT).
+MÉTRICAS con fuente automática: tiempo de cobertura por vacante, embudo
+por etapa, efectividad por fuente (dónde sí aparecen los buenos), % de
+descartes con porqué citado (meta: 100%), tiempo de respuesta al
+candidato, y costo por contratación (incluido el token).
+
+VALIDACIÓN DE CIERRE (una vacante completa en staging, 30 CVs sintéticos
+variados vía OCR):
+a) La vacante solo abre con causa (intento sin origen: rechazado); una
+   disparada por umbral de pln_estructura llega sola con su caso.
+b) Criba: la lista corta propuesta cita criterio + evidencia por
+   candidato; rcl porque responde por TODOS los descartes; sembrar un CV
+   descartable solo por categoría protegida → el sistema NO lo descarta
+   por eso (la categoría ni existe como campo) y el intento de agregar el
+   criterio prohibido a la vacante es rechazado con fuente.
+c) Pipeline conversacional: aplicación → acuse → precalificación (solo
+   preguntas del perfil; una pregunta prohibida sembrada en el guion es
+   bloqueada por sup) → entrevista agendada y confirmada por WhatsApp.
+d) Oferta fuera de banda detenida en N3 con impacto calculado; oferta en
+   banda sale con botón.
+e) Contratación: expediente per generado sin recaptura, alta IMSS
+   preparada, onboarding con dueños, puesto CUBIERTO en pln_estructura.
+f) Reloj de datos: un candidato con retención vencida y sin consentimiento
+   aparece como hallazgo; su borrado es verificable.
+g) aud trazar reconstruye el proceso completo de la contratación — y el
+   de un descarte, con su porqué.
+
+──────────────────────────────────────────────
+
 ## ERP-6 — Marca blanca / multi-cliente
 
 ──────────────────────────────────────────────
@@ -1647,6 +1833,113 @@ g) Estructura: organigrama híbrido completo (todo agente activo con
    activación del puesto en #dep-pln — la estructura avisa antes de que el
    cuello de botella duela.
 
+──────────────────────────────────────────────
+
+## ERP-8 — Capa analítica y de ML (bi): integración de producción
+
+──────────────────────────────────────────────
+OBJETIVO: activar el módulo bi INTEGRANDO una plataforma de Datos & AI
+(lakehouse + ontología + ML + copiloto analítico; Arkham como referencia
+de encaje) en lugar de construirla — con las reglas que la hacen segura
+en producción. La división de trabajo en una línea: LA PLATAFORMA
+ANALÍTICA RESPONDE QUÉ PASA Y QUÉ CONVIENE; LA FÁBRICA EJECUTA CON
+COMPUERTAS. Y la regla madre extendida: el OLTP manda en lo operativo,
+el lakehouse manda en lo analítico, la ontología indexa — si se
+contradicen, es hallazgo.
+
+### 8.1 Subida (operación → analítica): solo lectura con contrato
+
+· ROL DEDICADO rol_bi en Postgres: SELECT únicamente, mismo estándar
+  estructural que rol_swm; el service role jamás, tampoco para esto. La
+  imposibilidad de escribir se prueba en la BD, no se promete.
+· EXTRACCIÓN INCREMENTAL (CDC/por evento, no volcados completos), por
+  tenant, preservando el aislamiento de punta a punta: la partición por
+  cliente_id viaja al lakehouse y se verifica adversarialmente allá
+  también.
+· CONTRATOS DE DATOS versionados por dataset: esquema, semántica, dueño
+  y frescura pactada. Todo cambio de esquema del OLTP corre contra la
+  suite de contrato EN STAGING del pipeline — el cambio rompe ahí, no en
+  el tablero del cliente (el patrón de contract tests de los conectores,
+  aplicado hacia adentro).
+· CLASIFICACIÓN DE SENSIBLES obligatoria en el contrato: per_*/nom_*/
+  candidatos y saldos viajan AGREGADOS o pseudonimizados salvo caso de
+  uso aprobado con dictamen; el aviso de privacidad de cada tenant manda
+  sobre cualquier apetito analítico. Credenciales del conector en vault
+  (D-18).
+
+### 8.2 Ontología espejo del grafo (una sola semántica)
+
+Las entidades del negocio (pedido, factura, contacto, paquete, póliza,
+activo) y los NIVELES del grafo (G/R/C 0–4) se materializan en la
+ontología de la plataforma CON sus metadatos de fuente y vigencia — y se
+SINCRONIZAN desde la fábrica, jamás se editan a mano del lado analítico.
+La consistencia grafo↔ontología entra al programa de dep-aud con el
+mismo criterio que G1↔BD: el espejo desincronizado es peor que no tener
+espejo.
+
+### 8.3 Bajada (analítica → operación): UNA sola puerta
+
+Se crea sis_propuesta (migración 008): la cola única de entrada de TODA
+inteligencia externa — pronósticos, anomalías, segmentos, scores,
+recomendaciones — con origen, modelo y versión, evidencia, tipo y
+estado. De ahí, el ciclo de siempre: sup-* valida → regla aprobada o
+botón humano según toque → ejecución por CLI con traza → resultado de
+vuelta al lakehouse.
+PROHIBIDO ESTRUCTURALMENTE: reverse-ETL directo al OLTP, agentes
+analíticos con credenciales de escritura, o cualquier verbo disparado
+desde fuera del ciclo. La plataforma analítica recomienda; la fábrica
+decide. El plan de autonomía (D-40) aplica igual a las reglas que nazcan
+de recomendaciones: suben la escalera con evidencia; dinero e
+irreversibles, jamás.
+
+### 8.4 ML con verdad medida (el círculo que se cierra)
+
+· Los modelos (pronóstico de demanda → promesa/quiebres; riesgo de
+  cobranza → flujo 13 semanas y prioridad de recordatorios; anomalías →
+  candidatos de hallazgo; segmentación → campañas con hipótesis prm) se
+  versionan y se EVALÚAN contra la verdad trazada: cada propuesta
+  ejecutada regresa con su resultado (¿atinó el pronóstico?, ¿el
+  hallazgo era real?, ¿la campaña pagó?) — el backtesting es contra
+  trazas, no contra fe.
+· DERIVA DE MODELO como ciudadano de primera: la precisión por modelo se
+  vigila por ventana móvil (patrón G3); un modelo degradado se marca y
+  sus propuestas bajan de peso o se pausan — nunca degrada en silencio.
+· El copiloto analítico (tipo TARS) es interfaz de PREGUNTA (lectura);
+  hermes sigue siendo la única interfaz de ENCARGO. Dos puertas, dos
+  contratos, cero confusión.
+
+### 8.5 Producción: frescura, fallas y costo
+
+· FRESCURA DECLARADA por dataset (SLO) y VISIBLE: los tableros ya marcan
+  quién mantiene cada panel y cuándo; lo analítico añade su SLO — y LO
+  OPERATIVO NUNCA ESPERA AL PIPELINE: compuertas, posición de caja y
+  conciliación viven del OLTP; el pipeline caído degrada análisis, jamás
+  operación (failsafe explícito).
+· FALLAS: pipeline en rojo alerta a #ops-alertas con su dataset y su
+  SLO; los datos viejos se MARCAN en destino (patrón OCR: la antigüedad
+  se exhibe, no se disimula).
+· COSTO MEDIDO: cómputo/egreso del circuito analítico por tenant, junto
+  a token_usage — la analítica también entra al margen (D-25).
+
+ENTREGABLES: rol_bi probado + conector CDC con contratos + clasificación
+de sensibles + ontología espejo + migración 008 (sis_propuesta) + primer
+modelo en circuito cerrado + SLOs visibles.
+VALIDACIÓN DE CIERRE:
+a) El conector no puede escribir (probado en Postgres) y el aislamiento
+   por tenant sobrevive al lakehouse (prueba adversarial del otro lado).
+b) Un cambio de esquema sembrado en el OLTP rompe la suite de contrato
+   en staging del pipeline — producción ni se entera.
+c) Un dato sensible intentando viajar sin su clasificación: bloqueado
+   por el contrato.
+d) UN circuito cerrado completo: pronóstico → sis_propuesta → botón →
+   compra/campaña → resultado de vuelta con traza — y el modelo evaluado
+   contra ese resultado.
+e) Pipeline detenido a propósito: la operación (una venta con timbrado)
+   fluye intacta; el tablero marca los paneles analíticos como viejos;
+   la alerta llegó.
+f) Un intento de escritura directa "desde la analítica" (reverse-ETL
+   simulado): imposible; y dep-aud lo encuentra como intento registrado.
+
 ═══════════════════════════════════════════════════════════════════
 PARTE V — OPERACIÓN (cómo se ve el día a día al terminar)
 ═══════════════════════════════════════════════════════════════════
@@ -1820,6 +2113,26 @@ PARTE VI — REGLAS INQUEBRANTABLES Y RIESGOS
    el trading agéntico; coberturas cambiarias son decisión humana con
    escenarios; y la conciliación bancaria es prerequisito del cierre: un
    cargo no reconocido alerta en horas, no en el corte mensual.
+22. Las decisiones sobre personas son humanas: la criba asiste con
+   criterios escritos y auditables, jamás decide; las categorías
+   protegidas no existen como campos ni como criterios; todo descarte
+   tiene porqué reconstruible y el sesgo se vigila por muestreo; la
+   vacante nace con causa registrada; los datos de candidatos no
+   contratados tienen reloj de retención; y las reglas del dominio llevan
+   la firma del especialista laboral.
+23. La analítica propone, la fábrica ejecuta: toda inteligencia externa
+   entra por sis_propuesta con origen, modelo y evidencia — jamás por
+   escritura directa (el conector analítico es de solo lectura probada);
+   el OLTP manda en lo operativo y nunca espera al pipeline; los datos
+   sensibles viajan clasificados o no viajan; la frescura se declara y
+   se exhibe; y los modelos se evalúan contra la verdad trazada — un
+   modelo que degrada se marca, nunca degrada en silencio.
+24. Sigma agéntico: lo determinista exige cero por constraint (se prueba
+   con sabotaje, no se mide con sigma); la capa de juicio se mide con
+   DPMO real y cartas de control — causa especial es hallazgo, causa
+   común no se persigue; los CTQ cubren hechos y política, jamás la
+   expresión; y toda mejora se codifica para que la siguiente corrida la
+   verifique. Ninguna métrica sigma sustituye una compuerta.
 
 MAPA DE DEPENDENCIAS:
 Fases 1-2 del proyecto validadas + respaldos probados + staging
@@ -2059,3 +2372,74 @@ todo alta/cambio de cuenta exige verificación por canal independiente ya
 registrado + aprobador distinto del solicitante, ambos documentados en el
 expediente del beneficiario. La prueba adversarial de ERP-6 incluye el
 intento de fraude sembrado.
+
+D-35 · FEATURE-30 como unidad de trabajo de dep-dev — DECIDIDO: desarrollo
+completo (código + prueba + sabotaje + alta en act + demo) en ~30 minutos
+de Claude Code sobre la fábrica; la unidad NUNCA crece — lo grande se
+encadena, lo irreversible jamás toma atajos. Disciplina completa en
+dep-dev-microfabrica.md (incluye el catálogo F-01 a F-15 priorizado por
+demanda de mercado, con sesgo a lo que cobra dinero).
+
+D-36 · Catálogo de features con demo como activo comercial — DECIDIDO:
+toda FEATURE-30 nace con nombre comercial del dolor, blueprint mini, demo
+funcional enseñable y precio como módulo; la sesión de descubrimiento de
+dep-pln enseña demos, no promesas. Primera demo fabricada:
+demo-a2acard.html (la tarjeta D-14 en vivo, con sabotaje incluido). El
+catálogo completo con precios y reuso medidos es defendible (1.7); las
+features sueltas, reemplazables.
+
+D-37 · Criba asistida, jamás decisoria — DECIDIDO: criterios escritos y
+versionados por vacante, categorías protegidas estructuralmente ausentes
+(ni campos ni criterios), lista corta propuesta con evidencia, decisión
+humana, porqué de cada descarte reconstruible (rcl porque), y sesgo
+vigilado por muestreo de dep-aud. La firma del especialista laboral
+(D-31) cubre también estas reglas.
+
+D-38 · Reloj de retención de candidatos — DECIDIDO: los datos de no
+contratados tienen plazo declarado en el aviso de privacidad; vencido el
+plazo, borrado verificable o consentimiento explícito renovable para
+bolsa de talento. dep-aud verifica el reloj.
+
+D-39 · La vacante nace con causa — DECIDIDO: umbral de pln_estructura,
+reposición aprobada o caso de negocio con botón; sin causa registrada no
+hay vacante. El ciclo se cierra solo: la estructura planeada (D-26)
+dispara la vacante, la contratación marca el puesto cubierto — el
+organigrama y la nómina jamás se desincronizan.
+
+D-40 · Autonomía progresiva del CRM por intención — DECIDIDO:
+especificación completa en plan-autonomia-crm.md. Escalera A0–A3 por
+intención (no por agente), techo estructural (dinero, irreversibles,
+sensibles y "quiero un humano" jamás autónomos), subir es expediente +
+botón humano, bajar es regla automática; palancas: contexto, reglas
+destiladas de decisiones repetidas, cobertura del caso de uso y tono
+calibrado con diffs del copiloto. La deriva de autonomía es hallazgo
+crítico. Las tres curvas se leen juntas: autonomía ↑, incidentes →0,
+minutos humanos ↓.
+
+D-41 · Capa analítica por integración, no construcción — DECIDIDO: el
+módulo bi se activa integrando una plataforma de Datos & AI (lakehouse +
+ontología + ML + copiloto; Arkham como referencia de encaje) bajo las
+reglas de producción de ERP-8: conector de solo lectura probada (rol_bi),
+contratos de datos con clasificación de sensibles, ontología ESPEJO del
+grafo (sincronizada, jamás editada allá), y frescura declarada. No se
+construye warehouse ni ML propios; sí se es dueño de la semántica (el
+grafo) y de la portabilidad (contrato con salida).
+
+D-42 · sis_propuesta como única puerta de regreso — DECIDIDO: toda
+inteligencia externa (pronóstico, anomalía, segmento, score) entra a la
+operación exclusivamente por sis_propuesta (migración 008) con origen,
+modelo/versión y evidencia, y sigue el ciclo de compuertas. Reverse-ETL
+directo y credenciales de escritura para agentes analíticos: prohibidos
+estructuralmente. Cada propuesta ejecutada regresa con su resultado
+trazado — los modelos se evalúan contra la verdad, y el que degrada se
+pausa, no degrada en silencio.
+
+D-43 · Sigma agéntico — DECIDIDO: se adopta la columna estadística de
+Six Sigma (SPC vía swm-sigma, DPMO por clase de defecto en la capa de
+juicio, CTQ sobre las métricas norte, DMAIC como nomenclatura del ciclo
+existente) y se deja la liturgia (belts, tollgates, proyectos largos).
+Dos regímenes sin mezclar: determinista = cero por constraint probado
+con sabotaje; juicio = variación medida con cartas. Control se resuelve
+codificando la mejora. Y la advertencia permanente: los agentes fallan
+en colas raras, no en campanas — el techo estructural y las compuertas
+van antes que cualquier Cpk. Especificación operativa en 1.10.
