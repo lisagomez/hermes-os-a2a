@@ -73,3 +73,11 @@ businessos/obsidian/
 
 # TypeScript incremental
 tsconfig.tsbuildinfo
+
+# Python (businessos/*, servicios A2A y tests)
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Reuniones/transcripts privados (ver inbox-reuniones-negocio-segmentado en OPS)
+docs/
