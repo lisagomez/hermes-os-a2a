@@ -1,0 +1,16 @@
+/* Variables tipográficas SIN el @import de Google Fonts.
+ * La app consumidora carga las familias (Space Grotesk / JetBrains Mono) por su
+ * propio mecanismo (p.ej. next/font) y expone --font-display / --font-mono.
+ * Para uso standalone (sin bundler) usar tokens/typography.css en su lugar. */
+:root {
+  --text-hero: 52px;
+  --text-h2: 32px;
+  --text-h3: 19px;
+  --text-body-size: 15px;
+  --text-small: 13px;
+  --text-micro: 11px;
+  --leading-tight: 1.08;
+  --leading-body: 1.6;
+  --tracking-kicker: 0.2em;
+  --tracking-brand: 0.14em;
+}

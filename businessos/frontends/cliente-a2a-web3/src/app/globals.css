@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "@a2a/design-system/tokens.css";
+
+:root {
+  --font-display: var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+::selection {
+  background: rgba(159, 123, 255, 0.35);
+  color: var(--text-1);
+}
+
+@keyframes a2a-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.a2a-cursor {
+  animation: a2a-blink 1s steps(1) infinite;
+}
+
+@media (max-width: 900px) {
+  .a2a-web3-hero,
+  .a2a-web3-cols {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a2a-cursor {
+    animation: none;
+  }
+}

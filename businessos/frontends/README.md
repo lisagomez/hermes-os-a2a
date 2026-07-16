@@ -8,9 +8,10 @@ cliente · A2A).
 
 | Dir | Superficie | Para quién | Canal / stack | Estado |
 |-----|-----------|-----------|---------------|--------|
+| `design-system/` | **Design system A2A Factory** | las superficies de cliente | tokens CSS + componentes TSX (`@a2a/design-system`) | ✅ fundado (vendored del ZIP de la dueña, 2026-07-16; ver `design-system/README.md`) |
 | `control-interno/` | **Control interno** | el equipo (operar el Business OS) | Next.js + Supabase + Tauri (Titaniumorphism) | ✅ integrado (vendored de `daniel-carreon/business-os-new`; ver `control-interno/VENDORED-FROM.md`) |
-| `cliente-web2/` | **Cliente web2** | clientes finales, web tradicional | web2, marca blanca | 🚧 en desarrollo (aún no integrado) |
-| `cliente-a2a-web3/` | **Cliente A2A-card web3** | clientes vía A2A card / web3 | web3 + A2A card (identidad de agente) | 🎨 diseño (demo funcional de la Tarjeta A2A; app pendiente) |
+| `cliente-web2/` | **Cliente web2** | clientes finales, web tradicional | Next.js 16 + Supabase + Tailwind v4 + `@a2a/design-system` | ✅ integrado (landing bilingüe + cotizador + leads + chat; deploy Vercel — ver `DEPLOY-web2.md`) |
+| `cliente-a2a-web3/` | **Cliente A2A-card web3** | clientes vía A2A card / web3 | web3 + A2A card (identidad de agente) | 🎨 diseño + scaffold (demo de la Tarjeta A2A; app en scaffold) |
 
 ## Rol de cada superficie
 

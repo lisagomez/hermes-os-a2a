@@ -1,0 +1,31 @@
+<!-- @dsCard group="Landing" viewport="1240x760" subtitle="Hero CLI-first + nav con toggles" name="Landing — hero" -->
+<!-- @startingPoint section="Screens" subtitle="Landing A2A Factory: hero con terminal viva" viewport="1240x760" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css"><style>body{margin:0;background:var(--bg);color:var(--text-1);font-family:var(--font-display)}@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}@keyframes pulseDot{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}</style></head><body>
+<nav style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 32px;background:rgba(11,10,16,.85);border-bottom:1px solid var(--border-1)">
+  <div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--orb-violet);box-shadow:0 0 18px rgba(124,92,255,.7)"></div><span style="font-weight:700;letter-spacing:var(--tracking-brand);font-size:15px">A2A·FACTORY</span></div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="display:inline-flex;gap:2px;background:var(--surface-4);border:1px solid var(--border-1);border-radius:999px;padding:3px"><button style="cursor:pointer;border:none;font-family:var(--font-display);font-size:12px;font-weight:600;padding:6px 13px;border-radius:999px;background:var(--grad-brand);color:var(--on-accent)">Humano</button><button style="cursor:pointer;border:none;font-family:var(--font-display);font-size:12px;font-weight:600;padding:6px 13px;border-radius:999px;background:transparent;color:var(--text-3)">Agente A2A</button></div>
+    <a href="#" style="font-size:13px;font-weight:600;color:var(--on-accent);background:var(--grad-brand);padding:9px 18px;border-radius:999px;text-decoration:none;box-shadow:var(--glow-pink)">Agendar llamada</a>
+  </div>
+</nav>
+<section style="display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;max-width:1240px;margin:0 auto;padding:64px 32px">
+  <div style="display:flex;flex-direction:column;gap:22px">
+    <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--pink-soft);border:1px solid rgba(255,77,141,.35);border-radius:999px;padding:6px 14px;background:rgba(255,77,141,.06)"><span style="width:7px;height:7px;border-radius:50%;background:var(--pink);animation:pulseDot 2s infinite"></span>CLI-FIRST · AGENT-TO-AGENT · END-TO-END</div>
+    <h1 style="margin:0;font-size:var(--text-hero);line-height:var(--leading-tight);font-weight:700;letter-spacing:-.01em">Fábrica de agentes de IA: <span style="background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent">de tu caso de uso al panel de control.</span></h1>
+    <p style="margin:0;font-size:18px;line-height:var(--leading-body);color:var(--text-2);max-width:520px">Adaptamos cada proyecto con inteligencia artificial de principio a fin — agentes a la medida, con panel operativo y financiero, control de presupuesto y proyección.</p>
+    <div style="display:flex;gap:14px;align-items:center"><a href="#" style="font-size:15px;font-weight:700;color:var(--on-accent);background:var(--grad-brand);padding:14px 26px;border-radius:14px;text-decoration:none;box-shadow:var(--glow-violet)">Agendar llamada</a><a href="#" style="font-size:15px;font-weight:600;color:var(--text-1);border:1px solid var(--border-3);padding:13px 24px;border-radius:14px;background:rgba(255,255,255,.03);text-decoration:none">Ver A2A Cards</a></div>
+  </div>
+  <div style="border:1px solid var(--border-2);border-radius:16px;background:var(--surface-1);box-shadow:var(--shadow-panel);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border-1);background:var(--surface-2)"><span style="width:11px;height:11px;border-radius:50%;background:#FF5F57"></span><span style="width:11px;height:11px;border-radius:50%;background:#FEBC2E"></span><span style="width:11px;height:11px;border-radius:50%;background:#28C840"></span><span style="margin-left:10px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">a2a-cli — demo en vivo</span></div>
+    <div style="padding:18px 20px;min-height:210px;font-family:var(--font-mono);font-size:13px;line-height:1.75">
+      <div style="color:var(--text-1)">$ a2a init --caso "ecommerce" --alcance full</div>
+      <div style="color:var(--success-soft)">✓ analizando caso de uso…</div>
+      <div style="color:var(--success-soft)">✓ 3 agentes recomendados: vendo-1, oraculo, tesoro</div>
+      <div style="color:var(--text-1)">$ a2a deploy --panel ops+fin</div>
+      <div style="color:var(--lilac)">⚙ adaptando agentes a tu flujo…</div>
+      <div style="color:var(--success-soft)">✓ panel listo → https://panel.tu-empresa.a2a</div>
+      <span style="display:inline-block;width:9px;height:17px;background:var(--violet);animation:blink 1s infinite"></span>
+    </div>
+  </div>
+</section>
+</body></html>
