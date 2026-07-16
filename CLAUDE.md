@@ -864,4 +864,49 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier frontend nuevo del monorepo, todo paquete local `file:` con Turbopack,
   y toda verificación de un server local. Detalle: `.claude/memory/project/frontend-web2.md`.
 
+### 2026-07-14: master ahora tiene `enforce_admins:true` — el `--admin` YA NO saltea la revisión
+- **CORRIGE** el aprendizaje 2026-07-12 (GitHub) que daba `enforce_admins:false` y decía que el
+  admin (y por tanto el agente con su token) podía saltarse la protección. **Ya no**: master está
+  con `enforce_admins:true` + `required_approving_review_count:1` (verificado 2026-07-14).
+  Consecuencias al mergear un PR: (a) `gh pr merge --admin` **falla** con "At least 1 approving
+  review is required" — no hay bypass por token; (b) GitHub **prohíbe que el autor apruebe su
+  propio PR** → si el agente creó el PR con `lisagomez`, esa cuenta no puede aprobarlo; (c) los
+  **4 colaboradores con write** (`HuertaVictor`, `Johann-Valderrama`, `ZELANDIAIO`,
+  `makeflowia-lab`) sí pueden aprobar → camino sano.
+- **Bypass (solo con OK explícito de la dueña)**: respaldar la config completa a un JSON
+  (`gh api .../branches/master/protection`), bajar `required_approving_review_count` a 0 vía
+  `gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`, mergear, y
+  **RESTAURAR a 1 de inmediato** verificando el estado final. Usado así el 2026-07-14 para PRs
+  #49/#50 con autorización expresa. No es la vía por defecto: debilita la compuerta que
+  `enforce_admins:true` protege.
+- **Aplicar en**: todo merge a master. Detalle en `.claude/memory/reference/master-branch-protection.md`.
+
+### 2026-07-15: Meter las migraciones de una superficie en un proyecto Supabase COMPARTIDO — cuidado con `profiles` + el trigger de auth
+- **Contexto**: `frontend-ci` (cabina control-interno) se cableó al proyecto **A2ABot**
+  (`hsejpktzcqwkwkwholkw`, el mismo del negocio/trío) en vez de a uno dedicado, porque ahí ya
+  apuntaban sus credenciales. Sus 6 migraciones crean **31 tablas**; solo **una colisiona** con
+  las 8 del negocio: `profiles`.
+- **La trampa**: el `base_schema` del frontend es idempotente (`create table if not exists`,
+  `drop policy … create`), PERO trae `create or replace function public.handle_new_user()` — y
+  eso **NO** respeta el "if not exists": **sobrescribe** el trigger de auth existente. El del
+  negocio insertaba `(id,email,full_name,avatar_url)`; el del frontend inserta `(…,role)`. Como
+  el `profiles` existente **no tenía la columna `role`** (y `create table if not exists` NO la
+  añade porque la tabla ya existe), aplicar el base_schema tal cual **habría roto el signup de
+  TODO A2ABot** (el trigger fallaría al insertar en una columna inexistente) — un daño silencioso
+  que los tests de dev jamás cazan (nadie crea un `auth.users` en dev).
+- **Fix (reconciliar, no clobbear)**: (1) `alter table profiles add column if not exists role …`
+  ANTES de aplicar (superset inocuo para el negocio, que no usa `role`); (2) aplicar las
+  migraciones; (3) reinstalar un `handle_new_user` **FUSIONADO** que inserta lo del negocio
+  (`avatar_url`) **y** lo del frontend (`role`), con `on conflict (id) do nothing` y hardening
+  `search_path=''`. Verificar después: las 31 tablas presentes, las 8 del negocio + sus datos
+  intactos, y la función final contiene ambas columnas.
+- **Regla general**: antes de correr las migraciones de una superficie sobre una BD que ya usa
+  otra, **diffear los nombres de tabla** (aquí, disjuntos salvo `profiles`) y **auditar todo
+  `create or replace function`/trigger** — esos pisan sin avisar. Un proyecto compartido ahorra
+  costo pero te hace dueño de las colisiones. Aplicar migraciones a producción por Management API
+  (`POST /database/query`, UA `curl/8.0`) va bien; el `db push` del CLI no estaba cableado.
+- **Aplicar en**: cualquier `db push`/migración de una superficie nueva a un Supabase con datos,
+  y todo trigger de `auth.users` en proyectos multi-superficie. Ver
+  `.claude/memory/project/frontends-control-interno.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

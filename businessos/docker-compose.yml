@@ -435,11 +435,37 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 512M }
 
+  # ---------- FRONTEND-CI (cabina de control interno del equipo) ----------
+  # Superficie web del equipo (Next.js 16, business-os-new vendored). Corre en
+  # modo dev (next dev --turbopack) sobre el codigo bind-monteado desde
+  # ${HOME}/frontend-control-interno y lee su .env.local de ahi (Supabase real
+  # A2ABot + OPENCLAW_GATEWAY_TOKEN). En hermes-net para alcanzar el daemon del
+  # agente por nombre de servicio (residual: CLAUDECLAW_URL debe apuntar al
+  # servicio que implemente /chat/stream cuando exista). Solo 127.0.0.1:3001
+  # (acceso por tunel SSH); publicarla a internet con auth es decision aparte.
+  frontend-ci:
+    image: node:22-slim
+    container_name: frontend-ci
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npx next dev --turbopack -H 0.0.0.0 -p 3000"
+    ports:
+      - "127.0.0.1:3001:3000"     # solo inspeccion local; nunca 0.0.0.0
+    volumes:
+      - ${HOME}/frontend-control-interno:/app
+      - frontend-ci-nm:/app/node_modules   # node_modules aislado del bind mount
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
+
 networks:
   hermes-net:
     driver: bridge
 
 volumes:
+  # node_modules de la cabina control-interno, aislado del bind mount del codigo.
+  frontend-ci-nm:
   grafo-db-data:
   # Volumen compartido del trio: el Ejecutor crea worktree/<task_id> y el
   # Supervisor re-ejecuta los gates ahi mismo. La frontera entre ambos es de
