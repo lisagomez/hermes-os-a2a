@@ -1,0 +1,7 @@
+/* Entry de tokens para apps con bundler (Next.js).
+ * No importa Google Fonts: las familias las provee la app (next/font) y define
+ * --font-display / --font-mono. Para standalone usar ../styles.css. */
+@import "./colors.css";
+@import "./typography-vars.css";
+@import "./spacing.css";
+@import "./effects.css";

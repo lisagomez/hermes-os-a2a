@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --font-display:'Space Grotesk',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  /* scale */
+  --text-hero:52px; --text-h2:32px; --text-h3:19px;
+  --text-body-size:15px; --text-small:13px; --text-micro:11px;
+  --leading-tight:1.08; --leading-body:1.6;
+  --tracking-kicker:.2em; --tracking-brand:.14em;
+}
