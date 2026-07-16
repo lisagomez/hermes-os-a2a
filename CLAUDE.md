@@ -72,13 +72,17 @@ Usuario dice algo
     ├── "Optimiza este skill / mejora el skill / autoresearch"
     |       → Ejecutar skill AUTORESEARCH (loop autonomo de mejora)
     |
+    ├── "¿Opcion A o B? / valida esta decision / pasalo por el consejo / sala de guerra"
+    |       → Ejecutar skill CONSEJO (Depto. de Estrategia: 5 asesores + peer-review + Chairman)
+    |         Solo para decisiones abiertas de negocio/estrategia caras o irreversibles.
+    |
     └── No encaja en nada
             → Usar tu juicio. Leer el codebase, entender patrones, ejecutar.
 ```
 
 ---
 
-## Skills: 15 Herramientas Especializadas
+## Skills: 16 Herramientas Especializadas
 
 | # | Skill | Cuando usarlo |
 |---|-------|---------------|
@@ -100,6 +104,7 @@ Usuario dice algo
 | 13 | `image-generation` | Generar y editar imagenes con OpenRouter + Gemini |
 | 14 | `autoresearch` | Auto-optimizar skills con loop autonomo (patron Karpathy) |
 | 15 | `skill-creator` | Crear nuevos skills para extender la fabrica |
+| 16 | `consejo` | **Depto. de Estrategia**: somete una DECISION real a un Consejo de 5 asesores (lentes que chocan) + peer-review anonimo + sintesis del Chairman. Solo decisiones abiertas caras/irreversibles. Ver `businessos/departamentos/estrategia.md` |
 
 ---
 
@@ -284,7 +289,8 @@ npm run lint         # ESLint
 │   ├── memory-manager/       # Memoria persistente por proyecto
 │   ├── image-generation/     # Generacion de imagenes (OpenRouter + Gemini)
 │   ├── autoresearch/         # Auto-optimizacion de skills
-│   └── skill-creator/        # Crear nuevos skills
+│   ├── skill-creator/        # Crear nuevos skills
+│   └── consejo/              # Depto. de Estrategia: Consejo de 5 asesores (decisiones)
 │
 ├── PRPs/                      # Product Requirements Proposals
 │   └── prp-base.md           # Template base
