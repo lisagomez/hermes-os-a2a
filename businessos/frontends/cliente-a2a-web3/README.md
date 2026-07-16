@@ -5,8 +5,19 @@ agente del protocolo agente-a-agente (`sis_agente`, D-14) — sobre web3. Es el 
 identidad y el pago agénticos (Circle/USDC, contratos verificados) que el roadmap contempla
 como capa futura.
 
-**Estado:** diseño (demo funcional). Aún no hay app; existe el lenguaje visual y la interacción
-de referencia.
+**Estado:** diseño + **scaffold**. Existe el lenguaje visual, la interacción de referencia y un
+esqueleto Next.js (Next 16 + `@a2a/design-system`) que compila. La app en vivo (cliente A2A real
+contra `ventas-a2a` por el edge) es el siguiente pase. Contrato de integración: [`INTEGRATION.md`](INTEGRATION.md).
+
+## App (scaffold)
+
+```bash
+npm install && npm run dev   # http://localhost:3000
+```
+
+Stack espejo de `../cliente-web2` (Next.js 16 + Tailwind v4 + `@a2a/design-system`, deploy Vercel).
+La página (`src/app/page.tsx`) muestra el hero "contrata por protocolo", la Tarjeta A2A y el
+contrato (`agent-card.json` + `message/send`), con la capa USDC/Circle marcada como futura.
 
 ## Diseño
 

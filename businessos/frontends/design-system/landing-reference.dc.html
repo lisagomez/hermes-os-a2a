@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#0B0A10; color:#EDEAF4; font-family:'Space Grotesk', sans-serif; }
+  * { box-sizing:border-box; }
+  a { color:#B9A6FF; text-decoration:none; }
+  a:hover { color:#FF6BA3; }
+  ::selection { background:#7C5CFF; color:#fff; }
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  @keyframes pulseDot { 0%,100%{opacity:.55; transform:scale(1)} 50%{opacity:1; transform:scale(1.5)} }
+  @keyframes glowCore { 0%,100%{box-shadow:0 0 60px 10px rgba(124,92,255,.45), inset 0 0 40px rgba(124,92,255,.5)} 50%{box-shadow:0 0 90px 22px rgba(124,92,255,.65), inset 0 0 60px rgba(160,120,255,.6)} }
+  @keyframes shimmer { 0%{transform:translateX(-120%) rotate(18deg)} 100%{transform:translateX(220%) rotate(18deg)} }
+  @keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes fadeUp { from{opacity:0; transform:translateY(36px)} to{opacity:1; transform:translateY(0)} }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:#0B0A10; overflow-x:hidden">
+
+  <!-- ============ NAV ============ -->
+  <nav data-screen-label="Nav" style="position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 32px; background:rgba(11,10,16,.85); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="display:flex; align-items:center; gap:10px">
+      <div style="width:30px; height:30px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #9F7BFF, #5B34E8 70%); box-shadow:0 0 18px rgba(124,92,255,.7)"></div>
+      <span style="font-weight:700; letter-spacing:.14em; font-size:15px">A2A·FACTORY</span>
+      <span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; border:1px dashed rgba(255,255,255,.2); border-radius:6px; padding:2px 6px">{{ t.brandTbd }}</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px">
+      <div style="display:flex; gap:2px; background:#17141F; border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:3px">
+        <button onClick="{{ setHuman }}" style="{{ humanBtnStyle }}">{{ t.modeHuman }}</button>
+        <button onClick="{{ setA2A }}" style="{{ a2aBtnStyle }}">{{ t.modeA2A }}</button>
+      </div>
+      <div style="display:flex; gap:2px; background:#17141F; border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:3px">
+        <button onClick="{{ setES }}" style="{{ esBtnStyle }}">ES</button>
+        <button onClick="{{ setEN }}" style="{{ enBtnStyle }}">EN</button>
+      </div>
+      <a href="#agenda" style="font-size:13px; font-weight:600; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); padding:9px 18px; border-radius:999px; box-shadow:0 0 22px rgba(255,77,141,.35)">{{ t.ctaCall }}</a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section data-screen-label="Hero" style="position:relative; padding:72px 32px 40px; max-width:1240px; margin:0 auto">
+    <div style="display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center">
+      <div style="display:flex; flex-direction:column; gap:22px">
+        <div style="display:inline-flex; align-self:flex-start; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12px; color:#FF6BA3; border:1px solid rgba(255,77,141,.35); border-radius:999px; padding:6px 14px; background:rgba(255,77,141,.06)">
+        <span style="width:7px; height:7px; border-radius:50%; background:#FF4D8D; animation:pulseDot 2s infinite"></span>
+        {{ t.heroBadge }}
+        </div>
+        <h1 style="margin:0; font-size:52px; line-height:1.08; font-weight:700; letter-spacing:-.01em">{{ t.heroTitle1 }} <span style="background:linear-gradient(100deg,#9F7BFF,#FF4D8D); -webkit-background-clip:text; background-clip:text; color:transparent">{{ t.heroTitle2 }}</span></h1>
+        <p style="margin:0; font-size:18px; line-height:1.6; color:#B4ADC7; max-width:520px">{{ t.heroSub }}</p>
+        <div style="display:flex; gap:14px; align-items:center">
+          <a href="#agenda" style="font-size:15px; font-weight:700; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); padding:14px 26px; border-radius:14px; box-shadow:0 0 34px rgba(124,92,255,.4)">{{ t.ctaCall }}</a>
+          <a href="#cards" style="font-size:15px; font-weight:600; color:#EDEAF4; border:1px solid rgba(255,255,255,.16); padding:13px 24px; border-radius:14px; background:rgba(255,255,255,.03)">{{ t.ctaCards }}</a>
+        </div>
+        <div style="display:flex; gap:26px; font-family:'JetBrains Mono', monospace; font-size:12px; color:#9A93AC">
+          <span>▸ {{ t.chip1 }}</span><span>▸ {{ t.chip2 }}</span><span>▸ {{ t.chip3 }}</span>
+        </div>
+      </div>
+
+      <!-- terminal viva -->
+      <div style="display:flex; flex-direction:column; gap:18px">
+        <div style="border:1px solid rgba(255,255,255,.1); border-radius:16px; background:#0E0C15; box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 60px rgba(124,92,255,.12); overflow:hidden">
+          <div style="display:flex; align-items:center; gap:8px; padding:11px 16px; border-bottom:1px solid rgba(255,255,255,.07); background:#12101A">
+            <span style="width:11px; height:11px; border-radius:50%; background:#FF5F57"></span>
+            <span style="width:11px; height:11px; border-radius:50%; background:#FEBC2E"></span>
+            <span style="width:11px; height:11px; border-radius:50%; background:#28C840"></span>
+            <span style="margin-left:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#7A7390">a2a-cli — {{ t.termTitle }}</span>
+          </div>
+          <div style="padding:18px 20px; min-height:230px; font-family:'JetBrains Mono', monospace; font-size:13px; line-height:1.75; display:flex; flex-direction:column">
+            <sc-for list="{{ termLines }}" as="ln" hint-placeholder-count="3">
+              <div style="color:{{ ln.color }}; white-space:pre-wrap">{{ ln.text }}</div>
+            </sc-for>
+            <span style="display:inline-block; width:9px; height:17px; background:#9F7BFF; animation:blink 1s infinite; margin-top:2px"></span>
+          </div>
+        </div>
+        <!-- network mini -->
+        <div style="position:relative; display:flex; align-items:center; justify-content:center; gap:0; padding:6px 0">
+          <svg viewBox="0 0 520 120" style="width:100%; height:110px; overflow:visible">
+            <path d="M40 20 C140 30, 180 55, 236 60" stroke="#FF4D8D" stroke-opacity="0.45" stroke-width="1.5" fill="none"></path>
+            <path d="M30 60 C130 60, 170 60, 236 60" stroke="#FF4D8D" stroke-opacity="0.6" stroke-width="1.5" fill="none"></path>
+            <path d="M46 104 C150 92, 190 68, 236 62" stroke="#FF4D8D" stroke-opacity="0.45" stroke-width="1.5" fill="none"></path>
+            <path d="M284 60 C340 55, 380 30, 480 20" stroke="#FF4D8D" stroke-opacity="0.45" stroke-width="1.5" fill="none"></path>
+            <path d="M284 60 C350 60, 390 60, 490 60" stroke="#FF4D8D" stroke-opacity="0.6" stroke-width="1.5" fill="none"></path>
+            <path d="M284 62 C330 68, 370 92, 474 104" stroke="#FF4D8D" stroke-opacity="0.45" stroke-width="1.5" fill="none"></path>
+            <circle cx="40" cy="20" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s infinite"></circle>
+            <circle cx="30" cy="60" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s .4s infinite"></circle>
+            <circle cx="46" cy="104" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s .8s infinite"></circle>
+            <circle cx="480" cy="20" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s .2s infinite"></circle>
+            <circle cx="490" cy="60" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s .6s infinite"></circle>
+            <circle cx="474" cy="104" r="5" fill="#FF4D8D" style="animation:pulseDot 2.4s 1s infinite"></circle>
+          </svg>
+          <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:88px; height:88px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #8B63FF, #4B23D6 75%); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; animation:glowCore 3.5s infinite; border:1px solid rgba(255,255,255,.25)">agent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TICKER ============ -->
+  <div data-screen-label="Ticker" style="border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); background:#0D0B13; overflow:hidden; padding:12px 0">
+    <div style="display:flex; gap:0; width:max-content; animation:ticker 32s linear infinite">
+      <div style="display:flex; gap:44px; padding-right:44px; font-family:'JetBrains Mono', monospace; font-size:12px; color:#7A7390; white-space:nowrap">
+        <span>$ a2a quote --skills crm,web3</span><span style="color:#9F7BFF">◆ crm</span><span>$ a2a provision --deck mi-mazo</span><span style="color:#FF6BA3">◆ ops</span><span>$ a2a monitor --panel fin</span><span style="color:#9F7BFF">◆ data</span><span>$ a2a settle --usdc</span><span style="color:#FF6BA3">◆ web3</span><span style="color:#9F7BFF">◆ marketing</span><span style="color:#FF6BA3">◆ support</span><span style="color:#9F7BFF">◆ legal</span><span style="color:#FF6BA3">◆ finance</span>
+      </div>
+      <div style="display:flex; gap:44px; padding-right:44px; font-family:'JetBrains Mono', monospace; font-size:12px; color:#7A7390; white-space:nowrap">
+        <span>$ a2a quote --skills crm,web3</span><span style="color:#9F7BFF">◆ crm</span><span>$ a2a provision --deck mi-mazo</span><span style="color:#FF6BA3">◆ ops</span><span>$ a2a monitor --panel fin</span><span style="color:#9F7BFF">◆ data</span><span>$ a2a settle --usdc</span><span style="color:#FF6BA3">◆ web3</span><span style="color:#9F7BFF">◆ marketing</span><span style="color:#FF6BA3">◆ support</span><span style="color:#9F7BFF">◆ legal</span><span style="color:#FF6BA3">◆ finance</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PASOS ============ -->
+  <section data-screen-label="Proceso" style="max-width:1240px; margin:0 auto; padding:40px 32px">
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 35%">
+      <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:26px; background:linear-gradient(180deg, rgba(124,92,255,.07), rgba(255,255,255,.015)); transition:transform .3s, border-color .3s" style-hover="transform:translateY(-6px); border-color:rgba(159,123,255,.4)">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#9F7BFF; margin-bottom:12px">01 / {{ t.step1k }}</div>
+        <div style="font-size:19px; font-weight:700; margin-bottom:8px">{{ t.step1t }}</div>
+        <div style="font-size:14px; line-height:1.6; color:#B4ADC7">{{ t.step1d }}</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:26px; background:linear-gradient(180deg, rgba(255,77,141,.06), rgba(255,255,255,.015)); transition:transform .3s, border-color .3s" style-hover="transform:translateY(-6px); border-color:rgba(255,77,141,.4)">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#FF6BA3; margin-bottom:12px">02 / {{ t.step2k }}</div>
+        <div style="font-size:19px; font-weight:700; margin-bottom:8px">{{ t.step2t }}</div>
+        <div style="font-size:14px; line-height:1.6; color:#B4ADC7">{{ t.step2d }}</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:26px; background:linear-gradient(180deg, rgba(124,92,255,.07), rgba(255,255,255,.015)); transition:transform .3s, border-color .3s" style-hover="transform:translateY(-6px); border-color:rgba(159,123,255,.4)">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#9F7BFF; margin-bottom:12px">03 / {{ t.step3k }}</div>
+        <div style="font-size:19px; font-weight:700; margin-bottom:8px">{{ t.step3t }}</div>
+        <div style="font-size:14px; line-height:1.6; color:#B4ADC7">{{ t.step3d }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ A2A CARDS ============ -->
+  <section id="cards" data-screen-label="A2A Cards" style="max-width:1240px; margin:0 auto; padding:56px 32px 30px">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:8px">
+      <div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.2em; color:#FF6BA3; margin-bottom:10px">★ A2A CARDS</div>
+        <h2 style="margin:0; font-size:34px; font-weight:700">{{ t.cardsTitle }}</h2>
+        <p style="margin:10px 0 0; color:#B4ADC7; font-size:15px; max-width:560px; line-height:1.6">{{ t.cardsSub }}</p>
+      </div>
+      <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#9A93AC; text-align:right; flex-shrink:0">{{ t.cardsHint }}</div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:26px; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 25%">
+      <sc-for list="{{ agents }}" as="ag" hint-placeholder-count="8">
+        <div style="position:relative; border-radius:16px; border:1px solid {{ ag.frame }}; background:linear-gradient(170deg, {{ ag.bgTop }}, #0F0D16 60%); overflow:hidden; display:flex; flex-direction:column; transition:transform .25s, box-shadow .25s" style-hover="transform:translateY(-8px) rotate(-.6deg); box-shadow:0 24px 60px rgba(0,0,0,.6), 0 0 40px {{ ag.glow }}">
+          <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden"><div style="position:absolute; top:-40%; left:0; width:45%; height:180%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); animation:shimmer 5.5s {{ ag.delay }} infinite"></div></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px 8px">
+            <div style="font-weight:700; font-size:15px; letter-spacing:.03em">{{ ag.name }}</div>
+            <div style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #FFE9A8, #E8A320); color:#3A2A00; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(232,163,32,.5)" title="energy">{{ ag.energy }}</div>
+          </div>
+          <div style="margin:0 14px; height:96px; border-radius:10px; background:repeating-linear-gradient(45deg, {{ ag.artA }}, {{ ag.artA }} 8px, {{ ag.artB }} 8px, {{ ag.artB }} 16px); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.08)">
+            <div style="width:52px; height:52px; border-radius:50%; background:radial-gradient(circle at 35% 30%, {{ ag.orbA }}, {{ ag.orbB }} 75%); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-weight:700; font-size:17px; color:#fff; box-shadow:0 0 22px {{ ag.glow }}; animation:floaty 4s {{ ag.delay }} infinite">{{ ag.glyph }}</div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px 0">
+            <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#B4ADC7">{{ ag.role }}</div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700; color:{{ ag.rarityColor }}; border:1px solid {{ ag.rarityColor }}; border-radius:6px; padding:2px 7px; opacity:.9">{{ ag.rarity }}</div>
+          </div>
+          <div style="padding:8px 14px 0; font-size:12.5px; line-height:1.5; color:#CFC9DE; font-style:italic; min-height:56px">“{{ ag.flavor }}”</div>
+          <div style="padding:10px 14px 4px; display:flex; flex-direction:column; gap:6px">
+            <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:44px">AUT</span><div style="flex:1; height:5px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="height:5px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D); width:{{ ag.wAut }}"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#CFC9DE">{{ ag.sAut }}</span></div>
+            <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:44px">VEL</span><div style="flex:1; height:5px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="height:5px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D); width:{{ ag.wVel }}"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#CFC9DE">{{ ag.sVel }}</span></div>
+            <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:44px">INT</span><div style="flex:1; height:5px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="height:5px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D); width:{{ ag.wInt }}"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#CFC9DE">{{ ag.sInt }}</span></div>
+          </div>
+          <div style="display:flex; gap:8px; padding:12px 14px 14px; margin-top:auto">
+            <button onClick="{{ ag.onDemo }}" style="flex:1; cursor:pointer; font-family:'Space Grotesk', sans-serif; font-size:12.5px; font-weight:700; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); border:none; border-radius:10px; padding:9px 0">▶ {{ t.btnDemo }}</button>
+            <button onClick="{{ ag.onToggle }}" style="{{ ag.deckBtnStyle }}">{{ ag.deckLabel }}</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- ============ DECK BUILDER / COTIZADOR ============ -->
+  <section id="deck" data-screen-label="Deck cotizador" style="max-width:1240px; margin:0 auto; padding:40px 32px">
+    <div style="border:1px solid rgba(255,255,255,.1); border-radius:22px; background:linear-gradient(160deg, rgba(124,92,255,.1), #0F0D16 55%); padding:30px; display:grid; grid-template-columns:1.2fr .8fr; gap:34px; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 30%">
+      <div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.2em; color:#9F7BFF; margin-bottom:10px">⬢ {{ t.deckKicker }}</div>
+        <h2 style="margin:0 0 8px; font-size:28px; font-weight:700">{{ t.deckTitle }}</h2>
+        <p style="margin:0 0 18px; color:#B4ADC7; font-size:14.5px; line-height:1.6">{{ t.deckSub }}</p>
+        <sc-if value="{{ hasDeck }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-wrap:wrap; gap:10px">
+            <sc-for list="{{ deckAgents }}" as="d" hint-placeholder-count="2">
+              <div style="display:flex; align-items:center; gap:9px; border:1px solid rgba(255,255,255,.14); background:#15121E; border-radius:12px; padding:8px 12px">
+                <span style="width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 35% 30%, {{ d.orbA }}, {{ d.orbB }}); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700">{{ d.glyph }}</span>
+                <span style="font-size:13px; font-weight:600">{{ d.name }}</span>
+                <span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#E8A320">⚡{{ d.energy }}</span>
+                <button onClick="{{ d.onToggle }}" style="cursor:pointer; background:none; border:none; color:#9A93AC; font-size:14px; padding:0 2px">✕</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noDeck }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px dashed rgba(255,255,255,.18); border-radius:14px; padding:22px; font-family:'JetBrains Mono', monospace; font-size:13px; color:#9A93AC">{{ t.deckEmpty }}</div>
+        </sc-if>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.1); border-radius:16px; background:#0E0C15; padding:22px; display:flex; flex-direction:column; gap:12px">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.16em; color:#9A93AC">{{ t.quoteTitle }}</div>
+        <div style="display:flex; justify-content:space-between; font-size:14px"><span style="color:#B4ADC7">{{ t.quoteAgents }}</span><span style="font-weight:700">{{ deckCount }}</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:14px"><span style="color:#B4ADC7">{{ t.quoteEnergy }}</span><span style="font-weight:700; color:#E8A320">⚡ {{ deckEnergy }}</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:14px"><span style="color:#B4ADC7">{{ t.quoteSetup }}</span><span style="font-weight:700">{{ deckWeeks }}</span></div>
+        <div style="height:1px; background:rgba(255,255,255,.09)"></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline"><span style="color:#B4ADC7; font-size:14px">{{ t.quoteMonthly }}</span><span style="font-size:22px; font-weight:700; background:linear-gradient(100deg,#9F7BFF,#FF4D8D); -webkit-background-clip:text; background-clip:text; color:transparent">{{ deckPrice }}</span></div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#7A7390; line-height:1.5">{{ t.quoteNote }}</div>
+        <a href="#agenda" style="text-align:center; font-size:14px; font-weight:700; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); padding:12px 0; border-radius:12px; margin-top:4px">{{ t.quoteCta }}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL ============ -->
+  <section data-screen-label="Panel de control" style="max-width:1240px; margin:0 auto; padding:46px 32px">
+    <div style="display:grid; grid-template-columns:.85fr 1.15fr; gap:40px; align-items:center; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 30%">
+      <div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.2em; color:#FF6BA3; margin-bottom:10px">▦ {{ t.panelKicker }}</div>
+        <h2 style="margin:0 0 12px; font-size:32px; font-weight:700">{{ t.panelTitle }}</h2>
+        <p style="margin:0 0 18px; color:#B4ADC7; font-size:15px; line-height:1.65">{{ t.panelSub }}</p>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#CFC9DE">
+          <div style="display:flex; gap:10px; align-items:center"><span style="color:#9F7BFF">◆</span>{{ t.panelB1 }}</div>
+          <div style="display:flex; gap:10px; align-items:center"><span style="color:#FF6BA3">◆</span>{{ t.panelB2 }}</div>
+          <div style="display:flex; gap:10px; align-items:center"><span style="color:#9F7BFF">◆</span>{{ t.panelB3 }}</div>
+        </div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.1); border-radius:18px; background:#0E0C15; box-shadow:0 30px 80px rgba(0,0,0,.5); overflow:hidden">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 18px; border-bottom:1px solid rgba(255,255,255,.07); background:#12101A">
+          <span style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#B4ADC7">{{ t.dashTitle }}</span>
+          <span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#28C840">● LIVE</span>
+        </div>
+        <div style="display:flex; gap:6px; padding:12px 18px 0">
+          <button onClick="{{ setTabOps }}" style="{{ tabOpsStyle }}">{{ t.tabOps }}</button>
+          <button onClick="{{ setTabFin }}" style="{{ tabFinStyle }}">{{ t.tabFin }}</button>
+          <button onClick="{{ setTabProj }}" style="{{ tabProjStyle }}">{{ t.tabProj }}</button>
+        </div>
+        <sc-if value="{{ tabIsFin }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:18px; display:flex; flex-direction:column; gap:12px">
+            <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px">
+              <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:140px">{{ t.fin1 }}</span><div style="flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="width:68%; height:6px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D)"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#CFC9DE">$6.8k / $10k</span></div>
+              <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:140px">{{ t.fin2 }}</span><div style="flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="width:41%; height:6px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D)"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#CFC9DE">$1.2k / $3k</span></div>
+              <div style="display:flex; align-items:center; gap:8px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; width:140px">{{ t.fin3 }}</span><div style="flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.07)"><div style="width:55%; height:6px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D)"></div></div><span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#CFC9DE">$2.2k / $4k</span></div>
+            </div>
+            <div style="border:1px solid rgba(232,163,32,.35); border-radius:12px; padding:12px 14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#FFC24D; background:rgba(232,163,32,.05)">⚠ {{ t.finAlert }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ tabIsProj }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:18px">
+            <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px">
+              <div style="display:flex; justify-content:space-between; margin-bottom:12px"><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC">{{ t.projTitle }}</span><span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9F7BFF">Q3–Q4 2026</span></div>
+              <div style="display:flex; align-items:flex-end; gap:8px; height:120px">
+                <div style="flex:1; height:34%; border-radius:6px 6px 0 0; background:rgba(159,123,255,.35)"></div>
+                <div style="flex:1; height:42%; border-radius:6px 6px 0 0; background:rgba(159,123,255,.45)"></div>
+                <div style="flex:1; height:50%; border-radius:6px 6px 0 0; background:rgba(159,123,255,.55)"></div>
+                <div style="flex:1; height:63%; border-radius:6px 6px 0 0; background:rgba(255,77,141,.55)"></div>
+                <div style="flex:1; height:76%; border-radius:6px 6px 0 0; background:rgba(255,77,141,.7)"></div>
+                <div style="flex:1; height:92%; border-radius:6px 6px 0 0; background:linear-gradient(180deg,#FF4D8D,#9F7BFF)"></div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:9px; color:#7A7390"><span style="flex:1; text-align:center">JUL</span><span style="flex:1; text-align:center">AGO</span><span style="flex:1; text-align:center">SEP</span><span style="flex:1; text-align:center">OCT</span><span style="flex:1; text-align:center">NOV</span><span style="flex:1; text-align:center">DIC</span></div>
+              <div style="margin-top:12px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#9FE8B8">✓ {{ t.projNote }}</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ tabIsOps }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:18px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px">
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px; background:rgba(124,92,255,.05)"><div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; margin-bottom:6px">{{ t.kpi1 }}</div><div style="font-size:21px; font-weight:700">68%</div><div style="height:5px; border-radius:99px; background:rgba(255,255,255,.08); margin-top:8px"><div style="width:68%; height:5px; border-radius:99px; background:linear-gradient(90deg,#9F7BFF,#FF4D8D)"></div></div></div>
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px; background:rgba(255,77,141,.04)"><div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; margin-bottom:6px">{{ t.kpi2 }}</div><div style="font-size:21px; font-weight:700">1,284</div><div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#28C840; margin-top:8px">▲ 12% {{ t.kpiWeek }}</div></div>
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px; background:rgba(124,92,255,.05)"><div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#9A93AC; margin-bottom:6px">{{ t.kpi3 }}</div><div style="font-size:21px; font-weight:700">$4.2k</div><div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#28C840; margin-top:8px">▲ {{ t.kpiSaved }}</div></div>
+        </div>
+        <div style="padding:0 18px 18px">
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 14px; font-family:'JetBrains Mono', monospace; font-size:11px; line-height:1.9; color:#B4ADC7">
+            <div><span style="color:#FF9DC0">◆ vendo-1</span> — {{ t.act1 }}</div>
+            <div><span style="color:#B9A6FF">◆ tesoro</span> — {{ t.act2 }}</div>
+            <div><span style="color:#9FE8B8">◆ flujo-7</span> — {{ t.act3 }}</div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ A2A PROTOCOL ============ -->
+  <section data-screen-label="Protocolo A2A" style="max-width:1240px; margin:0 auto; padding:46px 32px">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 30%">
+      <div style="border:1px solid rgba(255,255,255,.1); border-radius:16px; background:#0E0C15; overflow:hidden">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.07); background:#12101A">
+          <span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#B4ADC7">GET /.well-known/agent.json</span>
+          <span style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#E8A320; border:1px solid rgba(232,163,32,.4); border-radius:6px; padding:2px 7px">{{ t.simBadge }}</span>
+        </div>
+        <pre style="margin:0; padding:18px 20px; font-family:'JetBrains Mono', monospace; font-size:12px; line-height:1.7; color:#CFC9DE; overflow-x:auto">{
+  "name": "a2a-factory",
+  "protocol": "a2a/1.0",
+  "capabilities": [
+    "quote", "provision", "monitor", "settle"
+  ],
+  "skills": ["crm","ops","data","web3",
+             "marketing","support","legal","finance"],
+  "pricing": { "unit": "energy", "settle": ["fiat","usdc"] },
+  "endpoint": "https://api.a2a.factory/rpc"
+}</pre>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.2em; color:#9F7BFF; margin-bottom:10px">⇄ {{ t.a2aKicker }}</div>
+        <h2 style="margin:0 0 12px; font-size:32px; font-weight:700">{{ t.a2aTitle }}</h2>
+        <p style="margin:0 0 18px; color:#B4ADC7; font-size:15px; line-height:1.65">{{ t.a2aSub }}</p>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12.5px; background:#12101A; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; color:#9FE8B8; line-height:1.8">$ curl -s https://api.a2a.factory/rpc \<br>&nbsp;&nbsp;-d '{"method":"quote","skills":["crm","web3"]}'</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AGENDA ============ -->
+  <section id="agenda" data-screen-label="Agendar llamada" style="max-width:1240px; margin:0 auto; padding:50px 32px 70px">
+    <div style="border:1px solid rgba(255,255,255,.1); border-radius:22px; background:linear-gradient(160deg, rgba(255,77,141,.08), #0F0D16 55%); padding:34px; display:grid; grid-template-columns:.9fr 1.1fr; gap:36px; animation:fadeUp linear both; animation-timeline:view(); animation-range:entry 0% entry 30%">
+      <div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.2em; color:#FF6BA3; margin-bottom:10px">☎ {{ t.calKicker }}</div>
+        <h2 style="margin:0 0 10px; font-size:30px; font-weight:700">{{ t.calTitle }}</h2>
+        <p style="margin:0 0 16px; color:#B4ADC7; font-size:15px; line-height:1.6">{{ t.calSub }}</p>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#E8A320; border:1px dashed rgba(232,163,32,.4); border-radius:10px; padding:10px 14px; line-height:1.6">{{ t.calSim }}</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.1); border-radius:16px; background:#0E0C15; padding:22px">
+        <sc-if value="{{ notConfirmed }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <div style="font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:#9A93AC">{{ t.calPick }} · 30 MIN · GOOGLE MEET</div>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px">
+              <sc-for list="{{ calDays }}" as="day" hint-placeholder-count="5">
+                <div style="display:flex; flex-direction:column; gap:6px">
+                  <div style="text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px; color:#B4ADC7; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,.08)">{{ day.label }}</div>
+                  <sc-for list="{{ day.slots }}" as="s" hint-placeholder-count="4">
+                    <button onClick="{{ s.onPick }}" style="{{ s.style }}">{{ s.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ slotPicked }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ confirmSlot }}" style="cursor:pointer; border:none; font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:700; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); padding:13px 0; border-radius:12px">{{ t.calConfirm }} — {{ slotLabel }}</button>
+            </sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{ confirmed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:30px 10px; text-align:center">
+            <div style="width:54px; height:54px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #4BE38A, #1B9B54); display:flex; align-items:center; justify-content:center; font-size:24px; color:#06210F">✓</div>
+            <div style="font-size:19px; font-weight:700">{{ t.calDone }}</div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color:#B4ADC7">{{ slotLabel }} (GMT-6)</div>
+            <button onClick="{{ resetSlot }}" style="cursor:pointer; background:none; border:1px solid rgba(255,255,255,.16); color:#B4ADC7; border-radius:10px; padding:8px 16px; font-size:13px">{{ t.calAgain }}</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer data-screen-label="Footer" style="border-top:1px solid rgba(255,255,255,.07); padding:26px 32px; display:flex; align-items:center; justify-content:space-between; max-width:1240px; margin:0 auto">
+    <div style="display:flex; align-items:center; gap:10px">
+      <div style="width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #9F7BFF, #5B34E8 70%)"></div>
+      <span style="font-weight:700; letter-spacing:.12em; font-size:13px">A2A·FACTORY</span>
+    </div>
+    <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#7A7390">{{ t.footer }}</div>
+  </footer>
+
+  <!-- ============ DEMO MODAL ============ -->
+  <sc-if value="{{ showModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:100; background:rgba(5,4,9,.8); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:24px" onClick="{{ closeDemo }}">
+      <div style="width:640px; max-width:100%; border:1px solid rgba(255,255,255,.14); border-radius:18px; background:#0E0C15; box-shadow:0 40px 120px rgba(0,0,0,.7), 0 0 80px rgba(124,92,255,.2); overflow:hidden" onClick="{{ stop }}">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.08); background:#12101A">
+          <div style="display:flex; align-items:center; gap:10px">
+            <span style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 30%, {{ modal.orbA }}, {{ modal.orbB }}); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700">{{ modal.glyph }}</span>
+            <span style="font-weight:700; font-size:15px">{{ modal.name }}</span>
+            <span style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#B4ADC7">· {{ modal.role }} · {{ t.demoLabel }}</span>
+          </div>
+          <button onClick="{{ closeDemo }}" style="cursor:pointer; background:none; border:none; color:#9A93AC; font-size:18px">✕</button>
+        </div>
+        <div style="padding:18px 20px; min-height:280px; font-family:'JetBrains Mono', monospace; font-size:13px; line-height:1.8; display:flex; flex-direction:column; gap:2px">
+          <sc-for list="{{ modalLines }}" as="ml" hint-placeholder-count="2">
+            <div style="color:{{ ml.color }}; white-space:pre-wrap">{{ ml.text }}</div>
+          </sc-for>
+          <sc-if value="{{ modalRunning }}" hint-placeholder-val="{{ true }}">
+            <span style="display:inline-block; width:9px; height:16px; background:#FF6BA3; animation:blink .9s infinite"></span>
+          </sc-if>
+        </div>
+        <div style="display:flex; gap:10px; padding:14px 18px; border-top:1px solid rgba(255,255,255,.08)">
+          <button onClick="{{ replayDemo }}" style="cursor:pointer; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; color:#EDEAF4; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:9px 16px">↻ {{ t.demoReplay }}</button>
+          <button onClick="{{ modalAddDeck }}" style="cursor:pointer; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:700; color:#0B0A10; background:linear-gradient(120deg,#9F7BFF,#FF4D8D); border:none; border-radius:10px; padding:9px 16px; flex:1">{{ t.demoAdd }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultLang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;es&quot;,&quot;en&quot;],&quot;default&quot;:&quot;es&quot;,&quot;tsType&quot;:&quot;'es'|'en'&quot;,&quot;section&quot;:&quot;Comportamiento&quot;},&quot;defaultShopper&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;human&quot;,&quot;a2a&quot;],&quot;default&quot;:&quot;human&quot;,&quot;tsType&quot;:&quot;'human'|'a2a'&quot;,&quot;section&quot;:&quot;Comportamiento&quot;}}">
+class Component extends DCLogic {
+  state = {
+    lang: 'es', mode: 'human',
+    deck: [], openId: null, demoStep: 0,
+    slot: null, confirmed: false, panelTab: 'ops',
+    termLines: [], termQueue: 0, termPartial: ''
+  };
+
+  componentDidMount() {
+    this.mounted = true;
+    if ((this.props.defaultLang === 'en')) this.setState({ lang: 'en' });
+    if ((this.props.defaultShopper === 'a2a')) this.setState({ mode: 'a2a' });
+    this.startTerminal();
+  }
+  componentWillUnmount() { this.mounted = false; clearTimeout(this.tt); clearInterval(this.demoTimer); }
+
+  // ---------- terminal ----------
+  termScript() {
+    return [
+      { t: '$ a2a init --caso "ecommerce" --alcance full', c: '#EDEAF4', type: true },
+      { t: '✓ analizando caso de uso…', c: '#9FE8B8' },
+      { t: '✓ 3 agentes recomendados: vendo-1, oraculo, tesoro', c: '#9FE8B8' },
+      { t: '$ a2a deploy --panel ops+fin', c: '#EDEAF4', type: true },
+      { t: '⚙ adaptando agentes a tu flujo…', c: '#B9A6FF' },
+      { t: '✓ panel listo → https://panel.tu-empresa.a2a', c: '#9FE8B8' },
+      { t: '$ a2a status', c: '#EDEAF4', type: true },
+      { t: '● 3/3 agentes activos · presupuesto 68% · proyección ▲', c: '#FF9DC0' }
+    ];
+  }
+  startTerminal() {
+    const script = this.termScript();
+    const step = () => {
+      if (!this.mounted) return;
+      const i = this.state.termQueue;
+      if (i >= script.length) { this.tt = setTimeout(() => { if (this.mounted) this.setState({ termLines: [], termQueue: 0 }, step); }, 4000); return; }
+      const line = script[i];
+      if (line.type) {
+        let p = 0;
+        const typeChar = () => {
+          if (!this.mounted) return;
+          p++;
+          const done = p >= line.t.length;
+          const lines = this.state.termLines.slice(0, i).concat([{ text: line.t.slice(0, p), color: line.c }]);
+          this.setState({ termLines: lines, termQueue: done ? i + 1 : i });
+          this.tt = setTimeout(done ? step : typeChar, done ? 500 : 34);
+        };
+        typeChar();
+      } else {
+        this.setState({ termLines: this.state.termLines.concat([{ text: line.t, color: line.c }]), termQueue: i + 1 });
+        this.tt = setTimeout(step, 620);
+      }
+    };
+    step();
+  }
+
+  // ---------- data ----------
+  agentsData() {
+    return [
+      { id:'vendo', name:'VENDO-1', glyph:'V1', energy:4, rarity:{es:'LEGENDARIA',en:'LEGENDARY'}, rc:'#FFC24D', orbA:'#9F7BFF', orbB:'#4B23D6', role:{es:'Comercial / CRM',en:'Sales / CRM'}, sAut:9,sVel:8,sInt:9,
+        fun:{es:'Atiende a tus clientes hasta cuando duermes. Nunca pierde un lead, nunca pide vacaciones.',en:'Talks to your customers even while you sleep. Never drops a lead, never asks for PTO.'},
+        tech:{es:'Pipeline autónomo: captura, califica y cierra vía API CRM. SLA respuesta < 3 s.',en:'Autonomous pipeline: capture, qualify, close via CRM API. Response SLA < 3 s.'},
+        demo:[ {k:'cmd',es:'$ vendo-1 run --canal whatsapp',en:'$ vendo-1 run --channel whatsapp'},
+          {k:'sys',es:'⚙ conectado a CRM · 14 leads en cola',en:'⚙ connected to CRM · 14 leads queued'},
+          {k:'usr',es:'› cliente: "¿tienen envío a Mérida?"',en:'› customer: "do you ship to Mérida?"'},
+          {k:'agt',es:'◆ vendo-1: "¡Claro! Llega en 48h. ¿Te aparto uno?"',en:'◆ vendo-1: "Of course! Arrives in 48h. Want me to hold one?"'},
+          {k:'ok',es:'✓ lead calificado → oportunidad $1,450 creada en CRM',en:'✓ lead qualified → $1,450 opportunity created in CRM'},
+          {k:'kpi',es:'▲ conversión +18% esta semana',en:'▲ conversion +18% this week'} ] },
+      { id:'flujo', name:'FLUJO-7', glyph:'F7', energy:3, rarity:{es:'ÉPICA',en:'EPIC'}, rc:'#B9A6FF', orbA:'#FF6BA3', orbB:'#B3134F', role:{es:'Operaciones / Logística',en:'Ops / Logistics'}, sAut:8,sVel:9,sInt:7,
+        fun:{es:'Mueve cajas sin mover un dedo. Tu bodega, pero con reflejos de gato.',en:'Moves boxes without lifting a finger. Your warehouse, but with cat reflexes.'},
+        tech:{es:'Orquestación de rutas e inventario en tiempo real. Webhooks + EDI.',en:'Real-time route & inventory orchestration. Webhooks + EDI.'},
+        demo:[ {k:'cmd',es:'$ flujo-7 optimizar --rutas hoy',en:'$ flujo-7 optimize --routes today'},
+          {k:'sys',es:'⚙ 42 entregas · 6 vehículos · tráfico en vivo',en:'⚙ 42 deliveries · 6 vehicles · live traffic'},
+          {k:'agt',es:'◆ flujo-7: reordené 3 rutas, ahorro estimado 74 km',en:'◆ flujo-7: reordered 3 routes, est. savings 74 km'},
+          {k:'ok',es:'✓ ETA promedio −22 min · combustible −11%',en:'✓ avg ETA −22 min · fuel −11%'},
+          {k:'kpi',es:'▲ entregas a tiempo: 98.2%',en:'▲ on-time deliveries: 98.2%'} ] },
+      { id:'oraculo', name:'ORÁCULO', glyph:'OR', energy:3, rarity:{es:'ÉPICA',en:'EPIC'}, rc:'#B9A6FF', orbA:'#9F7BFF', orbB:'#4B23D6', role:{es:'Datos / Analítica',en:'Data / Analytics'}, sAut:7,sVel:8,sInt:9,
+        fun:{es:'Ve el futuro en tus datos (bueno, casi). Te avisa antes de que algo truene.',en:'Sees the future in your data (well, almost). Warns you before things break.'},
+        tech:{es:'ETL + modelos de forecast. Alertas por anomalía, queries en lenguaje natural.',en:'ETL + forecast models. Anomaly alerts, natural-language queries.'},
+        demo:[ {k:'cmd',es:'$ oraculo pregunta "¿qué producto caerá en agosto?"',en:'$ oraculo ask "which product dips in August?"'},
+          {k:'sys',es:'⚙ escaneando 18 meses de ventas…',en:'⚙ scanning 18 months of sales…'},
+          {k:'agt',es:'◆ oráculo: SKU-204 caerá ~14% (estacionalidad)',en:'◆ oraculo: SKU-204 will dip ~14% (seasonality)'},
+          {k:'ok',es:'✓ sugerencia: promo cruzada con SKU-118 desde jul 28',en:'✓ suggestion: cross-promo with SKU-118 from Jul 28'},
+          {k:'kpi',es:'▲ precisión del forecast: 92%',en:'▲ forecast accuracy: 92%'} ] },
+      { id:'ledger', name:'LEDGER-X', glyph:'LX', energy:5, rarity:{es:'LEGENDARIA',en:'LEGENDARY'}, rc:'#FFC24D', orbA:'#FF6BA3', orbB:'#B3134F', role:{es:'Web3 / Pagos on-chain',en:'Web3 / On-chain payments'}, sAut:9,sVel:9,sInt:8,
+        fun:{es:'Cobra en cripto mientras tú aprendes qué es un wallet. Gas incluido.',en:'Gets you paid in crypto while you learn what a wallet is. Gas included.'},
+        tech:{es:'Settlement USDC/fiat, escrow programable, firma multisig, auditoría on-chain.',en:'USDC/fiat settlement, programmable escrow, multisig, on-chain audit.'},
+        demo:[ {k:'cmd',es:'$ ledger-x settle --factura INV-0912 --usdc',en:'$ ledger-x settle --invoice INV-0912 --usdc'},
+          {k:'sys',es:'⚙ escrow verificado · red: base · gas: 0.0003',en:'⚙ escrow verified · network: base · gas: 0.0003'},
+          {k:'agt',es:'◆ ledger-x: 2,400 USDC liberados al proveedor',en:'◆ ledger-x: 2,400 USDC released to vendor'},
+          {k:'ok',es:'✓ tx 0x8f2a…c41 confirmada · recibo en panel',en:'✓ tx 0x8f2a…c41 confirmed · receipt in panel'},
+          {k:'kpi',es:'▲ conciliación automática: 100%',en:'▲ auto reconciliation: 100%'} ] },
+      { id:'musa', name:'MUSA-3', glyph:'M3', energy:2, rarity:{es:'RARA',en:'RARE'}, rc:'#FF9DC0', orbA:'#9F7BFF', orbB:'#4B23D6', role:{es:'Marketing / Contenido',en:'Marketing / Content'}, sAut:6,sVel:9,sInt:7,
+        fun:{es:'Publica más que tu community manager con tres cafés encima.',en:'Posts more than your community manager on three espressos.'},
+        tech:{es:'Calendario editorial autónomo, A/B testing, brand voice entrenada.',en:'Autonomous content calendar, A/B testing, trained brand voice.'},
+        demo:[ {k:'cmd',es:'$ musa-3 campaña --producto "kit verano"',en:'$ musa-3 campaign --product "summer kit"'},
+          {k:'sys',es:'⚙ generando 12 variantes · 3 canales',en:'⚙ generating 12 variants · 3 channels'},
+          {k:'agt',es:'◆ musa-3: variante B gana el A/B (+31% CTR)',en:'◆ musa-3: variant B wins the A/B (+31% CTR)'},
+          {k:'ok',es:'✓ campaña programada jul 18–31 · presupuesto ok',en:'✓ campaign scheduled Jul 18–31 · budget ok'},
+          {k:'kpi',es:'▲ CAC estimado −19%',en:'▲ est. CAC −19%'} ] },
+      { id:'empatia', name:'EMPATÍA-2', glyph:'E2', energy:2, rarity:{es:'RARA',en:'RARE'}, rc:'#FF9DC0', orbA:'#FF6BA3', orbB:'#B3134F', role:{es:'Soporte / Atención',en:'Support / CX'}, sAut:7,sVel:8,sInt:8,
+        fun:{es:'Responde con más paciencia que tu mejor agente en su mejor día.',en:'More patient than your best support rep on their best day.'},
+        tech:{es:'Resolución tier-1 autónoma, escalamiento inteligente, CSAT tracking.',en:'Autonomous tier-1 resolution, smart escalation, CSAT tracking.'},
+        demo:[ {k:'cmd',es:'$ empatia-2 run --bandeja soporte',en:'$ empatia-2 run --inbox support'},
+          {k:'usr',es:'› cliente: "mi pedido llegó incompleto 😤"',en:'› customer: "my order arrived incomplete 😤"'},
+          {k:'agt',es:'◆ empatía-2: "Lo siento mucho. Ya envié la pieza faltante, llega mañana + 10% de descuento."',en:'◆ empatia-2: "So sorry. Missing part reshipped, arrives tomorrow + 10% off."'},
+          {k:'ok',es:'✓ ticket resuelto en 42 s · CSAT 5/5',en:'✓ ticket resolved in 42 s · CSAT 5/5'},
+          {k:'kpi',es:'▲ 87% tickets sin intervención humana',en:'▲ 87% tickets with zero human touch'} ] },
+      { id:'custodio', name:'CUSTODIO', glyph:'CU', energy:3, rarity:{es:'ÉPICA',en:'EPIC'}, rc:'#B9A6FF', orbA:'#9F7BFF', orbB:'#4B23D6', role:{es:'Legal / Compliance',en:'Legal / Compliance'}, sAut:6,sVel:7,sInt:8,
+        fun:{es:'Lee la letra chiquita para que tú no tengas que hacerlo. Nunca.',en:'Reads the fine print so you never have to. Ever.'},
+        tech:{es:'Revisión de contratos, KYC/AML, alertas regulatorias por jurisdicción.',en:'Contract review, KYC/AML, per-jurisdiction regulatory alerts.'},
+        demo:[ {k:'cmd',es:'$ custodio revisar contrato_proveedor.pdf',en:'$ custodio review vendor_contract.pdf'},
+          {k:'sys',es:'⚙ 34 cláusulas analizadas',en:'⚙ 34 clauses analyzed'},
+          {k:'agt',es:'◆ custodio: cláusula 12.3 con penalización oculta (riesgo alto)',en:'◆ custodio: clause 12.3 has hidden penalty (high risk)'},
+          {k:'ok',es:'✓ contrapropuesta redactada · lista para firma',en:'✓ counter-proposal drafted · ready to sign'},
+          {k:'kpi',es:'▲ riesgo contractual −64%',en:'▲ contract risk −64%'} ] },
+      { id:'tesoro', name:'TESORO', glyph:'T$', energy:3, rarity:{es:'ÉPICA',en:'EPIC'}, rc:'#B9A6FF', orbA:'#FF6BA3', orbB:'#B3134F', role:{es:'Finanzas / Presupuesto',en:'Finance / Budget'}, sAut:8,sVel:7,sInt:9,
+        fun:{es:'Cuida tu dinero como si fuera suyo. Spoiler: no gasta nada.',en:'Guards your money like it\'s his own. Spoiler: he spends nothing.'},
+        tech:{es:'Control de presupuesto en vivo, proyección de flujo, cierre contable asistido.',en:'Live budget control, cash-flow projection, assisted book closing.'},
+        demo:[ {k:'cmd',es:'$ tesoro proyectar --meses 6',en:'$ tesoro project --months 6'},
+          {k:'sys',es:'⚙ leyendo bancos + CRM + nómina…',en:'⚙ reading banks + CRM + payroll…'},
+          {k:'agt',es:'◆ tesoro: flujo positivo desde octubre (+$18.4k)',en:'◆ tesoro: positive cash flow from October (+$18.4k)'},
+          {k:'ok',es:'✓ alerta: suscripciones duplicadas $340/mes → canceladas',en:'✓ alert: duplicate subscriptions $340/mo → cancelled'},
+          {k:'kpi',es:'▲ desviación de presupuesto < 3%',en:'▲ budget variance < 3%'} ] }
+    ];
+  }
+
+  strings() {
+    const es = {
+      brandTbd:'nombre por definir', modeHuman:'Humano', modeA2A:'Agente A2A', ctaCall:'Agendar llamada', ctaCards:'Ver A2A Cards',
+      heroBadge:'CLI-FIRST · AGENT-TO-AGENT · END-TO-END',
+      heroTitle1:'Fábrica de agentes de IA:', heroTitle2:'de tu caso de uso al panel de control.',
+      heroSub:'Adaptamos cada proyecto con inteligencia artificial de principio a fin — agentes a la medida de tu caso de uso y alcance, con panel operativo y financiero, control de presupuesto y proyección.',
+      chip1:'setup en semanas', chip2:'panel ops + finanzas', chip3:'humanos opcionales',
+      termTitle:'demo en vivo',
+      step1k:'DESCUBRIMIENTO', step1t:'Tu caso de uso X, alcance Y', step1d:'Cuéntanos (o que tu agente nos consulte por protocolo) qué necesitas y hasta dónde. La IA mapea el proyecto completo.',
+      step2k:'FÁBRICA', step2t:'Adaptación con IA, end-to-end', step2d:'Ensamblamos y entrenamos los agentes exactos para tu operación. Sin plantillas genéricas: cada pieza se adapta a tu flujo.',
+      step3k:'CONTROL', step3t:'Panel operativo y financiero', step3d:'Entregamos un panel con métricas de operación, control de presupuesto y proyección. Tú ves todo; los agentes trabajan.',
+      cardsTitle:'Elige a tu equipo', cardsSub:'Cada especialidad es una carta. Abre su demo funcional, revisa sus stats y añádela a tu mazo para cotizar.', cardsHint:'⚡ = energía (coste relativo)\n▶ demo = simulador funcional',
+      btnDemo:'Demo',
+      deckKicker:'TU MAZO', deckTitle:'Arma tu mazo de agentes', deckSub:'El mazo es tu cotización: añade cartas y mira presupuesto estimado, energía total y tiempo de setup en vivo.',
+      deckEmpty:'// mazo vacío — añade cartas desde la sección A2A Cards', quoteTitle:'COTIZACIÓN ESTIMADA', quoteAgents:'Agentes', quoteEnergy:'Energía total', quoteSetup:'Setup estimado', quoteMonthly:'Mensual estimado',
+      quoteNote:'// estimación orientativa · la cotización final se adapta a tu caso de uso y alcance', quoteCta:'Cotizar este mazo en una llamada',
+      panelKicker:'ENTREGABLE', panelTitle:'El panel que recibes con tu proyecto', panelSub:'No entregamos una caja negra: entregamos control. Operación, presupuesto y proyección de tus agentes, en vivo.',
+      panelB1:'Control de presupuesto con alertas de desviación', panelB2:'Proyección financiera a 6 meses, recalculada a diario', panelB3:'Actividad de cada agente, auditada y exportable',
+      dashTitle:'panel.tu-empresa.a2a', kpi1:'PRESUPUESTO USADO', kpi2:'TAREAS DE AGENTES', kpi3:'AHORRO / MES', kpiWeek:'vs semana previa', kpiSaved:'validado por tesoro', projTitle:'PROYECCIÓN DE FLUJO',
+      tabOps:'Operativo', tabFin:'Financiero', tabProj:'Proyección',
+      fin1:'NÓMINA DE AGENTES', fin2:'INFRAESTRUCTURA', fin3:'MARKETING', finAlert:'desviación detectada en infraestructura: −$180 vs plan · corregida por tesoro',
+      projNote:'flujo positivo proyectado desde octubre (+$18.4k)',
+      act1:'cerró oportunidad $1,450 hace 4 min', act2:'canceló 2 suscripciones duplicadas', act3:'reoptimizó rutas del jueves (−74 km)',
+      a2aKicker:'SHOPPER A2A', a2aTitle:'¿Eres un agente? Contrata por protocolo.', a2aSub:'Descubrimiento por manifest, cotización por RPC y settlement en fiat o USDC. Negociación agente-a-agente sin humanos en el loop — salvo que tu humano quiera saludar.',
+      simBadge:'ENDPOINT SIMULADO',
+      calKicker:'HABLEMOS', calTitle:'Agenda una llamada de descubrimiento', calSub:'30 minutos para mapear tu caso de uso y alcance. Sales con una recomendación de mazo y una estimación honesta.',
+      calSim:'// widget simulado — en desarrollo se enlaza a Calendly / Cal.com (solicitar URL)', calPick:'ELIGE FECHA Y HORA', calConfirm:'Confirmar', calDone:'¡Llamada agendada!', calAgain:'Cambiar horario',
+      demoLabel:'demo funcional', demoReplay:'Repetir', demoAdd:'Añadir al mazo y cotizar',
+      footer:'hecho por agentes, supervisado por humanos · 2026'
+    };
+    const en = {
+      brandTbd:'name TBD', modeHuman:'Human', modeA2A:'A2A Agent', ctaCall:'Book a call', ctaCards:'View A2A Cards',
+      heroBadge:'CLI-FIRST · AGENT-TO-AGENT · END-TO-END',
+      heroTitle1:'An AI agent factory:', heroTitle2:'from your use case to your control panel.',
+      heroSub:'We tailor every project with AI from start to finish — agents fitted to your use case and scope, with an operational & financial panel, budget control and projections.',
+      chip1:'setup in weeks', chip2:'ops + finance panel', chip3:'humans optional',
+      termTitle:'live demo',
+      step1k:'DISCOVERY', step1t:'Your use case X, scope Y', step1d:'Tell us (or have your agent query us over protocol) what you need and how far. AI maps the full project.',
+      step2k:'FACTORY', step2t:'AI-tailored, end-to-end', step2d:'We assemble and train the exact agents your operation needs. No generic templates: every piece adapts to your flow.',
+      step3k:'CONTROL', step3t:'Operational & financial panel', step3d:'You get a panel with ops metrics, budget control and projections. You see everything; the agents do the work.',
+      cardsTitle:'Pick your team', cardsSub:'Each specialty is a card. Open its functional demo, check its stats and add it to your deck to get a quote.', cardsHint:'⚡ = energy (relative cost)\n▶ demo = functional simulator',
+      btnDemo:'Demo',
+      deckKicker:'YOUR DECK', deckTitle:'Build your agent deck', deckSub:'Your deck is your quote: add cards and watch estimated budget, total energy and setup time update live.',
+      deckEmpty:'// empty deck — add cards from the A2A Cards section', quoteTitle:'ESTIMATED QUOTE', quoteAgents:'Agents', quoteEnergy:'Total energy', quoteSetup:'Estimated setup', quoteMonthly:'Est. monthly',
+      quoteNote:'// ballpark estimate · final quote adapts to your use case and scope', quoteCta:'Quote this deck on a call',
+      panelKicker:'DELIVERABLE', panelTitle:'The panel you get with your project', panelSub:'We don\'t ship a black box — we ship control. Your agents\' operations, budget and projections, live.',
+      panelB1:'Budget control with variance alerts', panelB2:'6-month financial projection, recalculated daily', panelB3:'Every agent\'s activity, audited and exportable',
+      dashTitle:'panel.your-company.a2a', kpi1:'BUDGET USED', kpi2:'AGENT TASKS', kpi3:'SAVINGS / MO', kpiWeek:'vs last week', kpiSaved:'validated by tesoro', projTitle:'CASH-FLOW PROJECTION',
+      tabOps:'Operations', tabFin:'Financial', tabProj:'Projection',
+      fin1:'AGENT PAYROLL', fin2:'INFRASTRUCTURE', fin3:'MARKETING', finAlert:'variance detected in infrastructure: −$180 vs plan · corrected by tesoro',
+      projNote:'positive cash flow projected from October (+$18.4k)',
+      act1:'closed $1,450 opportunity 4 min ago', act2:'cancelled 2 duplicate subscriptions', act3:'re-optimized Thursday routes (−74 km)',
+      a2aKicker:'A2A SHOPPER', a2aTitle:'Are you an agent? Procure over protocol.', a2aSub:'Manifest discovery, RPC quoting and settlement in fiat or USDC. Agent-to-agent negotiation with no humans in the loop — unless your human wants to say hi.',
+      simBadge:'SIMULATED ENDPOINT',
+      calKicker:'LET\'S TALK', calTitle:'Book a discovery call', calSub:'30 minutes to map your use case and scope. You leave with a deck recommendation and an honest estimate.',
+      calSim:'// simulated widget — production links to Calendly / Cal.com (request URL)', calPick:'PICK DATE & TIME', calConfirm:'Confirm', calDone:'Call booked!', calAgain:'Change time',
+      demoLabel:'functional demo', demoReplay:'Replay', demoAdd:'Add to deck & quote',
+      footer:'built by agents, supervised by humans · 2026'
+    };
+    return this.state.lang === 'en' ? en : es;
+  }
+
+  // ---------- demo modal ----------
+  openDemo(id) {
+    clearInterval(this.demoTimer);
+    this.setState({ openId: id, demoStep: 1 });
+    this.demoTimer = setInterval(() => {
+      if (!this.mounted) return;
+      const ag = this.agentsData().find(a => a.id === this.state.openId);
+      if (!ag) return;
+      if (this.state.demoStep >= ag.demo.length) { clearInterval(this.demoTimer); this.forceUpdate(); return; }
+      this.setState({ demoStep: this.state.demoStep + 1 });
+    }, 950);
+  }
+
+  lineColor(k) { return { cmd:'#EDEAF4', sys:'#B9A6FF', usr:'#9A93AC', agt:'#FF9DC0', ok:'#9FE8B8', kpi:'#FFC24D' }[k] || '#EDEAF4'; }
+
+  panelTabBtn(active) {
+    return { cursor:'pointer', fontFamily:"'JetBrains Mono', monospace", fontSize:'11px', fontWeight:600, letterSpacing:'.06em', padding:'7px 14px', borderRadius:'8px', transition:'all .25s',
+      border: active ? '1px solid rgba(159,123,255,.5)' : '1px solid rgba(255,255,255,.08)',
+      background: active ? 'rgba(124,92,255,.15)' : 'transparent',
+      color: active ? '#B9A6FF' : '#9A93AC' };
+  }
+  toggleBtn(active) {
+    return { cursor:'pointer', border:'none', fontFamily:"'Space Grotesk', sans-serif", fontSize:'12px', fontWeight:600, padding:'6px 13px', borderRadius:'999px',
+      background: active ? 'linear-gradient(120deg,#9F7BFF,#FF4D8D)' : 'transparent', color: active ? '#0B0A10' : '#9A93AC' };
+  }
+
+  renderVals() {
+    const lang = this.state.lang, mode = this.state.mode, t = this.strings();
+    const deck = this.state.deck;
+    const delays = ['0s','.7s','1.4s','2.1s','2.8s','3.5s','4.2s','4.9s'];
+    const agents = this.agentsData().map((a, i) => {
+      const inDeck = deck.includes(a.id);
+      return {
+        id: a.id, name: a.name, glyph: a.glyph, energy: a.energy,
+        rarity: a.rarity[lang], rarityColor: a.rc, orbA: a.orbA, orbB: a.orbB,
+        frame: inDeck ? 'rgba(232,163,32,.6)' : 'rgba(255,255,255,.12)',
+        bgTop: a.rc === '#FFC24D' ? 'rgba(232,163,32,.08)' : 'rgba(124,92,255,.08)',
+        glow: a.orbB === '#B3134F' ? 'rgba(255,77,141,.28)' : 'rgba(124,92,255,.3)',
+        artA: '#141122', artB: '#181430', delay: delays[i],
+        role: a.role[lang],
+        flavor: (mode === 'a2a' ? a.tech : a.fun)[lang],
+        sAut: a.sAut, sVel: a.sVel, sInt: a.sInt,
+        wAut: (a.sAut * 10) + '%', wVel: (a.sVel * 10) + '%', wInt: (a.sInt * 10) + '%',
+        onDemo: () => this.openDemo(a.id),
+        onToggle: () => this.setState({ deck: inDeck ? deck.filter(x => x !== a.id) : deck.concat([a.id]) }),
+        deckLabel: inDeck ? (lang === 'en' ? '✓ In deck' : '✓ En mazo') : (lang === 'en' ? '+ Deck' : '+ Mazo'),
+        deckBtnStyle: { cursor:'pointer', fontFamily:"'Space Grotesk', sans-serif", fontSize:'12.5px', fontWeight:700, padding:'9px 12px', borderRadius:'10px',
+          background: inDeck ? 'rgba(232,163,32,.15)' : 'rgba(255,255,255,.05)',
+          color: inDeck ? '#FFC24D' : '#EDEAF4',
+          border: inDeck ? '1px solid rgba(232,163,32,.5)' : '1px solid rgba(255,255,255,.16)' }
+      };
+    });
+    const deckAgents = agents.filter(a => deck.includes(a.id));
+    const deckEnergy = deckAgents.reduce((s, a) => s + a.energy, 0);
+    const lo = deckEnergy * 290, hi = deckEnergy * 410;
+    const weeks = deck.length ? (2 + Math.ceil(deck.length / 2)) : 0;
+
+    // calendar (simulated)
+    const daysES = ['JUE 16','VIE 17','LUN 20','MAR 21','MIÉ 22'];
+    const daysEN = ['THU 16','FRI 17','MON 20','TUE 21','WED 22'];
+    const hours = ['09:00','11:00','13:00','16:00'];
+    const calDays = (lang === 'en' ? daysEN : daysES).map((d) => ({
+      label: d,
+      slots: hours.map(h => {
+        const key = d + ' · ' + h;
+        const sel = this.state.slot === key;
+        return { label: h, onPick: () => this.setState({ slot: key }),
+          style: { cursor:'pointer', fontFamily:"'JetBrains Mono', monospace", fontSize:'11.5px', padding:'8px 0', borderRadius:'8px',
+            border: sel ? '1px solid #FF4D8D' : '1px solid rgba(255,255,255,.1)',
+            background: sel ? 'rgba(255,77,141,.18)' : 'rgba(255,255,255,.03)',
+            color: sel ? '#FF9DC0' : '#B4ADC7', fontWeight: sel ? 700 : 400 } };
+      })
+    }));
+
+    // modal
+    const openAg = this.agentsData().find(a => a.id === this.state.openId);
+    const modalLines = openAg ? openAg.demo.slice(0, this.state.demoStep).map(l => ({ text: l[lang], color: this.lineColor(l.k) })) : [];
+
+    return {
+      t, termLines: this.state.termLines,
+      isHuman: mode === 'human',
+      setHuman: () => this.setState({ mode: 'human' }), setA2A: () => this.setState({ mode: 'a2a' }),
+      setES: () => this.setState({ lang: 'es' }), setEN: () => this.setState({ lang: 'en' }),
+      humanBtnStyle: this.toggleBtn(mode === 'human'), a2aBtnStyle: this.toggleBtn(mode === 'a2a'),
+      setTabOps: () => this.setState({ panelTab: 'ops' }), setTabFin: () => this.setState({ panelTab: 'fin' }), setTabProj: () => this.setState({ panelTab: 'proj' }),
+      tabIsOps: this.state.panelTab === 'ops', tabIsFin: this.state.panelTab === 'fin', tabIsProj: this.state.panelTab === 'proj',
+      tabOpsStyle: this.panelTabBtn(this.state.panelTab === 'ops'), tabFinStyle: this.panelTabBtn(this.state.panelTab === 'fin'), tabProjStyle: this.panelTabBtn(this.state.panelTab === 'proj'),
+      esBtnStyle: this.toggleBtn(lang === 'es'), enBtnStyle: this.toggleBtn(lang === 'en'),
+      agents, deckAgents, hasDeck: deck.length > 0, noDeck: deck.length === 0,
+      deckCount: deck.length, deckEnergy,
+      deckWeeks: deck.length ? weeks + (lang === 'en' ? ' wks' : ' sem') : '—',
+      deckPrice: deck.length ? ('$' + lo.toLocaleString() + '–' + hi.toLocaleString() + ' USD') : '$0',
+      calDays, slotPicked: !!this.state.slot && !this.state.confirmed,
+      notConfirmed: !this.state.confirmed, confirmed: this.state.confirmed,
+      slotLabel: this.state.slot || '',
+      confirmSlot: () => this.setState({ confirmed: true }),
+      resetSlot: () => this.setState({ confirmed: false, slot: null }),
+      showModal: !!openAg,
+      modal: openAg ? { name: openAg.name, glyph: openAg.glyph, orbA: openAg.orbA, orbB: openAg.orbB, role: openAg.role[lang] } : {},
+      modalLines, modalRunning: openAg ? this.state.demoStep < openAg.demo.length : false,
+      closeDemo: () => { clearInterval(this.demoTimer); this.setState({ openId: null }); },
+      replayDemo: () => this.openDemo(this.state.openId),
+      modalAddDeck: () => { const id = this.state.openId; clearInterval(this.demoTimer);
+        this.setState({ openId: null, deck: deck.includes(id) ? deck : deck.concat([id]) });
+        const el = document.getElementById('deck'); if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' }); },
+      stop: (e) => e.stopPropagation()
+    };
+  }
+}
+</script>
+</body>
+</html>
