@@ -18,14 +18,16 @@ export function LandingClient() {
     <LandingProvider>
       <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
         <TopNav />
-        <Hero />
-        <Ticker />
-        <Steps />
-        <Cards />
-        <DeckBuilder />
-        <Panel />
-        <Protocol />
-        <Agenda />
+        <main>
+          <Hero />
+          <Ticker />
+          <Steps />
+          <Cards />
+          <DeckBuilder />
+          <Panel />
+          <Protocol />
+          <Agenda />
+        </main>
         <Footer />
         <DemoModal />
         <ChatWidget />
