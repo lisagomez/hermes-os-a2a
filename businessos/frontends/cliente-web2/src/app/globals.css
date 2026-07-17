@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "@a2a/design-system/tokens.css";
+
+/* Puente next/font → tokens del design system.
+ * next/font expone --font-space-grotesk / --font-jetbrains-mono en <html>;
+ * el design system consume --font-display / --font-mono. */
+:root {
+  --font-display: var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Utilidades de marca opcionales para Tailwind v4 (referencian las CSS vars). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-violet: var(--violet);
+  --color-pink: var(--pink);
+  --color-ink: var(--text-1);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+/* Selección en marca */
+::selection {
+  background: rgba(159, 123, 255, 0.35);
+  color: var(--text-1);
+}
+
+/* Animación firma: fade-up ligado a scroll (degrada sin romper). */
+@keyframes a2a-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.a2a-reveal {
+  animation: a2a-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@supports (animation-timeline: view()) {
+  .a2a-reveal {
+    animation: a2a-fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a2a-reveal {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Cursor de terminal parpadeante. */
+@keyframes a2a-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.a2a-cursor {
+  animation: a2a-blink 1s steps(1) infinite;
+}
+
+/* Ticker infinito (marquesina de comandos). */
+@keyframes a2a-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="a2a-ticker"] {
+    animation: none !important;
+  }
+}
+
+/* ---- Layouts responsivos de la landing ---- */
+.a2a-hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+}
+.a2a-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.a2a-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.a2a-deck-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 34px;
+}
+.a2a-panel-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 40px;
+  align-items: center;
+}
+.a2a-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.a2a-agenda-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 36px;
+}
+
+/* Elevación en hover (tarjetas de proceso). */
+.a2a-lift {
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.a2a-lift:hover {
+  transform: translateY(-6px);
+  border-color: rgba(159, 123, 255, 0.4);
+}
+
+@media (max-width: 920px) {
+  .a2a-hero-grid,
+  .a2a-deck-grid,
+  .a2a-panel-grid,
+  .a2a-two-col,
+  .a2a-agenda-grid {
+    grid-template-columns: 1fr;
+  }
+  .a2a-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .a2a-grid-3,
+  .a2a-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}

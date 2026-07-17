@@ -1,0 +1,15 @@
+:root{
+  --grad-brand:linear-gradient(120deg,#9F7BFF,#FF4D8D);
+  --grad-stat:linear-gradient(90deg,#9F7BFF,#FF4D8D);
+  --grad-text:linear-gradient(100deg,#9F7BFF,#FF4D8D);
+  --orb-violet:radial-gradient(circle at 35% 30%,#9F7BFF,#4B23D6 75%);
+  --orb-pink:radial-gradient(circle at 35% 30%,#FF6BA3,#B3134F 75%);
+  --orb-energy:radial-gradient(circle at 35% 30%,#FFE9A8,#E8A320);
+  --glow-violet:0 0 34px rgba(124,92,255,.4);
+  --glow-pink:0 0 22px rgba(255,77,141,.35);
+  --glow-energy:0 0 12px rgba(232,163,32,.5);
+  --shadow-card:0 24px 60px rgba(0,0,0,.6);
+  --shadow-panel:0 30px 80px rgba(0,0,0,.5);
+  --shadow-modal:0 40px 120px rgba(0,0,0,.7);
+  --ease-ui:all .25s ease;
+}

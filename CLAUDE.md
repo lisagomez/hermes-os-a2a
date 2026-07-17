@@ -72,13 +72,17 @@ Usuario dice algo
     ├── "Optimiza este skill / mejora el skill / autoresearch"
     |       → Ejecutar skill AUTORESEARCH (loop autonomo de mejora)
     |
+    ├── "¿Opcion A o B? / valida esta decision / pasalo por el consejo / sala de guerra"
+    |       → Ejecutar skill CONSEJO (Depto. de Estrategia: 5 asesores + peer-review + Chairman)
+    |         Solo para decisiones abiertas de negocio/estrategia caras o irreversibles.
+    |
     └── No encaja en nada
             → Usar tu juicio. Leer el codebase, entender patrones, ejecutar.
 ```
 
 ---
 
-## Skills: 15 Herramientas Especializadas
+## Skills: 16 Herramientas Especializadas
 
 | # | Skill | Cuando usarlo |
 |---|-------|---------------|
@@ -100,6 +104,7 @@ Usuario dice algo
 | 13 | `image-generation` | Generar y editar imagenes con OpenRouter + Gemini |
 | 14 | `autoresearch` | Auto-optimizar skills con loop autonomo (patron Karpathy) |
 | 15 | `skill-creator` | Crear nuevos skills para extender la fabrica |
+| 16 | `consejo` | **Depto. de Estrategia**: somete una DECISION real a un Consejo de 5 asesores (lentes que chocan) + peer-review anonimo + sintesis del Chairman. Solo decisiones abiertas caras/irreversibles. Ver `businessos/departamentos/estrategia.md` |
 
 ---
 
@@ -284,7 +289,8 @@ npm run lint         # ESLint
 │   ├── memory-manager/       # Memoria persistente por proyecto
 │   ├── image-generation/     # Generacion de imagenes (OpenRouter + Gemini)
 │   ├── autoresearch/         # Auto-optimizacion de skills
-│   └── skill-creator/        # Crear nuevos skills
+│   ├── skill-creator/        # Crear nuevos skills
+│   └── consejo/              # Depto. de Estrategia: Consejo de 5 asesores (decisiones)
 │
 ├── PRPs/                      # Product Requirements Proposals
 │   └── prp-base.md           # Template base
@@ -835,5 +841,72 @@ npm run lint         # ESLint
   es `/hermes sethome` (en Slack **el `/sethome` pelado NO existe**: todos los comandos van por
   el slash command padre `/hermes`).
 - **Aplicar en**: toda vertical que sume Slack.
+
+### 2026-07-16: Frontend web2 + design system — gotchas de Next 16 + paquete local
+- **Aprendizaje**: el design system A2A Factory (ZIP de la dueña) se integró como paquete local
+  `@a2a/design-system` (`businessos/frontends/design-system/`, `file:../design-system` +
+  `transpilePackages`) consumido por `cliente-web2` (Next 16 + React 19 + Tailwind v4). Tres
+  trampas: (1) **`turbopack.root` mal fijado ROMPE la resolución de un paquete hermano**: poner
+  `root: __dirname` (la carpeta de la app) deja `../design-system` FUERA de la raíz de tracing →
+  `module-not-found` en build (el primer build "funcionaba" solo porque Next infería la raíz del
+  monorepo, que sí lo contenía). Fix: `root` = ancestro que contenga la app Y el paquete
+  (`path.resolve(__dirname, '..')` = `frontends/`). (2) **`eslint-config-next` v16 YA es un flat
+  config array nativo** (`export = Linter.Config[]`): usarlo con `FlatCompat` truena con
+  "Converting circular structure to JSON" en ESLint 9; hay que `import next` y spread directo,
+  sin FlatCompat. (3) **fuentes**: `next/font/google` (no CDN) para prod/CSP; el design system
+  deja `--font-display`/`--font-mono` sin las familias y la app las puentea a las vars de
+  `next/font`. Verificación real: smoke Playwright (`node smoke.mjs` con import absoluto a
+  `a2aboths/node_modules/playwright`) contra `npm start` en **background-task propio** — un server
+  lanzado con `&` dentro del comando queda zombie al cerrar el shell y sirve estado stale
+  (perseguí "hidratación rota" que no existía).
+- **Invariante preservado**: un-escritor-por-origen en `leads` → el frontend usa origen propio
+  `web2` (migración `supabase-fase11-leads-web2.sql`), no reusa `a2a`/`manual`.
+- **Aplicar en**: cualquier frontend nuevo del monorepo, todo paquete local `file:` con Turbopack,
+  y toda verificación de un server local. Detalle: `.claude/memory/project/frontend-web2.md`.
+
+### 2026-07-14: master ahora tiene `enforce_admins:true` — el `--admin` YA NO saltea la revisión
+- **CORRIGE** el aprendizaje 2026-07-12 (GitHub) que daba `enforce_admins:false` y decía que el
+  admin (y por tanto el agente con su token) podía saltarse la protección. **Ya no**: master está
+  con `enforce_admins:true` + `required_approving_review_count:1` (verificado 2026-07-14).
+  Consecuencias al mergear un PR: (a) `gh pr merge --admin` **falla** con "At least 1 approving
+  review is required" — no hay bypass por token; (b) GitHub **prohíbe que el autor apruebe su
+  propio PR** → si el agente creó el PR con `lisagomez`, esa cuenta no puede aprobarlo; (c) los
+  **4 colaboradores con write** (`HuertaVictor`, `Johann-Valderrama`, `ZELANDIAIO`,
+  `makeflowia-lab`) sí pueden aprobar → camino sano.
+- **Bypass (solo con OK explícito de la dueña)**: respaldar la config completa a un JSON
+  (`gh api .../branches/master/protection`), bajar `required_approving_review_count` a 0 vía
+  `gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`, mergear, y
+  **RESTAURAR a 1 de inmediato** verificando el estado final. Usado así el 2026-07-14 para PRs
+  #49/#50 con autorización expresa. No es la vía por defecto: debilita la compuerta que
+  `enforce_admins:true` protege.
+- **Aplicar en**: todo merge a master. Detalle en `.claude/memory/reference/master-branch-protection.md`.
+
+### 2026-07-15: Meter las migraciones de una superficie en un proyecto Supabase COMPARTIDO — cuidado con `profiles` + el trigger de auth
+- **Contexto**: `frontend-ci` (cabina control-interno) se cableó al proyecto **A2ABot**
+  (`hsejpktzcqwkwkwholkw`, el mismo del negocio/trío) en vez de a uno dedicado, porque ahí ya
+  apuntaban sus credenciales. Sus 6 migraciones crean **31 tablas**; solo **una colisiona** con
+  las 8 del negocio: `profiles`.
+- **La trampa**: el `base_schema` del frontend es idempotente (`create table if not exists`,
+  `drop policy … create`), PERO trae `create or replace function public.handle_new_user()` — y
+  eso **NO** respeta el "if not exists": **sobrescribe** el trigger de auth existente. El del
+  negocio insertaba `(id,email,full_name,avatar_url)`; el del frontend inserta `(…,role)`. Como
+  el `profiles` existente **no tenía la columna `role`** (y `create table if not exists` NO la
+  añade porque la tabla ya existe), aplicar el base_schema tal cual **habría roto el signup de
+  TODO A2ABot** (el trigger fallaría al insertar en una columna inexistente) — un daño silencioso
+  que los tests de dev jamás cazan (nadie crea un `auth.users` en dev).
+- **Fix (reconciliar, no clobbear)**: (1) `alter table profiles add column if not exists role …`
+  ANTES de aplicar (superset inocuo para el negocio, que no usa `role`); (2) aplicar las
+  migraciones; (3) reinstalar un `handle_new_user` **FUSIONADO** que inserta lo del negocio
+  (`avatar_url`) **y** lo del frontend (`role`), con `on conflict (id) do nothing` y hardening
+  `search_path=''`. Verificar después: las 31 tablas presentes, las 8 del negocio + sus datos
+  intactos, y la función final contiene ambas columnas.
+- **Regla general**: antes de correr las migraciones de una superficie sobre una BD que ya usa
+  otra, **diffear los nombres de tabla** (aquí, disjuntos salvo `profiles`) y **auditar todo
+  `create or replace function`/trigger** — esos pisan sin avisar. Un proyecto compartido ahorra
+  costo pero te hace dueño de las colisiones. Aplicar migraciones a producción por Management API
+  (`POST /database/query`, UA `curl/8.0`) va bien; el `db push` del CLI no estaba cableado.
+- **Aplicar en**: cualquier `db push`/migración de una superficie nueva a un Supabase con datos,
+  y todo trigger de `auth.users` en proyectos multi-superficie. Ver
+  `.claude/memory/project/frontends-control-interno.md`.
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
