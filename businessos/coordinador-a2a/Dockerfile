@@ -39,6 +39,16 @@ COPY coordinador-a2a/card.py coordinador-a2a/executor.py coordinador-a2a/planner
      coordinador-a2a/cola_espera.py \
      coordinador-a2a/integracion.py coordinador-a2a/supervisor_cliente.py coordinador-a2a/app.py ./
 
+# Correr como uid/gid 1000 (= hermes del host). Un solo escritor sobre /repo y
+# /workspace: los objetos git que escribe el enjambre quedan owned 1000 (no root),
+# asi el cron `git fetch` del host (tambien uid 1000) nunca vuelve a chocar y el
+# master no se congela. HOME propio para $HOME/.claude (transcripts del planner).
+# PRP-011 (2026-07-18). El uid DEBE ser 1000 para coincidir con el bind-mount.
+RUN groupadd -g 1000 app && useradd -m -u 1000 -g 1000 -s /bin/bash app \
+    && mkdir -p /workspace && chown 1000:1000 /workspace
+ENV HOME=/home/app
+USER app
+
 EXPOSE 4300
 
 # slim no trae curl: el healthcheck usa urllib de la stdlib

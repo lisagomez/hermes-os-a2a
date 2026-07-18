@@ -42,6 +42,16 @@ COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
      ejecutor-a2a/presupuesto.py \
      ejecutor-a2a/app.py ./
 
+# Correr como uid/gid 1000 (= hermes del host). Un solo escritor sobre /repo y
+# /workspace: los objetos git que escribe el trio quedan owned 1000 (no root),
+# asi el cron `git fetch` del host (tambien uid 1000) nunca vuelve a chocar y el
+# master no se congela. HOME propio para $HOME/.claude (transcripts del motor).
+# PRP-011 (2026-07-18). El uid DEBE ser 1000 para coincidir con el bind-mount.
+RUN groupadd -g 1000 app && useradd -m -u 1000 -g 1000 -s /bin/bash app \
+    && mkdir -p /workspace && chown 1000:1000 /workspace
+ENV HOME=/home/app
+USER app
+
 EXPOSE 4100
 
 # slim no trae curl: el healthcheck usa urllib de la stdlib

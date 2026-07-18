@@ -43,6 +43,17 @@ COPY supervisor-a2a/card.py supervisor-a2a/executor.py supervisor-a2a/gates.py \
      supervisor-a2a/veredicto.py supervisor-a2a/app.py ./
 COPY supervisor-a2a/reglas ./reglas
 
+# Correr como uid/gid 1000 (= hermes del host). El Supervisor hace `git add -A`
+# en los worktrees (escribe el index bajo /repo): como uid 1000 esos objetos
+# quedan owned 1000 (no root) y el cron `git fetch` del host nunca vuelve a
+# chocar. /ms-playwright se chownea por si un mismatch de version dispara
+# re-descarga en runtime (owned root fallaria como uid 1000). PRP-011 (2026-07-18).
+RUN groupadd -g 1000 app && useradd -m -u 1000 -g 1000 -s /bin/bash app \
+    && mkdir -p /workspace && chown 1000:1000 /workspace \
+    && chown -R 1000:1000 /ms-playwright
+ENV HOME=/home/app
+USER app
+
 EXPOSE 4200
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
