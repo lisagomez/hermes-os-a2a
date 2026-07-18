@@ -30,8 +30,8 @@ Estado y decisiones de la superficie de cara al cliente humano. Iniciado 2026-07
 
 ## Residuales
 
-- Aplicar `supabase-fase11-leads-web2.sql` en el Supabase de prod (management API, UA curl/8.0).
-- Configurar el proyecto Vercel + env vars y publicar.
+- ~~Aplicar `supabase-fase11-leads-web2.sql`~~ → **APLICADA en prod 2026-07-17** (management API; CHECK verificado con el MCP).
+- ~~Configurar el proyecto Vercel + publicar~~ → **DESPLEGADO 2026-07-17**: https://cliente-web2.vercel.app (proyecto `cliente-web2`, upload root `frontends/`, rootDirectory `cliente-web2`, installCommand instala también el design-system). Leads verificado end-to-end (POST → fila `origen='web2'` → limpieza). Gotchas del deploy en `frontends/DEPLOY-web2.md` §0 y CLAUDE.md 2026-07-17.
 - (Opt-in, decisión de seguridad de la dueña) exponer el daemon por el edge para el chat live.
 - cliente-a2a-web3: subir de scaffold a app (siguiente pase). Ver [[fase5-a2a]] para el contrato A2A.
 

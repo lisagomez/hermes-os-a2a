@@ -1,0 +1,57 @@
+# reauthor-tip-vercel.yml — desbloquea los deploys de Vercel (plan Hobby) cuando
+# el tip de una rama lo firma un colaborador.
+#
+# Vercel Hobby NO despliega commits de colaboradores en repos privados: el deploy
+# queda "Blocked" (no es fallo de build ni de Root Directory). Solo los commits
+# autorados por la cuenta dueña del proyecto (lisagomez) despliegan en verde.
+#
+# Workaround: si el ultimo commit de un push es de un colaborador, esta Action
+# agrega un commit VACIO autorado por la dueña → Vercel ve a la dueña en el tip
+# y despliega. Costo: un commit vacio en el historial por cada push de
+# colaborador. El fix definitivo (cuando el proyecto escale) es Vercel Pro +
+# invitar a los colaboradores al Team de Vercel; entonces este workflow se borra.
+#
+# master queda FUERA a proposito: esta protegida (PR + 1 review +
+# enforce_admins:true) y un push directo — tambien el de esta Action — falla con
+# GH006. No hace falta ahi: los merges a master los ejecuta la cuenta dueña, asi
+# que produccion ya despliega en verde. Si algun dia un colaborador mergea a
+# master y el deploy de produccion sale Blocked, se re-dispara con un PR de
+# commit vacio de la dueña o con `vercel deploy --prod`.
+name: reauthor-tip-vercel
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reauthor-${{ github.ref }}
+
+jobs:
+  reauthor:
+    # NO filtrar por github.actor (el pusher): Vercel mira al AUTOR del tip, no
+    # a quien empuja — si la dueña empuja commits ajenos (rebase/rescate de una
+    # rama de colaborador), el actor seria ella pero el tip seguiria Blocked.
+    # El step decide comparando el email del autor del tip. Contra bucles: los
+    # push con GITHUB_TOKEN no re-disparan workflows, y este guard es el
+    # cinturon extra.
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Commit vacio autorado por la dueña si el tip es de un colaborador
+        run: |
+          AUTOR=$(git log -1 --pretty=%ae)
+          if [ "$AUTOR" = "lisagomez967@gmail.com" ]; then
+            echo "El tip ya es de la dueña ($AUTOR): nada que hacer."
+            exit 0
+          fi
+          echo "Tip autorado por $AUTOR: re-autorando para desbloquear Vercel."
+          git config user.name "lisagomez"
+          git config user.email "lisagomez967@gmail.com"
+          git commit --allow-empty -m "chore(vercel): reauthor tip para desbloquear el deploy (Hobby)"
+          git push
