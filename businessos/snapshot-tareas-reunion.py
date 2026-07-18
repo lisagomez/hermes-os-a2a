@@ -37,7 +37,8 @@ def fetch_due(url: str, key: str, hasta: str) -> list[dict]:
          f"?estado=eq.pendiente&fecha_limite=lte.{hasta}"
          f"&select=id,negocio,reunion_id,tarea,responsable,fecha_limite,canal,fuente"
          f"&order=fecha_limite.asc")
-    req = urllib.request.Request(q, headers={"apikey": key, "Authorization": "Bearer " + key})
+    req = urllib.request.Request(q, headers={"apikey": key, "Authorization": "Bearer " + key,
+                                             "User-Agent": "curl/8.0"})  # Cloudflare 1010
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode())
 

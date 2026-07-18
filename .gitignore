@@ -81,5 +81,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Reuniones/transcripts privados (ver inbox-reuniones-negocio-segmentado en OPS)
-docs/
+# Reuniones/transcripts privados en la RAIZ del repo (ver inbox-reuniones-negocio-
+# segmentado en OPS). Anclado a la raiz: un `docs/` pelado taparia docs/ rastreados
+# de subproyectos (p.ej. businessos/frontends/control-interno/docs/).
+/docs/

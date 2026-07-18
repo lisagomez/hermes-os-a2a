@@ -41,16 +41,18 @@ SNAP=$(docker exec -u hermes hermes-negocio cat /opt/data/workspace/tareas_reuni
   echo "=== $(date -Is) alerta-tareas-reunion: sin snapshot (¿negocio caido, o snapshot-tareas-reunion.py no ha corrido?) ===" >> "$LOG"; exit 0; }
 
 # El python solo TRANSFORMA (json -> lineas pipe-delimited); cero llamadas de red/credenciales.
-LINEAS=$(python3 - <<PY
-import json
-d = json.loads('''$SNAP''')
+# El snapshot entra por STDIN, nunca interpolado en el codigo: un texto de tarea con
+# comillas/escapes rompia el heredoc (y era inyectable en teoria).
+LINEAS=$(printf '%s' "$SNAP" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
 for t in d.get("tareas", []):
+    tarea = " ".join(str(t.get("tarea", "")).split()).replace("|", "/")
     partes = [t.get("reunion_id",""), t.get("id",""), t.get("fecha_limite") or "",
-              t.get("tarea","").replace("|","/"), t.get("responsable") or "sin dueno",
+              tarea, t.get("responsable") or "sin dueno",
               t.get("canal") or "", "1" if t.get("vencida") else "0"]
     print("|".join(partes))
-PY
-) || { echo "=== $(date -Is) alerta-tareas-reunion: snapshot ilegible ===" >> "$LOG"; exit 0; }
+') || { echo "=== $(date -Is) alerta-tareas-reunion: snapshot ilegible ===" >> "$LOG"; exit 0; }
 LINEAS=$(printf '%s' "$LINEAS" | tr -d '\r')  # defensa: algunos python en Windows emiten CRLF en print()
 
 if [ -z "$LINEAS" ]; then

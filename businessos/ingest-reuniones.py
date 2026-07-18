@@ -133,6 +133,7 @@ def upsert(rows: list[dict], url: str, key: str) -> None:
         f"{url.rstrip('/')}/rest/v1/tareas_reunion?on_conflict=reunion_id,id",
         data=json.dumps(rows).encode(),
         headers={"apikey": key, "Authorization": "Bearer " + key,
+                 "User-Agent": "curl/8.0",  # Cloudflare 1010 (aprendizaje 2026-07-02)
                  "Content-Type": "application/json",
                  "Prefer": "resolution=merge-duplicates,return=minimal"})
     urllib.request.urlopen(req, timeout=30)
