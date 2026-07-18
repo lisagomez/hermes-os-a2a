@@ -1,16 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useLanding } from '../context';
-import { agentById, type DemoKind } from '../agents';
-
-const KIND_COLOR: Record<DemoKind, string> = {
-  cmd: 'var(--text-1)',
-  sys: 'var(--lilac)',
-  usr: 'var(--text-3)',
-  agt: 'var(--pink-pale)',
-  ok: 'var(--success-soft)',
-  kpi: 'var(--energy-bright)',
-};
+import { agentById, KIND_COLOR } from '../agents';
 
 export function DemoModal() {
   const { lang, t, openId, demoStep, closeDemo, replayDemo, modalAddDeck } = useLanding();

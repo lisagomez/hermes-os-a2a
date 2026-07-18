@@ -5,6 +5,7 @@ import { Hero } from './sections/Hero';
 import { Ticker } from './sections/Ticker';
 import { Steps } from './sections/Steps';
 import { Cards } from './sections/Cards';
+import { OfficeSim } from './sections/OfficeSim';
 import { DeckBuilder } from './sections/DeckBuilder';
 import { Intake } from './sections/Intake';
 import { Panel } from './sections/Panel';
@@ -24,6 +25,7 @@ export function LandingClient() {
           <Ticker />
           <Steps />
           <Cards />
+          <OfficeSim />
           <DeckBuilder />
           <Intake />
           <Panel />
