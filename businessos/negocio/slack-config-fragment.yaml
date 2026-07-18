@@ -139,7 +139,10 @@ platforms:
         y sigue -- no inventes para llenarla.
 
         Encabezado (primera linea): REUNION: <tema> | FECHA: <AAAA-MM-DD> |
-        ASISTENTES: <nombres> | ID: reunion-<AAAA-MM-DD>
+        ASISTENTES: <nombres> | ID: a2a-reunion-<AAAA-MM-DD>
+        (prefijo a2a- SIEMPRE: reunion_id es clave de upsert en la tabla
+        compartida tareas_reunion y debe coincidir con el del skill
+        ingesta-reunion; sin prefijo, la misma reunion entraria duplicada.)
 
         1. Decisiones cerradas: lo ya resuelto, no reabrir. Una linea por
            decision.
@@ -165,7 +168,7 @@ platforms:
         Al final, SIEMPRE (aunque no haya tareas) emite este bloque sin
         comentarlo, para que el job de recordatorios lo consuma:
         <<<TAREAS_JSON
-        {"reunion_id":"reunion-<AAAA-MM-DD>","generado":"<AAAA-MM-DD>","tareas":[
+        {"negocio":"a2a","reunion_id":"a2a-reunion-<AAAA-MM-DD>","generado":"<AAAA-MM-DD>","tareas":[
         {"id":"T1","tarea":"...","responsable":"...","fecha_limite":"AAAA-MM-DD|sin fecha","canal":"#alertas","fuente":"Nombre [mm:ss]"}]}
         TAREAS_JSON>>>
 
