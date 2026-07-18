@@ -20,7 +20,12 @@
    en el deploy, toda function muere con `failed to load env vars: EnvFileReadError` (500
    genérico sin tocar tu código; la landing estática sigue viva y engaña). Fix: borrarlo y
    `.vercelignore` con `.env*`.
-4. **Vercel Hobby bloquea los deploys de colaboradores en repos privados** (2026-07-17):
+4. **El proyecto NO está conectado a GitHub → mergear a master NO despliega** (2026-07-18):
+   un merge a master no dispara nada en Vercel (verificado: `vercel ls` sin deploy nuevo tras
+   el merge del PR #63). Publicar = `npx vercel deploy --prod` **desde `frontends/`** (el
+   upload root con el `.vercel/` linkeado), como cuenta dueña. Antes de asumir "está
+   construyendo", consultar `npx vercel ls cliente-web2`.
+5. **Vercel Hobby bloquea los deploys de colaboradores en repos privados** (2026-07-17):
    un push de cualquiera que no sea la cuenta dueña queda "Blocked" — no es fallo de build
    ni de Root Directory, es restricción del plan. Workaround activo:
    `.github/workflows/reauthor-tip-vercel.yml` agrega un commit vacío autorado por la dueña
