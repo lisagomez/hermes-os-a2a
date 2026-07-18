@@ -6,6 +6,7 @@ import { Ticker } from './sections/Ticker';
 import { Steps } from './sections/Steps';
 import { Cards } from './sections/Cards';
 import { DeckBuilder } from './sections/DeckBuilder';
+import { Intake } from './sections/Intake';
 import { Panel } from './sections/Panel';
 import { Protocol } from './sections/Protocol';
 import { Agenda } from './sections/Agenda';
@@ -24,6 +25,7 @@ export function LandingClient() {
           <Steps />
           <Cards />
           <DeckBuilder />
+          <Intake />
           <Panel />
           <Protocol />
           <Agenda />
