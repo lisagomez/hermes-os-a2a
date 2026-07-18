@@ -1,22 +1,35 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { TerminalWindow, type TerminalLine } from '@a2a/design-system';
+import type { Lang } from '@/shared/i18n/strings';
 import { useLanding } from '../context';
 
 type Step = { text: string; kind: TerminalLine['kind']; typed?: boolean };
 
-const SCRIPT: Step[] = [
-  { text: '$ a2a init --caso "ecommerce" --alcance full', kind: 'cmd', typed: true },
-  { text: '✓ analizando caso de uso…', kind: 'ok' },
-  { text: '✓ 3 agentes recomendados: vendo-1, oraculo, tesoro', kind: 'ok' },
-  { text: '$ a2a deploy --panel ops+fin', kind: 'cmd', typed: true },
-  { text: '⚙ adaptando agentes a tu flujo…', kind: 'sys' },
-  { text: '✓ panel listo → https://panel.tu-empresa.a2a', kind: 'ok' },
-  { text: '$ a2a status', kind: 'cmd', typed: true },
-  { text: '● 3/3 agentes activos · presupuesto 68% · proyección ▲', kind: 'agt' },
-];
+const SCRIPTS: Record<Lang, Step[]> = {
+  es: [
+    { text: '$ a2a init --caso "ecommerce" --alcance full', kind: 'cmd', typed: true },
+    { text: '✓ analizando caso de uso…', kind: 'ok' },
+    { text: '✓ 3 agentes recomendados: vendo-1, oraculo, tesoro', kind: 'ok' },
+    { text: '$ a2a deploy --panel ops+fin', kind: 'cmd', typed: true },
+    { text: '⚙ adaptando agentes a tu flujo…', kind: 'sys' },
+    { text: '✓ panel listo → https://panel.tu-empresa.a2a', kind: 'ok' },
+    { text: '$ a2a status', kind: 'cmd', typed: true },
+    { text: '● 3/3 agentes activos · presupuesto 68% · proyección ▲', kind: 'agt' },
+  ],
+  en: [
+    { text: '$ a2a init --case "ecommerce" --scope full', kind: 'cmd', typed: true },
+    { text: '✓ analyzing use case…', kind: 'ok' },
+    { text: '✓ 3 recommended agents: vendo-1, oraculo, tesoro', kind: 'ok' },
+    { text: '$ a2a deploy --panel ops+fin', kind: 'cmd', typed: true },
+    { text: '⚙ tailoring agents to your flow…', kind: 'sys' },
+    { text: '✓ panel ready → https://panel.your-company.a2a', kind: 'ok' },
+    { text: '$ a2a status', kind: 'cmd', typed: true },
+    { text: '● 3/3 agents active · budget 68% · projection ▲', kind: 'agt' },
+  ],
+};
 
-function LiveTerminal({ title }: { title: string }) {
+function LiveTerminal({ title, script }: { title: string; script: Step[] }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -25,7 +38,7 @@ function LiveTerminal({ title }: { title: string }) {
     let i = 0;
     const run = () => {
       if (!alive) return;
-      if (i >= SCRIPT.length) {
+      if (i >= script.length) {
         timer.current = setTimeout(() => {
           if (!alive) return;
           setLines([]);
@@ -34,7 +47,7 @@ function LiveTerminal({ title }: { title: string }) {
         }, 4000);
         return;
       }
-      const step = SCRIPT[i];
+      const step = script[i];
       if (step.typed) {
         let p = 0;
         const typeChar = () => {
@@ -63,7 +76,7 @@ function LiveTerminal({ title }: { title: string }) {
       alive = false;
       if (timer.current) clearTimeout(timer.current);
     };
-  }, []);
+  }, [script]);
 
   return <TerminalWindow title={title} lines={lines} cursor minHeight={230} />;
 }
@@ -122,7 +135,7 @@ function NetworkMini() {
 }
 
 export function Hero() {
-  const { t } = useLanding();
+  const { t, lang } = useLanding();
   return (
     <section style={{ position: 'relative', padding: '72px 32px 40px', maxWidth: 'var(--page-max)', margin: '0 auto' }}>
       <div className="a2a-hero-grid">
@@ -190,7 +203,7 @@ export function Hero() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <LiveTerminal title={`a2a-cli — ${t.termTitle}`} />
+          <LiveTerminal title={`a2a-cli — ${t.termTitle}`} script={SCRIPTS[lang]} />
           <NetworkMini />
         </div>
       </div>

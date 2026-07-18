@@ -1,5 +1,34 @@
 # Deploy de `cliente-web2` (Vercel) + backend
 
+> **Estado: DESPLEGADO** (2026-07-17) — https://cliente-web2.vercel.app
+> Proyecto Vercel `cliente-web2` (scope lisagomezs-projects), upload root `frontends/`,
+> Root Directory `cliente-web2`. Migración fase11 aplicada; leads verificado end-to-end
+> (POST → fila real → limpieza). Chat live sigue degradado (decisión pendiente de la dueña).
+
+## 0. Aprendizajes del primer deploy real (2026-07-17)
+
+1. **Upload root ≠ app**: el paquete `file:../design-system` obliga a subir `frontends/`
+   completo y fijar Root Directory `cliente-web2` **vía API** (`PATCH /v9/projects/{id}`,
+   el CLI no tiene flag). Correr `vercel deploy` DESDE el subdir se auto-linkea mal y busca
+   `cliente-web2/cliente-web2`.
+2. **Tipos de React del paquete hermano**: en Vercel `tsc` no los resuelve (en dev los
+   aportaba el `node_modules` de la raíz del monorepo, que no viaja). NO mapear `react` en
+   `tsconfig.paths` — Turbopack usa esos paths como alias de bundling y revienta el build
+   apuntando runtime a `@types/`. Fix real: `devDependencies` `@types/react`(-dom) en el
+   design-system + installCommand `npm install && npm install --prefix ../design-system`.
+3. **El `.env.local` que crea `vercel link` en el upload root MATA las lambdas**: si viaja
+   en el deploy, toda function muere con `failed to load env vars: EnvFileReadError` (500
+   genérico sin tocar tu código; la landing estática sigue viva y engaña). Fix: borrarlo y
+   `.vercelignore` con `.env*`.
+4. **Vercel Hobby bloquea los deploys de colaboradores en repos privados** (2026-07-17):
+   un push de cualquiera que no sea la cuenta dueña queda "Blocked" — no es fallo de build
+   ni de Root Directory, es restricción del plan. Workaround activo:
+   `.github/workflows/reauthor-tip-vercel.yml` agrega un commit vacío autorado por la dueña
+   tras cada push de colaborador (ramas ≠ master; master no lo necesita: sus merges los
+   ejecuta la cuenta dueña, y su protección bloquearía el push de la Action). Costo: un
+   commit vacío por push. Fix definitivo si el proyecto escala: **Vercel Pro** + invitar a
+   los colaboradores al Team de Vercel (y borrar el workflow).
+
 Runbook para publicar la superficie web2. Deploy en **Vercel**; el backend vive en el Droplet
 Hetzner. Honestidad operativa: lo que queda **live** de inmediato vs. lo que necesita un paso
 de infra.
