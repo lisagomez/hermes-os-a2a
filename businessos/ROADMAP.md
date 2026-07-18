@@ -741,6 +741,29 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 
 ---
 
+## Corriente transversal — Análisis y planeación (hilo `decision_id`, decidido 2026-07-17)
+
+Veredicto del Consejo sobre cómo unificar las 5 piezas de análisis/planeación (consejo,
+prp, claude_planner, grafo, new-app) y cuánto adoptar de Spartane.ai: **opción C ampliada
+con instrumentación** — no se funden las piezas; se cablea solo la costura Consejo→PRP con
+un `decision_id` que viaja decisión→PRP→tarea padre→gasto (`token_usage.task_id`). Plan
+completo en `businessos/departamentos/analisis-planeacion.md`; veredictos en
+`.claude/memory/decisiones/`; log append-only `businessos/trazas-decisiones.jsonl`.
+
+- [x] **Etapa 1 — costura** (2026-07-17): `prp-base.md` con sección opcional "Decisión del
+  Consejo"; Paso 6 del skill `consejo` escribe el registro estructurado + evento JSONL.
+  Cero SQL, cero tokens de runtime.
+- [ ] **Etapa 2 — hilo al enjambre**: `decision_id` en el `contexto` jsonb de la tarea
+  padre, cuando llegue la primera feature post-Consejo (cero cambio de esquema).
+- [ ] **Etapa 3 — vitrina (GATED por evidencia, NO por calendario)**: tabla `decisiones` +
+  vista "Estrategia" en Mission Control SOLO cuando (a) ≥3 hilos completos en el JSONL y
+  (b) un prospecto white-label pida ver gobernanza.
+- De Spartane se adopta ÚNICAMENTE el mapa de 7 fases como **checklist de descubrimiento**
+  white-label (las 7 ya viven en Hermes-os-a2a como runtime, §2.3 del plan); NO sus
+  generadores de documentos ni sus 20 roles, NO el Consejo automático por PRP.
+
+---
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de

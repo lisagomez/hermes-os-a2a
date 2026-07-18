@@ -147,10 +147,20 @@ Preséntalo directo en el chat en markdown (NO generes archivos ni HTML). Format
 
 ### Paso 6 (nativo de la fábrica) — Devolver el aprendizaje
 
-Si la decisión fue de peso y el usuario la toma, ofrécele registrar en **memoria del proyecto**
-(`memory-manager`) o en el **cerebro global** (`factory-brain`) la decisión + el veredicto + por qué,
-para que el próximo proyecto nazca más listo (coherente con el loop de compounding de V5). No lo hagas
-sin OK; solo ofrécelo cuando la decisión valga la pena recordar.
+Si la decisión fue de peso y el usuario la toma:
+
+1. **Registro estructurado (siempre que el usuario tome la decisión):** escribe el veredicto en
+   `.claude/memory/decisiones/<decision_id>.md` con `decision_id = YYYY-MM-DD-slug` y estructura
+   fija: pregunta sometida, dónde coincide el Consejo, dónde choca, puntos ciegos, recomendación,
+   primer paso. Añade el evento al log append-only `businessos/trazas-decisiones.jsonl`:
+   `{"decision_id": "...", "evento": "consejo", "ref": ".claude/memory/decisiones/<decision_id>.md", "fecha": "YYYY-MM-DD"}`.
+   Ese `decision_id` es el hilo de trazabilidad decisión→PRP→tarea→gasto (ver
+   `businessos/departamentos/analisis-planeacion.md`); el PRP que nazca de esta decisión lo
+   referencia en su sección "Decisión del Consejo".
+2. **Memoria narrativa (con OK del usuario):** ofrécele además registrar en **memoria del proyecto**
+   (`memory-manager`) o en el **cerebro global** (`factory-brain`) la decisión + el veredicto + por qué,
+   para que el próximo proyecto nazca más listo (coherente con el loop de compounding de V5). No lo hagas
+   sin OK; solo ofrécelo cuando la decisión valga la pena recordar.
 
 ---
 

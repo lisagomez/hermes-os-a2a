@@ -50,6 +50,18 @@ Un PRP es el **blueprint de una pieza de la fábrica**. Define QUÉ construir an
 
 ---
 
+## Decisión del Consejo (opcional)
+
+> Solo si esta feature nace de un veredicto del skill `consejo`. Si no, eliminar esta sección.
+
+- **decision_id**: `[YYYY-MM-DD-slug]`
+- **Veredicto en 2 líneas**: [recomendación del Chairman resumida]
+- **Registro completo**: `.claude/memory/decisiones/[decision_id].md`
+
+> Al crear este PRP desde una decisión, registrar el traspaso en
+> `businessos/trazas-decisiones.jsonl`:
+> `{"decision_id": "...", "evento": "prp", "ref": "PRP-XXX-nombre.md", "fecha": "YYYY-MM-DD"}`
+
 ## Objetivo
 
 [Qué se construye - estado final deseado en 1-2 oraciones]
