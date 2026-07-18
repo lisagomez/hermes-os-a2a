@@ -47,11 +47,15 @@ interface SimCell {
 
 export interface OfficeSim {
   state: OfficeState;
+  /** Contador de ticks del motor. Cambia en cada re-render del sim y decide el
+   *  frame del sprite (frame = tick % 2). Se pausa con las 3 pausas existentes. */
+  tick: number;
   sceneRef: RefObject<HTMLDivElement | null>;
 }
 
 export function useOfficeSim(externalPaused: boolean): OfficeSim {
   const [state, setState] = useState<OfficeState>(initialState);
+  const [tick, setTick] = useState(0);
   const sceneRef = useRef<HTMLDivElement | null>(null);
 
   const pausedRef = useRef(externalPaused);
@@ -156,6 +160,9 @@ export function useOfficeSim(externalPaused: boolean): OfficeSim {
         }
       }
       setState(snapshot());
+      // Un solo re-render por tick (React 19 agrupa ambos setState del callback).
+      // El sprite lee `tick` para alternar frames; se congela con el intervalo.
+      setTick((t) => t + 1);
     }
 
     function start() {
@@ -202,5 +209,5 @@ export function useOfficeSim(externalPaused: boolean): OfficeSim {
     };
   }, []);
 
-  return { state, sceneRef };
+  return { state, tick, sceneRef };
 }
