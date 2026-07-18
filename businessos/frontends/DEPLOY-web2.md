@@ -20,6 +20,14 @@
    en el deploy, toda function muere con `failed to load env vars: EnvFileReadError` (500
    genérico sin tocar tu código; la landing estática sigue viva y engaña). Fix: borrarlo y
    `.vercelignore` con `.env*`.
+4. **Vercel Hobby bloquea los deploys de colaboradores en repos privados** (2026-07-17):
+   un push de cualquiera que no sea la cuenta dueña queda "Blocked" — no es fallo de build
+   ni de Root Directory, es restricción del plan. Workaround activo:
+   `.github/workflows/reauthor-tip-vercel.yml` agrega un commit vacío autorado por la dueña
+   tras cada push de colaborador (ramas ≠ master; master no lo necesita: sus merges los
+   ejecuta la cuenta dueña, y su protección bloquearía el push de la Action). Costo: un
+   commit vacío por push. Fix definitivo si el proyecto escala: **Vercel Pro** + invitar a
+   los colaboradores al Team de Vercel (y borrar el workflow).
 
 Runbook para publicar la superficie web2. Deploy en **Vercel**; el backend vive en el Droplet
 Hetzner. Honestidad operativa: lo que queda **live** de inmediato vs. lo que necesita un paso
