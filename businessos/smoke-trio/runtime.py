@@ -114,16 +114,20 @@ async def tier2_grafo() -> None:
 
 
 async def tier3_trio() -> None:
-    """Fase 6: cadena runtime Ejecutor→Supervisor. Expectativa HONESTA: el
-    Supervisor corre los gates npm reales; en el trio-repo placeholder no pueden
-    correr → veredicto RECHAZADO con hallazgos (el protocolo queda probado)."""
-    print("\n== TIER 3: trio runtime — Ejecutor→Supervisor con gates reales ==")
+    """Fase 6 + PRP-010 (cola): el Ejecutor ENCOLA la tarea y responde un ack
+    `encolada` (posicion/cola); el veredicto llega async por host-job, NO por
+    HTTP (antes el bot se bloqueaba 15+ min esperando). Expectativa HONESTA en
+    runtime: validar el PROTOCOLO de encolado (card + message/send + ack
+    autoritativo), no un veredicto sincrono. El camino a veredicto se valida en
+    dev (client.py) y en el dogfood del trio."""
+    print("\n== TIER 3: trio runtime — Ejecutor encola (cola PRP-010) ==")
     async with httpx.AsyncClient(base_url=EJECUTOR, timeout=120) as http:
         try:
             cliente, card = await _cliente_para(http, EJECUTOR)
             ok(f"descubrimiento por card: skill '{card.skills[0].id}'")
             tarea = {
-                "task_id": "smoke-runtime-1",
+                "task_id": "smoke-runtime-encolado",
+                "departamento": "software",
                 "objetivo": "smoke de runtime: modulo minimo",
                 "contexto": {"mock_cambios": {"src/smoke.ts": "export const s: unknown = 1\n"}},
                 "criterios_aceptacion": ["protocolo A2A end-to-end en runtime"],
@@ -134,14 +138,13 @@ async def tier3_trio() -> None:
                 estado, razon = (None, "") if t is None else (t.status.state, "")
                 if t is not None and t.status.HasField("message") and t.status.message.parts:
                     razon = t.status.message.parts[0].text[:300]
-                bad(f"trio: tarea no completada (estado={estado}) razon: {razon}")
+                bad(f"trio: ack no completado (estado={estado}) razon: {razon}")
                 return
             [e] = get_data_parts(t.artifacts[0].parts)
-            v = e["veredicto"]["veredicto"]
-            hallazgos = [h["regla"] for h in e["veredicto"].get("hallazgos", [])]
-            # rechazado + hallazgos = gates reales actuando sobre repo placeholder (correcto)
-            (ok if v == "rechazado" and hallazgos else bad)(
-                f"cadena completa: veredicto={v} (esperado en runtime) hallazgos={hallazgos[:4]}"
+            # encolada=True + posicion = fila escrita en `tareas` (encolado autoritativo:
+            # jamas se dice "encolada" sin fila). El veredicto es async, no se espera aqui.
+            (ok if e.get("encolada") is True and "posicion" in e else bad)(
+                f"encolado autoritativo: encolada={e.get('encolada')} posicion={e.get('posicion')}"
             )
         except Exception as e:
             bad(f"trio: {type(e).__name__}: {e}")

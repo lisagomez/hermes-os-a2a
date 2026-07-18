@@ -150,9 +150,37 @@ como redundancia barata); PR a master con los 3 Dockerfiles + compose.
 
 ## 🧠 Aprendizajes (Self-Annealing)
 
-> Crece durante la implementación.
+### 2026-07-18: Fases 1-3 aplicadas y validadas como uid 1000
+- Las 3 imágenes corren `uid=1000(app)`, `HOME=/home/app` escribible, `/workspace` chowneado,
+  `/ms-playwright` legible. Validación decisiva: el contenedor (uid 1000) creó un worktree +
+  `git add` → **33 objetos git nuevos, 0 de root** (todos owned 1000); worktree owned 1000:1000;
+  `git status`/`git add` sin "dubious ownership"; **fetch del host verde**; node/npm/playwright OK.
+  El volumen `trio-workspace` (nacía root) se chowneó a 1000 preservando el `node_modules`
+  compartido. Smoke de runtime OK bajo uid 1000 (tras arreglar el TIER 3, ver abajo).
+- **El motor real SÍ corre como uid 1000**: con EJECUTOR_ENGINE=claude el CLI ejecutó 40 turns
+  y escribió `$HOME/.claude` — si HOME no fuera escribible habría crasheado al primer turn.
+  Confirma el path del motor sin depender del dogfood aprobado. Falta aún: quitar `IS_SANDBOX`/
+  `safe.directory` (Fase 5, con validación) y un dogfood aprobado limpio (Fase 4).
 
-*(vacío — PRP aún no ejecutado)*
+### 2026-07-18: INCIDENTE de tokens — el motor REAL quema en cualquier tarea de prueba
+- **Error**: encolé smokes SIN verificar `EJECUTOR_ENGINE`. Estaba en `claude` (Opus 4.8 [1m],
+  el modelo más caro). Las 3 tareas de smoke corrieron el motor real (~172k tokens). Peor:
+  **reiniciar el trío disparó `recuperar_huerfanas`**, que re-corrió huérfanos VIEJOS (swarm-b,
+  smoke-live-1) de sesiones pasadas en el motor caro — whack-a-mole hasta cancelarlos todos.
+- **Fix/lecciones**: (1) SIEMPRE `grep EJECUTOR_ENGINE .env` antes de encolar cualquier prueba;
+  con motor real, validar protocolo con TIERs de card/ack, NO con tareas que el worker procese.
+  (2) ANTES de reiniciar el trío con motor real, cancelar las huérfanas `en_ejecucion`/
+  `en_revision` o el arranque las re-corre y factura. (3) `snapshot-tareas.py` está FILTRADO
+  (por fecha) → para cazar huérfanas, consultar `tareas` DIRECTO por
+  `estado=in.(encolada,en_ejecucion,en_revision)`. (4) `escalada` es terminal (no se re-corre);
+  `en_ejecucion` sí se recupera y re-corre.
+
+### 2026-07-18: El smoke TIER 3 estaba stale respecto a la cola (PRP-010)
+- **Error**: `smoke-trio/runtime.py::tier3_trio` leía `veredicto` de la respuesta A2A, pero
+  con la cola (PRP-010) el Ejecutor responde un ack `{encolada, posicion}` y el veredicto llega
+  async por host-job → `KeyError: 'veredicto'`. Parecía regresión del cambio de uid; NO lo era.
+- **Fix**: TIER 3 ahora valida el ack de encolado (encolada=True + posicion). El camino a
+  veredicto se valida en dev y en el dogfood, no en el smoke de protocolo.
 
 ---
 
