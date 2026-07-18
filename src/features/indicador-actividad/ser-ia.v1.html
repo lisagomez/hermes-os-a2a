@@ -81,14 +81,14 @@ function build(){
   document.getElementById('count').textContent=parts.length.toLocaleString('es');
 }
 
-function setTo(b){ if(b===curB && p>=1) return; curA=(p>=1)?curB:curA; curB=b; p=reduce?1:0; hold=0;
+function setTo(b){ if(b===curB && p>=1) return; curA=(p>=1)?curB:curA; curB=b; p=0; hold=0;   // SIEMPRE anima (reduced-motion solo calma)
   document.getElementById('label').textContent=SHAPES[b].label;
   [...document.querySelectorAll('#chips button')].forEach(x=>x.classList.toggle('on',+x.dataset.i===b)); }
 function nextAuto(){ setTo(curB===0 ? (1+((autoIdx++)%(SHAPES.length-1))) : 0); }
 let autoIdx=0;
 
 function frame(now){ const dt=Math.min(50,now-last)/1000; last=now; frames++; t+=dt;
-  if(p<1){ p=Math.min(1,p+dt/2.6); } else if(auto&&!reduce){ hold+=dt; if(hold>1.7){ hold=0; nextAuto(); } }
+  if(p<1){ p=Math.min(1,p+dt/2.6); } else if(auto){ hold+=dt; if(hold>1.7){ hold=0; nextAuto(); } }
   blinkT+=dt; if(blinkPhase<0&&blinkT>nextB){ blinkT=0; nextB=2.5+Math.random()*3.5; blinkPhase=0; }
   if(blinkPhase>=0){ blinkPhase+=dt/0.18; if(blinkPhase>1) blinkPhase=-1; }
   const eyeDim=(blinkPhase<0||p<1)?1:(0.15+0.85*(1-Math.sin(blinkPhase*Math.PI)));
@@ -138,7 +138,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden) cancelAni
 
 let loaded=0; const need=SHAPES.length;
 function tryStart(){ if(++loaded<need) return; resize(); build();
-  if(!reduce){ curA=0; curB=0; p=1; setTimeout(()=>{ if(auto) nextAuto(); },900); }
+  curA=0; curB=0; p=1; setTimeout(()=>{ if(auto) nextAuto(); },900);   // SIEMPRE arranca el ciclo
   requestAnimationFrame(frame); }
 SHAPES.forEach(s=>{ const im=document.getElementById(s.el); if(im.complete) tryStart(); else im.onload=tryStart; });
 </script>
