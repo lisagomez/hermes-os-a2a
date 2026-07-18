@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd de ejemplo: corre el sync Todoist <-> Board cada 5 minutos (macOS).
+
+  Instalar:
+    1. Edita las rutas (__REPO__) y las env vars de abajo con TUS valores.
+    2. cp com.businessos.todoist-sync.plist ~/Library/LaunchAgents/
+    3. launchctl load ~/Library/LaunchAgents/com.businessos.todoist-sync.plist
+
+  Ver logs:  tail -f /tmp/business-os-todoist-sync.log
+  Quitar:    launchctl unload ~/Library/LaunchAgents/com.businessos.todoist-sync.plist
+
+  En Linux usa cron:  */5 * * * * cd __REPO__ && python3 integrations/todoist/sync.py
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.businessos.todoist-sync</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>__REPO__/integrations/todoist/sync.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>TODOIST_API_TOKEN</key>
+    <string>tu-token-de-todoist</string>
+    <key>NEXT_PUBLIC_SUPABASE_URL</key>
+    <string>https://tu-proyecto.supabase.co</string>
+    <key>SUPABASE_SERVICE_ROLE_KEY</key>
+    <string>tu-service-role-key</string>
+    <key>OWNER_PROFILE_ID</key>
+    <string>uuid-del-profile-del-owner</string>
+  </dict>
+
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/business-os-todoist-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/business-os-todoist-sync.log</string>
+</dict>
+</plist>

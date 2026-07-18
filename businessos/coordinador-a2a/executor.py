@@ -13,6 +13,7 @@ por partes". Si algo falla (entrada, planner, supervisor) la tarea A2A queda
 """
 from __future__ import annotations
 
+import asyncio
 import os
 from pathlib import Path
 
@@ -34,6 +35,25 @@ from supervisor_cliente import SupervisorCliente, SupervisorError
 
 FAN_OUT_DEFAULT = 3
 DEFAULT_WORKSPACE = "/workspace"
+
+
+def heredar_modelo_pref(plan: dict, tarea: dict) -> dict:
+    """Las sub-tareas sin `limites.modelo_pref` heredan el del padre.
+
+    El ruteo por tarea de la dueña (GLM-5.2 simple, Sonnet media/alta) se decide
+    en la feature PADRE; el Planner no emite límites, así que sin esta herencia
+    cada sub-tarea caería al modelo default del CLI, no al que pidió la feature.
+    Una sub-tarea con su propio modelo_pref se respeta.
+    """
+    pref = tarea.get("limites", {}).get("modelo_pref")
+    if not pref:
+        return plan
+    subs = [
+        s if s.get("limites", {}).get("modelo_pref")
+        else {**s, "limites": {**s.get("limites", {}), "modelo_pref": pref}}
+        for s in plan["sub_tareas"]
+    ]
+    return {**plan, "sub_tareas": subs}
 
 
 def limites_enjambre(tarea: dict) -> tuple[int, float | None]:
@@ -85,6 +105,33 @@ class CoordinadorA2A(AgentExecutor):
         )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Blinda la corrida: si el cliente se va, el enjambre SIGUE.
+
+        Misma leccion que el Ejecutor (PR #37), y aqui pesa mas: una corrida de enjambre es
+        la MAS LARGA del sistema (N sub-tareas encoladas + integracion + verificacion final).
+        Un cliente impaciente no puede tirar horas de trabajo. Con la cola, ademas, las
+        sub-tareas ya viven en `tareas`: aunque esto muriera, el worker las terminaria — lo
+        que se perderia es la integracion. Razon de mas para no morir.
+        """
+        corrida = asyncio.ensure_future(self._ejecutar(context, event_queue))
+        try:
+            await asyncio.shield(corrida)
+        except asyncio.CancelledError:
+            corrida.add_done_callback(
+                lambda f: print(
+                    f"[coordinador] corrida huerfana terminada: "
+                    f"{f.exception() if not f.cancelled() else 'CANCELADA'}",
+                    flush=True,
+                )
+            )
+            print(
+                f"[coordinador] cliente desconectado; el enjambre {context.task_id} sigue "
+                "corriendo y dejara su estado final en `tareas`",
+                flush=True,
+            )
+            raise
+
+    async def _ejecutar(self, context: RequestContext, event_queue: EventQueue) -> None:
         # Gotcha SDK v1: el Task va encolado ANTES del primer status update.
         if context.current_task is None:
             await event_queue.enqueue_event(
@@ -109,7 +156,7 @@ class CoordinadorA2A(AgentExecutor):
             return
 
         try:
-            plan = await self._planner.plan(tarea)
+            plan = heredar_modelo_pref(await self._planner.plan(tarea), tarea)
         except PlannerError as exc:
             await self._fallar(updater, f"planner: {exc}")
             return

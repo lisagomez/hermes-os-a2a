@@ -72,13 +72,17 @@ Usuario dice algo
     ├── "Optimiza este skill / mejora el skill / autoresearch"
     |       → Ejecutar skill AUTORESEARCH (loop autonomo de mejora)
     |
+    ├── "¿Opcion A o B? / valida esta decision / pasalo por el consejo / sala de guerra"
+    |       → Ejecutar skill CONSEJO (Depto. de Estrategia: 5 asesores + peer-review + Chairman)
+    |         Solo para decisiones abiertas de negocio/estrategia caras o irreversibles.
+    |
     └── No encaja en nada
             → Usar tu juicio. Leer el codebase, entender patrones, ejecutar.
 ```
 
 ---
 
-## Skills: 15 Herramientas Especializadas
+## Skills: 16 Herramientas Especializadas
 
 | # | Skill | Cuando usarlo |
 |---|-------|---------------|
@@ -100,6 +104,7 @@ Usuario dice algo
 | 13 | `image-generation` | Generar y editar imagenes con OpenRouter + Gemini |
 | 14 | `autoresearch` | Auto-optimizar skills con loop autonomo (patron Karpathy) |
 | 15 | `skill-creator` | Crear nuevos skills para extender la fabrica |
+| 16 | `consejo` | **Depto. de Estrategia**: somete una DECISION real a un Consejo de 5 asesores (lentes que chocan) + peer-review anonimo + sintesis del Chairman. Solo decisiones abiertas caras/irreversibles. Ver `businessos/departamentos/estrategia.md` |
 
 ---
 
@@ -284,7 +289,8 @@ npm run lint         # ESLint
 │   ├── memory-manager/       # Memoria persistente por proyecto
 │   ├── image-generation/     # Generacion de imagenes (OpenRouter + Gemini)
 │   ├── autoresearch/         # Auto-optimizacion de skills
-│   └── skill-creator/        # Crear nuevos skills
+│   ├── skill-creator/        # Crear nuevos skills
+│   └── consejo/              # Depto. de Estrategia: Consejo de 5 asesores (decisiones)
 │
 ├── PRPs/                      # Product Requirements Proposals
 │   └── prp-base.md           # Template base
@@ -505,6 +511,11 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier provisión Hetzner y todo build en server desde un snapshot de git.
 
 ### 2026-07-06: El bot en runtime sin Docker NO puede leer archivos → dato al SOUL, no read_file
+> ⚠️ **CORREGIDO el 2026-07-11**: la causa raíz era `TERMINAL_ENV=docker` en el `.env` del
+> volumen (mina de la migración), NO un diseño de Hermes. Con `terminal.backend: local`
+> bien aplicado, read_file/execute_code/terminal SÍ funcionan en runtime (y en `chat -q`).
+> Ver el aprendizaje "TERMINAL_ENV=docker en el .env del volumen" (2026-07-11). El patrón
+> dato-en-SOUL sigue vigente como optimización, no como única vía.
 - **Error**: el skill `budget-report` decía "lee `/opt/data/workspace/presupuesto.json` con
   read_file". En el contenedor Hermes de Hetzner **no hay daemon de Docker**, y `read_file`/
   `execute_code`/`file` corren dentro de un entorno Docker → fallan ("Cannot connect to the
@@ -561,5 +572,341 @@ npm run lint         # ESLint
   terminado"). Señal en runtime: `Up X seconds` que rejuvenece tras un sleep = crash-loop;
   confirmar con `docker compose logs`.
 - **Aplicar en**: todo servicio con COPY explícito (los 6 A2A) y todo smoke post-deploy.
+
+### 2026-07-11: Primer dogfood real del trío (GLM-5.2) — tres gotchas que costaron 3 intentos
+- **Error(es)**: (1) el CLI de Claude Code **rehúsa `--dangerously-skip-permissions` como
+  root** → el motor muere al primer turno en contenedores root; (2) el `.git` de un git-worktree
+  es un ARCHIVO-puntero a `<repo>/.git/worktrees/<id>` → un servicio que solo monta el volumen
+  de worktrees NO puede correr git ahí (el Supervisor daba `no_ejecutable` en todos los gates
+  estáticos = rechazo aunque el código estuviera bien; en dev no se ve porque los procesos
+  comparten filesystem); (3) `token_usage` tiene `UNIQUE(fecha,vertical,modelo)` pensada para
+  el agregado DIARIO del ingest → la 2ª tarea del mismo modelo el mismo día devuelve 409 y el
+  `except: pass` del motor (sin `raise_for_status`) **pierde el gasto en silencio**.
+- **Fix**: (1) `IS_SANDBOX=1` en el environment del ejecutor (señal oficial de Claude Code para
+  contenedores que SON el sandbox); (2) montar `/repo` también en el Supervisor (rw: sus
+  chequeos hacen `git add -A`) — la frontera del trío es de JUICIO, no de filesystem; (3) fix
+  propuesto pendiente de OK (índice único parcial `where task_id is null` + ingest delete+insert).
+  Bonus: limpiar un worktree fallido = borrar dir → `git worktree prune` → borrar rama (prune
+  con el dir presente NO desregistra). Validar el scaffold con los gates en el contenedor
+  (cero tokens) ANTES de quemar modelo.
+- **Aplicar en**: todo motor de agente en contenedor, todo servicio que opere git sobre
+  worktrees compartidos, y toda escritura best-effort a Supabase (mínimo: loguear el fallo).
+
+### 2026-07-11: Dogfood real del ENJAMBRE (Fase 7) aprobado — dos gotchas estructurales
+- **Error(es) que se habrían comido la corrida**: (1) el worktree de INTEGRACIÓN lo crea
+  el Coordinador con `git worktree add` y NADIE le corre `npm install` → la verificación
+  final fallaría por tooling (`tsc: not found`), no por juicio; en Fase 6 no se vio porque
+  el motor (GLM) instalaba deps en SU worktree. (2) el Planner real solo emite
+  task_id/objetivo/criterios/depende_de/alcance — SIN `limites` → las sub-tareas irían al
+  modelo default del CLI, no al que pidió la feature padre.
+- **Fix**: (1) `node_modules` COMPARTIDO en `/workspace/worktree/` (la resolución upward
+  de Node/npm cubre TODOS los worktrees, incluido el integrado, y ahorra tokens por
+  sub-tarea — verificado corriendo los 4 gates desde el contenedor del Supervisor sobre un
+  worktree desechable ANTES de quemar modelo; re-instalar a mano si cambia el package.json
+  del scaffold). (2) herencia `modelo_pref` padre→sub-tareas en el Coordinador
+  (`executor.py::heredar_modelo_pref`; una sub-tarea con su propio modelo_pref gana).
+  Además: el planner real necesita el CLI en la imagen del coordinador + `IS_SANDBOX=1`
+  (mismo gotcha root de Fase 6) y el mismo fix "best-effort no silencioso" en su registro
+  de token_usage. Al limpiar worktrees viejos: los admin-dirs son de root (los creó el
+  contenedor) → limpiar DESDE el contenedor, y los dirs del volumen se ven "prunable"
+  desde el host aunque existen (el host no ve /workspace).
+- **Resultado**: `dogfood-swarm-1` APROBADO — plan GLM de 3 sub-tareas (2 paralelas + 1
+  dependiente), integración limpia, 8 gates verdes en el todo, ledger por-tarea completo
+  (~$1.62 nominal de $2; el corte de presupuesto operó con datos reales por primera vez).
+- **Aplicar en**: todo worktree que un servicio prepare para gates npm (quien crea el
+  worktree responde por que sea verificable), y todo campo de ruteo que deba sobrevivir a
+  una descomposición (heredar explícitamente, no asumir que el modelo lo emite).
+
+### 2026-07-11: Host-jobs con `docker exec` local quedan HUÉRFANOS tras migrar la vertical
+- **Error (visto en vivo por la dueña)**: pidió al bot "revisa el manifest.yaml" y el bot
+  se enredó: snapshot `cli-audit.json` rancio (30 de junio — `cli-audit.py` escribía con
+  `docker exec` LOCAL y negocio migró a Hetzner el 07-05: el job quedó huérfano en
+  silencio), buscó `cli-manifest.yaml` que solo existe en el repo de dev, y todas sus
+  tools de archivos fallaban por Docker (ver el aprendizaje TERMINAL_ENV de abajo) →
+  CONFABULÓ pidiéndole a Elisa depurar Docker.
+- **Fix**: (1) `cli-audit.py::write_snapshot` acepta `CLI_AUDIT_SSH_HOST=hermes@<runtime>`
+  y empuja por ssh (el auditor SOLO puede correr en dev: ahí viven la librería de CLIs y
+  Claude Code); (2) el skill `cli-audit` da el comando exacto y maneja `generado` viejo
+  sin pedir debug; (3) AGENTS.md de negocio: un fallo de tooling jamás se le escala a
+  Elisa como si fuera su bug.
+- **Aplicar en**: tras CUALQUIER migración de vertical, re-auditar los host-jobs que
+  asuman contenedor local (`grep -l "docker exec" businessos/*.py *.sh`).
+
+### 2026-07-11: TERMINAL_ENV=docker en el `.env` del volumen — la mina que reescribe la doctrina
+- **Error**: las tools del bot (terminal, read_file, execute_code) fallaban con "Docker
+  command is available but 'docker version' failed" AUNQUE `config.yaml` decía
+  `terminal.backend: local`. Causa real: el `.env` del volumen traía `TERMINAL_ENV=docker`
+  (herencia de WSL2, donde Docker sí existía; viajó con la migración del volumen) y en la
+  práctica le gana al config. Las 3 verticales lo tenían; personal además tenía
+  `backend: docker` hasta en el config. Un `docker restart` re-materializa la mina (el
+  gateway rehace el bridge config→env al arrancar): por eso "funcionaba ayer".
+- **CORRECCIÓN de la doctrina 2026-07-06** ("Hermes sin Docker no puede leer archivos →
+  dato-en-SOUL"): la causa raíz NUNCA fue un diseño de Hermes — era esta mina. Con
+  `terminal.backend: local` bien aplicado (config + .env), **read_file, execute_code y el
+  terminal funcionan en runtime**, incluso en `hermes chat -q` (que tampoco era un
+  "harness parcial" para esto). Verificado con evidencia: `agent.log` pasó de "Creating
+  new docker environment" (fallos de Elisa 13:18) a "Creating new local environment" +
+  lecturas reales post-fix. El patrón dato-en-SOUL sigue siendo VÁLIDO como optimización
+  (cero tool calls) pero ya no es la única vía.
+- **Fix**: `docker exec -u hermes <c> hermes config set terminal.backend local` — arregla
+  LAS DOS capas (escribe config.yaml Y sincroniza el `.env`). Aplicado a las 3 verticales
+  + restart. Editar config.yaml a mano NO basta: deja el `.env` rancio esperando el
+  siguiente restart.
+- **Aplicar en**: toda vertical nueva o migrada (revisar `grep ^TERMINAL /opt/data/.env`),
+  y ante cualquier "tool falla por Docker": es config, jamás pedirle debug a la dueña.
+  Al diagnosticar: `agent.log` dice qué entorno se creó ("local"/"docker") — esa línea es
+  la verdad, no la doc ni la memoria.
+
+### 2026-07-12: Editar un `AGENTS.md`/`MEMORY.md` en el repo NO lo despliega — el runtime vive en el volumen
+- **Error**: `clientes/AGENTS.md` llevaba desde Fase 2 divergido: el repo tenía grafo (Fase 2),
+  Polar y contratos (Fase 3); el volumen (`~/businessos/clientes/.hermes/AGENTS.md`, lo que el
+  bot REALMENTE lee) seguía en 84 líneas diciendo *"Fase futura (cuando exista el servicio
+  grafo)"* — con el grafo corriendo hacía días. Nadie lo notó porque **ningún test ni deploy
+  toca los volúmenes**: `docker compose up` no re-copia los `.md`, solo monta el volumen.
+- **Fix**: los `.md` del repo son FUENTE, no despliegue. Sincronizar explícitamente
+  (`scp` + `sudo cp` al volumen + `chown 10000:10000` + `chmod 755` + `docker restart`), y
+  antes de sobrescribir, **diffear volumen vs repo**: si el diff es mayor que tu cambio, hay
+  ediciones de runtime o un desfase de fases — investigar, no pisar. Guardar copia previa.
+- **Aplicar en**: todo cambio a SOUL/AGENTS/MEMORY de cualquier vertical. Al cerrar una fase
+  que cambia doctrina del agente, la fase NO está terminada hasta que el volumen lo refleje.
+
+### 2026-07-12: Un paso de endurecimiento "documentado" no es un paso aplicado (y cómo recuperar SSH)
+- **Error(es)**: (1) el runbook de FASE0 manda `PasswordAuthentication no`, pero el
+  `99-hardening.conf` real solo tenía `PermitRootLogin no` → **el server aceptó contraseñas
+  desde internet 6 días** (verificable sin credenciales: `ssh -o PreferredAuthentications=none
+  user@host` lista los métodos → `Permission denied (publickey,password)` = password abierto;
+  el objetivo es `(publickey)` a secas). (2) La máquina de dev perdió la llave SSH, el binario
+  `hcloud-pp-cli` y el `HCLOUD_TOKEN` → cero acceso al server.
+- **Fix (recuperar acceso sin tocar los contenedores)**: `hcloud ssh-keys create` / "Add SSH
+  Key" de la UI **NO instalan nada en un server ya corriendo** (solo sirven al crearlo) — es
+  el callejón sin salida clásico. El camino real: consola web de Hetzner (Actions → Console;
+  **no es SSH**, así que `PermitRootLogin no` no la bloquea) → Rescue → *Reset root password*
+  (no reinicia) → login root en la consola → `passwd <usuario>` (temporal) → desde el dev
+  `ssh-copy-id -i ~/.ssh/id_ed25519.pub user@host` → verificar llave → `passwd -l <usuario>` +
+  `PasswordAuthentication no` + `sshd -t` ANTES de `systemctl reload ssh`.
+- **Aplicar en**: todo endurecimiento (verificar el estado observable, no el runbook) y toda
+  pérdida de acceso a un cloud server. La cuenta de Hetzner es el único punto de falla real:
+  **2FA pendiente**.
+
+### 2026-07-12: Una rutina "documentada" no es una rutina agendada (el bot creía tener crons)
+- **Error**: los `AGENTS.md` de las 3 verticales prometían rutinas (digest 8:00, cierre
+  semanal, dreaming, repaso matutino) y **`hermes cron list` decía "No scheduled jobs" en
+  las tres**. El bot creía tenerlas —su AGENTS.md se lo decía— y confabulaba al respecto;
+  la dueña llevaba días sin recibir nada y sin saber por qué. Hermano del gotcha de SSH
+  del mismo día: **documentar ≠ aplicar**; verificar siempre el estado observable.
+- **Gotchas al crearlas**: (1) **los contenedores corren en UTC y el server en CST(-6h)**:
+  `hermes cron` agenda en la hora del CONTENEDOR → para las 08:00 CST se escribe
+  `0 14 * * *` (un `0 8` entrega a las 2 AM); (2) `--deliver` acepta `platform:chat_id`
+  (`telegram:-5449291632` = grupo) → los reportes del equipo van al grupo, no al DM.
+- **Aplicar en**: toda rutina prometida en un AGENTS/SOUL — o existe en `cron list`, o se
+  borra de la doctrina. Y tras editarla, sincronizar el volumen (ver aprendizaje anterior).
+
+### 2026-07-12: Telegram — el modo privacidad NO entrega las @menciones (solo comandos)
+- **Error**: con *Group Privacy* **enabled** (el default de BotFather), un bot en un grupo
+  recibe los `/comandos` pero **NO los mensajes que lo @mencionan** — al contrario de lo que
+  sugiere la doc. Síntoma: el bot queda mudo en el grupo **sin un solo error en ningún log**
+  (en `gateway.log` aparecen los "Ignoring /start platform ping" y CERO "inbound message").
+  Se persiguen fantasmas (allowlist, authz, membresía) durante una hora.
+- **Fix**: BotFather → Group Privacy → **Turn off** + **re-añadir el bot al grupo** (el ajuste
+  solo se aplica al ENTRAR). Verificar con la API, no con la UI: `getMe` →
+  `can_read_all_group_messages: true`. Como entonces Telegram entrega TODO el chat, el freno
+  de costo pasa a Hermes: `telegram.extra.require_mention: true` (**su default es `false`** →
+  sin eso el agente contesta CADA mensaje del grupo) y `observe_unmentioned_group_messages:
+  false`. Autorizar por grupo con `telegram.group_allowed_chats: "<chat_id>"` (el acceso pasa
+  a ser la membresía del grupo; no hace falta cazar el user_id de cada persona).
+- **Gotcha propio**: 🚫 **nunca llamar `getUpdates` de la API de Telegram con el gateway vivo**
+  — compite con el poller de Hermes ("Telegram polling conflict") y el bot deja de responder.
+  Para diagnosticar, leer `/opt/data/logs/gateway.log` DENTRO del contenedor: `docker logs`
+  NO trae el detalle de las plataformas.
+- **Aplicar en**: cualquier bot de Telegram en grupo (verticales, clientes white-label).
+
+### 2026-07-12: Un job solo puede correr donde viven sus INSUMOS (auditor de CLIs)
+- **Error**: `cli-audit.py` escaneaba `~/printing-press/library/` (los binarios impresos), que
+  solo existe en la máquina de dev donde corre Claude Code → el auditor no podía ser una rutina
+  del servidor (la única máquina 24/7) y el ROADMAP **afirmaba** que ya lo era (falso). Además
+  el `library_path` del snapshot delató que las corridas previas venían de OTRA máquina de dev
+  (`/home/gsore/...`, no `/home/gomez/...`).
+- **Fix**: separar el insumo del artefacto. El auditor lee un **índice versionado en el repo**
+  (`cli-library-index.json`: slug → grade), regenerable con `--emit-index` **en la máquina que
+  imprime**; el servidor audita con eso (cron 03:10 en `nightly-jobs.sh`). El snapshot declara
+  su fuente (`fuente_impresos: libreria | indice | ninguna`) para **nunca aparentar saber lo
+  que no sabe** — "no sé qué hay impreso" ≠ "no hay nada impreso".
+- **Aplicar en**: todo job que se quiera mover a un cron 24/7 — primero preguntar de qué se
+  alimenta y si ese insumo existe allí; si es un artefacto local, versionar su índice.
+
+### 2026-07-12: GitHub — el permiso NO es el candado (repos personales) y el admin se salta la regla
+- **Hallazgos duros, verificados contra la API (no contra la doc)**:
+  (1) **En un repo de cuenta personal TODO colaborador es `write`**. `PUT /collaborators/{u}`
+  con `permission=pull` (o `triage`) devuelve **204 OK y lo ignora en silencio** — los roles
+  son función de **organizaciones**. Consecuencia: 4 personas podían hacer push directo a
+  `master` del repo que corre toda la infra, y *no había forma de bajarlos a lectura*.
+  (2) La **protección de rama no existe en repos privados del plan gratuito**
+  (`403: Upgrade to GitHub Pro`). Con Pro: `master` exige PR + review; el force-push falla
+  **incluso para el admin** (`GH006`).
+  (3) ⚠️ **`enforce_admins: false` deja pasar al admin — y el agente usa el token del admin.**
+  Un `git push origin master` "de prueba" ENTRÓ (`remote: Bypassed rule violations`). La
+  protección NO protege del agente: solo la disciplina lo hace.
+- **Reglas que quedan**: el agente **jamás** hace `git push origin master` (todo por PR, sin
+  excepciones); antes de "arreglar" permisos, VERIFICAR que el cambio se aplicó (`GET
+  /collaborators/{u}/permission`), porque GitHub acepta y descarta sin error; y `git reset
+  --hard` tras un `git checkout` de rama **borra ediciones sin commitear** (así perdí una;
+  se recuperó del volumen del server, que ya tenía la copia sincronizada).
+- **Aplicar en**: cualquier repo con equipo. Migrar a una Organización (gratis) da roles
+  reales; con cuenta personal, el único candado es la protección de rama.
+
+### 2026-07-12: 1ª corrida real del trío desde Slack — el cliente mató a su propio servidor
+- **Error(es)**: (1) el bot, al pedirle una feature en `#dep-desarrollo`, **se puso a programar
+  él mismo** (`claude` en su terminal, `find /opt/data` buscando un repo que NO tiene montado):
+  la frontera "tú no programas" vivía en el *skill* y en el `channel_prompt`, y **`AGENTS.md`
+  —que está SIEMPRE en contexto— les gana**. Desde que el terminal funciona (fix TERMINAL_ENV),
+  el agente PUEDE improvisar fuera de su carril: la frontera hay que escribirla donde siempre
+  lee. (2) Con la regla ya en AGENTS.md repartió bien la tarea… **con timeout de 30 s**. La
+  corrida dura minutos → al desconectarse el cliente, el servidor **canceló la petición y mató
+  el proceso del motor**; el bot entonces reportó "probablemente el trío no está levantado"
+  (lo contrario de la verdad: él lo abortó).
+- **Diagnóstico sin logs** (el Ejecutor NO loguea el error del motor: solo lo manda por A2A, y
+  si el cliente ya se fue, se pierde): el POST **no aparece** en el access log = la petición
+  nunca terminó; la transcripción del CLI (`/root/.claude/projects/*/*.jsonl` dentro del
+  contenedor) acaba sin entrada `result` = proceso muerto a media faena; `token_usage` sin
+  filas = reventó antes de registrar (el `raise` del `except` va ANTES del `registrar()`,
+  contradiciendo su propio comentario).
+- **Reglas**: un cliente que se desconecta **jamás** debe cancelar trabajo del servidor
+  (`asyncio.shield`); todo cliente de una tarea larga declara timeout ≥ 900 s y **nunca**
+  concluye "el servicio está caído" por un timeout (consulta el estado); y todo error de
+  motor se loguea localmente ANTES de viajar por el protocolo. Detalle y plan:
+  `businessos/PENDIENTES-TRIO.md`.
+- **Aplicar en**: todo servicio A2A largo y todo agente con terminal (la capacidad crea la
+  tentación: si no quieres que lo haga, prohíbelo en AGENTS.md, no en un skill).
+
+### 2026-07-13: Un best-effort que nadie loguea es un fallo INVISIBLE (el fetch fantasma)
+- **Error**: `workspace.refrescar_master` corría `git fetch` **dentro del contenedor** del
+  Ejecutor — que no tiene `ssh` ni llave de GitHub. Fallaba **siempre**, y como era
+  best-effort y nadie miraba su resultado, la promesa *"cada tarea sale del master más
+  fresco"* era **mentira en silencio**: el trío llevaba días construyendo sobre un master de
+  **11 commits atrás**. Lo cazó un smoke, no los tests.
+- **Fix (patrón de siempre)**: la credencial se queda en el HOST — cron cada 5 min
+  (`git -C <repo> fetch origin --prune`); el contenedor solo **lee** las refs del repo
+  montado. La llave **no debe** entrar al contenedor del Ejecutor: ahí corre el modelo con
+  permisos amplios y una llave de GitHub (aunque sea de solo lectura) abre los repos privados
+  de la cuenta. Y el worker ahora **loguea** el resultado del fetch.
+- **Regla**: todo `except: pass` / best-effort **imprime**. Si el camino degradado es
+  silencioso, no es degradado: es **invisible**. Y lo invisible es lo que muerde en
+  producción (van tres esta semana: `token_usage`, el limbo de `en_revision`, y esto).
+- **Aplicar en**: todo host-job, todo fallback y todo "no pasa nada si falla".
+
+### 2026-07-13: El smoke de RUNTIME encuentra lo que 209 tests verdes no ven (la cola, PRP-010)
+- **Error**: la cola del trío pasó **209 tests en dev** y el bug que la habría roto en
+  producción solo apareció en el smoke de runtime (`docker restart` con trabajo en vuelo):
+  una tarea muerta en **`en_revision`** se quedaba en el **limbo para siempre** — el worker
+  solo recuperaba huérfanas de `en_ejecucion`. Nadie la ejecutaba, no estaba en la cola, y
+  **desaparecía del radar del equipo** (el peor fallo: silencioso). Y `en_revision` es la
+  ventana **más larga** del ciclo (el Supervisor corriendo build+tests son minutos): la que
+  más reinicios pilla. Los tests de dev no podían verlo porque **en dev nadie mata el proceso
+  a media faena**.
+- **Regla**: un test de dev solo prueba lo que el dev se atreve a hacer. Antes de dar por
+  viva una máquina de estados con procesos largos, **matarla a propósito en cada estado en
+  vuelo** y comprobar que cada uno tiene salida. Corolario: si un estado lo escribe **solo**
+  un proceso, una fila en ese estado tras un arranque es —por definición— huérfana; enumera
+  TODOS esos estados, no el primero que se te ocurra.
+- **Dos hermanos del mismo día**: (a) *"concurrencia 1" no es un comentario, es un candado* —
+  el worker era serial "por construcción" y el test que lanza dos bucles a la vez **falló**;
+  ahora hay `asyncio.Lock` (si la garantía depende de que nadie se equivoque, es una
+  costumbre, no una garantía). (b) *un test que reproduce la lógica que prueba no prueba
+  nada* — el primer test del guard repetía el guard dentro del test: verde sin ejercitar una
+  línea de producción. Pregunta de control: **si borro el código, ¿este test se pone rojo?**
+- **Aplicar en**: toda cola/worker/máquina de estados con trabajo largo, y todo test de
+  guard o invariante.
+
+### 2026-07-12: Un gate que SIEMPRE corre debe estar SIEMPRE en los criterios
+- **Error**: el Supervisor corre el gate `tests` (`npx playwright test`) en toda tarea, y sin
+  ningún test en el repo sale `exit 1: Error: No tests found` → **rechazo automático**. El
+  relanzamiento de `mission-control-2026-0001` (2º intento, ya con el trío arreglado) salió
+  con build ✅ typecheck ✅ lint ✅ y los 4 gates de calidad ✅… y **rechazado por el único gate
+  que nadie le pidió cumplir**: los `criterios_aceptacion` no mencionaban tests, así que el
+  motor no escribió ninguno. Las tareas aprobadas antes (`moneda`, `validar`) pasaban ese gate
+  solo porque *eran* tareas de utilidades con test; el `main` del repo no tiene tests.
+- **Fix**: quien arma la tarea (el skill `trio-software`) añade SIEMPRE el criterio *"incluye
+  al menos un test de Playwright que cubra X"*, aunque el humano no lo pida. Regla general:
+  **todo gate que el juez corre incondicionalmente es un requisito del contrato** — si no
+  aparece en los criterios, el ejecutor no lo sabe y el trabajo se tira a la basura. Al añadir
+  un gate nuevo al Supervisor, actualizar en el MISMO cambio los criterios que el skill emite.
+- **Aplicar en**: todo par juez/ejecutor (trío, enjambre, futuros departamentos).
+
+### 2026-07-12: Slack — el home channel no se hereda del `.env` como en Telegram
+- **Error**: el bot avisaba *"No home channel is set for Slack"* aunque `SLACK_CHANNEL_ID`
+  estaba puesto. El gateway cablea `home_channel` desde el env para **telegram/discord/whatsapp
+  pero NO para slack**: la var que mira es **`SLACK_HOME_CHANNEL`** (`cron/scheduler.py`,
+  `_HOME_TARGET_ENV_VARS`). Es donde entrega resultados de crons y mensajes cross-plataforma.
+- **Fix**: `SLACK_HOME_CHANNEL=<C…>` en el `.env` del volumen + restart. La alternativa por chat
+  es `/hermes sethome` (en Slack **el `/sethome` pelado NO existe**: todos los comandos van por
+  el slash command padre `/hermes`).
+- **Aplicar en**: toda vertical que sume Slack.
+
+### 2026-07-16: Frontend web2 + design system — gotchas de Next 16 + paquete local
+- **Aprendizaje**: el design system A2A Factory (ZIP de la dueña) se integró como paquete local
+  `@a2a/design-system` (`businessos/frontends/design-system/`, `file:../design-system` +
+  `transpilePackages`) consumido por `cliente-web2` (Next 16 + React 19 + Tailwind v4). Tres
+  trampas: (1) **`turbopack.root` mal fijado ROMPE la resolución de un paquete hermano**: poner
+  `root: __dirname` (la carpeta de la app) deja `../design-system` FUERA de la raíz de tracing →
+  `module-not-found` en build (el primer build "funcionaba" solo porque Next infería la raíz del
+  monorepo, que sí lo contenía). Fix: `root` = ancestro que contenga la app Y el paquete
+  (`path.resolve(__dirname, '..')` = `frontends/`). (2) **`eslint-config-next` v16 YA es un flat
+  config array nativo** (`export = Linter.Config[]`): usarlo con `FlatCompat` truena con
+  "Converting circular structure to JSON" en ESLint 9; hay que `import next` y spread directo,
+  sin FlatCompat. (3) **fuentes**: `next/font/google` (no CDN) para prod/CSP; el design system
+  deja `--font-display`/`--font-mono` sin las familias y la app las puentea a las vars de
+  `next/font`. Verificación real: smoke Playwright (`node smoke.mjs` con import absoluto a
+  `a2aboths/node_modules/playwright`) contra `npm start` en **background-task propio** — un server
+  lanzado con `&` dentro del comando queda zombie al cerrar el shell y sirve estado stale
+  (perseguí "hidratación rota" que no existía).
+- **Invariante preservado**: un-escritor-por-origen en `leads` → el frontend usa origen propio
+  `web2` (migración `supabase-fase11-leads-web2.sql`), no reusa `a2a`/`manual`.
+- **Aplicar en**: cualquier frontend nuevo del monorepo, todo paquete local `file:` con Turbopack,
+  y toda verificación de un server local. Detalle: `.claude/memory/project/frontend-web2.md`.
+
+### 2026-07-14: master ahora tiene `enforce_admins:true` — el `--admin` YA NO saltea la revisión
+- **CORRIGE** el aprendizaje 2026-07-12 (GitHub) que daba `enforce_admins:false` y decía que el
+  admin (y por tanto el agente con su token) podía saltarse la protección. **Ya no**: master está
+  con `enforce_admins:true` + `required_approving_review_count:1` (verificado 2026-07-14).
+  Consecuencias al mergear un PR: (a) `gh pr merge --admin` **falla** con "At least 1 approving
+  review is required" — no hay bypass por token; (b) GitHub **prohíbe que el autor apruebe su
+  propio PR** → si el agente creó el PR con `lisagomez`, esa cuenta no puede aprobarlo; (c) los
+  **4 colaboradores con write** (`HuertaVictor`, `Johann-Valderrama`, `ZELANDIAIO`,
+  `makeflowia-lab`) sí pueden aprobar → camino sano.
+- **Bypass (solo con OK explícito de la dueña)**: respaldar la config completa a un JSON
+  (`gh api .../branches/master/protection`), bajar `required_approving_review_count` a 0 vía
+  `gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`, mergear, y
+  **RESTAURAR a 1 de inmediato** verificando el estado final. Usado así el 2026-07-14 para PRs
+  #49/#50 con autorización expresa. No es la vía por defecto: debilita la compuerta que
+  `enforce_admins:true` protege.
+- **Aplicar en**: todo merge a master. Detalle en `.claude/memory/reference/master-branch-protection.md`.
+
+### 2026-07-15: Meter las migraciones de una superficie en un proyecto Supabase COMPARTIDO — cuidado con `profiles` + el trigger de auth
+- **Contexto**: `frontend-ci` (cabina control-interno) se cableó al proyecto **A2ABot**
+  (`hsejpktzcqwkwkwholkw`, el mismo del negocio/trío) en vez de a uno dedicado, porque ahí ya
+  apuntaban sus credenciales. Sus 6 migraciones crean **31 tablas**; solo **una colisiona** con
+  las 8 del negocio: `profiles`.
+- **La trampa**: el `base_schema` del frontend es idempotente (`create table if not exists`,
+  `drop policy … create`), PERO trae `create or replace function public.handle_new_user()` — y
+  eso **NO** respeta el "if not exists": **sobrescribe** el trigger de auth existente. El del
+  negocio insertaba `(id,email,full_name,avatar_url)`; el del frontend inserta `(…,role)`. Como
+  el `profiles` existente **no tenía la columna `role`** (y `create table if not exists` NO la
+  añade porque la tabla ya existe), aplicar el base_schema tal cual **habría roto el signup de
+  TODO A2ABot** (el trigger fallaría al insertar en una columna inexistente) — un daño silencioso
+  que los tests de dev jamás cazan (nadie crea un `auth.users` en dev).
+- **Fix (reconciliar, no clobbear)**: (1) `alter table profiles add column if not exists role …`
+  ANTES de aplicar (superset inocuo para el negocio, que no usa `role`); (2) aplicar las
+  migraciones; (3) reinstalar un `handle_new_user` **FUSIONADO** que inserta lo del negocio
+  (`avatar_url`) **y** lo del frontend (`role`), con `on conflict (id) do nothing` y hardening
+  `search_path=''`. Verificar después: las 31 tablas presentes, las 8 del negocio + sus datos
+  intactos, y la función final contiene ambas columnas.
+- **Regla general**: antes de correr las migraciones de una superficie sobre una BD que ya usa
+  otra, **diffear los nombres de tabla** (aquí, disjuntos salvo `profiles`) y **auditar todo
+  `create or replace function`/trigger** — esos pisan sin avisar. Un proyecto compartido ahorra
+  costo pero te hace dueño de las colisiones. Aplicar migraciones a producción por Management API
+  (`POST /database/query`, UA `curl/8.0`) va bien; el `db push` del CLI no estaba cableado.
+- **Aplicar en**: cualquier `db push`/migración de una superficie nueva a un Supabase con datos,
+  y todo trigger de `auth.users` en proyectos multi-superficie. Ver
+  `.claude/memory/project/frontends-control-interno.md`.
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

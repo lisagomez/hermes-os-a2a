@@ -4,7 +4,7 @@
 > Fuente de verdad de fases y stack: ROADMAP.md. Detalle de cimiento: FASE0.md.
 
 > **Nota de encaje:** Hermes OS · A2A NO es un SaaS web Next.js. Es un sistema
-> operativo de agentes (Hermes) sobre Docker/Telegram en un Droplet. Este
+> operativo de agentes (Hermes) sobre Docker/Telegram en un servidor Hetzner. Este
 > documento usa la estructura de BUSINESS_LOGIC.md pero adapta la sección
 > técnica a la arquitectura real (contenedores + servicios en `hermes-net`),
 > no a `src/features/` ni a deploy en Vercel.
@@ -123,7 +123,7 @@ businessos/
 ```
 
 ### Stack confirmado (de ROADMAP.md)
-- **Servidor:** Droplet DigitalOcean (4 GB realista con 3 verticales; 8 GB con grafo)
+- **Servidor:** Hetzner Cloud cx33 (4 vCPU / 8 GB; corre las 3 verticales + grafo holgado)
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) `:v2026.6.19` — memory, skills, soul, crons
 - **Canales:** Telegram (3 bots) + voz (TTS salida / transcripción entrada)
@@ -144,35 +144,40 @@ businessos/
 - Respaldo: un repo privado por vertical, crons escalonados (2:00/2:10/2:20).
 
 ### Próximos Pasos (roadmap)
-1. [ ] **Fase 0** — Infra: Droplet + Docker + 3 verticales vivas (EN CURSO)
+1. [x] **Fase 0** — Infra: servidor Hetzner + Docker + 3 verticales vivas (COMPLETA;
+   migradas a Hetzner cx33 `167.233.233.56` el 2026-07, respaldo nocturno a GitHub)
 2. [x] **Fase 1** — Eficiencia de tokens: routing, `token_usage`, reporte + facturas (núcleo
    completo 2026-07-01; residuales —alerta 80% por cron, validación en vivo de modelos— diferidos)
 3. [x] **Fase 2** — Grafo acotado: MX + fiscal, evaluación end-to-end con fuente citada (núcleo
-   completo 2026-07-02; residuales —up en Droplet, dry-run contra Supabase, CLI impreso— diferidos)
+   completo 2026-07-02; residuales —up en el servidor, dry-run contra Supabase, CLI impreso— diferidos)
 4. [x] **Fase 3** — Expansión grafo (fiscal MX/CO + contable + contractual, cron de vigencias)
    + cobro Polar (payouts MX verificados) + contratos validados por grafo (núcleo completo
-   2026-07-02; residuales —cuenta Polar, SQL/jobs en Droplet— diferidos)
+   2026-07-02; residuales —cuenta Polar, SQL/jobs en el servidor— diferidos)
 5. [x] **Fase 4** — Dashboard Mission Control (A2ABot): 3 vistas solo lectura (núcleo completo
    2026-07-02; residuales —compose up + cron snapshot en runtime, screenshots— diferidos)
 6. [~] **Fase 5** — Interoperabilidad A2A: grafo expuesto como agente A2A (`grafo-a2a`, núcleo
-   completo 2026-07-03; residual: up en Droplet). La economía agéntica (Circle, Lean 4) sigue
+   completo 2026-07-03; residual: up en el servidor). La economía agéntica (Circle, Lean 4) sigue
    FUTURA: mismo horizonte, otro PRP
 7. [~] **Fase 6** — Departamentos operados por el trío Hermes→Ejecutor→Supervisor (núcleo
    completo 2026-07-03, PRP-006): `ejecutor-a2a` (worktree aislado + motor pluggable
    Mock/Claude Agent SDK) + `supervisor-a2a` (gates deterministas de `reglas/software.toml`,
    gate no corrible = rechazo) + skill `trio-software` (Hermes reparte, reintenta con tope,
    gate humano en lo irreversible) + tabla `tareas`; interop e2e con reintento demostrado en
-   dev con cero tokens. Residuales: compose up en Droplet, dogfood con motor real (decisión
-   de la dueña), gates de modelo con runner. White-label y RAG por ámbito: FUTURO, otro PRP.
+   dev con cero tokens. Runtime cerrado 2026-07-08 y dogfood con motor real APROBADO
+   2026-07-11 (GLM-5.2 vía seam z.ai, 8 gates verdes). Residual: gates de modelo con runner.
+   White-label y RAG por ámbito: FUTURO, otro PRP.
    Primer departamento: Desarrollo de Software (ver `businessos/departamentos/`).
-8. [~] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
+8. [x] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
    PR #13): `coordinador-a2a` (servicio A2A hermano) descompone una feature grande en un DAG
    de sub-tareas, las reparte en paralelo al Ejecutor con tope de fan-out + presupuesto
    (`token_usage.task_id`), integra lo aprobado en `tarea/<parent_id>` y pide una verificación
    final del Supervisor sobre la rama integrada — o escala; Planner pluggable (Mock/real
    opt-in), un escritor por fila padre/hija. Validado en dev con cero tokens (112 tests
-   verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04). Residuales: compose up
-   en Droplet, dogfood con Planner/motor real (decisión de la dueña).
+   verdes); `supabase-fase7.sql` aplicado en producción (2026-07-04); runtime cerrado
+   2026-07-08. COMPLETA 2026-07-11: dogfood real APROBADO — Planner real GLM-5.2 planificó
+   3 sub-tareas, enjambre paralelo aprobado al primer intento, integración limpia y 8 gates
+   verdes en el todo; ledger por-tarea real y corte de presupuesto operando con datos
+   medidos (ver CLAUDE.md 2026-07-11 enjambre).
 9. [x] **Fase 9** — Departamento de Adquisición de Clientes agéntico (núcleo en dev
    2026-07-10): segundo departamento del trío (`departamento: "adquisicion"` en el contrato;
    Supervisor multi-departamento ruteando `reglas/*.toml`); gates comerciales binarios con la

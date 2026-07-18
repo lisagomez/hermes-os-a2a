@@ -89,7 +89,8 @@ Abre Claude Code en `/home/gsore/code/a2aboths` y escribe **`/primer`** para rec
 Cada noche (**04:17**, hora del server) un cron copia los volúmenes `.hermes` de
 negocio, personal y clientes (memoria + sesiones de cada bot) a dos sitios:
 - **Local**: `~/backups/{negocio,personal,clientes}-*.tgz` en el server (últimos 7 de cada una).
-- **Off-box**: repo privado GitHub **`lisagomez/businessos-negocio`** (sobrevive aunque muera el server).
+- **Off-box**: repo privado GitHub **`lisagomez/hermes-os-a2a-backups`** (sobrevive aunque muera el server).
+  *(se llamaba `businessos-negocio` — nombre engañoso, guardaba las 3 verticales; renombrado 2026-07-11)*
 
 Script: `~/bin/backup-verticales.sh` · log: `~/backups/backup.log` · corre como `hermes` (sin sudo).
 

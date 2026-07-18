@@ -184,3 +184,32 @@ export type VerticalPantheon = z.infer<typeof verticalPantheonSchema>
 
 export const pantheonSchema = z.array(verticalPantheonSchema)
 export type Pantheon = z.infer<typeof pantheonSchema>
+
+// ---------- Desarrollo (trío) ----------
+// Fuente del dominio: businessos/supabase-fase6.sql (check constraint de
+// `tareas`). La vista /desarrollo lista el estado del trío (Ejecutor + Supervisor):
+// son las mismas filas que escriben los servicios A2A con service_role.
+
+export const estadoTareaSchema = z.enum([
+  'recibida',
+  'en_ejecucion',
+  'en_revision',
+  'aprobada',
+  'rechazada',
+  'escalada',
+  'concretada',
+  'cancelada',
+])
+export type EstadoTarea = z.infer<typeof estadoTareaSchema>
+
+export const tareaSchema = z.object({
+  task_id: z.string(),
+  objetivo: z.string(),
+  estado: estadoTareaSchema,
+  intentos: z.number().int().nonnegative(),
+  created_at: z.string(), // timestamptz ISO
+})
+export type Tarea = z.infer<typeof tareaSchema>
+
+export const desarrolloVistaSchema = z.array(tareaSchema)
+export type DesarrolloVista = z.infer<typeof desarrolloVistaSchema>

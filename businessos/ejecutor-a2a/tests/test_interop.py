@@ -1,15 +1,16 @@
-"""Interop end-to-end del trio (Fase 6 del PRP-006) — cero red, cero tokens.
+"""Interop end-to-end del trio CON COLA (PRP-010) — cero red, cero tokens.
 
-El lazo COMPLETO de la SPEC §7.5 con los DOS servicios reales in-process
-(httpx.ASGITransport) y un cliente del SDK haciendo de Hermes:
+El lazo COMPLETO con los DOS servicios reales in-process (httpx.ASGITransport) y un cliente
+del SDK haciendo de Hermes. Lo que cambia respecto a la Fase 6: la respuesta A2A ya no trae
+el veredicto, trae la POSICION EN LA COLA. El veredicto lo produce el WORKER, despues:
 
-  TAREA (codigo con `any`) → Ejecutor (MockEngine) → Supervisor re-ejecuta gates
-  reales sobre el worktree → RECHAZADO con hallazgo → Hermes reenvia con
-  observaciones (mismo task_id) → correccion → APROBADO → transiciones correctas.
+  TAREA (codigo con `any`) → Ejecutor ENCOLA (responde posicion 1)
+    → worker drena → Supervisor re-ejecuta gates REALES sobre el worktree → RECHAZADO
+    → Hermes reenvia con observaciones (mismo task_id) → se re-encola AL FINAL
+    → worker drena → APROBADO → transiciones correctas.
 
-Este test caza el gotcha del SDK que la cola espia NO caza (`new_task` antes del
-primer status update) en AMBOS servicios, porque el cliente real del SDK valida
-la secuencia de eventos.
+Este test sigue cazando el gotcha del SDK que la cola espia NO caza (`new_task` antes del
+primer status update), porque el cliente real del SDK valida la secuencia de eventos.
 """
 from __future__ import annotations
 
@@ -27,9 +28,12 @@ from a2a.helpers import get_data_parts, new_data_message
 from a2a.types import SendMessageRequest, TaskState
 
 from app import build_app
+from cola import ColaMemoria
 from engine import MockEngine
 from executor import EjecutorA2A
+from pipeline import Pipeline
 from supervisor_cliente import SupervisorCliente
+from worker import Worker
 
 SUPERVISOR_DIR = Path(__file__).resolve().parent.parent.parent / "supervisor-a2a"
 
@@ -56,15 +60,25 @@ def supervisor_mod():
 
 
 class EstadoEspia:
+    """Guarda tambien los CAMPOS: con la cola, el veredicto ya no vuelve por A2A — la unica
+    forma de verlo es donde de verdad queda (la fila de `tareas`)."""
+
     def __init__(self) -> None:
         self.transiciones: list[tuple[str, str]] = []
-        self.ejecuciones: list[str] = []
-
-    async def registrar_ejecucion(self, tarea: dict) -> None:
-        self.ejecuciones.append(tarea["task_id"])
+        self.veredictos: list[dict] = []
+        self.resultados: list[dict] = []
 
     async def transicionar(self, task_id: str, estado: str, **campos) -> None:
         self.transiciones.append((task_id, estado))
+        if "veredicto" in campos:
+            self.veredictos.append(campos["veredicto"])
+        if "resultado" in campos:
+            self.resultados.append(campos["resultado"])
+
+
+class SinTope:
+    async def hay_margen(self):
+        return True, "test"
 
 
 def crear_repo(base: Path) -> Path:
@@ -82,40 +96,52 @@ def crear_repo(base: Path) -> Path:
     return repo
 
 
-def test_lazo_completo_rechazo_reintento_aprobado(supervisor_mod, tmp_path):
+def montar(supervisor_mod, repo: Path, workspace: Path, estado, gates):
+    """Los dos servicios reales + la cola compartida entre el Ejecutor (encola) y el
+    worker (drena) — que es exactamente como viven en runtime."""
+    Gate = supervisor_mod["gates"].Gate
+    supervisor_app = supervisor_mod["app"].build_app(
+        executor=supervisor_mod["executor"].SupervisorA2A(
+            gates=gates(Gate), workspace_root=workspace
+        )
+    )
+    puente = httpx.AsyncClient(transport=httpx.ASGITransport(app=supervisor_app), timeout=30)
+    cola = ColaMemoria()
+    # worker=None: en los tests el drenado se dispara a mano (`un_ciclo`), para poder
+    # observar cada paso; en runtime lo arranca el lifespan.
+    ejecutor_app = build_app(executor=EjecutorA2A(cola=cola), worker=None)
+    worker = Worker(
+        cola=cola,
+        pipeline=Pipeline(
+            engine=MockEngine(),
+            supervisor=SupervisorCliente(base_url="http://supervisor-a2a:4200",
+                                         http_client=puente),
+            estado=estado,
+            repo=repo,
+            workspace_root=workspace,
+        ),
+        estado=estado,
+        presupuesto=SinTope(),
+        repo=repo,
+        pausa_s=0.001,
+    )
+    return ejecutor_app, worker, puente
+
+
+def test_lazo_completo_encolar_rechazo_reintento_aprobado(supervisor_mod, tmp_path):
     repo = crear_repo(tmp_path)
     workspace = tmp_path / "espacio"
     estado = EstadoEspia()
 
-    # Supervisor REAL con gates reales (estatico + comando) sobre el volumen compartido.
-    Gate = supervisor_mod["gates"].Gate
-    supervisor_app = supervisor_mod["app"].build_app(
-        executor=supervisor_mod["executor"].SupervisorA2A(
-            gates=[
-                Gate("sin_any", "estatico", chequeo="sin_any"),
-                Gate("smoke", "comando", comando="git status --short"),
-            ],
-            workspace_root=workspace,
-        )
+    ejecutor_app, worker, puente = montar(
+        supervisor_mod, repo, workspace, estado,
+        gates=lambda Gate: [
+            Gate("sin_any", "estatico", chequeo="sin_any"),
+            Gate("smoke", "comando", comando="git status --short"),
+        ],
     )
 
     async def lazo():
-        # Ejecutor→Supervisor: cliente A2A real del Ejecutor sobre ASGITransport.
-        puente = httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=supervisor_app), timeout=30
-        )
-        ejecutor_app = build_app(
-            executor=EjecutorA2A(
-                engine=MockEngine(),
-                supervisor=SupervisorCliente(
-                    base_url="http://supervisor-a2a:4200", http_client=puente
-                ),
-                estado=estado,
-                repo=repo,
-                workspace_root=workspace,
-            )
-        )
-
         # Hermes (cliente del SDK): descubre al Ejecutor por su card, como un tercero.
         http = httpx.AsyncClient(
             transport=httpx.ASGITransport(app=ejecutor_app),
@@ -136,7 +162,7 @@ def test_lazo_completo_rechazo_reintento_aprobado(supervisor_mod, tmp_path):
             assert final is not None, "el cliente del SDK no recibio tarea"
             return final
 
-        # --- intento 1: el "codigo" trae `any` → un gate real lo caza ---
+        # --- se encola: respuesta INMEDIATA, sin veredicto (esa es la promesa nueva) ---
         tarea = {
             "task_id": "trio-e2e-1",
             "objetivo": "modulo x sin any",
@@ -147,37 +173,46 @@ def test_lazo_completo_rechazo_reintento_aprobado(supervisor_mod, tmp_path):
         t1 = await enviar(tarea)
         assert t1.status.state == TaskState.TASK_STATE_COMPLETED
         [e1] = get_data_parts(t1.artifacts[0].parts)
-        assert e1["veredicto"]["veredicto"] == "rechazado"
-        hallazgos = e1["veredicto"]["hallazgos"]
+        assert e1 == {
+            "encolada": True, "task_id": "trio-e2e-1", "posicion": 1,
+            "en_ejecucion": None,
+            "cola": [{"pos": 1, "task_id": "trio-e2e-1", "objetivo": "modulo x sin any",
+                      "prioridad": 0}],
+        }
+        assert "veredicto" not in e1  # el veredicto NO vuelve por aqui: llega despues
+
+        # --- el worker drena: el Supervisor REAL caza el `any` sobre el worktree ---
+        assert await worker.un_ciclo() is True
+        assert estado.transiciones[-1] == ("trio-e2e-1", "rechazada")
+        hallazgos = estado.veredictos[-1]["hallazgos"]
         assert hallazgos and hallazgos[0]["regla"] == "sin_any"
         assert hallazgos[0]["archivo"] == "src/x.ts"
 
-        # --- intento 2 (Hermes): observaciones del rechazo, MISMO task_id ---
-        tarea_reintento = {
+        # --- reintento de Hermes: mismo task_id, con observaciones → se re-encola ---
+        t2 = await enviar({
             **tarea,
             "observaciones": [
                 f"{h['regla']}: {h['evidencia']} ({h.get('archivo', '?')})" for h in hallazgos
             ],
-            "contexto": {
-                "mock_correccion": {"src/x.ts": "export const x: unknown = 1\n"}
-            },
-        }
-        t2 = await enviar(tarea_reintento)
-        assert t2.status.state == TaskState.TASK_STATE_COMPLETED
+            "contexto": {"mock_correccion": {"src/x.ts": "export const x: unknown = 1\n"}},
+        })
         [e2] = get_data_parts(t2.artifacts[0].parts)
-        assert e2["veredicto"]["veredicto"] == "aprobado"
-        assert all(g["estado"] == "paso" for g in e2["veredicto"]["gates"])
-        assert e2["resultado"]["archivos"] == ["src/x.ts"]
-        assert "unknown" in e2["resultado"]["diff"]
+        assert e2["encolada"] is True and e2["posicion"] == 1
+
+        assert await worker.un_ciclo() is True
+        assert estado.transiciones[-1] == ("trio-e2e-1", "aprobada")
+        veredicto = estado.veredictos[-1]
+        assert veredicto["veredicto"] == "aprobado"
+        assert all(g["estado"] == "paso" for g in veredicto["gates"])
+        assert estado.resultados[-1]["archivos"] == ["src/x.ts"]
+        assert "unknown" in estado.resultados[-1]["diff"]
 
         await http.aclose()
         await puente.aclose()
 
     asyncio.run(lazo())
 
-    # Trazabilidad completa del lazo en `tareas` (espia): dos ejecuciones,
-    # rechazo del intento 1, aprobacion del intento 2.
-    assert estado.ejecuciones == ["trio-e2e-1", "trio-e2e-1"]
+    # Trazabilidad del lazo: dos vueltas por revision, rechazo y luego aprobacion.
     assert estado.transiciones == [
         ("trio-e2e-1", "en_revision"),
         ("trio-e2e-1", "rechazada"),
@@ -196,31 +231,18 @@ def test_lazo_completo_rechazo_reintento_aprobado(supervisor_mod, tmp_path):
 
 def test_worktree_ausente_a_traves_del_protocolo_es_rechazo(supervisor_mod, tmp_path):
     """Anti-sello-de-goma por el lazo completo: si el Supervisor no ve el worktree
-    (volumen mal montado), el veredicto que llega es RECHAZADO, no un fallo mudo."""
+    (volumen mal montado), el veredicto que queda es RECHAZADO, no un fallo mudo."""
     repo = crear_repo(tmp_path)
-    Gate = supervisor_mod["gates"].Gate
-    supervisor_app = supervisor_mod["app"].build_app(
-        executor=supervisor_mod["executor"].SupervisorA2A(
-            gates=[Gate("smoke", "comando", comando="git status --short")],
-            workspace_root=tmp_path / "OTRO-volumen",  # el supervisor mira otro lado
-        )
+    estado = EstadoEspia()
+    ejecutor_app, worker, puente = montar(
+        supervisor_mod, repo, tmp_path / "OTRO-volumen", estado,  # el supervisor mira otro lado
+        gates=lambda Gate: [Gate("smoke", "comando", comando="git status --short")],
     )
+    # OJO: el worker prepara el worktree en SU workspace; el Supervisor mira otro. Por eso
+    # el pipeline del worker usa el workspace bueno y el Supervisor el malo:
+    worker._pipeline._workspace_root = tmp_path / "espacio"
 
     async def flujo():
-        puente = httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=supervisor_app), timeout=30
-        )
-        ejecutor_app = build_app(
-            executor=EjecutorA2A(
-                engine=MockEngine(),
-                supervisor=SupervisorCliente(
-                    base_url="http://supervisor-a2a:4200", http_client=puente
-                ),
-                estado=EstadoEspia(),
-                repo=repo,
-                workspace_root=tmp_path / "espacio",
-            )
-        )
         http = httpx.AsyncClient(
             transport=httpx.ASGITransport(app=ejecutor_app),
             base_url="http://ejecutor-a2a:4100",
@@ -228,8 +250,7 @@ def test_worktree_ausente_a_traves_del_protocolo_es_rechazo(supervisor_mod, tmp_
         )
         card = await A2ACardResolver(http, "http://ejecutor-a2a:4100").get_agent_card()
         cliente = ClientFactory(ClientConfig(httpx_client=http, streaming=False)).create(card)
-        final = None
-        async for r in cliente.send_message(
+        async for _ in cliente.send_message(
             SendMessageRequest(
                 message=new_data_message({
                     "task_id": "trio-e2e-2",
@@ -240,14 +261,14 @@ def test_worktree_ausente_a_traves_del_protocolo_es_rechazo(supervisor_mod, tmp_
                 })
             )
         ):
-            if r.HasField("task"):
-                final = r.task
+            pass
+        await worker.un_ciclo()
         await http.aclose()
         await puente.aclose()
-        return final
 
-    tarea = asyncio.run(flujo())
-    assert tarea.status.state == TaskState.TASK_STATE_COMPLETED
-    [entregado] = get_data_parts(tarea.artifacts[0].parts)
-    assert entregado["veredicto"]["veredicto"] == "rechazado"
-    assert any("worktree ausente" in h["evidencia"] for h in entregado["veredicto"]["hallazgos"])
+    asyncio.run(flujo())
+
+    assert estado.transiciones[-1] == ("trio-e2e-2", "rechazada")
+    veredicto = estado.veredictos[-1]
+    assert veredicto["veredicto"] == "rechazado"
+    assert any("worktree ausente" in h["evidencia"] for h in veredicto["hallazgos"])

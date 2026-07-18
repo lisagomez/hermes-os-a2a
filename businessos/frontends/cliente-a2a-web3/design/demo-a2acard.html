@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarjeta A2A — Demo funcional · Fábrica de Sistemas de Negocio Agénticos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --tinta:#0E1420;        /* fondo: sala de control */
+  --tinta-2:#141C2C;
+  --papel:#F5F2E9;        /* credencial */
+  --papel-sombra:#E4DFCF;
+  --sello:#1E7A5A;        /* verde sello: permitido/aprobado */
+  --ambar:#E3A63B;        /* folio/espera */
+  --rechazo:#C24333;
+  --texto:#EAEEF5;
+  --texto-2:#8B96A8;
+  --linea:#26324A;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --disp:'Space Grotesk',var(--sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--tinta);color:var(--texto);font-family:var(--sans);font-size:15px;line-height:1.55;min-height:100vh}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 22px 80px}
+
+/* ---------- encabezado ---------- */
+header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--linea);padding-bottom:18px;margin-bottom:30px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ambar)}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(22px,3.4vw,34px);letter-spacing:-.01em;margin-top:6px}
+h1 .thin{color:var(--texto-2);font-weight:400}
+.header-note{font-size:12.5px;color:var(--texto-2);max-width:340px}
+
+/* ---------- rejilla ---------- */
+.grid{display:grid;grid-template-columns:360px 1fr;gap:34px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+
+/* ---------- credencial (firma visual) ---------- */
+.gafete{position:sticky;top:22px;background:var(--papel);color:#20242B;border-radius:14px;padding:0;box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 0 0 1px var(--papel-sombra);overflow:hidden}
+@media (max-width:920px){.gafete{position:static}}
+.gafete .clip{height:34px;background:linear-gradient(180deg,#1A2334,#0E1420);display:flex;align-items:center;justify-content:center}
+.gafete .clip span{width:52px;height:9px;border-radius:9px;background:var(--papel);opacity:.9;box-shadow:inset 0 2px 3px rgba(0,0,0,.35)}
+.gafete-body{padding:20px 22px 22px}
+.gafete .tipo{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#7A7462;text-transform:uppercase}
+.gafete .nombre{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.01em;margin:2px 0 2px}
+.gafete .rol{font-size:13px;color:#5A5F6A;margin-bottom:14px}
+.gafete .fila{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:#494F5A;border-top:1px dashed #D8D2BF;padding:7px 0}
+.gafete .fila b{color:#20242B;font-weight:600}
+.verbos{margin-top:14px}
+.verbos h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#7A7462;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:4px 9px;border-radius:6px;border:1px solid #CFead9;background:#E9F5EE;color:var(--sello)}
+.chip.gate{border-style:dashed;border-color:#E7CFA0;background:#FAF1DC;color:#9A6B12}
+.chip.no{background:#F7E4E0;border-color:#EAC4BC;color:var(--rechazo);text-decoration:line-through;text-decoration-thickness:1.5px}
+.leyenda{font-size:11px;color:#6B6F78;margin-top:10px}
+.sello-vigente{position:absolute;right:18px;top:52px;width:78px;height:78px;border:2.5px solid var(--sello);border-radius:50%;display:grid;place-items:center;transform:rotate(-12deg);color:var(--sello);font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-align:center;opacity:.85}
+.gafete{position:sticky}
+.gafete-inner{position:relative}
+
+/* ---------- panel de operación ---------- */
+.panel h2{font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:.01em;margin-bottom:4px}
+.panel .sub{color:var(--texto-2);font-size:13px;margin-bottom:16px}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+button{font-family:var(--sans);font-size:14px;font-weight:600;border:none;border-radius:9px;padding:11px 16px;cursor:pointer;transition:transform .08s ease,opacity .2s}
+button:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--ambar);outline-offset:2px}
+button:disabled{opacity:.35;cursor:not-allowed}
+.btn-p{background:var(--ambar);color:#241A05}
+.btn-s{background:transparent;color:var(--texto);border:1px solid var(--linea)}
+.btn-x{background:transparent;color:var(--rechazo);border:1px solid #4A2A26}
+
+.hilo{display:flex;flex-direction:column;gap:12px;min-height:120px}
+.msg{max-width:640px;border-radius:12px;padding:12px 15px;border:1px solid var(--linea);background:var(--tinta-2);opacity:0;transform:translateY(6px);animation:pop .35s ease forwards}
+@keyframes pop{to{opacity:1;transform:none}}
+.msg .who{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;color:var(--texto-2)}
+.msg .who.tu{color:var(--ambar)} .msg .who.hermes{color:#7FA8E8} .msg .who.exe{color:#69C2A2} .msg .who.sup{color:#C9A2E8} .msg .who.sys{color:var(--rechazo)}
+.msg.tu{align-self:flex-end;background:#1B2436;border-color:#2C3A57}
+.term{font-family:var(--mono);font-size:12.5px;background:#0A0F19;border:1px solid var(--linea);border-radius:8px;padding:10px 12px;margin-top:8px;color:#B9C4D6;white-space:pre-wrap}
+.term .ok{color:#69C2A2}.term .warn{color:var(--ambar)}.term .err{color:#E8836F}
+.checks{margin-top:8px;font-size:13.5px}
+.checks div{padding:2px 0}
+.checks .ok::before{content:"✓ ";color:#69C2A2;font-weight:700}
+.checks .err::before{content:"✕ ";color:#E8836F;font-weight:700}
+
+.aprob{border:1px solid #4A3D1E;background:linear-gradient(180deg,#1C1912,#161410);border-radius:12px;padding:14px 16px}
+.aprob .titulo{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ambar);margin-bottom:8px}
+.aprob .detalle{font-size:14px;margin-bottom:12px}
+.aprob .detalle b{font-family:var(--mono)}
+.aprob .botones{display:flex;gap:8px;flex-wrap:wrap}
+.stamp{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;padding:5px 10px;border-radius:6px;border:2px solid;transform:rotate(-2deg);margin-top:8px}
+.stamp.ok{color:#7BDBB4;border-color:#2E8C68;background:rgba(30,122,90,.12)}
+.stamp.no{color:#F0907E;border-color:var(--rechazo);background:rgba(194,67,51,.12)}
+
+/* ---------- traza ---------- */
+.traza{margin-top:34px;border-top:1px solid var(--linea);padding-top:20px}
+.traza h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-2)}
+.traza .cmd{font-family:var(--mono);font-size:13px;color:var(--ambar);margin:6px 0 14px}
+.tl{border-left:2px solid var(--linea);margin-left:6px;padding-left:18px;display:flex;flex-direction:column;gap:10px}
+.tl .ev{position:relative;font-family:var(--mono);font-size:12.5px;color:#B9C4D6;opacity:0;animation:pop .3s ease forwards}
+.tl .ev::before{content:"";position:absolute;left:-24px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--sello);box-shadow:0 0 0 3px rgba(30,122,90,.18)}
+.tl .ev.gate::before{background:var(--ambar);box-shadow:0 0 0 3px rgba(227,166,59,.18)}
+.tl .ev.bad::before{background:var(--rechazo);box-shadow:0 0 0 3px rgba(194,67,51,.18)}
+.tl .ev .t{color:var(--texto-2);margin-right:10px}
+.tl .ev b{color:var(--texto);font-weight:600}
+.vacio{color:var(--texto-2);font-family:var(--mono);font-size:12.5px}
+
+footer{margin-top:44px;border-top:1px solid var(--linea);padding-top:14px;font-size:12px;color:var(--texto-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer .m{font-family:var(--mono)}
+
+@media (prefers-reduced-motion: reduce){
+  .msg,.tl .ev{animation:none;opacity:1;transform:none}
+  button{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="eyebrow">Fábrica de sistemas de negocio agénticos · demo funcional</div>
+    <h1>Tarjeta A2A <span class="thin">— el gafete que gobierna al agente</span></h1>
+  </div>
+  <p class="header-note">Todo lo que ves aquí sigue las reglas reales de la fábrica: el agente puede exactamente lo que dice su tarjeta, nada irreversible sale sin tu botón, y todo queda trazado.</p>
+</header>
+
+<div class="grid">
+
+  <!-- ============ CREDENCIAL ============ -->
+  <aside class="gafete" aria-label="Tarjeta del agente exe-fin">
+    <div class="clip"><span></span></div>
+    <div class="gafete-inner">
+      <div class="sello-vigente">TARJETA<br>VIGENTE<br>D-14</div>
+      <div class="gafete-body">
+        <div class="tipo">Tarjeta de agente · sis_agente</div>
+        <div class="nombre">exe-fin</div>
+        <div class="rol">Ejecutor · Departamento de finanzas</div>
+
+        <div class="fila"><span>Rol de base de datos</span><b>rol_exe_fin (RLS)</b></div>
+        <div class="fila"><span>CLIs montados</span><b>ped · fac · cfd · cob · inv</b></div>
+        <div class="fila"><span>AGENTS.md</span><b>sha 9f3c…a71 ✓</b></div>
+        <div class="fila"><span>Aprobadores</span><b>1 humano registrado</b></div>
+
+        <div class="verbos">
+          <h4>Verbos permitidos</h4>
+          <div class="chips">
+            <span class="chip">listar</span><span class="chip">ver</span>
+            <span class="chip">buscar</span><span class="chip">crear</span>
+            <span class="chip">registrar</span>
+            <span class="chip gate">emitir ⏻</span>
+            <span class="chip gate">timbrar ⏻</span>
+          </div>
+          <h4 style="margin-top:12px">Fuera de la tarjeta</h4>
+          <div class="chips">
+            <span class="chip no">eliminar</span>
+            <span class="chip no">pagar</span>
+            <span class="chip no">shell libre</span>
+          </div>
+          <p class="leyenda">⏻ = irreversible: exige tu botón antes de --confirmar. Lo tachado no existe para este agente — ni pidiéndoselo.</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ OPERACIÓN ============ -->
+  <section class="panel">
+    <h2>Operación en vivo</h2>
+    <p class="sub">Dirige al agente como lo harías por Slack. Luego intenta el sabotaje — y míralo negarse.</p>
+
+    <div class="acciones">
+      <button class="btn-p" id="btnFactura">Pedir: “Factura el pedido PED-1042 de Acme”</button>
+      <button class="btn-x" id="btnSabotaje">Sabotaje: “Elimina la factura FAC-0850”</button>
+      <button class="btn-s" id="btnReset">Reiniciar demo</button>
+    </div>
+
+    <div class="hilo" id="hilo" aria-live="polite"></div>
+
+    <div class="traza">
+      <h3>Bitácora · trazabilidad de punta a punta</h3>
+      <div class="cmd">$ aud trazar --traza <span id="trazaId">—</span></div>
+      <div class="tl" id="tl"><div class="vacio">La traza nace con el encargo. Lanza una operación para verla escribirse.</div></div>
+    </div>
+
+    <footer>
+      <span>Demo autocontenida · fabricada bajo la disciplina FEATURE-30 de dep-dev</span>
+      <span class="m">exe→sup→humano · tarjeta D-14 · traza sis_bitacora</span>
+    </footer>
+  </section>
+</div>
+</div>
+
+<script>
+(function(){
+const hilo=document.getElementById('hilo'), tl=document.getElementById('tl');
+const btnF=document.getElementById('btnFactura'), btnS=document.getElementById('btnSabotaje'), btnR=document.getElementById('btnReset');
+const trazaEl=document.getElementById('trazaId');
+let traza=null, ocupado=false, t0=null;
+
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+const hora=()=>{const d=new Date();return d.toLocaleTimeString('es-MX',{hour12:false});};
+const uuid=()=> 'trz-'+Math.random().toString(16).slice(2,6)+'-'+Math.random().toString(16).slice(2,6);
+
+function msg(who,cls,html){
+  const m=document.createElement('div');m.className='msg '+(cls==='tu'?'tu':'');
+  m.innerHTML='<div class="who '+cls+'">'+who+'</div>'+html;
+  hilo.appendChild(m);m.scrollIntoView({behavior:reduce?'auto':'smooth',block:'end'});return m;}
+function ev(texto,cls){
+  if(tl.querySelector('.vacio'))tl.innerHTML='';
+  const e=document.createElement('div');e.className='ev'+(cls?' '+cls:'');
+  e.innerHTML='<span class="t">'+hora()+'</span>'+texto;tl.appendChild(e);}
+function lock(v){ocupado=v;btnF.disabled=v;btnS.disabled=v;}
+function nuevaTraza(){traza=uuid();trazaEl.textContent=traza;}
+
+async function flujoFactura(){
+  if(ocupado)return;lock(true);nuevaTraza();
+  msg('Tú · Slack','tu','Hermes, factura el pedido <b style="font-family:var(--mono)">PED-1042</b> de Acme.');
+  ev('<b>encargo</b> registrado en sis_encargo · eje: operación · traza generada','gate');
+  await wait(700);
+  msg('hermes-negocio','hermes','Encargo recibido. Módulos: ped → fac → cfd. Reparto a <b>exe-fin</b> con la traza; validará <b>sup-fin</b>; el timbrado esperará tu botón.');
+  await wait(850);
+  msg('exe-fin','exe','Ejecutando contra la base real (jamás de memoria):<div class="term">$ ped ver PED-1042 --traza '+traza+'\n<span class="ok">{"folio":"PED-1042","cliente":"Acme","partidas":3,"total":18560.00}</span>\n$ fac emitir --pedido PED-1042 --dry-run\n<span class="warn">DRY-RUN</span> → FAC-0873 · subtotal 16,000.00 · IVA 2,560.00 · total <span class="ok">18,560.00</span></div>');
+  ev('exe-fin · <b>ped ver</b> ok · <b>fac emitir --dry-run</b> → FAC-0873');
+  await wait(1100);
+  msg('sup-fin','sup','Validación (línea 2 — lo determinista ya lo garantizó el CLI):<div class="checks"><div class="ok">Aritmética: 16,000 + 2,560 = 18,560 · cuadra</div><div class="ok">Crédito de Acme: sin bloqueo, dentro de límite</div><div class="ok">Folio CFD disponible y en secuencia</div><div class="ok">Grafo fiscal: sin banderas para estos conceptos <span style="color:var(--texto-2)">(fuente adjunta)</span></div></div>');
+  ev('sup-fin · 4/4 validaciones · sin banderas');
+  await wait(900);
+  const ap=msg('hermes-negocio','hermes','<div class="aprob"><div class="titulo">Aprobación humana requerida · acto irreversible ante el SAT</div><div class="detalle">Timbrar <b>FAC-0873</b> · Acme · <b>$18,560.00</b> · vence en 30 min · hash del dry-run adjunto</div><div class="botones"><button class="btn-p" id="apT">Timbrar FAC-0873</button><button class="btn-s" id="apR">Revisar</button><button class="btn-s" id="apC">Cancelar</button></div></div>');
+  ev('botón enviado a Slack · hash del dry-run · caducidad 30 min','gate');
+  const bT=ap.querySelector('#apT'),bR=ap.querySelector('#apR'),bC=ap.querySelector('#apC');
+  bR.onclick=bC.onclick=()=>{bT.disabled=bR.disabled=bC.disabled=true;msg('hermes-negocio','hermes','Operación detenida por tu decisión. Nada se timbró; el encargo queda abierto en sis_encargo.');ev('decisión humana: detener · encargo abierto','gate');lock(false);};
+  bT.onclick=async()=>{
+    bT.disabled=bR.disabled=bC.disabled=true;
+    ev('clic verificado · firma de Slack ✓ · aprobador en lista ✓ · vigencia ✓','gate');
+    await wait(500);
+    msg('exe-fin','exe','Re-validación contra el estado actual: sin cambios desde el dry-run. Ejecutando:<div class="term">$ cfd timbrar --factura FAC-0873 --confirmar --llave '+traza.slice(4)+'\n<span class="ok">TIMBRADO</span> · folio fiscal <span class="ok">CFD-0091</span> · sello SAT ✓ · XML/PDF generados\n$ cob registrar --factura FAC-0873\n<span class="ok">saldo por cobrar registrado · COB-0455</span></div><span class="stamp ok">TIMBRADO · CFD-0091</span>');
+    ev('<b>cfd timbrar --confirmar</b> · idempotente · CFD-0091');
+    ev('<b>cob registrar</b> · COB-0455 · token_usage: cfd:timbrar');
+    await wait(700);
+    msg('hermes-negocio','hermes','Listo. <b style="font-family:var(--mono)">FAC-0873</b> timbrada (CFD-0091), saldo registrado, XML y PDF en el hilo. Toda la historia vive en la traza de abajo — es un comando, no una investigación.');
+    ev('<b>encargo cerrado</b> · hilo de Slack como bitácora humana','gate');
+    lock(false);
+  };
+}
+
+async function flujoSabotaje(){
+  if(ocupado)return;lock(true);if(!traza)nuevaTraza();
+  msg('Tú · Slack','tu','Hermes, <b>elimina</b> la factura FAC-0850.');
+  await wait(700);
+  msg('exe-fin','exe','Solicitud recibida. Verificando contra mi tarjeta…<div class="term">$ fac eliminar FAC-0850 --traza '+traza+'\n<span class="err">RECHAZADO POR TARJETA (exit 1)</span>\nmotivo: el verbo "eliminar" no está en la tarjeta de exe-fin (sis_agente)\nnota: los documentos fiscales no se eliminan — se cancelan, con motivo y plazo SAT,\ny la cancelación también exigiría tu botón.</div><span class="stamp no">RECHAZADO POR TARJETA</span>');
+  ev('<b>intento fuera de tarjeta</b> · fac eliminar · rechazado y registrado','bad');
+  await wait(800);
+  msg('hermes-negocio','hermes','No se ejecutó nada. El intento quedó en la bitácora (los rechazos también se auditan — dep-aud los revisa). Si lo que necesitas es <b>cancelar</b> la factura, ese flujo existe: con motivo, plazo y tu aprobación.');
+  ev('hallazgo visible para dep-aud · cero escrituras','bad');
+  lock(false);
+}
+
+btnF.onclick=flujoFactura;
+btnS.onclick=flujoSabotaje;
+btnR.onclick=()=>{hilo.innerHTML='';tl.innerHTML='<div class="vacio">La traza nace con el encargo. Lanza una operación para verla escribirse.</div>';trazaEl.textContent='—';traza=null;lock(false);};
+})();
+</script>
+</body>
+</html>

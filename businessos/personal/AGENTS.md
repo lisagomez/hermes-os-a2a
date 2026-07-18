@@ -32,14 +32,20 @@ mecánica.
   redactar algo con criterio).
 
 ## Crons
-- Digest matutino 8:00 (zona horaria local): agenda del día + recordatorios +
-  pendientes de la bóveda. Máximo 200 palabras. Entrega a Telegram.
-- "Dreaming" nocturno 2:00: revisa lo capturado el día, consolida en MEMORY.md,
-  archiva notas de `inbox/` a su carpeta. Máximo 300 palabras de resumen.
-- Sync nocturno a GitHub **2:00** del workspace de personal a su **repo privado
-  propio** (`businessos-personal`). Cada vertical respalda SU propio workspace a
-  SU propio repo; los horarios van escalonados (personal 2:00, negocio 2:10,
-  clientes 2:20) para no chocar. No incluyas `.env` ni ningún secreto.
+> Solo el "dreaming" está agendado de verdad (`hermes cron list`, 2026-07-12). No
+> afirmes haber hecho una rutina sin comprobarlo.
+
+- `dreaming-personal` — **02:00 diario** (agendado `0 8 * * *`: el contenedor corre
+  en UTC y tú entregas en CST). Revisa lo capturado el día, consolida en MEMORY.md,
+  archiva notas de `inbox/` a su carpeta. No manda mensaje salvo que haya algo que
+  requiera decisión de Elisa.
+- ⏸️ *Digest matutino 8:00 (agenda del día + recordatorios): **NO agendado** — decisión
+  pendiente de la dueña. No lo prometas ni digas que lo mandaste.*
+- Respaldo nocturno: **NO es tuyo, no lo hagas**. Un job de confianza del host
+  (`backup-verticales.sh`, cron 04:17) respalda los volúmenes de las 3 verticales
+  al repo privado `hermes-os-a2a-backups`. Tu volumen es `0700`/uid-10000: no
+  puedes leerlo y no debes intentarlo. Si te preguntan por el respaldo, explica
+  esto; nunca ofrezcas hacer commit/push de tu memoria.
 
 ## Límites
 - Pon siempre tope de palabras en los crons; la salida es 5× más cara que la

@@ -22,7 +22,7 @@ Cómo poner viva una vertical de Hermes OS · A2A sin repetir el viacrucis del 2
    (reemplaza el SOUL default del wizard). El volumen es de **uid 10000**, así que
    copiar vía contenedor: `docker run --rm -v $HOME/businessos/personal/.hermes:/opt/data
    -v $PWD/businessos/personal:/src:ro alpine sh -c 'cp /src/*.md /opt/data/ && chown 10000:10000 /opt/data/*.md'`
-3. **Levantar gateway** (compose en el Droplet; en WSL no hay compose, usar `docker run`):
+3. **Levantar gateway** (compose en el servidor Hetzner; en WSL no hay compose, usar `docker run`):
    `docker run -d --name hermes-personal --restart unless-stopped --network hermes-net
    --shm-size 1g --env-file businessos/.env -e TELEGRAM_BOT_TOKEN=$PERSONAL
    -v $HOME/businessos/personal/.hermes:/opt/data -v $HOME/businessos/obsidian:/opt/data/obsidian:rw
@@ -70,7 +70,7 @@ que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
   por la persona ni el loop del agente. No confundir con "la vertical hablando".
 - **En WSL no hay `docker compose`/`docker-compose`** (apunta al binario de Docker
   Desktop, inactivo). `docker` nativo sí. Replicar el servicio con `docker run`. En el
-  Droplet sí se usa `docker compose`.
+  servidor Hetzner sí se usa `docker compose`.
 - **Warning inofensivo**: `Auxiliary Nous client unavailable / payment-credit error` —
   es el cliente auxiliar Nous Portal; con OpenRouter como proveedor principal no afecta.
 - **Token rotado → actualizar el `.env` del VOLUMEN, no solo el del repo** (2026-06-28):
@@ -113,7 +113,7 @@ que tocarla); lo que falta sin wizard es SOLO el `.env` del volumen y el modelo.
   precio** (queda estable y vetado). "Cheapest automático" solo para apoyo de bajo riesgo.
 - Niveles de "dinámico" acordados: (1) `:floor` [hecho en personal], (2) cadena de fallback
   curada, (3) auto-tuner con eval binaria (skill autoresearch) + aprobación humana, DIFERIDO
-  al Droplet (necesita 24/7, igual que el respaldo nocturno). El cerebro principal nunca se
+  al servidor (necesita 24/7, igual que el respaldo nocturno). El cerebro principal nunca se
   auto-cambia por precio sin eval + OK humano ("copiloto no autopiloto").
 
 ## GLM-5.2 en profiles PESADOS (2026-07-04, seam listo — falta correr el gate)

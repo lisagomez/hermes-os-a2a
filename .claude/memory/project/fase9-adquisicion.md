@@ -70,10 +70,31 @@ ventas-a2a 14). Cero tokens.
 4. Nucleo commiteado en `2f217dc`; el cierre de runtime (Dockerfile fix + docs)
    en el commit siguiente.
 
+**EDGE PUBLICO (gate "card en internet" abierto 2026-07-10; verificado
+end-to-end 2026-07-11):** `businessos/edge/` = Caddy con TLS automatico +
+rate limiting, la UNICA pieza del stack en 0.0.0.0 (443). Detalles que
+importan:
+- La imagen oficial de Caddy NO trae rate limiting → build con xcaddy +
+  `mholt/caddy-ratelimit` (edge/Dockerfile).
+- Dominio temporal `167-233-233-56.sslip.io` (decision de Elisa: "probar
+  primero"); con dominio real solo cambia `edge/Caddyfile` +
+  `VENTAS_PUBLIC_URL` (linea en el `.env` del server) y recrear edge+ventas.
+- Cloud Firewall `businessos-fw` quedo en EXACTAMENTE tcp/22 + tcp/443
+  (verificado con hcloud-pp-cli). Certs ACME persistidos en volumen
+  `caddy-data` (evita re-emitir y pegarle al rate limit de Let's Encrypt).
+- Verificado desde fuera (2026-07-11): card por HTTPS con la URL publica
+  correcta; rate limit exacto (30×200 → 429 en la 31); body max 64KB; smoke
+  lead por la URL publica → `TASK_STATE_COMPLETED` + `persistido=true` +
+  fila `id=2` en `leads` de prod (empresa "Smoke Edge S.A.", marcada
+  ignorar/borrar; la `id=1` es del smoke interno).
+- Solo proxyea `ventas-a2a:4400`; el resto del stack sigue en 127.0.0.1
+  (grafo-a2a/trio NO estan expuestos — su exposicion sigue siendo el
+  residual de Fase 5 con auth real).
+
 **Gates de la dueña (nada corre solo):** motor LLM real para tareas
 adquisicion; host-job `enviar-salientes.py` (email real + autenticidad);
-negociacion A2A externa (politica de limites + auth + legal); card en internet;
-canal `#dep-adquisicion` en Slack.
+negociacion A2A externa (politica de limites + auth + legal); dominio real
+para el edge (hoy sslip.io); canal `#dep-adquisicion` en Slack.
 
 **Gotcha de diseño aprendido:** al componer registries entre modulos python
 (CHEQUEOS base + adquisicion), el import bidireccional truena segun el orden;

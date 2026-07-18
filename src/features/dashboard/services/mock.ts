@@ -1,5 +1,5 @@
 import 'server-only'
-import type { AiSpend, GrafoVista, Pantheon } from '../types'
+import type { AiSpend, DesarrolloVista, GrafoVista, Pantheon } from '../types'
 
 /**
  * Fixtures de desarrollo: réplicas de datos REALES del sistema
@@ -168,5 +168,74 @@ export const mockPantheon: Pantheon = [
     snapshot_at: null,
     gateway: 'sin-dato',
     latencia_ms: null,
+  },
+]
+
+// Réplicas de tareas reales del trío (dogfoods Fase 6/7 documentados en
+// CLAUDE.md): mission-control-2026-0001, dogfood-swarm-1 aprobado, etc.
+// Ordenadas por created_at desc, igual que la query real (limit 20).
+export const mockDesarrollo: DesarrolloVista = [
+  {
+    task_id: 'mission-control-2026-0001',
+    objetivo: 'Crear página /desarrollo en Mission Control con la lista de tareas del trío',
+    estado: 'en_ejecucion',
+    intentos: 1,
+    created_at: '2026-07-12T09:40:00Z',
+  },
+  {
+    task_id: 'dogfood-swarm-1',
+    objetivo: 'Dogfood del enjambre (Fase 7): plan GLM de 3 sub-tareas + integración',
+    estado: 'aprobada',
+    intentos: 2,
+    created_at: '2026-07-11T18:20:00Z',
+  },
+  {
+    task_id: 'dogfood-trio-1',
+    objetivo: 'Primer dogfood real del trío con GLM-5.2 como motor del Ejecutor',
+    estado: 'aprobada',
+    intentos: 3,
+    created_at: '2026-07-11T12:05:00Z',
+  },
+  {
+    task_id: 'fase9-supervisor-chequeos-0007',
+    objetivo: 'Añadir chequeos de adquisición al supervisor-a2a (Fase 9)',
+    estado: 'en_revision',
+    intentos: 1,
+    created_at: '2026-07-10T16:30:00Z',
+  },
+  {
+    task_id: 'cli-audit-snapshot-0011',
+    objetivo: 'Migrar cli-audit.py a índice versionado para correr en el servidor 24/7',
+    estado: 'escalada',
+    intentos: 3,
+    created_at: '2026-07-12T07:15:00Z',
+  },
+  {
+    task_id: 'polar-webhook-retry-0004',
+    objetivo: 'Reintentar webhook de Polar caído tras el 403 de Cloudflare (1010)',
+    estado: 'rechazada',
+    intentos: 2,
+    created_at: '2026-07-02T22:10:00Z',
+  },
+  {
+    task_id: 'telegram-privacy-fix-0006',
+    objetivo: 'Apagar Group Privacy del bot de Telegram y re-añadirlo al grupo',
+    estado: 'concretada',
+    intentos: 1,
+    created_at: '2026-07-12T10:00:00Z',
+  },
+  {
+    task_id: 'hermes-cron-rutinas-0009',
+    objetivo: 'Crear crons faltantes (digest 08:00 CST, cierre semanal) en las 3 verticales',
+    estado: 'recibida',
+    intentos: 0,
+    created_at: '2026-07-12T11:00:00Z',
+  },
+  {
+    task_id: 'arm-image-cax-0002',
+    objetivo: 'Probar imagen Hermes sobre ARM (cax) en Hetzner',
+    estado: 'cancelada',
+    intentos: 0,
+    created_at: '2026-07-05T13:45:00Z',
   },
 ]

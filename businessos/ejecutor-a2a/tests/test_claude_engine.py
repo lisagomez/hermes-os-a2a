@@ -13,9 +13,17 @@ from pathlib import Path
 import pytest
 
 from claude_agent_sdk import ResultMessage
+from claude_agent_sdk.types import AssistantMessage
 
 from claude_engine import ClaudeAgentEngine, filas_token_usage
 from engine import EngineError, MockEngine, crear_engine
+
+
+def turno(modelo: str, tin: int, tout: int) -> AssistantMessage:
+    """Un turno del motor con su gasto (lo que llega ANTES del ResultMessage)."""
+    return AssistantMessage(
+        content=[], model=modelo, usage={"input_tokens": tin, "output_tokens": tout}
+    )
 
 
 def result_message(**extra) -> ResultMessage:
@@ -170,6 +178,87 @@ def test_transporte_roto_es_engine_error(tmp_path):
     engine = ClaudeAgentEngine(query_fn=query_rota, registro=RegistroEspia())
     with pytest.raises(EngineError, match="claude-agent-sdk"):
         correr(engine, tarea(), tmp_path)
+
+
+def test_corrida_muerta_a_media_faena_registra_el_gasto_parcial(tmp_path):
+    """El bug de la 1a corrida real: el motor abortado NO registraba los tokens
+    quemados (el raise ocurria antes del registro). El gasto se perdia en silencio."""
+    registro = RegistroEspia()
+
+    def query_abortada(*, prompt, options=None):
+        async def gen():
+            yield turno("glm-5.2", 1000, 200)
+            yield turno("glm-5.2", 500, 300)
+            raise RuntimeError("proceso del motor muerto")  # cliente se desconecto
+
+        return gen()
+
+    engine = ClaudeAgentEngine(query_fn=query_abortada, registro=registro)
+    with pytest.raises(EngineError):
+        correr(engine, tarea(), tmp_path)
+
+    [fila] = registro.filas  # se acumulan los DOS turnos, un solo modelo
+    assert fila["task_id"] == "t-200"
+    assert fila["vertical"] == "trio"
+    assert (fila["tokens_in"], fila["tokens_out"]) == (1500, 500)
+    assert fila["costo_usd"] == 0.0  # el motor no tarifa: honesto en vez de inventado
+
+
+def test_max_turns_registra_el_gasto_del_result_no_el_parcial(tmp_path):
+    """Lo que pasó de verdad (2026-07-12, intento 3 de mission-control-2026-0001): al topar
+    `max_turns` el CLI emite un ResultMessage is_error CON su model_usage y DESPUÉS sale con
+    exit!=0, que el SDK convierte en excepción. El gasto bueno ya llegó: hay que registrar ESE,
+    no el acumulado turno a turno (que en la corrida real vino vacío → 'sin gasto registrable',
+    y ~$1 de tokens quemados desapareció del presupuesto)."""
+    registro = RegistroEspia()
+
+    def query_max_turns(*, prompt, options=None):
+        async def gen():
+            yield turno("glm-5.2", 1000, 200)  # los turnos NO traen usage en el CLI real
+            yield result_message(
+                is_error=True,
+                subtype="error_max_turns",
+                model_usage={"glm-5.2": {"inputTokens": 64979, "outputTokens": 23038,
+                                         "costUSD": 1.4753}},
+            )
+            raise RuntimeError(
+                "Claude Code returned an error result: Reached maximum number of turns (40)"
+            )
+
+        return gen()
+
+    engine = ClaudeAgentEngine(query_fn=query_max_turns, registro=registro)
+    with pytest.raises(EngineError, match="maximum number of turns"):
+        correr(engine, tarea(), tmp_path)
+
+    [fila] = registro.filas  # el ResultMessage manda: cifras reales, no el parcial
+    assert fila["modelo"] == "glm-5.2"
+    assert (fila["tokens_in"], fila["tokens_out"]) == (64979, 23038)
+    assert fila["costo_usd"] == 1.4753
+    assert fila["task_id"] == "t-200"
+
+
+def test_sin_result_message_pero_con_turnos_registra_lo_quemado(tmp_path):
+    registro = RegistroEspia()
+    engine = ClaudeAgentEngine(
+        query_fn=QueryFake([turno("glm-5.2", 10, 5)]), registro=registro
+    )
+    with pytest.raises(EngineError, match="no entrego ResultMessage"):
+        correr(engine, tarea(), tmp_path)
+
+    assert [(f["tokens_in"], f["tokens_out"]) for f in registro.filas] == [(10, 5)]
+
+
+def test_con_result_message_el_parcial_no_duplica_el_gasto(tmp_path):
+    """El ResultMessage es autoritativo: los turnos NO se suman encima de el."""
+    registro = RegistroEspia()
+    mensajes = [turno("claude-haiku-4-5", 80, 40), result_message()]
+    correr(ClaudeAgentEngine(query_fn=QueryFake(mensajes), registro=registro), tarea(), tmp_path)
+
+    por_modelo = {f["modelo"]: f for f in registro.filas}
+    assert set(por_modelo) == {"claude-haiku-4-5", "claude-sonnet-5"}  # los del result
+    assert por_modelo["claude-haiku-4-5"]["tokens_in"] == 80  # NO 160
+    assert por_modelo["claude-haiku-4-5"]["costo_usd"] == 0.02  # con su costo real
 
 
 def test_fabrica_por_env():

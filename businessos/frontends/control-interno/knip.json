@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": ["scripts/*.{ts,mjs}"],
+  "ignore": ["public/**", "src-tauri/**"],
+  "ignoreBinaries": ["lsof", "tail"]
+}

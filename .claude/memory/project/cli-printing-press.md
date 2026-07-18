@@ -76,8 +76,11 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
   claves reales antes de tocar un vertical vivo).
 
 ## Primeros CLIs impresos (2026-06-30)
-- ✅ **digitalocean** (spec oficial, 660 endpoints) → shipcheck 7/7, scorecard **87/100 Grade A**.
-  En `~/printing-press/library/digitalocean/` (binario `digitalocean-pp-cli` v1.0.0).
+- ⚠️ **digitalocean** — **SUPERSEDED (2026-07-04) por `hcloud`** al mover el runtime a Hetzner
+  (ver [[despliegue-hetzner]]). Impreso en su momento (spec oficial, 660 endpoints) → shipcheck 7/7,
+  scorecard **87/100 Grade A**, en `~/printing-press/library/digitalocean/` (binario
+  `digitalocean-pp-cli` v1.0.0), pero **ya NO es la herramienta de gestión vigente**: marcado
+  `deprecated: true` en `cli-manifest.yaml` y el auditor lo ignora. Se conserva como registro.
 - ✅ **telegram** (apis.guru, 74 endpoints) → shipcheck 7/7, scorecard **83/100 Grade A** (2 bajo
   el 85 del manifiesto; drag = `insight 0/10`). Slug de librería = `telegram-bot` (del display name).
   En `~/printing-press/library/telegram-bot/` (binario `telegram-bot-pp-cli`).
@@ -120,10 +123,26 @@ tokens que un MCP pesado. Otra palanca de eficiencia, hermana del routing y el c
     `token_usage` directo, es trabajo de spec/generación a futuro.
 
 ## Estado: Fase 0-1 + 1-2 completas en CLIs
-Auditor reporta **0 faltantes** para la fase actual: digitalocean (87/A), telegram (83/A),
-supabase (87/A) impresos. Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
+Auditor reporta **0 faltantes** para la fase actual: hcloud (95/A, Hetzner — reemplaza a
+digitalocean, que quedó SUPERSEDED e ignorado), telegram (83/A) y supabase (87/A) impresos.
+Quedan solo futuros: grafo (F2), Polar (F3), Circle (F5).
 
 ## Pendiente
 - ⬜ (Opcional) `/printing-press-polish telegram-bot` para subir `insight 0/10` si se va a publicar.
 - ⬜ (Opcional) exponer `token_usage`/`facturas` como comandos directos del supabase-pp-cli
   (hoy solo la vista de presupuesto es comando top-level; el resto vía sync/search/api).
+
+
+## ACTUALIZACIÓN 2026-07-11 — el auditor corre en DEV y empuja por ssh
+
+Tras la migración a Hetzner, `cli-audit.py` (que escribía el snapshot con
+`docker exec` local) quedó huérfano: el JSON del volumen se congeló el 06-30 y
+el bot, al pedirle "revisa el manifest", confabuló (skill instruía `read_file`,
+inexistente en runtime). Arreglado: el auditor corre en la máquina de
+desarrollo (única con la librería `~/printing-press/library/`) con
+`CLI_AUDIT_SSH_HOST=hermes@<runtime>` para empujar el snapshot por ssh; el
+skill `cli-audit` v1.1.0 lee con TERMINAL local (`cat`) y prohíbe
+read_file/execute_code; AGENTS.md declara los toolsets inexistentes. Corrida
+fresca 2026-07-11: fase 9, 4 faltantes (hetzner spec, grafo, polar, circle).
+Refrescar el snapshot = correr el auditor on-demand desde dev (no hay cron que
+pueda hacerlo: ni el server ni el bot tienen la librería).

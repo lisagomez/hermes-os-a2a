@@ -4,7 +4,7 @@ Smoke **en la máquina de desarrollo**: levanta `supervisor-a2a`, `ejecutor-a2a`
 `coordinador-a2a` con **uvicorn real** (TCP real, motores mock, **cero tokens, sin
 docker**) y ejercita el protocolo A2A end-to-end con el cliente real del SDK. Es la
 verificación dev del residual "smoke card/SendMessage" de las Fases 6 y 7; el
-empaquetado Docker + `compose up` en el Droplet sigue aparte.
+empaquetado Docker + `compose up` en el servidor sigue aparte.
 
 ## Correr
 

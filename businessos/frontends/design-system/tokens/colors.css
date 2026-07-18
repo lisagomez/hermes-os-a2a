@@ -1,0 +1,18 @@
+:root{
+  /* base surfaces */
+  --bg:#0B0A10; --surface-1:#0E0C15; --surface-2:#12101A; --surface-3:#15121E; --surface-4:#17141F;
+  --border-1:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.12); --border-3:rgba(255,255,255,.16);
+  /* text */
+  --text-1:#EDEAF4; --text-2:#B4ADC7; --text-3:#9A93AC; --text-dim:#7A7390; --text-soft:#CFC9DE;
+  /* brand */
+  --violet:#9F7BFF; --violet-deep:#4B23D6; --violet-core:#5B34E8; --lilac:#B9A6FF;
+  --pink:#FF4D8D; --pink-soft:#FF6BA3; --pink-pale:#FF9DC0; --pink-deep:#B3134F;
+  /* semantic + game layer */
+  --energy:#E8A320; --energy-bright:#FFC24D;
+  --success:#28C840; --success-soft:#9FE8B8; --success-pale:#4BE38A;
+  --rarity-legendary:#FFC24D; --rarity-epic:#B9A6FF; --rarity-rare:#FF9DC0;
+  /* semantic aliases */
+  --text-heading:var(--text-1); --text-body:var(--text-2); --text-label:var(--text-3);
+  --surface-card:var(--surface-1); --surface-chrome:var(--surface-2);
+  --accent:var(--violet); --accent-alt:var(--pink); --on-accent:#0B0A10;
+}

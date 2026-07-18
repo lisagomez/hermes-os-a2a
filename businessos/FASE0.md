@@ -1,8 +1,13 @@
 # Fase 0 — Infraestructura Hermes OS · A2A
 
-Cimiento técnico: Droplet + Docker + los tres contenedores Hermes + sync a
+Cimiento técnico: servidor + Docker + los tres contenedores Hermes + sync a
 GitHub. Al terminar tendrás las tres verticales corriendo y respondiendo por
 Telegram. Sigue los pasos en orden.
+
+> **Proveedor de servidor:** el runtime vive en **Hetzner Cloud**. Los pasos de
+> este archivo son independientes del proveedor; los concretos de Hetzner (tipo
+> cx33, location, firewall de red, costo) están en **`FASE0-hetzner.md`**, que es
+> un delta sobre este documento.
 
 Tiempo estimado: 1.5 – 2.5 horas (la mayoría es esperar instalaciones y correr
 los wizards de Hermes).
@@ -19,7 +24,7 @@ los wizards de Hermes).
 ## Checklist de orden (no te saltes pasos)
 
 - [ ] 0. Antes de empezar: crear los 3 bots de Telegram
-- [ ] 1. Crear el Droplet en DigitalOcean
+- [ ] 1. Crear el servidor (Hetzner — ver FASE0-hetzner.md §1')
 - [ ] 2. Primer acceso SSH + endurecer el servidor (incluye lockdown de SSH)
 - [ ] 3. Instalar Docker
 - [ ] 4. Estructura de carpetas + clonar repos
@@ -47,28 +52,25 @@ para el allowlist (que solo tú puedas hablarle a los bots).
 
 ---
 
-## 1. Crear el Droplet
+## 1. Crear el servidor
 
-En DigitalOcean → Create → Droplet:
+El servidor de runtime es **Hetzner Cloud**. Los pasos concretos (tipo cx33,
+location `fsn1`, firewall de red) están en **`FASE0-hetzner.md` §1'–2'**; aquí
+queda lo independiente del proveedor:
 
-- **Imagen:** Ubuntu 24.04 LTS
-- **Plan:** Basic → Regular → **4 GB / 2 vCPU** (~$28/mes). Es el mínimo
-  realista para 3 contenedores Hermes + dashboard. La doc oficial de Nous
-  recomienda 8 GB; con 4 GB vas cómodo para empezar y subes a 8 GB cuando
-  montes el grafo.
+- **Imagen:** Ubuntu 24.04 LTS.
+- **Tamaño:** el mínimo realista es **4 GB / 2 vCPU** para 3 contenedores Hermes +
+  dashboard; **8 GB** (el cx33 provisionado) corre además el grafo y el trío A2A
+  holgado. La doc oficial de Nous recomienda 8 GB.
   > No bajes a 2 GB: los límites del compose (3 × 2 GB) están sobre-suscritos y
   > en 2 GB el stack hace OOM-kill. Aun en 4 GB, el swap del paso 3 es la red de
   > seguridad que absorbe los picos.
-- **Región:** la más cercana a ti (para LATAM, normalmente NYC o el datacenter
-  con mejor latencia a tu país).
-- **Autenticación:** SSH key (más seguro que contraseña). Si no tienes uno:
-  `ssh-keygen -t ed25519` en tu máquina, pega el contenido de
+- **Autenticación:** SSH key (más seguro que contraseña). Si no tienes una:
+  `ssh-keygen -t ed25519` en tu máquina, sube el contenido de
   `~/.ssh/id_ed25519.pub`.
-- **Hostname:** businessos
+- **Hostname:** businessos.
 
-Cuentas nuevas traen $200 de crédito por 60 días — cubre los primeros 2 meses.
-
-Anota la IP pública del Droplet.
+Anota la IP pública del servidor.
 
 ---
 
@@ -78,7 +80,7 @@ Conéctate por SSH (NO uses la consola web del navegador para pegar comandos con
 `:` `@` `=` — los corrompe; usa SSH real):
 
 ```bash
-ssh root@LA_IP_DEL_DROPLET
+ssh root@LA_IP_DEL_SERVIDOR
 ```
 
 Crea un usuario no-root para correr Hermes (no corras todo como root):
@@ -115,7 +117,7 @@ Desconéctate y vuelve a entrar:
 
 ```bash
 exit
-ssh hermes@LA_IP_DEL_DROPLET
+ssh hermes@LA_IP_DEL_SERVIDOR
 ```
 
 **Solo cuando confirmes que `ssh hermes@...` funciona con tu llave**, cierra el
@@ -157,7 +159,7 @@ Cierra sesión y vuelve a entrar para que el grupo docker tome efecto:
 
 ```bash
 exit
-ssh hermes@LA_IP_DEL_DROPLET
+ssh hermes@LA_IP_DEL_SERVIDOR
 docker --version          # debe responder
 docker compose version    # debe responder
 ```
@@ -300,41 +302,61 @@ voz definida en su SOUL.md.
 
 ---
 
-## 9. GitHub + cron de sync nocturno (un repo por vertical)
+## 9. GitHub + cron de respaldo nocturno (UN host-job, UN repo)
 
-Esto es lo PRIMERO que recomienda la doc de Hermes tras el setup: te da skill +
-cron + respaldo de un solo prompt.
+> ⚠️ **Corregido el 2026-07-11.** La doc de Hermes recomienda "un repo por vertical,
+> que cada bot haga su propio commit+push por cron". **Aquí NO se hace así.** Ese
+> plan (3 repos privados `businessos-{personal,negocio,clientes}`, crons escalonados
+> 2:00/2:10/2:20 pedidos al bot en lenguaje natural) **nunca se implementó y quedó
+> descartado**. Lo que corre —y lo que debes montar— es lo de abajo. Motivo del
+> cambio en la tabla al final de esta sección.
 
-**Modelo de respaldo:** cada vertical solo monta su propio volumen, así que cada
-una respalda SU workspace a SU repo privado, con horarios escalonados para que
-no choquen. Crea **3 repos PRIVADOS** en GitHub y dale acceso a Hermes (token en
-el wizard, o por MCP):
+**Modelo real:** el respaldo lo hace **un job de confianza del host**, no el agente.
+Los volúmenes `.hermes` son `uid 10000 / 0700`: el bot **no puede leerlos** (y no
+debe: ahí viven sus sesiones y su `.env`). El host sí.
 
-| Vertical | Repo | Hora del cron |
-|----------|------|---------------|
-| personal | `businessos-personal` | 2:00 |
-| negocio  | `businessos-negocio`  | 2:10 |
-| clientes | `businessos-clientes` | 2:20 |
+**Un solo repo PRIVADO** en GitHub para los respaldos de las tres verticales:
 
-Fija la zona horaria del servidor para que las horas signifiquen lo que crees
-(los Droplets vienen en UTC por defecto):
+| Qué | Dónde |
+|-----|-------|
+| Repo de respaldo | `lisagomez/hermes-os-a2a-backups` (privado) |
+| Script | `businessos/backup-verticales.sh` (corre como `hermes`, sin sudo) |
+| Cron | **04:17** diario, una sola entrada |
+| Contenido | tarball de los 3 volúmenes `.hermes` + rotación de los últimos 7 c/u |
+| Clon local en el server | `/home/hermes/hermes-os-a2a-backups` |
+
+Cómo funciona (por qué así): lee cada volumen con un contenedor privilegiado
+(`docker run --rm -v <vol>:/data:ro alpine tar …`), rota localmente en
+`~/backups/`, y espeja off-box al repo con **historia de 1 commit** (rama huérfana
++ `push -f`) para que los blobs viejos se recojan y el repo no crezca sin fin.
+
+Fija la zona horaria del servidor para que la hora signifique lo que crees
+(los servidores cloud vienen en UTC por defecto):
 
 ```bash
 sudo timedatectl set-timezone America/Mexico_City
 timedatectl        # verifica Time zone
 ```
 
-Abre una sesión con **cada** vertical (o por Telegram a cada bot) y dile, en
-lenguaje natural, ajustando repo y hora según la tabla:
+Instalación (una vez, como usuario `hermes` en el server):
 
-> "Cada noche a las 2:00 hora de México, haz commit y push de los cambios de mi
-> espacio de trabajo a este repo de GitHub: <URL_DE_businessos-personal>. No
-> incluyas el archivo .env, la carpeta .hermes, ni ningún secreto. Configúralo
-> como cron recurrente."
+```bash
+gh repo create hermes-os-a2a-backups --private            # o créalo en la web
+git clone git@github.com:lisagomez/hermes-os-a2a-backups.git ~/hermes-os-a2a-backups
+crontab -e   # añade:  17 4 * * *  /home/hermes/businessos/backup-verticales.sh
+```
 
-Repite con negocio (2:10 → `businessos-negocio`) y clientes (2:20 →
-`businessos-clientes`). Hermes crea la skill y el cron solo. Verifica con:
-pídele a cada uno "muéstrame los cron jobs activos".
+Verifica al día siguiente: el último commit del repo debe decir
+`backup <STAMP> (N copias, 3 verticales)` y el log vive en `~/backups/backup.log`.
+
+**Por qué se descartó el modelo de la doc:**
+
+| Modelo de la doc (3 repos, el bot pushea) | Modelo real (1 host-job, 1 repo) |
+|---|---|
+| El bot necesita leer su volumen `.hermes` | Es `0700 uid-10000`: **no puede** — y darle acceso sería darle sus propios secretos |
+| 3 crons dentro de 3 agentes = 3 puntos de falla silenciosa | 1 cron del host, 1 log |
+| Respalda el *workspace* (archivos sueltos) | Respalda el **volumen entero**: memoria + sesiones (`state.db`) |
+| Gasta tokens cada noche | **Cero tokens** |
 
 ---
 
@@ -345,9 +367,10 @@ pídele a cada uno "muéstrame los cron jobs activos".
 - [ ] `ssh hermes@IP` funciona con llave y `ssh root@IP` ya **no** (lockdown OK)
 - [ ] El dashboard abre por túnel: `ssh -L 9119:localhost:9119 hermes@IP`, luego
       `http://localhost:9119` en tu navegador
-- [ ] Cada vertical tiene su cron de sync (personal 2:00, negocio 2:10, clientes
-      2:20) — pídele a cada bot "lista de crons" y confirma que apunta a SU repo
-- [ ] Reinicia el Droplet (`sudo reboot`) y confirma que los contenedores
+- [ ] El cron de respaldo del **host** corre (`crontab -l` como `hermes` muestra
+      `17 4 * * * …/backup-verticales.sh`) y el repo `hermes-os-a2a-backups` tiene
+      un commit "backup … (N copias, 3 verticales)" de hoy
+- [ ] Reinicia el servidor (`sudo reboot`) y confirma que los contenedores
       vuelven solos (`restart: unless-stopped`)
 - [ ] `free -h` muestra el swap activo
 
@@ -358,10 +381,9 @@ modelos (config.yaml) y/o montar el grafo.
 
 ## Notas de costo y operación
 
-- Apagar el Droplet NO detiene el cobro (DO reserva recursos). Para pausar de
-  verdad: snapshot + destroy.
-- Backups automáticos de DO cuestan 20% del Droplet (~$3/mes). Opcional pero
-  recomendado.
+- Las notas de **costo, apagado/pausa y backups** específicas de Hetzner están en
+  **`FASE0-hetzner.md`** (apagar ≠ dejar de pagar; pausa real = snapshot + delete;
+  backups automáticos +20% del precio del servidor).
 - Si algo se rompe en un contenedor, su volumen está intacto: borras el
   contenedor y `docker compose up -d` lo recrea sin perder memoria/skills.
 - `unattended-upgrades` aplica parches de seguridad solo; los reinicios de

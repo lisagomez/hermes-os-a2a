@@ -67,8 +67,35 @@ técnico; **un humano con el rol correcto** aprueba lo irreversible.
 *Rol externo opcional:* **Cliente invitado** — leer/comentar **solo** en su `#cli-*`; nunca
 aprueba; nunca ve otros clientes.
 
-> ⚠️ Falta el mapa **`slack_user_id → rol`** (los IDs de Slack de las 4 personas), el
-> equivalente con rol del `TELEGRAM_ALLOWED_USERS` de hoy. Se llena al cablear Slack.
+### Personas reales (IDs cableados el 2026-07-12)
+
+| Persona | Slack | Telegram | GitHub | Merge a `master` |
+|---|---|---|---|---|
+| **Elisa Gómez** | `U0BG072S4CR` (owner) | `7022378429` | `lisagomez` (admin) | ✅ **la única** |
+| Luis Trujillo | `U0BG24A4X1S` | `5239096821` | `ZELANDIAIO` | ❌ (revisa y aprueba) |
+| Víctor Huerta | `U0BGSN36CAC` | (en el grupo) | `HuertaVictor` | ❌ (revisa y aprueba) |
+| Johann/Oswaldo Valderrama | `U0BFS4ZA8KV` | (en el grupo) | `Johann-Valderrama` | ❌ (revisa y aprueba) |
+| Ricardo Silva | `U0BFYCEP3BL` | *(no está en el grupo de TG)* | `makeflowia-lab` | ❌ (revisa y aprueba) |
+
+> ⚠️ **En un repo de cuenta personal, TODO colaborador es `write`.** Los permisos de solo
+> lectura (read/triage) son función de **organizaciones**: la API acepta
+> `PUT permission=pull` con un `204 OK` y **lo ignora en silencio** (verificado el
+> 2026-07-12). Por eso el candado real no es el permiso, es la **protección de rama**
+> (GitHub Pro, activada el 2026-07-12): `master` exige PR + 1 review, sin force-push ni
+> borrado. Los 4 pueden revisar y **aprobar**; solo Elisa mergea.
+> *(Migrar el repo a una Organización daría roles reales y es gratis — pendiente.)*
+> *(Se eliminó a `paco6093-ux`, colaborador con write y sin un solo commit.)*
+
+Los 5 están en `SLACK_ALLOWED_USERS` (`.env` del volumen de negocio) y los del grupo de
+Telegram entran por `group_allowed_chats` (ver §(d)). Los IDs de Slack/Telegram **no son
+secretos**; los tokens sí (viven solo en el `.env` del volumen).
+
+> ⚠️ **Sigue faltando el mapa `persona → rol`.** Hoy el allowlist es **plano**: los 5
+> pueden hablarle al agente por igual, sin distinción de autoridad. Eso importa porque
+> según la matriz de abajo el **CFO** es el único que aprueba **mover dinero** y el
+> **Developer** el único que aprueba **merge a `main`**. Mientras el mapa no exista, esas
+> compuertas las sostiene **solo el juicio humano en el canal**, no la configuración.
+> Lo llena la dueña (decisión de negocio, no técnica).
 
 ### Matriz (acción → quién aprueba)
 | Acción | Aprueba |
@@ -189,3 +216,114 @@ Esto es la **capa humana de los departamentos**: un canal = la cara de un depart
 cliente; Hermes opera dentro; el `#cli-*` privado es el aislamiento white-label hecho
 visible. Refuerza la venta: un cliente puede recibir **su canal/workspace**. Ver
 [[white-label]] y `SPEC-trio.md`.
+
+---
+
+## (d) Canal rápido: grupo de Telegram del equipo (2026-07-12)
+
+**Decisión de la dueña:** el equipo también entra a Telegram. Corrige el diseño
+original ("Telegram = canal personal; el equipo vive en Slack"). Convive con Slack:
+
+| | Telegram (`A2ATeamGroup`) | Slack (`#dep-*`) |
+|---|---|---|
+| Para qué | Reportes, agendas, datos informativos, instrucciones al vuelo | Centro de trabajo: seguimiento, hilos, compuertas de aprobación |
+| Quién | Elisa + Luis + Víctor + Oswaldo + `@a2aTeamBot` | El equipo + `@hermes_negocio` |
+| Rutinas que caen ahí | **digest diario 08:00** y **cierre semanal (lun 08:00)** | trabajo por hilos |
+| Acceso | **membresía del grupo** (`group_allowed_chats: -5449291632`) | `SLACK_ALLOWED_USERS` (IDs uno por uno) |
+
+Config y gotchas: `businessos/negocio/telegram-config-fragment.yaml`. Los dos que
+cuestan una noche si se olvidan:
+
+1. ⚠️ **El modo privacidad de Telegram debe estar APAGADO** (BotFather → Group
+   Privacy → Turn off, y **re-añadir el bot al grupo**: el ajuste solo se aplica al
+   entrar). Con privacidad ON, Telegram entrega los `/comandos` pero **NO las
+   @menciones** → el bot queda mudo sin un solo error en ningún log.
+2. Con privacidad OFF, Telegram entrega **todo** el chat del grupo → el freno de
+   costo lo pone Hermes: `require_mention: true` (su default es `false`: sin eso el
+   agente contesta CADA mensaje del equipo y quema tokens en toda la charla).
+
+## (e) Rutinas automáticas — quién manda qué y cuándo (2026-07-12)
+
+Hasta hoy los `AGENTS.md` **prometían** rutinas que **no existían** (`hermes cron
+list` = *"No scheduled jobs"* en las 3 verticales): el bot creía tenerlas y nunca
+mandaba nada. Creadas y activas:
+
+| Cron | Vertical | Hora (CST) | Entrega |
+|---|---|---|---|
+| `digest-negocio` | negocio | 08:00 diario | grupo de Telegram del equipo |
+| `cierre-semanal` | negocio | lunes 08:00 | grupo de Telegram del equipo |
+| `repaso-clientes` | clientes | 08:00 diario | DM de la dueña |
+| `dreaming-personal` | personal | 02:00 diario | sin mensaje (consolida memoria) |
+
+> ⚠️ **Los contenedores corren en UTC; el server en CST (-6h).** `hermes cron` agenda
+> en la hora del CONTENEDOR: para las 08:00 CST hay que escribir `0 14 * * *`. Un
+> `0 8 * * *` entregaría el digest a las 2 de la mañana.
+
+Host-jobs (cron de SO, en el servidor, sin LLM): `nightly-jobs.sh` 03:10 (ingesta de
+tokens → snapshot de presupuesto → SOUL → dashboard → **auditoría de CLIs**),
+`backup-verticales.sh` 04:17, `weekly-jobs.sh` lunes 03:30 (vigencias del grafo),
+`alerta-presupuesto.sh` 08:00 (solo dispara si cruzas el 80%).
+
+---
+
+## (f) Slack en producción — canales vivos y el flujo de `#dep-desarrollo` (2026-07-12)
+
+Cinco canales cableados en `platforms.slack` (`require_mention: true`, respuestas
+en hilo). Cada uno con su **`channel_prompt`**: el agente sabe dónde está y qué
+puede hacer ahí. Config: `negocio/slack-config-fragment.yaml` (fuente de verdad;
+`slack-piloto.sh` REEMPLAZA `platforms.slack` entero con ese fragmento → si añades
+un canal a mano en el volumen, añádelo también al fragmento o el próximo run lo borra).
+
+| Canal | ID | Papel |
+|---|---|---|
+| `#dep-negocio` | `C0BG28N7E6Q` | Presupuesto, KPIs, cobros |
+| `#dep-legal` | `C0BH2RKA8QG` | Cumplimiento (SIEMPRE vía grafo, nunca opinión propia) |
+| `#dep-desarrollo` | `C0BGL2DMNLB` | **El equipo le encarga software al trío** |
+| `#dep-adquisicionclientes` | `C0BGHPQ1U78` | Leads y prospectos (Fase 9). **Ningún envío sin visto bueno humano** |
+| `#alertas` | `C0BGU77F31P` | El bot publica; no conversa |
+
+### El flujo: una tarea = un hilo
+
+```
+Humano:   @hermes_negocio necesitamos X
+Hermes:   (hilo) Faltan 3 cosas antes de repartir:
+          · criterios de aceptación VERIFICABLES (es lo que el Supervisor mide)
+          · alcance (qué parte del repo)
+          · límites: modelo (GLM-5.2) y presupuesto ($2) — el enjambre corta al tope
+Humano:   [los da en el hilo]
+Hermes:   task_id · plan (sub-tareas) · gates · veredicto del Supervisor · costo real vs tope
+          → la rama queda EN EL SERVIDOR. Publicar y abrir el PR es un paso HUMANO.
+```
+
+**Sobre qué repo programa:** `lisagomez/hermes-os-a2a` (la propia fábrica), montado
+en `/repo` de los 3 servicios del trío vía `TRIO_REPO_HOST` (el seam ya existía en el
+compose: no hubo que tocar arquitectura). Clonado con una **deploy key de SOLO
+LECTURA** — verificado: `ERROR: The key you are authenticating with has been marked
+as read only`.
+
+### Las compuertas, y dónde viven de verdad
+
+- **El trío NO puede tocar `master`**: no hace `git push` (ni una llamada en su código)
+  y su llave es de solo lectura. El candado es **estructural**, no de confianza.
+- **Protección de rama: ACTIVA** (GitHub Pro, 2026-07-12). `master` exige **PR + 1 review
+  aprobatoria**; force-push y borrado bloqueados (verificado: el force-push falla incluso
+  para el admin — `GH006: Cannot force-push to this branch`).
+- ⚠️ **`enforce_admins: false`** → la dueña (y cualquier agente que use su token) **puede
+  saltarse la regla**. Es su escotilla de emergencia, pero obliga a una disciplina que
+  también aplica al agente: **nunca `git push origin master`; todo va por PR.**
+- **`publicar-rama.sh`** (host-job) es el único camino de la rama del trío a GitHub: valida
+  contra Supabase que la tarea esté **aprobada**, nunca empuja `master`, y avisa en
+  `#dep-desarrollo` con el link del PR. La llave de escritura vive en `~/.ssh` del host —
+  los contenedores no la tienen (ni siquiera tienen `ssh`).
+- **El allowlist de Slack es plano**: los 5 pueden escribir lo mismo. La matriz de roles
+  (CFO aprueba dinero, Developer aprueba merge) hoy la sostiene **el juicio humano**, no
+  la configuración. Los botones `[Aprobar][Rechazar]` (Slack App con interactividad)
+  serían comodidad, no seguridad.
+
+### Gates reales de este repo (no declarar gates que no existen)
+
+`npm run typecheck` · `npm run lint` · `npm run build`. **No hay `npm test`** (los
+servicios Python usan pytest). Un gate no ejecutable = `no_ejecutable` = **rechazo de
+trabajo bueno** (aprendizaje 2026-07-11). De hecho, al preparar esto se descubrió que
+`npm run lint` llevaba roto desde la migración a Next 16 (`next lint` fue eliminado) y
+el repo no tenía config de ESLint: arreglado en el PR #34 antes de dejar entrar al trío.

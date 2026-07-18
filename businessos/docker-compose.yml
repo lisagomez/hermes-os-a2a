@@ -44,8 +44,9 @@ name: businessos
 # de minutos atras, sin garantia de estabilidad).
 #
 # RAM (verificado contra la doc oficial): Nous recomienda 2+ vCPU y 8 GB RAM.
-# Con TRES verticales, el Droplet de 2 GB se queda corto. Usa 4 GB como minimo
-# realista (~$28/mes) y 8 GB si quieres holgura con el grafo encima. Ademas, los
+# Con TRES verticales, un servidor de 2 GB se queda corto. Usa 4 GB como minimo
+# realista y 8 GB (el Hetzner cx33 provisionado) si quieres holgura con el grafo
+# encima. Ademas, los
 # limits de abajo (3 x 2G) estan sobre-suscritos: en 4 GB solo sobreviven gracias
 # al swap del paso 3 de FASE0. Si bajas a un solo box chico, reduce estos limits.
 #
@@ -193,7 +194,7 @@ services:
   # de la red como http://grafo:3000 (los agentes no necesitan secretos para
   # leerlo). Los host-jobs (evaluar-facturas.py) entran por 127.0.0.1:3000.
   # NO tiene puerto publico: mismo postura que el dashboard (tunel SSH si hace
-  # falta inspeccionarlo desde fuera del Droplet).
+  # falta inspeccionarlo desde fuera del servidor).
   grafo:
     build: ./grafo
     container_name: grafo
@@ -245,8 +246,9 @@ services:
   # (estatica, versionada en oferta.py). Sin LLM: cero tokens por lead.
   # Fallo VISIBLE: con Supabase configurado, un lead que no se pudo guardar =
   # task failed reintentable, jamas perdido en silencio.
-  # Hoy solo hermes-net + 127.0.0.1 (tunel SSH); exponerla a internet (dominio
-  # + TLS + rate limiting) es gate de la dueña → ajustar VENTAS_PUBLIC_URL.
+  # Expuesta a internet SOLO a traves del servicio `edge` (gate abierto
+  # 2026-07-10): este contenedor sigue en hermes-net + 127.0.0.1;
+  # VENTAS_PUBLIC_URL (en el .env del server) es la URL que anuncia la card.
   # Pipeline completo: departamentos/adquisicion-clientes.md
   ventas-a2a:
     build: ./ventas-a2a
@@ -259,6 +261,26 @@ services:
       - VENTAS_PUBLIC_URL=${VENTAS_PUBLIC_URL:-http://ventas-a2a:4400}
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  # ---------- EDGE (proxy publico, gate de la dueña abierto 2026-07-10) ----------
+  # La UNICA pieza que publica un puerto en 0.0.0.0: Caddy con TLS automatico
+  # (Let's Encrypt) + rate limiting (30 req/min por IP), delante de ventas-a2a
+  # y de NADA mas. Dominio temporal sslip.io para probar; con dominio real solo
+  # cambia edge/Caddyfile + VENTAS_PUBLIC_URL. El 443 lo abre el Cloud Firewall
+  # de Hetzner (filtra fuera de la VM, gobierna lo que Docker publica).
+  edge:
+    build: ./edge
+    container_name: edge
+    profiles: ["edge"]
+    restart: unless-stopped
+    ports:
+      - "443:443"                 # publico a proposito (unico en todo el stack)
+    volumes:
+      - caddy-data:/data          # certificados ACME persistentes
     networks: [hermes-net]
     deploy:
       resources:
@@ -288,6 +310,11 @@ services:
       - "127.0.0.1:4100:4100"     # solo inspeccion local; nunca 0.0.0.0
     environment:
       - EJECUTOR_ENGINE=${EJECUTOR_ENGINE:-mock}
+      # El CLI de Claude Code rehusa --dangerously-skip-permissions como root;
+      # IS_SANDBOX=1 es su señal oficial para contenedores que SON el sandbox
+      # (este contenedor aislado solo ve SUS mounts — mismo criterio que el
+      # safe.directory '*' de la imagen).
+      - IS_SANDBOX=1
       - EJECUTOR_PUBLIC_URL=http://ejecutor-a2a:4100
       - SUPERVISOR_URL=http://supervisor-a2a:4200
       - TRIO_REPO=/repo
@@ -327,6 +354,9 @@ services:
       - "127.0.0.1:4300:4300"     # solo inspeccion local; nunca 0.0.0.0
     environment:
       - COORDINADOR_PLANNER=${COORDINADOR_PLANNER:-mock}
+      # El planner real corre el CLI de Claude Code con bypassPermissions; como
+      # root lo rehusa sin IS_SANDBOX=1 (mismo gotcha del ejecutor, dogfood F6).
+      - IS_SANDBOX=1
       - COORDINADOR_PUBLIC_URL=http://coordinador-a2a:4300
       - EJECUTOR_URL=http://ejecutor-a2a:4100
       - SUPERVISOR_URL=http://supervisor-a2a:4200
@@ -367,6 +397,13 @@ services:
       - TRIO_WORKSPACE=/workspace
     volumes:
       - trio-workspace:/workspace
+      # El .git de un worktree es un PUNTERO a /repo/.git/worktrees/<id>: sin
+      # este mount los gates estaticos (git add/diff) salen no_ejecutable =
+      # rechazo aunque el codigo este bien (descubierto en el primer dogfood
+      # real). rw porque _archivos_cambiados hace `git add -A` (escribe el
+      # index del worktree, que vive bajo /repo). La frontera con el Ejecutor
+      # es de JUICIO, no de filesystem (misma nota del volumen trio-workspace).
+      - ${TRIO_REPO_HOST:-${HOME}/businessos/trio-repo}:/repo
     networks: [hermes-net]
     deploy:
       resources:
@@ -398,13 +435,42 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 512M }
 
+  # ---------- FRONTEND-CI (cabina de control interno del equipo) ----------
+  # Superficie web del equipo (Next.js 16, business-os-new vendored). Corre en
+  # modo dev (next dev --turbopack) sobre el codigo bind-monteado desde
+  # ${HOME}/frontend-control-interno y lee su .env.local de ahi (Supabase real
+  # A2ABot + OPENCLAW_GATEWAY_TOKEN). En hermes-net para alcanzar el daemon del
+  # agente por nombre de servicio (residual: CLAUDECLAW_URL debe apuntar al
+  # servicio que implemente /chat/stream cuando exista). Solo 127.0.0.1:3001
+  # (acceso por tunel SSH); publicarla a internet con auth es decision aparte.
+  frontend-ci:
+    image: node:22-slim
+    container_name: frontend-ci
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npx next dev --turbopack -H 0.0.0.0 -p 3000"
+    ports:
+      - "127.0.0.1:3001:3000"     # solo inspeccion local; nunca 0.0.0.0
+    volumes:
+      - ${HOME}/frontend-control-interno:/app
+      - frontend-ci-nm:/app/node_modules   # node_modules aislado del bind mount
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
+
 networks:
   hermes-net:
     driver: bridge
 
 volumes:
+  # node_modules de la cabina control-interno, aislado del bind mount del codigo.
+  frontend-ci-nm:
   grafo-db-data:
   # Volumen compartido del trio: el Ejecutor crea worktree/<task_id> y el
   # Supervisor re-ejecuta los gates ahi mismo. La frontera entre ambos es de
   # JUICIO (contexto/proceso separados), no de filesystem.
   trio-workspace:
+  # Certificados TLS del edge (ACME): persistir evita re-emitir en cada
+  # recreate y pegarle a los rate limits de Let's Encrypt.
+  caddy-data:

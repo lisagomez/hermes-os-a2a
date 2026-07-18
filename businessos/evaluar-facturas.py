@@ -14,7 +14,7 @@ checklist y disclaimer; todo queda en `deducibilidad_detalle` para que las verti
 lo lean sin secretos ni re-cómputo. Lo 'dudoso' lo escala el agente a Elisa; este job
 no decide nada: transcribe lo que el grafo dictamina.
 
-Uso (en el Droplet, con grafo arriba; GRAFO_URL default http://127.0.0.1:3000):
+Uso (en el servidor, con grafo arriba; GRAFO_URL default http://127.0.0.1:3000):
     source businessos/.env            # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
     python3 businessos/evaluar-facturas.py            # evalúa y escribe veredictos
     python3 businessos/evaluar-facturas.py --dry-run  # evalúa y muestra, sin escribir

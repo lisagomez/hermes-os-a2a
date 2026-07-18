@@ -1,7 +1,12 @@
 import 'server-only'
-import type { AiSpend, GrafoVista, Pantheon } from '../types'
-import { mockAiSpend, mockGrafoVista, mockPantheon } from './mock'
-import { realAiSpend, realGrafoVista, realPantheon } from './real'
+import type { AiSpend, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import { mockAiSpend, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
+import {
+  realAiSpend,
+  realDesarrollo,
+  realGrafoVista,
+  realPantheon,
+} from './real'
 
 /**
  * Conmutador de fuente de datos (server-only).
@@ -14,18 +19,21 @@ export interface DataSource {
   aiSpend(): Promise<AiSpend>
   grafoVista(): Promise<GrafoVista>
   pantheon(): Promise<Pantheon>
+  desarrollo(): Promise<DesarrolloVista>
 }
 
 const mockSource: DataSource = {
   aiSpend: async () => mockAiSpend,
   grafoVista: async () => mockGrafoVista,
   pantheon: async () => mockPantheon,
+  desarrollo: async () => mockDesarrollo,
 }
 
 const realSource: DataSource = {
   aiSpend: realAiSpend,
   grafoVista: realGrafoVista,
   pantheon: realPantheon,
+  desarrollo: realDesarrollo,
 }
 
 export function getDataSource(): DataSource {

@@ -17,7 +17,7 @@ Uso:
     python3 businessos/cli-audit.py --emit     # ademas deja los prompts (print-phase.sh)
 
 Sin secretos: este auditor NO necesita el service_role (no toca Supabase).
-Pensado para correr on-demand o por cron de SO en el Droplet (escalonado tras la
+Pensado para correr on-demand o por cron de SO en el servidor (escalonado tras la
 ingesta de tokens). Idempotente: re-correr recalcula desde el manifiesto + stack.
 """
 import json, re, subprocess, datetime, sys, os
@@ -31,7 +31,14 @@ COMPOSE = HERE / "docker-compose.yml"
 ROADMAP = HERE / "ROADMAP.md"
 PRINT_PHASE = HERE / "print-phase.sh"
 LOCAL_SNAPSHOT = Path("/tmp/cli-audit.json")
+# Indice VERSIONADO de lo impreso (slug -> grade). Es la unica forma de que el
+# auditor corra en una maquina SIN la libreria de binarios — p. ej. el servidor,
+# que es la unica maquina 24/7 (2026-07-12). La libreria vive donde se imprime
+# (Claude Code + Go); el indice viaja en el repo. Se regenera con --emit-index
+# EN la maquina que tiene la libreria, y se commitea.
+INDEX = HERE / "cli-library-index.json"
 EMIT = "--emit" in sys.argv[1:]
+EMIT_INDEX = "--emit-index" in sys.argv[1:]
 
 # Servicios internos del propio Hermes OS · A2A: no son APIs externas que requieran CLI.
 INTERNAL_SERVICES = {"hermes-personal", "hermes-negocio", "hermes-clientes", "dashboard"}
@@ -84,10 +91,8 @@ def find_library() -> Path | None:
     return None
 
 
-def printed_clis(library: Path | None) -> dict[str, dict]:
-    """{slug: {grade}}: lo que Printing Press ya imprimio. Vacio si no hay libreria."""
-    if not library:
-        return {}
+def scan_library(library: Path) -> dict[str, dict]:
+    """{slug: {grade}} leido de la libreria de binarios (solo donde se imprime)."""
     found: dict[str, dict] = {}
     for entry in library.iterdir():
         if not entry.is_dir():
@@ -100,6 +105,20 @@ def printed_clis(library: Path | None) -> dict[str, dict]:
                 break
         found[entry.name.lower()] = {"grade": grade}
     return found
+
+
+def printed_clis(library: Path | None) -> tuple[dict[str, dict], str]:
+    """({slug: {grade}}, fuente). Prefiere la libreria real; si no esta (p. ej. en
+    el servidor, que no imprime), cae al indice versionado del repo. Sin ninguna
+    de las dos degrada a vacio — y el snapshot lo DICE (fuente='ninguna'), para
+    que nadie confunda "no se" con "no hay nada impreso"."""
+    if library:
+        return scan_library(library), "libreria"
+    if INDEX.exists():
+        data = json.loads(INDEX.read_text(encoding="utf-8"))
+        clis = {k.lower(): v for k, v in (data.get("impresos") or {}).items()}
+        return clis, "indice"
+    return {}, "ninguna"
 
 
 def match_printed(sl: str, printed: dict[str, dict]) -> dict | None:
@@ -125,15 +144,23 @@ def write_snapshot(snapshot: dict) -> None:
     payload = json.dumps(snapshot, ensure_ascii=False, indent=2)
     LOCAL_SNAPSHOT.write_text(payload, encoding="utf-8")
     print(f"Snapshot local -> {LOCAL_SNAPSHOT}")
-    cmd = ["docker", "exec", "-i", "-u", "hermes", "hermes-negocio", "sh", "-c",
-           "mkdir -p /opt/data/workspace && cat > /opt/data/workspace/cli-audit.json"]
+    # negocio vive en el runtime (Hetzner) desde 2026-07-05: el docker exec local
+    # quedo huerfano tras la migracion. Con CLI_AUDIT_SSH_HOST (p. ej.
+    # hermes@<ip>) el snapshot viaja por ssh; sin la var se intenta el contenedor
+    # local (util si algun dia vuelve a correr aqui).
+    exec_sh = ("docker exec -i -u hermes hermes-negocio sh -c "
+               "'mkdir -p /opt/data/workspace && cat > /opt/data/workspace/cli-audit.json'")
+    ssh_host = os.environ.get("CLI_AUDIT_SSH_HOST", "")
+    cmd = ["ssh", ssh_host, exec_sh] if ssh_host else ["sh", "-c", exec_sh]
+    destino = (f"{ssh_host} -> " if ssh_host else "") + "negocio:/opt/data/workspace/cli-audit.json"
     try:
         r = subprocess.run(cmd, input=payload, text=True, capture_output=True)
         ok = r.returncode == 0
     except FileNotFoundError:
         ok = False
-    print("Snapshot a negocio:/opt/data/workspace/cli-audit.json",
-          "ok" if ok else "FALLO (contenedor no disponible; solo copia local)")
+    print(f"Snapshot a {destino}",
+          "ok" if ok else "FALLO (destino no disponible; solo copia local — define "
+                          "CLI_AUDIT_SSH_HOST=hermes@<runtime> si negocio vive remoto)")
 
 
 def main() -> None:
@@ -145,7 +172,27 @@ def main() -> None:
 
     fase, fase_label = current_phase()
     library = find_library()
-    printed = printed_clis(library)
+
+    if EMIT_INDEX:
+        # Regenera el indice versionado DESDE la libreria real. Correr en la maquina
+        # que imprime (Claude Code + Printing Press) y commitear el resultado.
+        if not library:
+            print("ERROR: --emit-index requiere la libreria (~/printing-press/library "
+                  "o CLI_PRESS_LIBRARY). Esta maquina no la tiene.", file=sys.stderr)
+            sys.exit(1)
+        idx = {
+            "_nota": ("Generado con `cli-audit.py --emit-index` desde la libreria real. "
+                      "Lo lee el auditor en maquinas SIN libreria (el servidor). "
+                      "Regenerar y commitear tras imprimir/mejorar cualquier CLI."),
+            "generado": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ"),
+            "library_path": str(library),
+            "impresos": scan_library(library),
+        }
+        INDEX.write_text(json.dumps(idx, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"Indice -> {INDEX} ({len(idx['impresos'])} CLIs)")
+        return
+
+    printed, fuente_impresos = printed_clis(library)
 
     faltantes, desactualizados, no_due_aun = [], [], []
     due_keys: list[str] = []
@@ -153,6 +200,8 @@ def main() -> None:
     for key, phase in phases.items():
         due = phase_earliest(key) <= fase
         for cli in phase.get("clis", []):
+            if cli.get("deprecated"):
+                continue  # superseded (p. ej. digitalocean -> hcloud): no se audita ni cuenta
             name = cli["name"]
             sl = slug(name)
             entry = {
@@ -192,15 +241,22 @@ def main() -> None:
         "min_grade": min_grade,
         "mode": mode,
         "library_path": str(library) if library else None,
+        "fuente_impresos": fuente_impresos,           # libreria | indice | ninguna
+        "impresos": sorted(printed.keys()),
         "faltantes": faltantes,
         "desactualizados": desactualizados,
         "apis_sin_entrada": apis_sin_entrada,
         "no_due_aun": no_due_aun,
         "comando_sugerido": comando_sugerido,
-        "nota": ("Printing Press corre en Claude Code (no en cron/Droplet). Este auditor solo "
+        "nota": ("Printing Press corre en Claude Code (no en cron/servidor). Este auditor solo "
                  "prepara y avisa: para imprimir, corre el comando sugerido en Claude Code. "
-                 + ("Sin libreria de CLIs detectada: todo lo 'due' se reporta como faltante."
-                    if not library else f"Libreria: {library}.")),
+                 + {"libreria": f"Impresos leidos de la libreria real: {library}.",
+                    "indice": ("Impresos leidos del INDICE versionado del repo "
+                               "(esta maquina no imprime). Si alguien imprimio un CLI y no "
+                               "regenero el indice (--emit-index), aqui saldra como faltante."),
+                    "ninguna": ("SIN libreria NI indice: no se que hay impreso, asi que todo lo "
+                                "'due' sale como faltante. No confundir con 'no hay nada impreso'."),
+                    }[fuente_impresos]),
     }
 
     print(f"=== Auditoria CLIs · fase {fase} ({fase_label}) ===")

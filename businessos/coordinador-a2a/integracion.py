@@ -53,6 +53,32 @@ def _preparar_rama_integrada(repo: Path, workspace_root: Path, parent_id: str) -
     return destino
 
 
+def diff_de_worktree(workspace_root, task_id: str) -> tuple[str, list[str]]:
+    """El diff REAL de una sub-tarea, leido de git — nunca de la fila de `tareas`.
+
+    Trampa que esto evita (PRP-010, Fase 7): `estado.py` recorta el diff a 20.000 chars
+    para meterlo en el jsonb. Ese recorte esta bien para trazabilidad, pero la INTEGRACION
+    hace `git apply`: un diff truncado no aplica (o peor, aplica a medias). El Coordinador
+    monta el MISMO volumen que el Ejecutor, asi que puede leer la verdad donde vive.
+    Es la misma doctrina de siempre: el diff sale de git, no del testimonio de nadie.
+    """
+    wt = Path(workspace_root) / "worktree" / task_id
+    if not wt.is_dir():
+        raise IntegracionError([{
+            "regla": "integracion",
+            "evidencia": f"worktree ausente para {task_id}: {wt} (¿lo limpio alguien?)",
+        }])
+    _git(wt, "add", "-A")  # idempotente: el worker ya lo dejo staged
+    r = _git(wt, "diff", "--cached")
+    if r.returncode != 0:
+        raise IntegracionError([{
+            "regla": "integracion",
+            "evidencia": f"git diff fallo en {task_id}: {(r.stderr or '').strip()[:200]}",
+        }])
+    archivos = [l for l in _git(wt, "diff", "--cached", "--name-only").stdout.splitlines() if l.strip()]
+    return r.stdout, archivos
+
+
 def integrar(repo, workspace_root, parent_id: str, orden: list[str], sub_resultados: dict) -> dict:
     """Aplica los diffs aprobados en `orden` topológico. Devuelve el RESULTADO integrado."""
     repo, workspace_root = Path(repo), Path(workspace_root)

@@ -1,7 +1,7 @@
 ---
 name: cli-audit
 description: "Reporta el estado de los CLIs agente-nativos (Printing Press): cuáles faltan imprimir para la fase actual, cuáles convendría revisar, y el comando exacto a correr en Claude Code."
-version: 1.0.0
+version: 1.2.0
 author: Hermes OS · A2A
 license: MIT
 metadata:
@@ -19,10 +19,19 @@ usa este skill.
 
 ## Cómo obtener los datos
 
-**Lee el archivo** `/opt/data/workspace/cli-audit.json` con tu herramienta de lectura
-de archivos. NO ejecutes código, NO corras `cli-audit.py` ni `print-phase.sh`, NO
-pidas credenciales: el dato ya está calculado ahí por el job auditor del host (que es
-quien tiene acceso a docker y al volumen; tú no manejas secretos ni imprimes).
+**Lee `/opt/data/workspace/cli-audit.json`** — con `read_file` o con el terminal
+local (`cat /opt/data/workspace/cli-audit.json`); ambos funcionan en backend
+`local`. Si te falla con un error de Docker, es config rota del sistema: repórtalo
+tal cual, NO le pidas debug a Elisa.
+
+PROHIBIDO: correr `cli-audit.py` o `print-phase.sh`, pedir credenciales, o pedir
+entornos/imágenes Docker para el terminal. El dato ya está calculado en ese JSON
+por el job auditor, que corre en la máquina de desarrollo de Elisa y lo empuja
+por ssh.
+
+Si Elisa pide "el manifest" / "cli-manifest.yaml": ese archivo vive en el REPO de
+su máquina de desarrollo, NO en este volumen — no lo busques con `find`. El
+snapshot de arriba ES su digest calculado; responde con él.
 
 El JSON trae: `generado` (fecha del corte), `fase_actual` + `fase_actual_label`,
 `min_grade`, `mode`, `library_path`, `faltantes` (CLIs que la fase actual pide y aún
@@ -49,9 +58,11 @@ Este skill solo **reporta y avisa**. Imprimir un CLI (`/printing-press`), reimpr
 Claude Code que dispara Elisa; consumen tokens de Opus/Codex y requieren su
 aprobación. Nunca afirmes que imprimiste algo.
 
-## Si el archivo no existe o está vacío
+## Si el archivo no existe, está vacío, o `generado` es viejo (>7 días)
 
-Significa que el auditor no ha corrido aún. Dilo claramente y sugiere correr
-`businessos/cli-audit.py` (hoy on-demand; en el Droplet irá por cron de SO
-escalonado tras la ingesta de tokens). NO intentes correrlo tú ni inspeccionar
-docker por tu cuenta (no tienes acceso, por diseño).
+Significa que el auditor no ha corrido (o no recientemente). Di la fecha de
+`generado` tal cual y sugiere: "pídele a Claude Code en tu máquina de desarrollo
+que corra `businessos/cli-audit.py` — refresca este snapshot por ssh". NO intentes
+correrlo tú ni inspeccionar docker por tu cuenta (no tienes acceso, por diseño), y
+NO le pidas a Elisa depurar Docker ni compartir archivos: un dato viejo sigue
+siendo respondible, solo adviértelo.

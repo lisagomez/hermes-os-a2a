@@ -22,7 +22,7 @@ from a2a.types import (
 )
 
 from contrato import ContratoInvalido
-from executor import CoordinadorA2A, limites_enjambre
+from executor import CoordinadorA2A, heredar_modelo_pref, limites_enjambre
 from integracion import IntegracionError
 from planner import MockPlanner, PlannerError
 from supervisor_cliente import SupervisorError
@@ -197,6 +197,39 @@ def razon_de_fallo(cola: ColaEspia) -> str:
               and e.status.state == TaskState.TASK_STATE_FAILED]
     assert fallos, "no hubo status FAILED"
     return fallos[-1].status.message.parts[0].text
+
+
+# ---------- herencia de modelo_pref (unidad + flujo) ----------
+
+def test_heredar_modelo_pref_solo_donde_falta():
+    plan = {"sub_tareas": [
+        {"task_id": "a", "limites": {"intentos_max": 3}},
+        {"task_id": "b", "limites": {"intentos_max": 3, "modelo_pref": "sonnet"}},
+    ], "orden": ["a", "b"], "avisos": []}
+    con_pref = heredar_modelo_pref(plan, {"limites": {"modelo_pref": "glm-5.2"}})
+    assert con_pref["sub_tareas"][0]["limites"]["modelo_pref"] == "glm-5.2"
+    assert con_pref["sub_tareas"][1]["limites"]["modelo_pref"] == "sonnet"  # el propio gana
+    # sin modelo_pref en el padre, el plan queda intacto
+    assert heredar_modelo_pref(plan, {"limites": {}}) is plan
+
+
+def test_sub_tareas_del_flujo_heredan_modelo_pref_del_padre():
+    ejecutor = EjecutorFake()
+    recibidas: list[dict] = []
+    original = ejecutor.ejecutar
+
+    async def espia(sub_tarea):
+        recibidas.append(sub_tarea)
+        return await original(sub_tarea)
+
+    ejecutor.ejecutar = espia
+    coord, _ = coordinador_con(ejecutor=ejecutor)
+    limites = {"fan_out_max": 3, "presupuesto_usd": 5.0, "modelo_pref": "glm-5.2"}
+    cola = ejecutar(coord, new_data_message(tarea_padre(limites=limites)))
+    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
+    assert recibidas and all(
+        s["limites"]["modelo_pref"] == "glm-5.2" for s in recibidas
+    )
 
 
 # ---------- limites del enjambre (unidad) ----------

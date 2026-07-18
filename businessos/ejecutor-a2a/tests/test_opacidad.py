@@ -9,6 +9,7 @@ from starlette.testclient import TestClient
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH, DEFAULT_RPC_URL
 
 from app import build_app
+from cola import ColaMemoria
 from executor import EjecutorA2A
 
 RUTAS_INTERNAS = [
@@ -24,7 +25,7 @@ RUTAS_INTERNAS = [
 
 
 def app_de_prueba():
-    return build_app(executor=EjecutorA2A(supervisor=object(), estado=object()))
+    return build_app(executor=EjecutorA2A(cola=ColaMemoria()), worker=None)
 
 
 def test_rutas_internas_inalcanzables():

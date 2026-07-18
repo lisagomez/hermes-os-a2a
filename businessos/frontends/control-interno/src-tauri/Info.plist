@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>business-os-new usa el micrófono para que hables con tu asistente en el modo de voz (voz a texto).</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>business-os-new usa reconocimiento de voz para la palabra de activación (manos libres) y para transcribir lo que dices.</string>
+</dict>
+</plist>

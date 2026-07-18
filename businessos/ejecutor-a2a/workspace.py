@@ -23,6 +23,39 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     )
 
 
+def refrescar_master(repo: Path) -> str:
+    """Intenta refrescar el remoto. Devuelve QUE paso (el que llama lo LOGUEA, no lo tira).
+
+    Quien refresca de VERDAD en runtime es un cron del HOST (`git -C <repo> fetch origin`):
+    el contenedor del Ejecutor no tiene ssh ni llave de GitHub, y no debe tenerla — ahi
+    dentro corre el modelo con permisos amplios, y una llave (aunque sea de solo lectura) le
+    daria acceso a los repos privados de la cuenta. La llave se queda en el host, como todos
+    los secretos del trio.
+
+    Esta funcion se conserva porque en DEV (donde si hay credencial de usuario) mantiene la
+    promesa "cada tarea sale del master mas fresco", que es la mitigacion barata del choque
+    entre ramas. En runtime devolvera "fetch no disponible" — y eso se VE en el log, en vez
+    de fingir que el repo esta al dia (que es lo que hacia antes: mentir en silencio).
+    """
+    if not repo.is_dir():
+        return "repo ausente"
+    r = _git(repo, "fetch", "origin", "--prune")
+    if r.returncode != 0:
+        return (
+            f"NO refrescado ({(r.stderr or '').strip()[:60]}) — en runtime lo hace el cron "
+            "del host; si ESE cron no corre, las tareas salen de un master viejo"
+        )
+    return "master refrescado"
+
+
+def _base_ref(repo: Path) -> str | None:
+    """`origin/master` si existe (runtime); None en dev/tests (worktree desde HEAD)."""
+    for ref in ("origin/master", "origin/main"):
+        if _git(repo, "rev-parse", "--verify", "--quiet", ref).returncode == 0:
+            return ref
+    return None
+
+
 def preparar(repo: Path, workspace_root: Path, task_id: str) -> Path:
     """Devuelve la ruta del worktree de la tarea, creandolo si no existe."""
     destino = workspace_root / "worktree" / task_id
@@ -34,8 +67,11 @@ def preparar(repo: Path, workspace_root: Path, task_id: str) -> Path:
 
     destino.parent.mkdir(parents=True, exist_ok=True)
     branch = f"tarea/{task_id}"
-    # Primera vez: crear branch. Si el branch quedo de un intento previo, reusarlo.
-    r = _git(repo, "worktree", "add", "-b", branch, str(destino))
+    # Primera vez: crear branch desde el master REMOTO (el mas fresco) si existe; en dev y
+    # en los tests no hay remoto → desde HEAD, como siempre.
+    base = _base_ref(repo)
+    args = ["worktree", "add", "-b", branch, str(destino)] + ([base] if base else [])
+    r = _git(repo, *args)
     if r.returncode != 0 and "already exists" in (r.stderr or ""):
         r = _git(repo, "worktree", "add", str(destino), branch)
     if r.returncode != 0:

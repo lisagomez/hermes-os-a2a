@@ -9,7 +9,7 @@ que la fase previa esté validada.
 ## Arquitectura en una frase
 
 Una mente (Hermes) con tres bocas (verticales: personal, negocio, clientes),
-cada una en su propio contenedor Docker, sobre un Droplet de DigitalOcean,
+cada una en su propio contenedor Docker, sobre un servidor Hetzner Cloud,
 hablando por Telegram y voz, con un grafo de conocimiento como cerebro
 regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima.
 
@@ -17,12 +17,11 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 
 ## Stack confirmado
 
-- **Servidor:** ruta de bajo presupuesto elegida = **Hetzner Cloud** (2026-07-04):
-  CX32 8 GB ~€6.80/mes corre TODO incl. grafo, y cuesta menos que el plan de 4 GB de
-  DO (~$24); CX22 4 GB ~€3.79/mes como mínimo. Runbook en `FASE0-hetzner.md` (delta
-  sobre FASE0.md). DO sigue documentado en FASE0.md como alternativa. No bajar de
-  4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill (FASE0.md §1); con 1
-  vertical + limits recortados, 2 GB alcanza.
+- **Servidor:** **Hetzner Cloud** — PROVISIONADO 2026-07 (cx33: 4 vCPU / 8 GB,
+  `167.233.233.56`, Falkenstein `fsn1`); corre TODO incl. grafo por ~$9/mes. Runbook
+  en `FASE0-hetzner.md` (delta sobre FASE0.md, que conserva los pasos genéricos de
+  servidor). No bajar de 4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill
+  (FASE0.md §1); con 1 vertical + limits recortados, 2 GB alcanza.
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
 - **Modelos (opt-in GLM-5.2, seam listo 2026-07-04):** `z-ai/glm-5.2` (~1/6 del costo de
@@ -41,7 +40,7 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
   blockchain opcional (smart contracts con verificación formal Lean 4)
 - **Conexión de herramientas:** MCP
 - **CLIs agente-nativos:** Printing Press (imprime CLI+MCP por API; ahorro de
-  tokens ~100x vs MCP pesado; corre en Claude Code, no en el Droplet)
+  tokens ~100x vs MCP pesado; corre en Claude Code, no en el servidor)
 - **Conexión entre agentes:** protocolo A2A (primer agente vivo: `grafo-a2a`, Fase 5)
 
 ---
@@ -58,7 +57,7 @@ vertical en `.claude/memory/reference/hermes-vertical-setup.md`.
   - [x] **personal (Kiris)** — migrada 2026-07-08 (mismo patrón: stop en WSL2 → tar del volumen vía alpine → extracción uid 10000/0700 sin locks → `--profile verticales up`). Envío saliente verificado por Telegram; contenedor local eliminado (el volumen local queda como respaldo extra).
   - [x] **clientes (@a2aClientbot)** — migrada 2026-07-08, igual que personal. Verificada.
 - [~] Tres bots de Telegram + voz  *(3 bots vivos en el server; voz = futuro, decisión de la dueña)*
-- [x] Sync nocturno a GitHub — cron 04:17 `backup-verticales.sh` (2026-07-08 generalizado desde el de negocio del 2026-07-06): tarball por vertical de los 3 volúmenes `.hermes` + rotación 7 + espejo off-box al repo privado `businessos-negocio`.
+- [x] Sync nocturno a GitHub — cron 04:17 `backup-verticales.sh` (2026-07-08 generalizado desde el de negocio del 2026-07-06): tarball por vertical de los 3 volúmenes `.hermes` + rotación 7 + espejo off-box al repo privado **`hermes-os-a2a-backups`**. *(2026-07-11: repos renombrados — código `lisagomez/hermes-os-a2a`, respaldo `lisagomez/hermes-os-a2a-backups`; el modelo "3 repos, uno por vertical, pusheados por el bot" del runbook original quedó **descartado** — el volumen es 0700/uid-10000, el agente no puede leerlo. Ver FASE0.md §9.)*
 - [x] Supabase: tablas `token_usage` + `facturas` aplicadas y verificadas (2026-06-27)
 - **Salida:** ✅ las tres verticales vivas y respondiendo **desde el server 24/7**, con respaldo nocturno.
 
@@ -85,15 +84,15 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
 - [x] Caché de prefijo: REQUIERE proveedor compatible (Anthropic/OpenAI/Gemini/DeepSeek).
   nemotron NO la soporta (estaba efectivamente apagada); con gemini-flash-lite quedó activa
   (97% hit). Mantener SOUL/memoria estables para no invalidarla.
-- [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el Droplet)
+- [ ] ~~Topes de palabras en crons~~ — N/A: no hay crons todavía (diferidos con el servidor)
 - [x] Ingesta real a `token_usage` (2026-06-30): `businessos/ingest-token-usage.py` parsea
   agent.log → costo con tarifas OpenRouter (caché incluida) → UPSERT idempotente vía service_role.
-  Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al Droplet.
+  Primera corrida: 4 filas, $0.0217. Solo loop principal por ahora; cron al servidor.
 - [x] Reporte de presupuesto on-demand (2026-06-30): vista `v_presupuesto_mensual` + skill
   negocio `budget-report` (negocio reporta gasto del mes por Telegram, alerta al 80%).
 - [x] Registro de `facturas` (2026-07-01): job de host `businessos/ingest-facturas.py` (patrón
   inverso al snapshot de tokens; el agente deja JSON en el volumen, el job hace UPSERT vía
-  service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al Droplet.
+  service_role). Cierra la deuda de clientes. Falta correrlo en runtime (Docker) + cron al servidor.
 - [x] **Validación en vivo de modelos nuevos (2026-07-08)**: `title_generation` → `gpt-oss-120b:nitro`
   invocado de verdad en prod (varias corridas, últimas 2026-07-06); `vision` → `claude-sonnet-4.6`
   ejercitado con imagen real vía `hermes chat --image` ("Image analysis completed" en `agent.log`).
@@ -336,13 +335,27 @@ el paquete del primer departamento, y el modelo white-label).
   Ruteo de costo decidido: GLM-5.2 vía seam z.ai para la primera tarea (simple),
   `presupuesto_usd=1`. Política de ruteo por tarea documentada en
   `negocio/MEMORY.md` + `SOUL.md` de las 3 verticales.
-- [ ] **PENDIENTE (bloqueado en la dueña)** — falta la API key de z.ai
-  (`ANTHROPIC_AUTH_TOKEN` en el `.env` del server; la dueña la agrega ella misma,
-  nunca por chat). Con eso puesto: `EJECUTOR_ENGINE=claude`, recrear
-  `ejecutor-a2a`, correr la tarea de humo (scaffold npm mínimo con
-  `@playwright/test@1.61.1` pineado) y reportar veredicto + gasto real. Pausado
-  a pedido de la dueña el 2026-07-09 (no perder el contexto: retomar leyendo
-  este bloque + `.claude/memory/project/fase6-departamentos.md`).
+- [x] **DOGFOOD REAL COMPLETADO (2026-07-11)** — primera tarea con motor LLM de
+  verdad, veredicto **APROBADO** con los 8 gates en verde: GLM-5.2 vía seam z.ai
+  (`EJECUTOR_ENGINE=claude`), tarea `dogfood-glm-2` (módulo TS + test playwright
+  sin navegador) sobre scaffold npm real en `trio-repo` (`@playwright/test@1.61.1`
+  pineado, gates build/typecheck/lint/tests validados con cero tokens antes de
+  quemar modelo). Dos fixes de infra que salieron del intento 1 (rechazado por
+  infra, NO por el modelo — anti-sello-de-goma actuando): (a) el CLI de Claude
+  Code rehúsa `--dangerously-skip-permissions` como root → `IS_SANDBOX=1` en el
+  ejecutor; (b) el `.git` de un worktree es un PUNTERO a `/repo/.git/worktrees/`
+  → el Supervisor necesita el mount de `/repo` o sus gates estáticos salen
+  `no_ejecutable`. Detalle en `.claude/memory/project/fase6-departamentos.md`.
+- [x] **BUG del ledger de gasto CERRADO (2026-07-11, OK de la dueña, DDL en
+  prod)** — la `UNIQUE(fecha,vertical,modelo)` de `token_usage` (agregado
+  DIARIO del ingest) tragaba en silencio el gasto de la 2ª tarea del mismo
+  modelo/día (pasó con `dogfood-glm-2`: 409 + `except: pass` sin log). Fix en
+  tres piezas: índice único PARCIAL `where task_id is null`
+  (`supabase-fix-token-ledger.sql`, corre después de fase7), ingest a
+  delete+insert del día (solo filas de agregado, jamás el ledger del trío), y
+  motor con fallos de POST visibles en log. Verificado end-to-end:
+  `dogfood-glm-3` (aprobado, 8 gates) registró su fila JUNTO a la de
+  `dogfood-glm-1` — mismo día, mismo modelo, dos filas conviviendo.
 - [ ] **RESIDUAL (cuando exista runner)** — activar los gates de modelo del
   Supervisor; hoy activarlos sin runner es imposible por diseño (config inválida)
 - [ ] **FUTURO (otro PRP)** — RAG por ámbito por cliente y white-label; CLIs del
@@ -353,7 +366,7 @@ el paquete del primer departamento, y el modelo white-label).
 
 ---
 
-## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ VIVO en runtime (2026-07-08); dogfood real = decisión de la dueña
+## FASE 7 — Enjambre (swarm) de Ejecutores en el departamento de Software ✅ COMPLETA — dogfood real APROBADO (2026-07-11, GLM-5.2)
 
 PRP: `.claude/PRPs/prp-fase7-swarm.md`. Estado detallado en
 `.claude/memory/project/fase7-swarm.md`.
@@ -400,12 +413,26 @@ existente. "Aislar, no fundir"; "acotar antes de escalar"; "verificar antes de c
 - [x] **Planner REAL construido (2026-07-06, PR #28)** — `claude_planner.py` con
   claude-agent-sdk detrás de la interfaz Planner; opt-in `COORDINADOR_PLANNER=claude`;
   gasto atribuido a la fila PADRE; 53 tests verdes. Sigue mock por default
-- [ ] **RESIDUAL (decisión de la dueña, quema tokens)** — activar Planner real + primer
-  dogfood del enjambre con motor real (`EJECUTOR_ENGINE=claude`); hoy Mock-only a propósito
-- **Salida:** ✅ un enjambre de Ejecutores coordinado, validado de punta a punta en dev
-  (motor y planner mock, cero tokens), con las mismas garantías de la Fase 6 (Supervisor
-  independiente re-gatea el todo + gate humano en lo irreversible) — aplicar el SQL y el
-  dogfood real son los siguientes pasos y son decisión de la dueña.
+- [x] **DOGFOOD REAL APROBADO (2026-07-11, GLM-5.2 end-to-end)** — Planner real activado
+  (`COORDINADOR_PLANNER=claude`, imagen del coordinador con CLI + `IS_SANDBOX=1`) y
+  `dogfood-swarm-1` corrido en runtime: GLM planificó 3 sub-tareas (2 paralelas + 1
+  dependiente), las 3 aprobadas al primer intento por los gates reales, integración
+  limpia (4 archivos) y veredicto FINAL del Supervisor con los 8 gates en verde. Fila
+  padre `aprobada` en `tareas` de prod; ledger por-tarea completo (Planner → padre
+  $0.27, `slug` $0.76, `moneda` $0.59 a tarifa nominal Anthropic — ~$1.62 del
+  presupuesto de $2; el corte de presupuesto operó con datos reales). Gotchas nuevos:
+  `node_modules` COMPARTIDO en `/workspace/worktree/` (el worktree de integración nace
+  sin deps y nadie le corre npm install; la resolución upward de Node cubre TODOS los
+  worktrees y ahorra tokens por sub-tarea) y herencia de `modelo_pref` padre→sub-tareas
+  (el Planner no emite límites; sin herencia el enjambre caería al modelo default del
+  CLI). Ver CLAUDE.md 2026-07-11 (enjambre) y `fase7-swarm.md`.
+- **Salida:** ✅ un enjambre de Ejecutores coordinado y VERIFICADO en producción con
+  motor real (GLM-5.2 vía seam z.ai), con las mismas garantías de la Fase 6 (Supervisor
+  independiente re-gatea el todo + gate humano en lo irreversible). Residuales menores
+  (no bloquean): las filas hijas no llevan `parent_id` (validar_tarea descarta el campo)
+  y `gasto_usd` de la fila padre queda 0 (el ledger `token_usage.task_id` es la fuente
+  de verdad); el `node_modules` compartido se re-instala a mano si cambia el
+  `package.json` del scaffold.
 
 ---
 
@@ -508,15 +535,68 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   supervisor no copiaba `chequeos_adquisicion.py` → crash-loop
   (ModuleNotFoundError); los tests de dev no lo cazan porque corren desde el
   directorio fuente — un módulo python nuevo exige su COPY en el Dockerfile.
+- [x] **Card en internet — edge público (gate abierto 2026-07-10, verificado
+  2026-07-11)**: servicio `edge` (Caddy compilado con xcaddy +
+  mholt/caddy-ratelimit; la imagen oficial no trae rate limiting) — la ÚNICA
+  pieza del stack que publica un puerto en 0.0.0.0 (443; el Cloud Firewall de
+  Hetzner quedó en exactamente tcp/22 + tcp/443). TLS automático (Let's
+  Encrypt, certs persistidos en volumen `caddy-data`), rate limit 30 req/min
+  por IP (verificado: 30×200 → 429), body máx 64KB, y solo proxyea
+  `ventas-a2a:4400`. Dominio temporal `167-233-233-56.sslip.io` ("probar
+  primero"); `VENTAS_PUBLIC_URL` en el `.env` del server para que la card no
+  mienta. Smoke end-to-end por la URL pública: lead → `TASK_STATE_COMPLETED`,
+  `persistido=true`, fila real en `leads` de prod. Con dominio real: cambiar
+  `edge/Caddyfile` + `VENTAS_PUBLIC_URL` y recrear.
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
   de autenticidad de aprobación); negociación A2A externa autónoma (política
-  de límites + auth en la card + revisión legal); card en internet
-  (dominio/TLS/rate limiting); `#dep-adquisicion` en Slack.
+  de límites + auth en la card + revisión legal); dominio real para el edge
+  (hoy sslip.io temporal); `#dep-adquisicion` en Slack.
 - **Salida esperada:** un lead entra por A2A o manual, el pipeline vive en
   `leads`, el Ejecutor redacta bajo gates comerciales deterministas, y TODO lo
   de cara al cliente (correo, propuesta, contrato, firma) pasa por humano según
   la matriz de `equipo-y-slack.md`.
+
+---
+
+## FASE 10 — La COLA del trío (bandeja de entrada de #dep-desarrollo) ✅ VIVA en runtime (2026-07-13)
+
+PRP: `.claude/PRPs/prp-cola-tareas-trio.md`. Estado detallado en
+`.claude/memory/project/fase10-cola.md`.
+
+Nace de una pregunta de la dueña: *"¿y si varios del equipo piden features a la vez?"*.
+Antes, cada petición **bloqueaba al bot 15+ minutos** esperando el veredicto, y dos
+peticiones simultáneas lanzaban **dos motores + dos `npm build` + dos Playwright** en un
+servidor de 8 GB, sin que nadie acotara nada.
+
+Ahora el Ejecutor **acepta y encola** (responde `{encolada, posicion, cola}` en ~1 s) y un
+**worker único, serial** drena la cola: FIFO con prioridad, **solo Elisa reordena** (la
+autoridad es la credencial: no hay endpoint de reordenamiento, porque cualquiera del canal
+se colaría en la fila). La cola es **durable en Supabase** (sobrevive a `docker restart`),
+tiene **tope de gasto en tokens** antes de cada tarea, y el desenlace lo **avisa un host-job**
+en `#dep-desarrollo` con el listado y el orden — porque la respuesta A2A ya no trae veredicto.
+
+| Pieza | Qué |
+|---|---|
+| `ejecutor-a2a/cola.py` | La cola (pluggable: Supabase \| memoria). Encolado **autoritativo**: jamás se dice "encolada" sin fila. |
+| `ejecutor-a2a/worker.py` | Único y serial (`asyncio.Lock`), claim por **CAS**, recupera huérfanas, `git fetch` de master antes de cada tarea. |
+| `ejecutor-a2a/pipeline.py` | El trabajo (worktree→motor→Supervisor), ya **desacoplado de la conexión HTTP**. |
+| `aviso-cola.py` / `cola-trio.py` | Host-jobs: avisar al equipo (cron 2 min) y ver/priorizar/cancelar (solo Elisa). |
+
+**El enjambre YA habla con la cola** (2026-07-13, PR #45 — smoke real verificado): el
+Coordinador **encola** sus sub-tareas y **espera turno** como todo el mundo. Consecuencia que
+hay que decir en voz alta: **el enjambre ya no corre en paralelo** — las sub-tareas de una ola
+se encolan juntas pero el worker las ejecuta de una en una (concurrencia 1: 8 GB de RAM).
+`fan_out_max` ya no compra velocidad, compra **orden**. El enjambre sigue valiendo por lo que
+de verdad aporta: descomponer en DAG, respetar dependencias, integrar y **re-gatear el todo**.
+
+Detalle que costó sangre: el diff de cada sub-tarea se **relee de git**, nunca de la fila —
+`estado.py` lo recorta a 20 k para el jsonb y la integración hace `git apply`: un parche
+truncado corrompería el trabajo en silencio.
+
+**El `git fetch` de master lo hace un cron del HOST** (cada 5 min), no el contenedor: ahí
+dentro no hay llave de GitHub, y no debe haberla (corre el modelo con permisos amplios). Antes
+el fetch fallaba en silencio y el trío construía sobre un master de 11 commits atrás (PR #46).
 
 ---
 
@@ -533,17 +613,30 @@ Cómo funciona (archivos en la raíz de `businessos/`):
 - cli-audit.py (job de confianza del host) audita qué CLIs faltan para la fase
   actual y deja el snapshot que lee la vertical negocio (skill `cli-audit`)
 - Printing Press corre en Claude Code en tu máquina de desarrollo, no en el
-  Droplet (necesita Go 1.26.4+ y Claude Code)
+  servidor (necesita Go 1.26.4+ y Claude Code)
 
-Detector + aviso (Nivel 2-prep, decidido 2026-06-30): `cli-audit.py` corre por
-cron de SO en el Droplet (2:30, escalonado tras la ingesta de tokens) y deja
-`/opt/data/workspace/cli-audit.json`; el digest 8:00 de negocio reporta las
-brechas con el comando exacto. La impresión y la mejora de un CLI siguen siendo
-acción humana en Claude Code (`/printing-press`, `/printing-press-amend`,
-`/code-review`): el cron solo detecta y avisa, nunca imprime (Nivel 3 descartado).
+Detector + aviso (Nivel 2-prep, decidido 2026-06-30; **realmente agendado el
+2026-07-12**): `cli-audit.py` corre en el **servidor** dentro de `nightly-jobs.sh`
+(03:10, tras la ingesta de tokens) y deja `/opt/data/workspace/cli-audit.json`;
+el digest 08:00 de negocio reporta las brechas con el comando exacto. La impresión
+y la mejora de un CLI siguen siendo acción humana en Claude Code
+(`/printing-press`, `/printing-press-amend`, `/code-review`): el cron solo detecta
+y avisa, nunca imprime (Nivel 3 descartado).
+
+> ⚠️ **Cómo sabe el auditor qué está impreso, sin la librería.** La librería de
+> binarios (`~/printing-press/library/`) solo existe **en la máquina donde se
+> imprime** (Claude Code + Go) — el servidor no la tiene y no debe tenerla. Por eso
+> el auditor lee un **índice versionado en el repo**: `cli-library-index.json`
+> (slug → grade). **Tras imprimir o mejorar cualquier CLI hay que regenerarlo y
+> commitearlo**: `python3 cli-audit.py --emit-index` (en la máquina con librería).
+> Si no, ese CLI aparecerá como "faltante" en el digest. El snapshot declara su
+> fuente (`fuente_impresos: libreria | indice | ninguna`) para que nunca aparente
+> saber lo que no sabe. *(Hasta el 2026-07-12 el auditor corría a mano en la máquina
+> de dev y empujaba por ssh; el ROADMAP decía "cron 2:30 en el servidor" y era falso.)*
 
 Qué CLI por fase:
-- Fase 0-1: DigitalOcean ✅, Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
+- Fase 0-1: ~~DigitalOcean~~ superseded → **hcloud** (Hetzner, impreso 2026-07-04,
+  Grade A 95/100), Telegram ✅ (catálogo; impresos 2026-06-30, Grade A)
 - Fase 1-2: Supabase ✅ (impreso 2026-06-30 desde el OpenAPI de PostgREST del
   proyecto; auth dual-header service_role cableada a mano; herramienta de host/dev,
   el agente no la usa por secret-scrubbing)
@@ -572,12 +665,38 @@ Reglas de seguridad (heredadas del rigor del propio Printing Press):
 
 ---
 
+## Corriente transversal — Memoria del agente (decidido 2026-07-11)
+
+Criterio: rentabilidad. **Piloto Holographic ACTIVO en negocio** (provider bundled
+local, SQLite en el volumen → cubierto por el respaldo nocturno; 100% bajo demanda
+via `fact_store` → caché de prefijo intacta, 95% medido post-activación). Evaluar
+~2 semanas (≈2026-07-25): si no reduce re-explicaciones/tokens en uso real, se
+apaga (rollback de una línea); si aporta, extender a personal/clientes.
+
+**Engram DIFERIDO como tier premium** ("memoria auditable/portable/exportable por
+cliente") con trigger explícito: primer cliente white-label que lo pida o >2
+verticales de clientes activas. Motivo: su plugin bundled tiene bug upstream
+cerrado "not planned" (gateway colgado 30 min en silencio) → fork permanente en
+ruta crítica + infra sin línea de ingreso hoy; como feature con demanda, se paga
+solo. **Obsidian intocable**: humana, un escritor (Elisa), sin sync bidireccional.
+Detalle en `.claude/memory/project/memoria-agente.md`.
+
+---
+
 ## Corriente transversal — Canales de comunicación
 
 No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 
 - **Telegram** (desde Fase 0, vivo): móvil y rápido. Avisos, notas de voz, sí/no
   al vuelo. La vida personal del dueño (Kiris) se queda aquí SIEMPRE.
+  - **Grupo del equipo `A2ATeamGroup` (2026-07-12)** — *corrige el "Telegram es solo
+    personal" del diseño original*: el equipo también vive aquí para reportes, agendas
+    y datos informativos. Miembros: Elisa, Luis Trujillo, Víctor Huerta, Oswaldo
+    Valderrama + `@a2aTeamBot`. Ahí caen el **digest diario 08:00** y el **cierre
+    semanal (lunes 08:00)**. Config, `chat_id` y gotchas (⚠️ el modo privacidad de
+    Telegram debe estar **APAGADO** o el bot no recibe las @menciones):
+    `negocio/telegram-config-fragment.yaml`. Acceso = **membresía del grupo**
+    (`group_allowed_chats`); los DMs siguen siendo solo de la dueña.
 - **Slack** (interno, se SUMA a Telegram — **piloto VIVO desde 2026-07-08**): centro de trabajo
   del equipo de 4 — seguimiento de proyectos, reportes de agentes y compuertas
   de aprobación. Lo posee Hermes-Negocio (orquestador); los departamentos
@@ -602,6 +721,23 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
 - **Web propia** (producto, futuro): el canal de clientes, con marca propia y
   aislamiento de datos. Slack Connect solo si un cliente ya vive en Slack y lo
   prefiere.
+  - **Frontends web (código, desde 2026-07-13)** — `businessos/frontends/` reúne las
+    **tres superficies** (ver su README): **control-interno** (cabina del equipo,
+    NO de cara al cliente; Next 16 + Supabase + Tauri, vendored) ✅ integrado;
+    **cliente-web2** (producto marca-blanca) 🚧 aún sin carpeta; **cliente-a2a-web3**
+    (A2A card / web3) 🎨 solo demo de diseño. Los tres consumen el mismo contrato de
+    daemon (`/chat/stream` SSE + `/api/openclaw/action`) → punto de integración con
+    Hermes/A2A.
+  - **control-interno CABLEADO en runtime (2026-07-15, PR #51)**: desplegado en Hetzner
+    como contenedor **`frontend-ci`** (`127.0.0.1:3001`), ahora **servicio del compose**
+    (project `businessos`) y en **`hermes-net`** (resuelve por DNS los servicios del
+    agente). **Supabase real cableado**: creds del proyecto **A2ABot** + las **31 tablas**
+    del frontend aplicadas ahí (reconciliando `profiles`/`handle_new_user` sin romper el
+    signup del negocio — ver aprendizaje CLAUDE.md 2026-07-15). Sigue en `next dev` (no
+    build de prod). **Pendiente**: (1) el **daemon** que sirva `/chat/stream` +
+    `/api/openclaw/action` (`CLAUDECLAW_URL` aún en `localhost:3099`, sin servicio que lo
+    sirva); (2) crear el usuario de Elisa; (3) opcional build de prod + exponer por `edge`.
+    Estado y cómo retomar en la memoria `project/frontends-control-interno.md`.
 
 ---
 

@@ -35,7 +35,10 @@ phases:
           jerárquica) → no compila; deduplicar a mano al reimprimir (candidato a retro).
       - name: digitalocean
         source: catalog
-        why: "DEPRECADO tras elegir Hetzner (ver hcloud arriba). Se mantiene por si se vuelve a DO."
+        deprecated: true   # SUPERSEDED por hcloud (arriba) al mover el runtime a Hetzner.
+        why: "SUPERSEDED por hcloud tras elegir Hetzner (ver arriba). Ya NO es la herramienta
+          vigente; el auditor lo ignora. Se conserva la entrada como registro histórico
+          (el CLI se imprimió Grade A el 2026-06-30) por si algún día se vuelve a DO."
         verticales: [negocio]
       - name: telegram
         source: catalog
