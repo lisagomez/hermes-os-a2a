@@ -108,6 +108,8 @@ Todo como `hermes`, sin intervención. Log en `~/logs/host-jobs.log` (y `~/backu
 | `weekly-jobs.sh` | 03:30 lunes | Salud del grafo (`revisar-vigencias`): reglas vencidas / cifras a cotejar |
 | `backup-verticales.sh` | 04:17 diario | Respaldo de los 3 volúmenes `.hermes` (local + repo privado) |
 | `alerta-presupuesto.sh` | 08:00 diario | Push proactivo a Elisa si el gasto cruzó el **80%** del presupuesto (una vez por mes) |
+| `snapshot-tareas-reunion.py` | 08:00 diario | Consulta `tareas_reunion` (Fase 10) por lo pendiente que vence hoy/mañana o ya venció → snapshot al volumen de negocio |
+| `alerta-tareas-reunion.sh` | 08:05 diario | Lee ese snapshot y avisa por Telegram (y Slack si el canal ya tiene Channel ID conocido) cada tarea de reunión por vencer/vencida, una vez por tarea+fecha |
 
 Al bot le puedes preguntar **"¿cómo va el presupuesto?"** y responde con datos frescos del snapshot.
 
