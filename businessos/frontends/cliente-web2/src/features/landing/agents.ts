@@ -11,6 +11,15 @@ export interface DemoLine {
   en: string;
 }
 
+export const KIND_COLOR: Record<DemoKind, string> = {
+  cmd: 'var(--text-1)',
+  sys: 'var(--lilac)',
+  usr: 'var(--text-3)',
+  agt: 'var(--pink-pale)',
+  ok: 'var(--success-soft)',
+  kpi: 'var(--energy-bright)',
+};
+
 export interface Agent {
   id: string;
   name: string;

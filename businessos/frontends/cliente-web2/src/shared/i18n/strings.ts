@@ -89,6 +89,18 @@ export interface Strings {
   leadSending: string;
   leadOk: string;
   leadErr: string;
+  // Sección Oficina A2A (OfficeSim)
+  officeKicker: string;
+  officeTitle: string;
+  officeSub: string;
+  officeMeeting: string;
+  officeCafe: string;
+  officeCenter: string;
+  officeCta: string;
+  stWorking: string;
+  stIdle: string;
+  stWalking: string;
+  stClosing: string;
 }
 
 const es: Strings = {
@@ -184,6 +196,18 @@ const es: Strings = {
   leadSending: 'Enviando…',
   leadOk: '¡Recibido! Te contactamos para agendar.',
   leadErr: 'No se pudo enviar. Intenta de nuevo.',
+  officeKicker: '● EN VIVO — 8 AGENTES TRABAJANDO',
+  officeTitle: 'La oficina A2A',
+  officeSub:
+    'Así se ve tu equipo por dentro: los 8 agentes trabajando en vivo, moviéndose entre sus escritorios, la sala de reuniones y la zona café. Haz clic en cualquiera para leer su terminal en tiempo real.',
+  officeMeeting: 'SALA DE REUNIONES',
+  officeCafe: 'ZONA CAFÉ',
+  officeCenter: 'CENTRO DE MANDO',
+  officeCta: '▶ Demo completa',
+  stWorking: 'trabajando',
+  stIdle: 'en pausa',
+  stWalking: 'moviéndose',
+  stClosing: 'cerrando',
 };
 
 const en: Strings = {
@@ -279,6 +303,18 @@ const en: Strings = {
   leadSending: 'Sending…',
   leadOk: 'Got it! We\'ll reach out to schedule.',
   leadErr: 'Could not send. Try again.',
+  officeKicker: '● LIVE — 8 AGENTS AT WORK',
+  officeTitle: 'The A2A office',
+  officeSub:
+    "Here's what your team looks like inside: all 8 agents working live, moving between their desks, the meeting room and the coffee corner. Click any of them to read its terminal in real time.",
+  officeMeeting: 'MEETING ROOM',
+  officeCafe: 'COFFEE CORNER',
+  officeCenter: 'COMMAND CENTER',
+  officeCta: '▶ Full demo',
+  stWorking: 'working',
+  stIdle: 'idle',
+  stWalking: 'moving',
+  stClosing: 'closing',
 };
 
 export const STRINGS: Record<Lang, Strings> = { es, en };

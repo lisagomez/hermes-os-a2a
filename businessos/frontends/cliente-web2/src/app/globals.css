@@ -193,3 +193,59 @@ body {
     animation: none;
   }
 }
+
+/* === OFFICE SIM (inicio) === */
+/* Grid de la sección Oficina A2A: escena (62) + centro de mando (38). */
+.office-grid {
+  display: grid;
+  grid-template-columns: 62fr 38fr;
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .office-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Entrada de la burbuja de actividad (se remonta en cada tick). */
+@keyframes office-bubble-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, calc(-100% - 20px));
+  }
+}
+.office-bubble {
+  animation: office-bubble-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Indicador "tecleando": barritas que parpadean por pasos. */
+@keyframes office-typing {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+.office-typing {
+  animation: office-typing 0.9s steps(3, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .office-bubble {
+    animation: none;
+  }
+  .office-typing {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+/* === OFFICE SIM (fin) === */
