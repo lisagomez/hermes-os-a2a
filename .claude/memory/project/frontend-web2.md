@@ -16,6 +16,16 @@ Estado y decisiones de la superficie de cara al cliente humano. Iniciado 2026-07
   terminal viva, deck de 8 A2A Cards, cotizador "deck builder" (energía × $290–$410, setup
   2+⌈mazo/2⌉ sem), panel con tabs/KPIs, protocolo A2A, formulario de lead + calendario, chat widget.
   typecheck + build + lint + smoke Playwright verdes (0 errores de consola).
+- **Sección Intake y Cotización** (2026-07-18, del mock `intake-cotizacion-mazo.html` de la
+  dueña, adaptado al design system): intake por prompt → detección por keywords → mazo del trío
+  recomendado (10 cartas: 4 base + 4 por dominio + 2 opcionales punteadas) → entregables →
+  cotización MXN+IVA con tokens proyectados → aprobación (gate dorado→verde) → kickoff con
+  decision_id. Respeta los toggles globales ES/EN y humano/A2A: en modo A2A muestra el log
+  simulado del canal ventas-a2a (invariante: firma+pago siempre humanos). Archivos:
+  `features/landing/intake.ts` (datos/lógica bilingüe) + `sections/Intake.tsx`; va entre
+  DeckBuilder y Panel (el kickoff desemboca en Mission Control). Todo simulado, cero runtime.
+  Gotcha: ESLint `react-hooks/set-state-in-effect` prohíbe sincronizar estado con efectos →
+  el prompt de ejemplo se deriva (`customPrompt ?? DEFAULT[lang]`), no se setea en useEffect.
 
 ## Decisiones
 

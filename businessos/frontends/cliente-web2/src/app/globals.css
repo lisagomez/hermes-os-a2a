@@ -171,3 +171,25 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Reparto del mazo (sección intake). */
+@keyframes a2a-deal {
+  from {
+    opacity: 0;
+    transform: translateY(26px) rotate(3deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.a2a-deal {
+  opacity: 0;
+  animation: a2a-deal 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .a2a-deal {
+    opacity: 1;
+    animation: none;
+  }
+}
