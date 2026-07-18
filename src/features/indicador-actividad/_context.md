@@ -1,61 +1,42 @@
 # Feature: indicador-actividad (Enjambre Binario)
 
-Indicador de actividad en vivo para los agentes de HERMES / a2a. Un **enjambre abstracto de bits
-(0/1)** cuyo comportamiento se adapta a la tarea que el agente esta haciendo (leer, recolectar,
-escribir, construir, limpiar, negociar A2A, esperar gate, bloqueado, confirmado, pensar), con
-momentos de **verificacion explicita de progreso** (barra / % / contador). Los bits SON los datos:
-se ordenan cuando el agente los ordena.
+Indicador de actividad en vivo para los agentes de HERMES / a2a: un **enjambre abstracto de bits
+(0/1)** cuyo comportamiento se adapta a la tarea del agente, con momentos de verificacion explicita
+de progreso (barra / % / contador). Los bits SON los datos: se ordenan cuando el agente los ordena.
 
-## Estado actual
-- `enjambre-binario.v2.html` = version ACTUAL (autoplay, sin gating "SIM"; anima aunque el sistema
-  tenga prefers-reduced-motion; abre y corre con doble clic). Reconstruccion "al siguiente nivel".
-- `enjambre-binario.v1.html` = prototipo previo (5.7 KB), movido aqui desde `docs/` para llevar el
-  historico. Versionado por nombre `.vN`, no en carpetas separadas.
-- Se abre haciendo doble clic en el `.html` (no necesita servidor).
+## Estado (2026-07-18): que se queda y por que
 
-## Estados del enjambre (uno = un comportamiento distinto)
-pensar · leer · recolectar · escribir · construir · limpiar · negociar-a2a · esperar-gate ·
-bloqueado · confirmado. Cada estado tiene su propia forma/movimiento y etiqueta.
+| Archivo | Rol | Por que se queda |
+|---|---|---|
+| `enjambre-binario.v3.html` | **PROTOTIPO CANONICO** (decision de Johann) | 18 estados (10 base + 8 futuros), autoplay sin gating, anima con reduced-motion, geometria verificada (ningun estado se sale del marco). Se abre con doble clic. |
+| `enjambre-engine.ts` | Motor TS de los 18 estados, agnostico del renderer | Typecheck limpio. Seam de upgrade: cambiar Canvas 2D por WebGL/WebGPU sin tocar estados. |
+| `enjambre-binario.tsx` | Componente React controlado (`state`, `progress`, `progressMode`) | Para montar en cola/dashboard. Pendiente verificar con `npm install` + dev server. |
+| `historial/` | v1 (prototipo original, ex-docs/) y v2 (10 estados) | Linea evolutiva del canonico, versionado `.vN` elegido por Johann. |
+| `exploracion/` | Demos de render (WebGL/WebGPU/morph) + exploracion del personaje "ser IA" (APARCADA) | Cada archivo con veredicto y por que en `exploracion/_LEEME.md`. Incluye la LECCION image-to-particles (leerla antes de retomar el personaje). |
 
-## Paleta
-Identidad a2a: violeta `#7C3AED` + magenta `#EC4899`, mas semanticos (verde ok, rojo bloqueado,
-ambar espera, cian para la contraparte en negociacion). Bloque `PALETTE` al inicio del html para
-cambiarla en un sitio (p. ej. a cian) sin tocar la logica.
+Estados del v3: pensar, leer, recolectar, escribir, construir, limpiar, negociar-a2a, esperar-gate,
+bloqueado, confirmado + buscar, planear, herramienta, verificar, reintentar, enrutar, streaming,
+desplegar. Paleta en el bloque `PALETTE`/`PALETA` (una sola fuente por archivo, cambiable sin tocar logica).
 
-## Promocion a producto (feature-first, cuando se valide)
-Convertir el prototipo a componente React del Next.js:
-- `components/enjambre-binario.tsx` - client component con `<canvas>`, props `{ state, progress,
-  progressMode }`. Toda la logica de particulas y el loop viven aqui.
-- `hooks/use-enjambre.ts` - (opcional) el bucle de animacion y el estado.
-- `types/index.ts` - el enum de estados y los tipos de props.
-Reglas del repo: kebab-case en archivos, PascalCase en componentes, sin `any`, <500 lineas/archivo.
-Se monta donde se muestre actividad del agente (cola / dashboard). Verificar con el dev server
-(`npm run dev`) + Playwright antes de integrar.
+## Que se aparco y por que (resumen; detalle en exploracion/_LEEME.md)
 
-## v3 (2026-07-18): 18 estados + componente React (motor separado del renderer)
+La exploracion del **personaje "ser IA"** (mascota con ojos que se transforma en profesiones) se
+aparco el 2026-07-18 tras 4 iteraciones dibujando la silueta con codigo que salieron creepy. La causa
+es de metodo, no de concepto: el look definido exige **muestrear una IMAGEN real** (tecnica
+image-to-particles, como el leon de excellentaisolutions.es), no dibujar formas a mano en codigo. Las
+decisiones de direccion ya tomadas (blob + ojos ambar, disolucion fuerte, profesion con ojos) y la
+receta exacta para retomar quedan en `exploracion/_LEEME.md`. Investigacion de respaldo en el cerebro:
+temas `estados-actividad-agente-enjambre` (F363) y `diseno-ser-ia-amigable-rostro-empatia` (F364).
 
-- `enjambre-binario.v3.html` = prototipo standalone VERIFICABLE con los **18 estados** (10 base
-  refinados + 8 futuros: buscar, planear, herramienta, verificar, reintentar, enrutar, streaming,
-  desplegar). Autoplay, abre con doble clic. Geometria de los 18 verificada (ninguno se sale del marco).
-- `enjambre-engine.ts` = el MOTOR: logica de los 18 estados AGNOSTICA del renderer (PALETA, DIM, STATES,
-  LABEL, TARGET). Typecheck limpio. Es el seam para "no limitarnos": hoy renderer = Canvas 2D; se puede
-  cambiar a WebGL / React Three Fiber / WebGPU reemplazando SOLO el dibujo, sin tocar los estados.
-- `enjambre-binario.tsx` = componente React CONTROLADO (`'use client'`), props `{ state, progress,
-  progressMode, className }`. Usa el motor; el `<canvas>` escala al 100% del contenedor. Renderer Canvas 2D.
-  Verificacion visual pendiente: requiere `npm install` (este checkout no tiene node_modules) + montar en
-  una pagina y `npm run dev` (los 4 errores de tsc son cascada de "react no instalado", no bug de codigo).
+## Decisiones de stack
 
-## Decisiones de stack (2026-07-18)
+- Framework = React/Next (host del proyecto a2a; no se relitiga). El render del indicador es Canvas 2D
+  (dibuja digitos 0/1 trivialmente y corre en todo); WebGL/WebGPU quedan como upgrade del renderer o
+  para un hero de fondo (demos en `exploracion/`).
+- Web3 = eje APARTE. Encaja en el estado `confirmado` (on-chain/txHash); se conecta cuando exista esa capa.
 
-- Framework = React/Next (host del proyecto a2a; no se relitiga). Innovacion real = tecnologia de RENDER,
-  por eso el motor esta separado (upgrade a WebGL/WebGPU sin reescribir estados). Escalable por diseno,
-  esbelto en construccion (Canvas 2D basta para ~200 particulas).
-- Web3 = eje APARTE (no del render). Encaja en el estado `confirmado` (on-chain / txHash) y donde la
-  pagina muestre verificacion on-chain; se conecta a un tx real cuando exista esa capa. NO se mezcla aqui.
+## Promocion a producto (siguiente paso cuando se retome)
 
-## Backlog
-
-- Aplicar los refinamientos de F363 al resto (recolectar multi-origen async, limpiar jitter->settle, etc.)
-  ya reflejados en v3; validar visualmente con Johann.
-- Montar `<EnjambreBinario>` donde se muestre actividad de agente (cola/dashboard) + verificar con dev server.
-- Corpus de referencia: `cerebro-investigacion/temas/estados-actividad-agente-enjambre.md` (F363).
+Montar `<EnjambreBinario>` donde se muestre actividad del agente (cola / dashboard), correr
+`npm install` + `npm run dev` y verificar con Playwright. Reglas del repo: kebab-case, PascalCase en
+componentes, sin `any`, <500 lineas/archivo.

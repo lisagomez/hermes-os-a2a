@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ser IA - WebGL v2 (munequito glow + rim light + ojos vivos)</title>
+<style>
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:radial-gradient(120% 120% at 50% 40%,#0c1030 0%,#070612 55%,#03030a 100%);
+    color:#EFEAE2;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;}
+  #cv{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
+  #hud{position:fixed;top:16px;left:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b6478;line-height:1.7;pointer-events:none;}
+  #hud .n{color:#7FE3FF;font-weight:700;}
+  #note{position:fixed;left:0;right:0;bottom:18px;text-align:center;font-size:10.5px;color:#5a5468;font-family:'JetBrains Mono',monospace;pointer-events:none;}
+  #fallback{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:#FBBF24;font-size:14px;}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hud"><div><span class="n" id="count">0</span> particulas</div><div><span class="n" id="fps">0</span> fps · <span id="tier">-</span></div><div>WebGL2 · rim light + ojos vivos</div></div>
+<div id="note">// mueve el mouse: te sigue con la mirada · respira · parpadea</div>
+<div id="fallback">Tu navegador no expone WebGL2 (~5%).</div>
+
+<script>
+"use strict";
+const cv=document.getElementById('cv');
+const gl=cv.getContext('webgl2',{antialias:true,alpha:false});
+if(!gl){ document.getElementById('fallback').style.display='flex'; }
+else {
+const coarse=matchMedia('(pointer:coarse)').matches, small=Math.min(innerWidth,innerHeight)<720, cores=navigator.hardwareConcurrency||4;
+const mobile=coarse||small; const N=mobile?14000:(cores>=8?36000:22000);
+document.getElementById('count').textContent=N.toLocaleString('es');
+document.getElementById('tier').textContent=mobile?'movil':(cores>=8?'desktop alto':'desktop');
+const DPR_CAP=mobile?1.6:2;
+
+// ── silueta de MUNEQUITO (cabeza + cuerpo + bracitos + piecitos), con flag de BORDE (rim light) ──
+function bodyPts(){ const S=240,oc=document.createElement('canvas');oc.width=S;oc.height=S;const o=oc.getContext('2d');
+  o.fillStyle='#fff';
+  o.beginPath(); o.ellipse(S*0.5,S*0.335,S*0.235,S*0.215,0,0,6.283); o.fill();       // cabeza
+  o.beginPath(); o.ellipse(S*0.5,S*0.625,S*0.255,S*0.245,0,0,6.283); o.fill();       // cuerpo
+  o.beginPath(); o.ellipse(S*0.205,S*0.60,S*0.075,S*0.115,-0.35,0,6.283); o.fill();  // brazo izq
+  o.beginPath(); o.ellipse(S*0.795,S*0.60,S*0.075,S*0.115,0.35,0,6.283); o.fill();   // brazo der
+  o.beginPath(); o.ellipse(S*0.385,S*0.865,S*0.085,S*0.05,0,0,6.283); o.fill();      // pie izq
+  o.beginPath(); o.ellipse(S*0.615,S*0.865,S*0.085,S*0.05,0,0,6.283); o.fill();      // pie der
+  const d=o.getImageData(0,0,S,S).data;
+  const inside=(x,y)=> x>=0&&y>=0&&x<S&&y<S&&d[(y*S+x)*4+3]>128;
+  const all=[],edge=[];
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++)if(inside(x,y)){
+    const e=!(inside(x-3,y)&&inside(x+3,y)&&inside(x,y-3)&&inside(x,y+3));
+    const pt=[(x/S-0.5)*1.5,(y/S-0.5)*1.5]; all.push(pt); if(e)edge.push(pt);
+  } return {all,edge}; }
+const {all,edge}=bodyPts();
+const data=new Float32Array(N*5);   // bx,by,z,seed,edge
+for(let i=0;i<N;i++){ const isEdge=Math.random()<0.30 && edge.length>0;
+  const src=isEdge?edge:all; const p=src[(Math.random()*src.length)|0];
+  const bx=p[0],by=p[1]; const rr=bx*bx+by*by; const thick=0.6*Math.sqrt(Math.max(0,1-rr*0.45));
+  data[i*5]=bx; data[i*5+1]=by; data[i*5+2]=(Math.random()*2-1)*thick; data[i*5+3]=Math.random(); data[i*5+4]=isEdge?1:0; }
+
+// ── shader CUERPO: violeta->azul luminoso + RIM cian brillante (nada de masa oscura) ──
+const bV=`#version 300 es
+precision highp float;
+layout(location=0) in vec4 aData; layout(location=1) in float aEdge;
+uniform float uTime,uAspect,uBreath; uniform vec2 uGaze;
+out vec3 vCol; out float vB;
+void main(){ float bx=aData.x,by=aData.y,z=aData.z,seed=aData.w;
+  vec2 p=vec2(bx,by)*uBreath + uGaze*(0.6+z*0.4);
+  p+=vec2(sin(uTime*0.7+seed*30.0),cos(uTime*0.6+seed*27.0))*0.004;
+  gl_Position=vec4(p.x/uAspect,-p.y,0.0,1.0);
+  float depth=0.5+0.5*z;
+  gl_PointSize=(2.4+4.4*depth+aEdge*2.0)*uBreath;
+  vec3 viol=vec3(0.60,0.42,1.00), blue=vec3(0.30,0.50,1.00), cyan=vec3(0.55,0.95,1.00);
+  vec3 base=mix(viol,blue,clamp(by*0.9+0.55,0.0,1.0));
+  vCol=mix(base*(0.55+0.65*depth), cyan*1.3, aEdge*0.9);
+  vB=(0.34+0.66*depth)*(0.75+0.25*seed) + aEdge*0.55; }`;
+const bF=`#version 300 es
+precision highp float; in vec3 vCol; in float vB; out vec4 frag;
+void main(){ vec2 c=gl_PointCoord*2.0-1.0; float d=dot(c,c); if(d>1.0)discard;
+  float a=exp(-d*2.1)*vB; frag=vec4(vCol*a,a); }`;
+
+// ── shader OJOS: iris ambar + PUPILA + doble CATCHLIGHT (ojos vivos, no brasas) ──
+const eV=`#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform vec2 uCenter,uSize,uGaze; uniform float uAspect;
+out vec2 vUv;
+void main(){ vUv=aCorner*1.35; vec2 p=uCenter+uGaze*1.25+aCorner*uSize*1.35; gl_Position=vec4(p.x/uAspect,-p.y,0.0,1.0); }`;
+const eF=`#version 300 es
+precision highp float; in vec2 vUv; out vec4 frag;
+void main(){ float d=length(vUv);
+  vec3 amber=vec3(1.0,0.70,0.22), amberHi=vec3(1.0,0.88,0.50);
+  float halo=exp(-d*d*2.4)*0.28;                                   // halo calido chico
+  float inEye=smoothstep(1.0,0.93,d);                              // disco del ojo, borde definido
+  float ring=smoothstep(1.0,0.93,d)*(1.0-smoothstep(0.93,0.80,d)); // aro exterior
+  float pup=smoothstep(0.46,0.40,d);                               // pupila oscura
+  vec3 iris=mix(amber, amberHi, smoothstep(0.92,0.42,d));
+  vec3 col=iris*inEye;
+  col=mix(col, vec3(0.45,0.24,0.05), ring*0.75);                   // aro mas oscuro = definicion
+  col=mix(col, vec3(0.13,0.07,0.03), pup);                         // pupila
+  float cl1=smoothstep(0.20,0.10,length(vUv-vec2(-0.28,-0.30)));   // catchlight principal
+  float cl2=smoothstep(0.10,0.045,length(vUv-vec2(0.22,0.18)))*0.55; // secundario
+  col+=vec3(1.0,0.98,0.92)*(cl1+cl2);
+  float a=max(inEye, halo);
+  frag=vec4(col + amber*halo*(1.0-inEye), a); }`;
+function prog(vs,fs){ function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);
+  if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;}
+  const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,vs));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p); if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p)); return p; }
+const pBody=prog(bV,bF), pEye=prog(eV,eF);
+const uB={time:gl.getUniformLocation(pBody,'uTime'),aspect:gl.getUniformLocation(pBody,'uAspect'),breath:gl.getUniformLocation(pBody,'uBreath'),gaze:gl.getUniformLocation(pBody,'uGaze')};
+const uE={center:gl.getUniformLocation(pEye,'uCenter'),size:gl.getUniformLocation(pEye,'uSize'),gaze:gl.getUniformLocation(pEye,'uGaze'),aspect:gl.getUniformLocation(pEye,'uAspect')};
+
+const vaoB=gl.createVertexArray(); gl.bindVertexArray(vaoB);
+const bBuf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bBuf); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,4,gl.FLOAT,false,20,0);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,20,16);
+const vaoE=gl.createVertexArray(); gl.bindVertexArray(vaoE);
+const quad=new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]);
+const eBuf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,eBuf); gl.bufferData(gl.ARRAY_BUFFER,quad,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.disable(gl.DEPTH_TEST);
+
+let dpr=1; function resize(){ dpr=Math.min(window.devicePixelRatio||1,DPR_CAP);
+  cv.width=Math.floor(cv.clientWidth*dpr); cv.height=Math.floor(cv.clientHeight*dpr); gl.viewport(0,0,cv.width,cv.height); }
+window.addEventListener('resize',resize); resize();
+
+let mx=0,my=0,gx=0,gy=0, blinkPhase=-1,blinkT=0,nextB=2+Math.random()*3, last=performance.now(),frames=0,raf=0,t0=performance.now();
+cv.addEventListener('pointermove',ev=>{ const r=cv.getBoundingClientRect(); mx=((ev.clientX-r.left)/r.width*2-1); my=((ev.clientY-r.top)/r.height*2-1); });
+
+function frame(now){ const dt=Math.min(50,now-last)/1000; last=now; frames++;
+  const time=(now-t0)/1000; const aspect=cv.width/cv.height;
+  const breath=1+0.028*Math.sin(time*1.6);
+  gx+=(mx*0.09-gx)*0.06; gy+=(my*0.07-gy)*0.06;
+  blinkT+=dt; if(blinkPhase<0 && blinkT>nextB){ blinkT=0; nextB=2.5+Math.random()*3.5; blinkPhase=0; }
+  if(blinkPhase>=0){ blinkPhase+=dt/0.16; if(blinkPhase>1) blinkPhase=-1; }
+  const open=blinkPhase<0?1:(0.1+0.9*(1-Math.sin(blinkPhase*Math.PI)));
+
+  gl.clearColor(0.02,0.02,0.045,1.0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE);           // cuerpo: aditivo (glow)
+  gl.useProgram(pBody); gl.bindVertexArray(vaoB);
+  gl.uniform1f(uB.time,time); gl.uniform1f(uB.aspect,aspect); gl.uniform1f(uB.breath,breath); gl.uniform2f(uB.gaze,gx,gy);
+  gl.drawArrays(gl.POINTS,0,N);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);                // ojos: normal, encima
+  gl.useProgram(pEye); gl.bindVertexArray(vaoE);
+  gl.uniform1f(uE.aspect,aspect); gl.uniform2f(uE.gaze,gx,gy);
+  const eyeR=0.115, eyeDX=0.155, eyeY=-0.245*breath;                // ojos grandes, juntos, en la cabeza
+  gl.uniform2f(uE.size,eyeR,eyeR*open);
+  gl.uniform2f(uE.center,-eyeDX,eyeY); gl.drawArrays(gl.TRIANGLES,0,6);
+  gl.uniform2f(uE.center, eyeDX,eyeY); gl.drawArrays(gl.TRIANGLES,0,6);
+  raf=requestAnimationFrame(frame); }
+setInterval(()=>{ document.getElementById('fps').textContent=Math.round(frames*2); frames=0; },500);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) cancelAnimationFrame(raf); else { last=performance.now(); raf=requestAnimationFrame(frame); } });
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
