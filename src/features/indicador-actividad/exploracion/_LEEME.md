@@ -42,3 +42,15 @@ La investigacion de respaldo vive en el cerebro: `cerebro-investigacion/temas/di
 - Transicion: disolucion FUERTE en 1s y 0s; en reposo SOLIDO respirando (no gotea binario).
 - Al transformarse en profesion: CONSERVA los ojos (ancla de identidad; el medico con ojos gano).
 - La disolucion jamas debe llegar al borde del area de dibujo (nube circular acotada + fade), o se ve el marco.
+
+## Adenda (2026-07-18, mismo dia): la receta YA tiene demo funcionando
+
+Tras el reto de Johann se construyo el demo de la tecnica correcta:
+- `ser-ia-fuente.png` = imagen fuente generada con Nano Banana (el blob aprobado, solo, fondo limpio).
+- `ser-ia-image-to-particles.html` = demo autocontenido (imagen embebida en base64, abre con doble
+  clic): muestrea los pixeles de la imagen (~8.900 particulas con el color real de cada pixel),
+  ensambla el personaje desde particulas dispersas (efecto leon), respira, titila, los ~420 pixeles
+  ambar de los ojos parpadean, y click = re-ensamblar. Verificado con decodificador PNG en Node
+  (muestreo 8.938 particulas, 422 de ojo, fondo excluido).
+Esto confirma la leccion: la MISMA sesion que fallo 4 veces dibujando por codigo produjo esto al
+primer intento usando la imagen como fuente. Si se retoma el personaje, se parte de AQUI.
