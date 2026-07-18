@@ -18,6 +18,19 @@ Estados del v3: pensar, leer, recolectar, escribir, construir, limpiar, negociar
 bloqueado, confirmado + buscar, planear, herramienta, verificar, reintentar, enrutar, streaming,
 desplegar. Paleta en el bloque `PALETTE`/`PALETA` (una sola fuente por archivo, cambiable sin tocar logica).
 
+## Personaje "ser IA" (DES-APARCADO 2026-07-18, mismo dia): linea ser-ia.vN
+
+Tras validar image-to-particles con el reto (demo en exploracion/), Johann aprobo continuar. Linea viva:
+- `ser-ia.v1.html` = personaje COMPLETO con transformaciones (autocontenido ~8 MB, 4 imagenes embebidas
+  en base64, doble clic): reposo solido respirando -> disolucion FUERTE en 1s/0s con los OJOS brillando
+  sin dispersarse -> rearmado como profesion (Medico / Ing. de Sistemas / Financiero), chips + auto.
+  Particulas muestreadas de las imagenes (color real por pixel); ojos = pixeles ambar en la mitad
+  superior (~367 por forma, verificado con decodificador PNG en Node; el $ dorado del financiero
+  clasifica como cuerpo y se disuelve).
+- `assets/` = imagenes fuente de las profesiones, generadas con Nano Banana usando `--refs`
+  exploracion/ser-ia-fuente.png para consistencia de personaje (funciono: es el mismo ser en las 4).
+- Agregar una profesion nueva = generar imagen con --refs + anadirla al array SHAPES + re-inyectar base64.
+
 ## Que se aparco y por que (resumen; detalle en exploracion/_LEEME.md)
 
 La exploracion del **personaje "ser IA"** (mascota con ojos que se transforma en profesiones) se
