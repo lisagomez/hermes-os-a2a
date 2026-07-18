@@ -32,10 +32,13 @@ concurrency:
 
 jobs:
   reauthor:
-    # Los push de la propia dueña ya despliegan solos. El commit vacio que esta
-    # Action empuja va con GITHUB_TOKEN (pusher github-actions[bot]) y GitHub NO
-    # re-dispara workflows por esos push — doble freno contra bucles.
-    if: github.actor != 'lisagomez' && github.actor != 'github-actions[bot]'
+    # NO filtrar por github.actor (el pusher): Vercel mira al AUTOR del tip, no
+    # a quien empuja — si la dueña empuja commits ajenos (rebase/rescate de una
+    # rama de colaborador), el actor seria ella pero el tip seguiria Blocked.
+    # El step decide comparando el email del autor del tip. Contra bucles: los
+    # push con GITHUB_TOKEN no re-disparan workflows, y este guard es el
+    # cinturon extra.
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
