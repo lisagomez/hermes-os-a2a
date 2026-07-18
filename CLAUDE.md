@@ -873,13 +873,32 @@ npm run lint         # ESLint
   propio PR** → si el agente creó el PR con `lisagomez`, esa cuenta no puede aprobarlo; (c) los
   **4 colaboradores con write** (`HuertaVictor`, `Johann-Valderrama`, `ZELANDIAIO`,
   `makeflowia-lab`) sí pueden aprobar → camino sano.
-- **Bypass (solo con OK explícito de la dueña)**: respaldar la config completa a un JSON
+- **Bypass**: respaldar la config completa a un JSON
   (`gh api .../branches/master/protection`), bajar `required_approving_review_count` a 0 vía
   `gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`, mergear, y
   **RESTAURAR a 1 de inmediato** verificando el estado final. Usado así el 2026-07-14 para PRs
-  #49/#50 con autorización expresa. No es la vía por defecto: debilita la compuerta que
-  `enforce_admins:true` protege.
+  #49/#50 con autorización expresa.
+- **ACTUALIZADO 2026-07-18**: el bypass pasó de excepcional a **vía estándar del agente** por
+  autorización permanente de la dueña — ver el aprendizaje 2026-07-18 (siguiente).
 - **Aplicar en**: todo merge a master. Detalle en `.claude/memory/reference/master-branch-protection.md`.
+
+### 2026-07-18: Autorización PERMANENTE de la dueña — el agente ejecuta los merges (bypass estándar)
+- **ACTUALIZA el 2026-07-14**: Elisa autorizó de forma permanente que el agente genere los
+  merges a master con el procedimiento de bypass, **sin pedir OK por-merge**. Ya no es la
+  excepción: es el flujo estándar de merge de este repo.
+- **Procedimiento (sin desviaciones)**: (1) bajar `required_approving_review_count` a `0`
+  (`gh api -X PATCH .../branches/master/protection/required_pull_request_reviews`);
+  (2) `gh pr merge <n> --merge`; (3) **restaurar a `1` DE INMEDIATO** en el mismo comando/
+  bloque, y (4) verificar el estado final (`reviews:1` + `enforce_admins:true`) — la ventana
+  jamás queda abierta, ni siquiera si el merge falla (restaurar también en el camino de
+  error). Varios PRs listos se mergean en UNA sola ventana (menos exposición). Ojo: mergear
+  el 1º puede des-actualizar al 2º (conflicto nuevo contra el master recién movido, visto
+  con #55/#56) → resolver y reintentar dentro de la misma lógica.
+- **Siguen vigentes**: JAMÁS `git push origin master` directo (todo pasa por PR, también los
+  cambios del propio agente); los PRs de colaboradores se **REVISAN antes** de mergear
+  (patrón PR #58: review + fixes empujados a la rama + merge); y las ramas mergeadas se
+  borran (local y origin).
+- **Aplicar en**: todo merge a master de este repo.
 
 ### 2026-07-15: Meter las migraciones de una superficie en un proyecto Supabase COMPARTIDO — cuidado con `profiles` + el trigger de auth
 - **Contexto**: `frontend-ci` (cabina control-interno) se cableó al proyecto **A2ABot**
