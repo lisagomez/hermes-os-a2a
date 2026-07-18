@@ -909,4 +909,22 @@ npm run lint         # ESLint
   y todo trigger de `auth.users` en proyectos multi-superficie. Ver
   `.claude/memory/project/frontends-control-interno.md`.
 
+### 2026-07-17: Deploy Vercel de una app con paquete local `file:` — tres minas
+- **(1) Upload root ≠ app**: con `file:../design-system` hay que subir el ancestro común
+  (`frontends/`) y fijar Root Directory por **API** (`PATCH /v9/projects/{id}` — el CLI no
+  tiene flag). `vercel deploy` DESDE el subdir se auto-linkea mal (busca `app/app`).
+- **(2) Tipos de React del paquete hermano**: en dev los aporta el `node_modules` de la
+  RAÍZ del monorepo (no viaja a Vercel) → `tsc` falla solo allá. NO mapear `react` en
+  `tsconfig.paths`: Turbopack usa los paths como alias de bundling y revienta apuntando
+  runtime a `@types/`. Fix real: `devDependencies` de tipos en el paquete + installCommand
+  `npm install && npm install --prefix ../design-system` (tipos sí, NUNCA un segundo react
+  → duplicaría la instancia y rompe hooks).
+- **(3) El `.env.local` que `vercel link` crea en el upload root MATA las lambdas**: viaja
+  en el deploy y toda function muere con `failed to load env vars: EnvFileReadError` — 500
+  genérico SIN tocar tu código, mientras la landing estática sigue viva (engaña). El error
+  real solo aparece en `vercel logs` del deployment, no en el build. Fix: borrarlo +
+  `.vercelignore` con `.env*`.
+- **Aplicar en**: todo deploy Vercel desde este monorepo y todo paquete `file:` compartido.
+  Detalle en `businessos/frontends/DEPLOY-web2.md` §0.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
