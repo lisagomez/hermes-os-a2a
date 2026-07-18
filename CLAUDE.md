@@ -927,4 +927,18 @@ npm run lint         # ESLint
 - **Aplicar en**: todo deploy Vercel desde este monorepo y todo paquete `file:` compartido.
   Detalle en `businessos/frontends/DEPLOY-web2.md` §0.
 
+### 2026-07-17: Vercel Hobby bloquea deploys de COLABORADORES en repos privados
+- **Error**: un push de cualquier cuenta que no sea la dueña del proyecto Vercel deja el
+  deploy en **"Blocked"**. NO es fallo de build ni de Root Directory: es restricción del
+  plan Hobby (solo commits autorados por la cuenta dueña despliegan en verde).
+- **Fix (workaround activo)**: `.github/workflows/reauthor-tip-vercel.yml` — si el tip de
+  un push es de un colaborador, agrega un commit VACÍO autorado por la dueña
+  (`lisagomez <lisagomez967@gmail.com>`) y Vercel despliega. Solo ramas ≠ `master`:
+  master no lo necesita (sus merges los ejecuta la cuenta dueña) y su protección
+  (PR + enforce_admins) rechazaría el push de la Action con GH006. Sin bucles: los push
+  con `GITHUB_TOKEN` no re-disparan workflows, y el job además filtra por actor.
+- **Fix definitivo** (si el proyecto escala): **Vercel Pro** + invitar a los colaboradores
+  al Team de Vercel → borrar el workflow (deja de generar commits vacíos).
+- **Aplicar en**: todo proyecto Vercel Hobby conectado a un repo privado con equipo.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
