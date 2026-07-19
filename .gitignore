@@ -81,7 +81,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Reuniones/transcripts privados en la RAIZ del repo (ver inbox-reuniones-negocio-
-# segmentado en OPS). Anclado a la raiz: un `docs/` pelado taparia docs/ rastreados
-# de subproyectos (p.ej. businessos/frontends/control-interno/docs/).
-/docs/
+# docs/ raiz = area de conocimiento COMPARTIDA del equipo (ideas, investigaciones,
+# charlas, articulos). Mapa en docs/_context.md. Lo PRIVADO va en docs/_privado/
+# (ignorado, para reuniones/transcripts u otros no compartibles). Patron anclado a la
+# raiz para no tapar los docs/ rastreados de subproyectos (p.ej. control-interno/docs/).
+/docs/_privado/
