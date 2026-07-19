@@ -18,39 +18,48 @@ mkdir -p "$STATE" /home/hermes/logs
 SNAP=$(docker exec -u hermes hermes-negocio cat /opt/data/workspace/presupuesto.json 2>/dev/null) || {
   echo "=== $(date -Is) alerta-presupuesto: sin snapshot (¿negocio caído?) ===" >> "$LOG"; exit 0; }
 
+# Parsea el snapshot v2: alerta de 80% Y alerta de caché (pct_cache bajo umbral).
 LINEA=$(python3 - <<PY
-import json, sys
+import json
 d = json.loads('''$SNAP''')
-pct = d.get("pct_presupuesto", 0)
-alerta = bool(d.get("alerta_80pct"))
 mes = d.get("mes", "?")
+alerta = int(bool(d.get("alerta_80pct")))
+pct = d.get("pct_presupuesto", 0)
 gasto = d.get("costo_total_usd", 0)
 tope = d.get("presupuesto_usd", 0)
-print(f"{int(alerta)}|{mes}|{pct}|{gasto:.2f}|{tope:.0f}")
+# Aviso de caché: la ingesta v2 pone cache_bajo_umbral={modelo,pct_cache,umbral} o null.
+cb = d.get("cache_bajo_umbral") or {}
+c_alerta = int(bool(cb))
+c_modelo = cb.get("modelo", "")
+c_pct = cb.get("pct_cache", 0)
+c_umbral = cb.get("umbral", 0)
+print(f"{alerta}|{mes}|{pct}|{gasto:.2f}|{tope:.0f}|{c_alerta}|{c_modelo}|{c_pct}|{c_umbral}")
 PY
 ) || { echo "=== $(date -Is) alerta-presupuesto: snapshot ilegible ===" >> "$LOG"; exit 0; }
 
-IFS='|' read -r ALERTA MES PCT GASTO TOPE <<< "$LINEA"
-FLAG="$STATE/alerta80-$MES.sent"
+IFS='|' read -r ALERTA MES PCT GASTO TOPE C_ALERTA C_MODELO C_PCT C_UMBRAL <<< "$LINEA"
 
-if [ "$ALERTA" != "1" ]; then
-  # bajo el umbral: si el mes cambió, los flags viejos ya no estorban (se quedan como historial)
-  exit 0
-fi
-if [ -e "$FLAG" ]; then
-  exit 0  # ya se avisó este mes
+# --- envío deduplicado por flag mensual (helper) ---
+enviar() { # $1=mensaje  $2=flag
+  local msg="$1" flag="$2"
+  [ -e "$flag" ] && return 0                       # ya se avisó este mes
+  if [ "$DRY" = "--dry-run" ]; then
+    echo "=== $(date -Is) alerta DRY-RUN: $msg ===" >> "$LOG"; echo "DRY-RUN OK: $msg"; return 0
+  fi
+  if docker exec hermes-negocio hermes send -t "$ELISA" "$msg" >/dev/null 2>&1; then
+    touch "$flag"; echo "=== $(date -Is) alerta: ENVIADA -> $flag ===" >> "$LOG"
+  else
+    echo "=== $(date -Is) alerta: FALLO el envío -> $flag ===" >> "$LOG"
+  fi
+}
+
+# 1) Presupuesto al 80%
+if [ "$ALERTA" = "1" ]; then
+  enviar "⚠️ Presupuesto de IA: vas en \$$GASTO de \$$TOPE este mes ($PCT%). Cruzaste el 80% — revisa el gasto con 'cómo va el presupuesto' o en Mission Control." "$STATE/alerta80-$MES.sent"
 fi
 
-MSG="⚠️ Presupuesto de IA: vas en \$$GASTO de \$$TOPE este mes ($PCT%). Cruzaste el 80% — revisa el gasto con 'cómo va el presupuesto' o en Mission Control."
-if [ "$DRY" = "--dry-run" ]; then
-  echo "=== $(date -Is) alerta-presupuesto DRY-RUN: $MSG ===" >> "$LOG"
-  echo "DRY-RUN OK: $MSG"
-  exit 0
-fi
-
-if docker exec hermes-negocio hermes send -t "$ELISA" "$MSG" >/dev/null 2>&1; then
-  touch "$FLAG"
-  echo "=== $(date -Is) alerta-presupuesto: ENVIADA ($MES $PCT%) ===" >> "$LOG"
-else
-  echo "=== $(date -Is) alerta-presupuesto: FALLO el envío ===" >> "$LOG"
+# 2) Caché de prefijo bajo umbral (la variable que decide el costo en esta arquitectura;
+#    un drop 97%→60% por churn de SOUL/MEMORY hoy solo se vería en la factura — incidente nemotron).
+if [ "$C_ALERTA" = "1" ]; then
+  enviar "⚠️ Caché de prefijo bajo: el modelo $C_MODELO va en $C_PCT% (umbral $C_UMBRAL%). Cada turno cuesta más — revisa si el SOUL/MEMORY cambió mucho (churn del prefijo)." "$STATE/alerta-cache-$MES.sent"
 fi
