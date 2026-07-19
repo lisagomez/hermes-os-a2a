@@ -126,7 +126,7 @@ const T = {
   streaming(i,tt){ if(i<6){ const bl=(tt%42<26)?1:.22; return {x:CX+150,y:CY+(i-2.5)*5,col:C.bone,a:bl}; }  // CURSOR: barra vertical parpadeante en la SALIDA (la señal "vivo" mas barata, F363)
     const j=i-6, ph=((tt*1.3+j*7)%200)/200;  // goteo continuo del nucleo (izq) a la salida (der); brillo CRECE hacia la salida (antes invertido: brillaba en el origen)
     return {x:lerp(CX-72,CX+140,ph),y:CY+((j%5)-2)*4.4,col:C.bone,a:0.1+ph*0.88}; },
-  desplegar(i,tt){ const ph=((tt*1.1+i*4)%150)/150, fail=(Math.floor(tt/150)%3)===2;  // 1 de cada 3 despliegues FALLA (fail global por tt: toda la columna comparte desenlace)
+  desplegar(i,tt){ const ph=((tt*1.1+i*4)%150)/150, fail=deployFail;  // 1 de cada 3 despliegues FALLA, sorteado al ENTRAR al estado (columna comparte desenlace; antes dependia del reloj global, que ya no corre libre)
     if(fail){
       if(ph<.5){ const e=ph/.5; return {x:CX+((i%7)-3)*5,y:lerp(STRIP_Y-20,CY-84,e*e),col:C.base,a:.5+e*.5}; }  // asciende...
       const e=(ph-.5)/.5; return {x:CX+((i%7)-3)*5+Math.sin(i*7.1)*4*e,y:lerp(CY-84,STRIP_Y-6,e*e),col:C.bad,a:1-e*.4}; }  // ...y CAE en rojo, acelerando hacia abajo
@@ -137,7 +137,17 @@ const T = {
 
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let t=0,state='pensar',progMode='bar',auto=true,prog=.12,autoT=0,cycT=0,cycI=0;  // default BARRA (info funcional pide estabilidad); Ciclo = showcase
+// duracion de auto-avance POR ESTADO (frames, ~60fps): SIEMPRE >= 2 vueltas completas de la animacion propia
+// (PERIOD, leido de la formula real de cada T[s]) y >= MIN_DUR (3s), lo que sea mayor. bloqueado/confirmado/
+// herramienta no tienen "vuelta" agrupada (estatico o continuo) -> solo aplica el piso.
+const MIN_DUR=3*60;
+const PERIOD={ pensar:2*Math.PI/.03, leer:36*7/2.2, recolectar:210/.9, escribir:(WRITE_SLOTS.length+46)/1.1,
+  construir:(BUILD_SLOTS.length+64)/.4, limpiar:(N+50)/.5, negociar:170/.9, esperar:2*Math.PI/.03,
+  buscar:1/.0038, planear:12/.06, verificar:(6*15)/.7, reintentar:2*Math.PI/.07, enrutar:3/.02,
+  streaming:200/1.3, desplegar:150/1.1 };
+const LOOP_MULT={ construir:1.5, limpiar:1.5 };  // los 2 mas largos (~8s/vuelta): 1.5 vueltas basta, 2 los infla a 16-17s cada uno
+const AUTO_DUR={}; STATES.forEach(s=>{ const m=LOOP_MULT[s]||2; AUTO_DUR[s]=Math.max(MIN_DUR, PERIOD[s]?Math.ceil(m*PERIOD[s]):MIN_DUR); });
+let t=0,stateT=0,state='pensar',progMode='bar',auto=true,prog=.12,autoT=0,cycT=0,cycI=0,deployFail=false;  // default BARRA (info funcional pide estabilidad); Ciclo = showcase
 const CYCLE=['bar','pct','counter'];
 let transT=999; const TRANS_FRAMES=42;  // ease-in de la persecucion tras un cambio de estado (transicion suave, no salto brusco)
 const parts=[]; for(let i=0;i<N;i++)parts.push({x:Math.random()*W,y:Math.random()*(STRIP_Y-10),c:Math.random()<.5?'0':'1',f:(Math.random()*160)|0,s:.06+Math.random()*.06});
@@ -151,13 +161,13 @@ function drawStrip(){ const m=progMode==='cycle'?CYCLE[cycI]:progMode; if(m==='o
   } else { const tot=7,n=Math.round(prog*tot);ctx.textAlign='center';ctx.font='700 20px "JetBrains Mono",monospace';ctx.fillStyle=C.base;ctx.fillText(n+' / '+tot,CX,cy); }
   ctx.restore(); }
 
-function frame(){ t++; prog+=.0016; if(prog>1)prog=0;
-  if(auto&&++autoT>210){autoT=0;setState(STATES[(STATES.indexOf(state)+1)%STATES.length],false);}
+function frame(){ t++; stateT++; prog+=.0016; if(prog>1)prog=0;
+  if(auto&&++autoT>AUTO_DUR[state]){autoT=0;setState(STATES[(STATES.indexOf(state)+1)%STATES.length],false);}
   if(progMode==='cycle'&&++cycT>360){cycT=0;cycI=(cycI+1)%CYCLE.length;}  // showcase rota cada ~6s (estudio: formato estable, cambio ocasional)
   ctx.clearRect(0,0,W,H); ctx.font='11px "JetBrains Mono",monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
   const fn=T[state]; transT++;
   const chaseMul=transT<TRANS_FRAMES?.28+.72*ease(Math.min(1,transT/TRANS_FRAMES)):1;
-  for(let i=0;i<N;i++){ const p=parts[i],g=fn(i,t); p.x+=(g.x-p.x)*p.s*chaseMul; p.y+=(g.y-p.y)*p.s*chaseMul;
+  for(let i=0;i<N;i++){ const p=parts[i],g=fn(i,stateT); p.x+=(g.x-p.x)*p.s*chaseMul; p.y+=(g.y-p.y)*p.s*chaseMul;
     if(--p.f<0){p.f=40+(Math.random()*150|0);p.c=g.dirty?GLITCH[(Math.random()*GLITCH.length)|0]:(Math.random()<.5?'0':'1');}
     if(g.dirty&&'01'.includes(p.c))p.c=GLITCH[(Math.random()*GLITCH.length)|0];
     if(!g.dirty&&!'01'.includes(p.c))p.c=Math.random()<.5?'0':'1';
@@ -165,13 +175,14 @@ function frame(){ t++; prog+=.0016; if(prog>1)prog=0;
     ctx.globalAlpha=g.a*(reduce?.9:(.78+.22*Math.sin(t*.05+i))); ctx.shadowBlur=br?8:0; ctx.shadowColor=br?g.col:'transparent';
     ctx.fillStyle=g.col; ctx.fillText(p.c,p.x+jx,p.y+jy); }
   ctx.shadowBlur=0; ctx.globalAlpha=1;
-  if(state==='leer'){ const cols=36,sx=CX-cols*3.5+((t*2.2)%(cols*7));
+  if(state==='leer'){ const cols=36,sx=CX-cols*3.5+((stateT*2.2)%(cols*7));
     ctx.strokeStyle='rgba(236,72,153,.5)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx,CY-58);ctx.lineTo(sx,CY+56);ctx.stroke(); }
-  else if(state==='verificar'){ const cols=36,rows=6,rowH=15,sy=CY-52+((t*0.7)%(rows*rowH));
+  else if(state==='verificar'){ const cols=36,rows=6,rowH=15,sy=CY-52+((stateT*0.7)%(rows*rowH));
     ctx.strokeStyle='rgba(251,191,36,.55)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(CX-cols*3.5,sy);ctx.lineTo(CX+cols*3.5,sy);ctx.stroke(); }
   drawStrip(); requestAnimationFrame(frame); }
 
-function setState(s,manual){ state=s; transT=0; document.querySelectorAll('#states button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+function setState(s,manual){ state=s; transT=0; autoT=0; stateT=0; if(s==='desplegar')deployFail=Math.random()<1/3;  // reloj propio del estado arranca en 0: la animacion siempre empieza desde el inicio
+  document.querySelectorAll('#states button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   document.getElementById('lbl').textContent=LABEL[s][0]; document.getElementById('sub').textContent=LABEL[s][1];
   if(manual){auto=false;const a=document.getElementById('auto');a.textContent='▶ Auto';a.classList.remove('on');} }
 
