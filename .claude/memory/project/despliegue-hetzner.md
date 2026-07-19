@@ -127,3 +127,47 @@ Dos hallazgos al perder la llave desde la máquina de dev:
    (VNC, no es SSH → `PermitRootLogin no` no la bloquea) → `passwd hermes` temporal →
    `ssh-copy-id` desde dev → volver a bloquear. Procedimiento completo en la memoria personal
    `acceso-hetzner`. La cuenta de Hetzner es el único punto de falla real: **2FA pendiente**.
+
+## 2026-07-19: `/home/hermes/repo` ahora es un CHECKOUT GIT (antes era un snapshot muerto)
+
+**El problema que resolvió:** el código del stack vivía en `/home/hermes/repo` como un **snapshot
+plano SIN `.git`** (mirror completo del repo: root + `businessos/` + `.claude/`). Actualizar exigía
+`rsync`/`scp` manual de cada archivo (así se desplegó chat-web2). Peor: el snapshot estaba **632
+archivos / ~9 días desfasado de master** → el server construía casi todo desde código viejo. Y los
+host-jobs vivían **duplicados** en `~/bin/` (copias, no symlinks; alguna ya divergía).
+
+**La reestructura (para que actualizar = `git pull`):**
+1. **Git-ificado `/home/hermes/repo` en sitio, NO destructivo**: `git init` + remote read-only
+   (`git@github-hermes-os:...` con la llave `~/.ssh/hermes_os_ro`) + `fetch` + `reset --mixed`
+   (esto NO toca el working tree, solo establece tracking) → `git status` reveló el desfase.
+   Con backup (`~/repo-snapshot-pre-restructure-*.tgz`) + verificado que **ningún contenedor
+   bind-montea el repo salvo `grafo-db` (solo `grafo/seed → /docker-entrypoint-initdb.d`, que
+   corre solo en el PRIMER init de postgres; la DB ya estaba inicializada)** → `git reset --hard
+   origin/master`. El `.env` es untracked → sobrevive intacto (token OK).
+2. **`~/bin/` → symlinks al repo** (fuente única). Los 7 scripts (`backup-verticales`,
+   `nightly-jobs`, `weekly-jobs`, `alerta-presupuesto`, `alerta-fetch-trio`, `publicar-rama`,
+   `inject-presupuesto`) quedaron byte-idénticos a master tras el reset, así que symlinkear fue
+   cero-cambio. Ninguno usa rutas relativas a `$0` (verificado). El crontab sigue apuntando a
+   `~/bin/*.sh`; ahora siguen el symlink al repo.
+
+**Flujo de actualización AHORA (fácil):**
+```bash
+git -C /home/hermes/repo pull                       # trae master (llave RO)
+cd /home/hermes/repo/businessos
+docker compose --profile a2a --profile edge up -d --build <servicio>   # rebuild deliberado
+```
+
+**Gotchas / lo que NO cambió:**
+- **Los contenedores corriendo siguen en el build PRE-reset** (Jul-10 era): el reset actualizó el
+  *source*, no las imágenes. Reconciliar = `docker compose up -d --build` **deliberado por
+  servicio** (traer 9 días de master a todos de golpe es un deploy con blast radius — hacerlo a
+  conciencia, no como efecto colateral). El server FUNCIONA como está; el rebuild es opcional.
+- `.dockerignore` (root) ya excluye `.git`/`node_modules`/`.claude`/`businessos` → el build
+  context de a2abot (`context: ..`) no se infla con el nuevo `.git`.
+- **El clon del trío `/home/hermes/trio/hermes-os-a2a` es SEPARADO** (su propio git, con worktrees
+  vivos; un cron le hace `fetch` cada 5 min). NO se tocó — "aislar, no fundir". Su checkout local
+  sigue en un commit viejo, pero eso es concern del trío, no del stack.
+- Cruft untracked en el repo (`.env.save`, `*.bak`, `backup-negocio.sh`, `test_cola.py`): inofensivo,
+  no estorba a `git pull`. `.env.save` puede tener tokens viejos → higiene menor pendiente.
+- Remote de solo-LECTURA a propósito (llave RO): este checkout **no debe** pushear; todo cambio
+  entra por PR a master y baja por `git pull`.
