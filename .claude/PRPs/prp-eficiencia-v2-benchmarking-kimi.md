@@ -203,7 +203,40 @@ Costo del piloto medido.
 
 > Crece con cada error durante la implementación. El mismo error NUNCA ocurre dos veces.
 
-*(vacío — se llena al ejecutar con `/bucle-agentico`)*
+### Ejecución 2026-07-19 (Fases 1-3 hechas; Fase 4 pendiente)
+
+**Fase 1 — Analizador v2 ✅ (producción, PR #85).** ingest-token-usage v2 (buffer al host,
+exit ruidoso verificado con break-sim → exit 2, caché de precios en ~/state con fallback,
+snapshot v2 con pct_cache/costo_promedio_por_turno/pct_no_observado) + alerta v2 (umbral de
+caché). Desplegado por `git pull` (la reestructura del server 2026-07-19 hizo el repo un
+checkout git). **Hallazgo:** el pct_cache AGREGADO real es **~45%** (no 97% del mejor-caso
+por-llamada) → umbral de alerta default 25% (detecta colapso, no varianza). La brecha
+`pct_no_observado` se mide el próximo run del mes (el 1º solo fija el ancla de total_usage).
+
+**Fase 2 — arena-watch ✅ (producción, PRs #88/#89, cron semanal en weekly-jobs.sh).**
+Estructura REAL del mirror: `data/latest.json` es un PUNTERO `{date,path}` → `data/<fecha>/code.json`
+`{meta.fetched_at, models:[{model,score=Elo}]}`. Matching arena↔OpenRouter por "squish"
+(quita `(max)`/`-thinking`/no-alfanuméricos). Dedupe verificado. Nota real emitida:
+glm-5.2 y grok-4.5 cruzan el doble umbral vs sonnet.
+
+**Fase 3 — Probe + adopción ✅ (PRs #90/#92).** Probes corridos con OK de Elisa:
+- `z-ai/glm-5.2`: idioma+tools ✅ + **caché 70%** (DeepInfra) → APTO PLENO.
+- `moonshotai/kimi-k2.7-code`: idioma+tools ✅ pero **caché 0%** (Inceptron). **Gotcha del
+  PRP CONFIRMADO en vivo**: OpenRouter NO aplica el cache-hit de Moonshot para K2.7 → empata
+  con Sonnet, sin ahorro → DESCARTADO para la pesada.
+- **Decisión (aplicada):** curator + kanban_decomposer → `z-ai/glm-5.2` en las 3 verticales
+  (vision se queda en Sonnet). ~2.2× más barato REAL. Rollback en DECISIONES.md 2026-07-19.
+
+**Fase 4 — Piloto Kimi Code ⏸️ PENDIENTE (decisión de la dueña: dejarlo pendiente).**
+Hallazgo clave: **Hermes NO trae CLI de Kimi Code** — solo `claude` (Claude Code) en
+ejecutor/coordinador (el motor del trío). Camino recomendado SIN instalar nada: reusar el
+motor del trío (`ClaudeAgentEngine` honra `ANTHROPIC_BASE_URL`, igual que el seam de GLM)
+apuntando al endpoint **Anthropic-compatible de Moonshot** + `modelo_pref` Kimi → "Kimi Code"
+= harness Claude Code + cerebro Kimi. **Ventaja:** la API DIRECTA de Moonshot SÍ tiene el
+cache-hit que faltaba vía OpenRouter (resuelve el costo). **Trade-off:** mide el modelo Kimi,
+no el harness propio de Kimi Code (plan mode/subagentes). **Bloqueado en:** API key de Moonshot.
+Alternativa: instalar el CLI propio de Kimi Code (evalúa también su harness). El spec de la
+sub-tarea acotada aún sin escribir.
 
 ---
 
