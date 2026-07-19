@@ -6,9 +6,17 @@ const CLAUDECLAW_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN ?? '';
 // Turnos largos del agente: sin esto Vercel corta el stream en el límite default.
 export const maxDuration = 300;
 
+// Historial multi-turno: lo mantiene el widget en el cliente y lo reenvía cada
+// turno (el daemon es stateless). Acotado para no inflar el payload.
+const Turn = z.object({
+  role: z.enum(['user', 'agent']),
+  text: z.string().max(2000),
+});
+
 const Body = z.object({
   message: z.string().trim().min(1).max(2000),
   source: z.string().max(60).optional(),
+  history: z.array(Turn).max(16).optional(),
 });
 
 /** Emite un SSE mínimo (degradación elegante) cuando el chat no está disponible. */
@@ -46,7 +54,11 @@ export async function POST(request: Request) {
     const upstream = await fetch(`${CLAUDECLAW_URL}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CLAUDECLAW_TOKEN}` },
-      body: JSON.stringify({ message: parsed.message, source: parsed.source ?? 'web2-landing' }),
+      body: JSON.stringify({
+        message: parsed.message,
+        source: parsed.source ?? 'web2-landing',
+        history: parsed.history ?? [],
+      }),
       signal: request.signal,
     });
 

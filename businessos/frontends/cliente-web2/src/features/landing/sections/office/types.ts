@@ -30,6 +30,9 @@ export interface AgentRender {
   y: number;
   /** índice actual sobre agent.demo */
   lineIdx: number;
+  /** true si el agente mira a la izquierda (sprite espejado). Lo calcula el motor
+   *  al mover —donde conoce la x previa—, para que el render sea puro (sin refs). */
+  mirror: boolean;
 }
 
 /** Estado completo de la oficina, indexado por agent.id. */

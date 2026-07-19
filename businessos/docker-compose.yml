@@ -266,6 +266,32 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- CHAT-WEB2 (chat de venta de la landing, Fase 11) ----------
+  # Daemon del chat de la landing cliente-web2. Implementa POST /chat/stream (SSE)
+  # que el frontend en Vercel llama a traves del edge Caddy (unica ruta publica del
+  # daemon). NO es el agente Hermes privado: es un vendedor LLM acotado por prompt
+  # (OpenRouter, modelo barato). Captura leads (origen 'web2') igual que la route
+  # /api/leads del frontend. Auth Bearer OPENCLAW_GATEWAY_TOKEN (compartido con
+  # Vercel; falla cerrado si no esta configurado). Solo 127.0.0.1:4500 para
+  # inspeccion local; publico SOLO via edge.
+  chat-web2:
+    build: ./chat-web2
+    container_name: chat-web2
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4500:4500"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - CHAT_MODEL=${CHAT_MODEL:-google/gemini-2.5-flash-lite}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   # ---------- EDGE (proxy publico, gate de la dueña abierto 2026-07-10) ----------
   # La UNICA pieza que publica un puerto en 0.0.0.0: Caddy con TLS automatico
   # (Let's Encrypt) + rate limiting (30 req/min por IP), delante de ventas-a2a
