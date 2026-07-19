@@ -105,3 +105,35 @@ El default (nemotron) nunca se tocó.
   lee presupuesto.json del volumen vía docker exec; al cruzar 80% manda UN push
   a Elisa con `hermes send` (dedupe: flag mensual en ~/state). --dry-run para probar.
 - Solo queda como futuro el auto-tuner (evals + OK humano).
+
+## 2026-07-19: Analizador v2 (PRP-002 Fase 1) — telemetría fiable, EN PRODUCCIÓN
+
+`ingest-token-usage.py` v2 + `alerta-presupuesto.sh` v2 (PR #85), desplegados por
+`git pull` (reestructura del server) y verificados en Hetzner con las 3 verticales:
+
+- **Caché de precios** en `~/state/openrouter-models.json` con fallback al último bueno
+  (el endpoint OR puede fallar a las 03:10); `precios_fuente` visible en el snapshot.
+- **Exit ruidoso**: si el agent.log tiene líneas `API call #` pero 0 matchean el regex,
+  sale `≠0` (antes fallaba EN SILENCIO ante un cambio de formato de Hermes). Verificado
+  con break-sim genuino (docker falso → exit 2, sin tocar la DB).
+- **Buffer** del agent.log al host antes de parsear (`~/state/agentlog-<vert>-<fecha>.txt`).
+- **Snapshot v2** (`presupuesto.json`): `por_modelo` con `pct_cache` y
+  `costo_promedio_por_turno`; `pct_no_observado` (reconciliación mensual vs gasto real de
+  OpenRouter vía delta de `total_usage` en `~/state/or-usage-ledger.json` — degrada honesto
+  con nota si falta el dato, NUNCA inventa); `cache_bajo_umbral` para la alerta.
+- **Alerta v2**: además del 80% de presupuesto, avisa si el caché de prefijo cae bajo umbral
+  (dedupe mensual propio). El caché es la variable que decide el costo (incidente nemotron).
+
+**Hallazgo medido (importante para calibrar):** el `pct_cache` AGREGADO del día es **~45%**
+(haiku 44%, gemini-lite 48%), NO el 97% del mejor-caso por-llamada (que incluía solo la 2ª
+llamada con prefijo idéntico). El agregado incluye las 1as llamadas sin caché de cada
+conversación. Por eso el umbral de alerta default es **25%** (detecta un COLAPSO tipo
+nemotron, no la varianza normal) — configurable con `PCT_CACHE_MIN`.
+
+**Pendiente de la fase (no bloqueante):** la brecha `pct_no_observado` estará medida en el
+próximo run del mes (el 1er run solo fija el ancla de `total_usage`); anotar su valor y la
+decisión que dispara (<10% cosmética / ≥30% instrumentar las aux) cuando haya dato.
+Invariantes INTACTOS: idempotencia delete+insert, jamás tocar filas con `task_id`.
+
+Fases 2-4 del PRP-002 (arena-watch, probe-kimi, piloto Kimi↔Opus): construidas/pendientes
+según gates de la dueña. Ver `.claude/PRPs/prp-eficiencia-v2-benchmarking-kimi.md`.
