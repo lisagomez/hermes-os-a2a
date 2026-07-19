@@ -21,15 +21,19 @@ desplegar. Paleta en el bloque `PALETTE`/`PALETA` (una sola fuente por archivo, 
 ## Personaje "ser IA" (DES-APARCADO 2026-07-18, mismo dia): linea ser-ia.vN
 
 Tras validar image-to-particles con el reto (demo en exploracion/), Johann aprobo continuar. Linea viva:
-- `ser-ia.v1.html` = personaje COMPLETO con transformaciones (autocontenido ~8 MB, 4 imagenes embebidas
-  en base64, doble clic): reposo solido respirando -> disolucion FUERTE en 1s/0s con los OJOS brillando
-  sin dispersarse -> rearmado como profesion (Medico / Ing. de Sistemas / Financiero), chips + auto.
-  Particulas muestreadas de las imagenes (color real por pixel); ojos = pixeles ambar en la mitad
-  superior (~367 por forma, verificado con decodificador PNG en Node; el $ dorado del financiero
-  clasifica como cuerpo y se disuelve).
-- `assets/` = imagenes fuente de las profesiones, generadas con Nano Banana usando `--refs`
-  exploracion/ser-ia-fuente.png para consistencia de personaje (funciono: es el mismo ser en las 4).
-- Agregar una profesion nueva = generar imagen con --refs + anadirla al array SHAPES + re-inyectar base64.
+- `ser-ia.v2.html` = ACTUAL: el ser + los **8 agentes A2A reales** del registro de la landing
+  (espejo de `businessos/frontends/cliente-web2/src/features/landing/agents.ts`): VENDO-1, FLUJO-7,
+  ORACULO, LEDGER-X, MUSA-3, EMPATIA-2, CUSTODIO, TESORO. Autocontenido ~12 MB (9 imagenes base64 con
+  mime por magic bytes), doble clic. Reposo solido respirando -> disolucion FUERTE en 1s/0s con los
+  OJOS brillando sin dispersarse -> rearmado como el agente, con nombre+rol en pantalla, chips + auto.
+  Ritmo calibrado: transicion 1.7s + pausa 4.5s (investigacion ambiental). Ojos = pixeles naranja
+  (r>140,g>60,b<130) en la mitad superior (~180 por forma, verificado con decodificador PNG en Node;
+  el b<130 excluye el headset rosa de EMPATIA-2 y el catchlight).
+- `historial/ser-ia.v1.html` = version previa (3 profesiones genericas medico/ingeniero/financiero).
+- `assets/` = las 8 imagenes de agentes, generadas con Nano Banana `--refs`
+  exploracion/ser-ia-fuente.png (consistencia de personaje verificada visualmente en las 8).
+- Agregar un agente nuevo = generar imagen con --refs + anadirlo al array SHAPES + re-inyectar base64.
+- Pendiente produccion: version React debe respetar prefers-reduced-motion del VISITANTE.
 
 ## Que se aparco y por que (resumen; detalle en exploracion/_LEEME.md)
 
