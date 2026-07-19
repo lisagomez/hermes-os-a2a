@@ -5,6 +5,25 @@
 > critica de Johann a Pixel Agents (pixelagent.space): es tierno pero cuesta ver que hace cada agente,
 > si trabaja y en que, cuanto lleva, si esta idle, que agente es (especialidad).
 
+## META (el norte, por encima de toda la inspiracion de este documento)
+
+**El objetivo final, sin ambiguedad (Johann, 2026-07-19):** que crear y administrar un agente sea
+PRACTICO y AMIGABLE para TODA la familia, TODAS las edades, TODOS los gustos. La vara ya fijada en
+el Principio rector se mantiene (un nino de 10 anios deberia poder) y se extiende: cubrir todos los
+gustos con exactamente 2 versiones, no una por cada referencia mencionada en este doc:
+- **Version practica/ligera** (tipo juego, el mundo casual pixel/cenital): simple, calida, sin
+  curva de aprendizaje.
+- **Version dura/hardcore** (el panel analitico tipo tmux/bolsa): datos densos, numeros, texto.
+
+**Todo lo demas de este documento (Pixel Agents, AgentCraft, The Sims, Factorio, RimWorld, Oxygen
+Not Included, Frostpunk, Manor Lords, Against the Storm, Europa Universalis IV, tmux, la bolsa de
+valores) es INSPIRACION, no la meta.** Ninguno de esos juegos o herramientas se copia completo; cada
+uno aporto UNA idea puntual (legibilidad, mapa=filesystem, escalera de autonomia, barras de
+necesidad, vista de comandante...) que se adapta al objetivo de arriba. Regla de descarte: si una
+idea de inspiracion compromete "facil para toda la familia" (ej. exige alfabetizacion de gamer), se
+descarta, sin importar cuan buena sea en su juego original. Ya se aplico una vez (seccion "Principio
+rector": se retracto el ciclo tipo RTS de AgentCraft por esta misma razon).
+
 ## Tesis: legibilidad operativa (el hueco de Pixel Agents)
 
 Pixel Agents resolvio la **visibilidad tierna** (agentes como coworkers en una oficina acogedora). El
