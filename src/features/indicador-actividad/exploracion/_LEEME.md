@@ -2,7 +2,7 @@
 
 > Nada de esta carpeta esta en la linea de producto. Se conserva porque documenta QUE se probo,
 > QUE veredicto tuvo y POR QUE, para que un agente futuro no repita el mismo camino. La linea viva
-> es `../enjambre-binario.v3.html` (+ `../enjambre-engine.ts` + `../enjambre-binario.tsx`).
+> es `../enjambre-binario.v4.html` (+ `../enjambre-engine.ts` + `../enjambre-binario.tsx`).
 
 ## La leccion mas importante (leer antes de retomar el personaje)
 

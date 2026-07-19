@@ -114,7 +114,7 @@ const T = {
     return {x:lerp(sc.x,nd.x,al),y:lerp(sc.y,nd.y,al),col:lit?C.hot:C.base,a:.55+.4*al}; },
   herramienta(i,tt){ const a=i*2.399+tt*.14,r=22+(i%3)*7; return {x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r,col:C.alt,a:.8+.2*Math.sin(tt*.1+i)}; },
   verificar(i,tt){ const cols=36,rows=6,rowH=15,gx=CX-cols*3.5+(i%cols)*7,gy=CY-52+((i/cols)|0)*rowH,
-    scanY=CY-52+((tt*1.2)%(rows*rowH)),done=gy<scanY,at=Math.abs(gy-scanY)<7.5;
+    scanY=CY-52+((tt*0.7)%(rows*rowH)),done=gy<scanY,at=Math.abs(gy-scanY)<7.5;
     return {x:gx,y:gy,col:at?C.warn:(done?C.ok:C.base),a:at?1:(done?.85:.5)}; },
   reintentar(i,tt){ const c=(1-Math.cos(tt*.07))/2,r=(18+(i%6)*10)*(.15+c*.95),a=i/N*6.283+tt*.02;
     return {x:CX+Math.cos(a)*r*1.4,y:CY+Math.sin(a)*r*.75,col:c>.85?C.ok:C.warn,a:.5+.4*c}; },
@@ -158,7 +158,7 @@ function frame(){ t++; prog+=.0016; if(prog>1)prog=0;
   ctx.shadowBlur=0; ctx.globalAlpha=1;
   if(state==='leer'){ const cols=36,sx=CX-cols*3.5+((t*2.2)%(cols*7));
     ctx.strokeStyle='rgba(236,72,153,.5)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx,CY-58);ctx.lineTo(sx,CY+56);ctx.stroke(); }
-  else if(state==='verificar'){ const cols=36,rows=6,rowH=15,sy=CY-52+((t*1.2)%(rows*rowH));
+  else if(state==='verificar'){ const cols=36,rows=6,rowH=15,sy=CY-52+((t*0.7)%(rows*rowH));
     ctx.strokeStyle='rgba(251,191,36,.55)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(CX-cols*3.5,sy);ctx.lineTo(CX+cols*3.5,sy);ctx.stroke(); }
   drawStrip(); requestAnimationFrame(frame); }
 
