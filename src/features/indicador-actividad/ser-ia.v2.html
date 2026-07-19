@@ -44,16 +44,16 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse=matchMedia('(pointer:coarse)').matches;
 const GRID=coarse?120:160, CAP=coarse?6500:12000, EYE_N=420;
 // espejo de businessos/frontends/cliente-web2/src/features/landing/agents.ts (los 8 A2A Cards)
-const SHAPES=[
+const SHAPES=[   // nombres y roles EXACTOS del registro de main: cliente-web2/src/features/landing/agents.ts
   {key:'ser',      label:'un ser',    sub:'se transforma en el agente que necesitas', el:'imgSer'},
-  {key:'vendo',    label:'VENDO-1',   sub:'Comercial / CRM',        el:'imgVendo'},
-  {key:'flujo',    label:'FLUJO-7',   sub:'Operaciones / Logistica',el:'imgFlujo'},
-  {key:'oraculo',  label:'ORACULO',   sub:'Datos / Analitica',      el:'imgOraculo'},
-  {key:'ledger',   label:'LEDGER-X',  sub:'Web3 / Pagos on-chain',  el:'imgLedger'},
-  {key:'musa',     label:'MUSA-3',    sub:'Marketing / Contenido',  el:'imgMusa'},
-  {key:'empatia',  label:'EMPATIA-2', sub:'Soporte / Atencion',     el:'imgEmpatia'},
-  {key:'custodio', label:'CUSTODIO',  sub:'Legal / Compliance',     el:'imgCustodio'},
-  {key:'tesoro',   label:'TESORO',    sub:'Finanzas / Presupuesto', el:'imgTesoro'},
+  {key:'vendo',    label:'VENDO-1',   sub:'Comercial / CRM',         el:'imgVendo'},
+  {key:'flujo',    label:'FLUJO-7',   sub:'Operaciones / Logística', el:'imgFlujo'},
+  {key:'oraculo',  label:'ORÁCULO',   sub:'Datos / Analítica',       el:'imgOraculo'},
+  {key:'ledger',   label:'LEDGER-X',  sub:'Web3 / Pagos on-chain',   el:'imgLedger'},
+  {key:'musa',     label:'MUSA-3',    sub:'Marketing / Contenido',   el:'imgMusa'},
+  {key:'empatia',  label:'EMPATÍA-2', sub:'Soporte / Atención',      el:'imgEmpatia'},
+  {key:'custodio', label:'CUSTODIO',  sub:'Legal / Compliance',      el:'imgCustodio'},
+  {key:'tesoro',   label:'TESORO',    sub:'Finanzas / Presupuesto',  el:'imgTesoro'},
 ];
 let W=0,H=0,dpr=1, parts=[], t=0, raf=0, last=performance.now(), frames=0;
 let curA=0, curB=0, p=1, hold=0, auto=true, autoIdx=0;
