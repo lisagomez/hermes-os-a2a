@@ -175,6 +175,25 @@ como redundancia barata); PR a master con los 3 Dockerfiles + compose.
   `estado=in.(encolada,en_ejecucion,en_revision)`. (4) `escalada` es terminal (no se re-corre);
   `en_ejecucion` sí se recupera y re-corre.
 
+### 2026-07-18: Fase 4 (dogfood real) — uid validado; OOM arreglado; baseline rojo destapado
+- **Dogfood 1** (`dogfood-uid1000-1`, GLM, ~54k tokens): chain end-to-end LIMPIO como uid 1000
+  (worktree owned 1000, 0 objetos root, gates EJECUTARON —no `no_ejecutable`—, veredicto escrito,
+  token_usage con fila, fetch host verde). Veredicto `rechazado`, pero por **OOM**: `npm run build`/
+  `typecheck` crashearon con SIGABRT/exit 134 (V8) contra el límite de **1G** del contenedor.
+- **Fix OOM**: subí los 3 servicios del trío a **memory: 2G** en docker-compose.yml (el trío es
+  serial, el server tiene 8G → margen). Validado: `OOMKilled=false`, los gates corren completos.
+- **Dogfood 2** (`dogfood-uid1000-2`, 2G, ~54k tokens): sin OOM, pero **sigue `rechazado` — ahora
+  por errores REALES y PRE-EXISTENTES del repo base**: `build` falla importando `@a2a/design-system`
+  (no resuelve) y `typecheck` da `TS7006` (implicit any) en `businessos/frontends/control-interno/
+  src/shared/stores/tasks-store.ts`. Los introdujo el merge del frontend (PR #51/#52). El `clamp`
+  de GLM no es el problema; lo tira el baseline.
+- **Conclusiones**: (1) PRP-011 (uid 1000) queda **validado a fondo** — el rechazo NUNCA fue por el
+  uid. (2) El OOM era un límite de memoria, ya corregido. (3) **HALLAZGO SEPARADO**: hoy el trío
+  **rechaza toda tarea** porque el repo base no pasa sus propios gates; además el gate typechea TODO
+  el monorepo (alcance demasiado amplio: frontends ajenos a la tarea). Para un "aprobado" hace falta
+  (a) dejar el baseline verde y/o (b) acotar el alcance de los gates al scaffold de la tarea. Fuera
+  del scope de PRP-011.
+
 ### 2026-07-18: El smoke TIER 3 estaba stale respecto a la cola (PRP-010)
 - **Error**: `smoke-trio/runtime.py::tier3_trio` leía `veredicto` de la respuesta A2A, pero
   con la cola (PRP-010) el Ejecutor responde un ack `{encolada, posicion}` y el veredicto llega

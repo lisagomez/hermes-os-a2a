@@ -332,7 +332,9 @@ services:
     networks: [hermes-net]
     deploy:
       resources:
-        limits: { cpus: "1.0", memory: 1G }
+        # 2G (subido de 1G, PRP-011 Fase 4): `next build`/`tsc` de los gates hacen OOM
+        # (SIGABRT/V8) a 1G. El trío es serial y el server tiene 8G → hay margen.
+        limits: { cpus: "1.0", memory: 2G }
 
   # ---------- COORDINADOR-A2A (enjambre, Fase 7) ----------
   # Servicio HERMANO del trio ("aislar, no fundir"): descompone una feature
@@ -375,7 +377,9 @@ services:
     networks: [hermes-net]
     deploy:
       resources:
-        limits: { cpus: "1.0", memory: 1G }
+        # 2G (subido de 1G, PRP-011 Fase 4): la verificación final del enjambre corre gates
+        # con `next build`/`tsc`, que hacen OOM a 1G. El trío es serial → margen en 8G.
+        limits: { cpus: "1.0", memory: 2G }
 
   # ---------- SUPERVISOR-A2A (trio, Fase 6) ----------
   # Independencia FISICA del Ejecutor (proceso/contenedor/contexto): recibe el
@@ -407,7 +411,10 @@ services:
     networks: [hermes-net]
     deploy:
       resources:
-        limits: { cpus: "1.0", memory: 1G }
+        # 2G (subido de 1G, PRP-011 Fase 4): el Supervisor corre los gates `npm run build`
+        # (next build) y `typecheck` (tsc), que hacen OOM (SIGABRT/V8) a 1G → rechazo espurio.
+        # Aquí ocurrió el OOM del dogfood. El trío es serial y el server tiene 8G → hay margen.
+        limits: { cpus: "1.0", memory: 2G }
 
   # Postgres propio del grafo. El seed corre via initdb SOLO con volumen virgen:
   # reseed = docker compose down && docker volume rm businessos_grafo-db-data
