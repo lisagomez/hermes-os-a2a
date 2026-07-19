@@ -53,8 +53,17 @@ temas `estados-actividad-agente-enjambre` (F363) y `diseno-ser-ia-amigable-rostr
   para un hero de fondo (demos en `exploracion/`).
 - Web3 = eje APARTE. Encaja en el estado `confirmado` (on-chain/txHash); se conecta cuando exista esa capa.
 
-## Promocion a producto (siguiente paso cuando se retome)
+## Promocion a producto: INTEGRACION EN PAUSA (2026-07-18, decision de Johann)
 
-Montar `<EnjambreBinario>` donde se muestre actividad del agente (cola / dashboard), correr
-`npm install` + `npm run dev` y verificar con Playwright. Reglas del repo: kebab-case, PascalCase en
-componentes, sin `any`, <500 lineas/archivo.
+Los prototipos estan APROBADOS y en el repo (PR #74 abierto: calibracion visual + iconos, encima del
+#73 ya mergeado). La integracion al producto NO esta cableada ni decidida: Johann la deja en pausa
+("no tengo claro donde va cada pieza"). Reparto CANDIDATO (a decidir con Elisa, es producto de ambos):
+
+| Pieza | Hogar candidato | Condiciones / bloqueos |
+|---|---|---|
+| **ser-IA** (personaje) | Hero de la landing `cliente-web2` (reemplaza el orbe "agent" de `NetworkMini` en la columna derecha del Hero) | (1) Es la superficie DESPLEGADA de Elisa en Vercel y solo ella despliega (proyecto no conectado a GitHub; deploys de colaboradores "Blocked" en Hobby, ver `businessos/frontends/DEPLOY-web2.md`). (2) Elisa fue por estetica PIXEL (PR #67, OfficeSim); el ser-IA es blob de particulas: alinear direccion con ella ANTES de construir. (3) **El ser-IA NO tiene componente React**: hoy es `ser-ia.v3.html`, standalone de 13.4 MB con 9 imagenes en base64 inline; mandarlo asi reventaria el bundle. Requiere rebuild como componente + assets optimizados (WebP servidos, no base64). |
+| **enjambre** (indicador 18 estados) | Dashboard de Mission Control (`src/app/(main)/dashboard`), mapeando estados a la cola `tareas` | Menos disputado (no es la landing publica de Elisa). YA tiene su componente React (`enjambre-binario.tsx` + `enjambre-engine.ts`); falta montarlo + `npm run dev` + Playwright. |
+
+Cuando se retome: decidir ubicacion (con Elisa), y si va a la landing, primero reconstruir el ser-IA
+como componente React con assets optimizados. Reglas del repo: kebab-case, PascalCase en componentes,
+sin `any`, <500 lineas/archivo.
