@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enjambre — WebGPU (compute shader, el techo)</title>
+<style>
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:#04060d;color:#E7E5F0;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;}
+  #cv{position:fixed;inset:0;width:100%;height:100%;display:block;}
+  .hud{position:fixed;font-family:'JetBrains Mono',ui-monospace,monospace;pointer-events:none;}
+  #top{top:18px;left:20px;font-size:12px;line-height:1.7;}
+  #top .n{color:#7FE3FF;font-weight:700;font-size:15px;} #top .k{color:#7a7a86;}
+  #title{top:18px;right:20px;text-align:right;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8b8b96;}
+  #title b{color:#B9E6FF;}
+  #note{left:0;right:0;bottom:18px;text-align:center;font-size:11px;color:#6a6a78;padding:0 20px;line-height:1.6;}
+  #note b{color:#9ca3b8;}
+  #fallback{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:14px;color:#FBBF24;line-height:1.6;}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="hud" id="top">
+  <div><span class="n" id="count">0</span> <span class="k">particulas (fisica en GPU)</span></div>
+  <div><span class="n" id="fps">0</span> <span class="k">fps</span></div>
+  <div class="k">WebGPU · compute shader + render</div>
+</div>
+<div class="hud" id="title">el techo<br>render: <b>WebGPU</b></div>
+<div class="hud" id="note"><b>La diferencia con WebGL:</b> aqui la SIMULACION (posicion+velocidad de cada particula) corre en un <b>compute shader</b> en la GPU, no en JS ni en el vertex shader. Eso permite fisica real sobre cientos de miles de particulas. Contra: no corre en todos los navegadores todavia.</div>
+<div id="fallback"></div>
+
+<script>
+"use strict";
+(async () => {
+  const cv = document.getElementById('cv');
+  const fb = document.getElementById('fallback');
+  if(!('gpu' in navigator)){ fb.textContent = 'Tu navegador no expone WebGPU (Chrome/Edge lo tienen; Safari desde 2024; Firefox saliendo). Este es justo el contra de WebGPU: hay que dar fallback a WebGL/Canvas.'; fb.style.display='flex'; return; }
+  const adapter = await navigator.gpu.requestAdapter();
+  if(!adapter){ fb.textContent = 'WebGPU presente pero sin adaptador GPU disponible.'; fb.style.display='flex'; return; }
+  const device = await adapter.requestDevice();
+  const ctx = cv.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  const N = 300000;
+  document.getElementById('count').textContent = N.toLocaleString('es');
+
+  // ── buffers ──────────────────────────────────────────────
+  const init = new Float32Array(N*4);
+  for(let i=0;i<N;i++){ const a=Math.random()*6.283, r=Math.random()*0.35;
+    init[i*4]=Math.cos(a)*r; init[i*4+1]=Math.sin(a)*r; init[i*4+2]=0; init[i*4+3]=0; }
+  const particleBuf = device.createBuffer({ size: init.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(particleBuf, 0, init);
+  const uni = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
+  // ── shaders (WGSL) ───────────────────────────────────────
+  const computeWGSL = `
+struct Particle { pos: vec2f, vel: vec2f };
+struct U { time:f32, dt:f32, aspect:f32, count:u32 };
+@group(0) @binding(0) var<storage, read_write> parts: array<Particle>;
+@group(0) @binding(1) var<uniform> u: U;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3u){
+  let i = gid.x; if(i >= u.count){ return; }
+  var p = parts[i];
+  let breath = 0.5 + 0.5*sin(u.time*0.7);
+  let dist = length(p.pos) + 0.0001;
+  let perp = vec2f(-p.pos.y, p.pos.x)/dist;         // fuerza de remolino
+  let goalR = 0.30 + 0.45*breath;                    // radio objetivo (respira)
+  let radial = normalize(-p.pos) * (dist - goalR) * -1.4;
+  let acc = perp*0.55 + radial;
+  p.vel = p.vel*0.965 + acc*u.dt;
+  p.pos = p.pos + p.vel*u.dt;
+  parts[i] = p;
+}`;
+  const renderWGSL = `
+struct Particle { pos: vec2f, vel: vec2f };
+struct U { time:f32, dt:f32, aspect:f32, count:u32 };
+@group(0) @binding(0) var<storage, read> parts: array<Particle>;
+@group(0) @binding(1) var<uniform> u: U;
+struct VOut { @builtin(position) pos: vec4f, @location(0) uv: vec2f, @location(1) col: vec3f };
+@vertex
+fn vs(@builtin(vertex_index) vi:u32, @builtin(instance_index) ii:u32) -> VOut {
+  var corners = array<vec2f,6>(vec2f(-1,-1),vec2f(1,-1),vec2f(-1,1),vec2f(-1,1),vec2f(1,-1),vec2f(1,1));
+  let c = corners[vi];
+  let sp = clamp(length(parts[ii].vel)*3.0, 0.0, 1.0);
+  let size = 0.0035;
+  let world = parts[ii].pos + c*size*vec2f(1.0/u.aspect, 1.0);
+  var o: VOut;
+  o.pos = vec4f(world, 0.0, 1.0);
+  o.uv = c;
+  let cyan=vec3f(0.22,0.72,1.0); let viol=vec3f(0.49,0.23,0.93); let mag=vec3f(0.95,0.35,0.55);
+  o.col = mix(mix(viol,cyan,sp), mag, sp*0.5);
+  return o;
+}
+@fragment
+fn fs(o: VOut) -> @location(0) vec4f {
+  let d = dot(o.uv, o.uv);
+  if(d>1.0){ discard; }
+  let a = exp(-d*3.5)*0.55;
+  return vec4f(o.col*a, a);
+}`;
+  const computeMod = device.createShaderModule({ code: computeWGSL });
+  const renderMod = device.createShaderModule({ code: renderWGSL });
+
+  // ── bind group layouts ───────────────────────────────────
+  const computeBGL = device.createBindGroupLayout({ entries: [
+    { binding:0, visibility:GPUShaderStage.COMPUTE, buffer:{type:'storage'} },
+    { binding:1, visibility:GPUShaderStage.COMPUTE, buffer:{type:'uniform'} } ]});
+  const renderBGL = device.createBindGroupLayout({ entries: [
+    { binding:0, visibility:GPUShaderStage.VERTEX, buffer:{type:'read-only-storage'} },
+    { binding:1, visibility:GPUShaderStage.VERTEX, buffer:{type:'uniform'} } ]});
+  const computeBG = device.createBindGroup({ layout:computeBGL, entries:[
+    {binding:0,resource:{buffer:particleBuf}},{binding:1,resource:{buffer:uni}} ]});
+  const renderBG = device.createBindGroup({ layout:renderBGL, entries:[
+    {binding:0,resource:{buffer:particleBuf}},{binding:1,resource:{buffer:uni}} ]});
+
+  const computePipe = device.createComputePipeline({
+    layout: device.createPipelineLayout({bindGroupLayouts:[computeBGL]}),
+    compute: { module: computeMod, entryPoint:'main' } });
+  const renderPipe = device.createRenderPipeline({
+    layout: device.createPipelineLayout({bindGroupLayouts:[renderBGL]}),
+    vertex: { module: renderMod, entryPoint:'vs' },
+    fragment: { module: renderMod, entryPoint:'fs', targets:[{ format,
+      blend:{ color:{srcFactor:'src-alpha',dstFactor:'one',operation:'add'},
+              alpha:{srcFactor:'src-alpha',dstFactor:'one',operation:'add'} } }] },
+    primitive: { topology:'triangle-list' } });
+
+  let dpr=1;
+  function resize(){ dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=Math.floor(cv.clientWidth*dpr); cv.height=Math.floor(cv.clientHeight*dpr);
+    ctx.configure({ device, format, alphaMode:'opaque' }); }
+  window.addEventListener('resize', resize); resize();
+
+  let last=performance.now(), acc=0, frames=0;
+  function frame(now){
+    const t=now*0.001; frames++; acc+=now-last; last=now;
+    if(acc>=500){ document.getElementById('fps').textContent=Math.round(frames*1000/acc); frames=0; acc=0; }
+    device.queue.writeBuffer(uni, 0, new Float32Array([t, 0.016, cv.width/cv.height, 0]));
+    device.queue.writeBuffer(uni, 12, new Uint32Array([N]));   // count en el ultimo u32
+    const enc = device.createCommandEncoder();
+    const cp = enc.beginComputePass(); cp.setPipeline(computePipe); cp.setBindGroup(0,computeBG);
+    cp.dispatchWorkgroups(Math.ceil(N/64)); cp.end();
+    const view = ctx.getCurrentTexture().createView();
+    const rp = enc.beginRenderPass({ colorAttachments:[{ view, clearValue:{r:0.016,g:0.024,b:0.051,a:1}, loadOp:'clear', storeOp:'store' }] });
+    rp.setPipeline(renderPipe); rp.setBindGroup(0,renderBG); rp.draw(6, N); rp.end();
+    device.queue.submit([enc.finish()]);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})().catch(e => { const fb=document.getElementById('fallback'); fb.textContent='WebGPU error: '+e.message; fb.style.display='flex'; });
+</script>
+</body>
+</html>
