@@ -99,7 +99,7 @@ function setTo(b){ if(b===curB && p>=1) return; curA=(p>=1)?curB:curA; curB=b; p
 function nextAuto(){ setTo((curB+1)%SHAPES.length); }   // profesion -> profesion directo; reposo solo 1 vez por vuelta (ancla de identidad)
 
 function frame(now){ const dt=Math.min(50,now-last)/1000; last=now; frames++; t+=dt;
-  if(p<1){ p=Math.min(1,p+dt/1.7); } else if(auto){ hold+=dt; if(hold>4.5){ hold=0; nextAuto(); } }  // ambiental: reposo domina
+  if(p<1){ p=Math.min(1,p+dt/1.7); } else if(auto){ hold+=dt; if(hold>(curB===0?6:4.5)){ hold=0; nextAuto(); } }  // reposo=6s (techo del estudio, ancla de identidad); profesiones=4.5s
   blinkT+=dt; if(blinkPhase<0&&blinkT>nextB){ blinkT=0; nextB=2.5+Math.random()*3.5; blinkPhase=0; }
   if(blinkPhase>=0){ blinkPhase+=dt/0.18; if(blinkPhase>1) blinkPhase=-1; }
   const eyeDim=(blinkPhase<0||p<1)?1:(0.15+0.85*(1-Math.sin(blinkPhase*Math.PI)));
