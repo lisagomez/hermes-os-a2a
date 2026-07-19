@@ -94,10 +94,21 @@ if [ "$DRY" = "--dry-run" ]; then
 elif docker exec "$CONTENEDOR" test -d "$WT" 2>/dev/null; then
   if ! docker exec "$CONTENEDOR" git -C "$WT" diff --quiet HEAD 2>/dev/null; then
     MSG="feat($TASK_ID): $DETALLE"
-    docker exec "$CONTENEDOR" sh -c \
-      "cd '$WT' && git add -A && git -c user.email='trio@hermes-os' -c user.name='Trio (Ejecutor)' commit -q -m \"\$1\"" \
-      _ "$MSG" 2>&1 | tee -a "$LOG"
-    log "trabajo aprobado commiteado en '$RAMA'"
+    # El commit puede FALLAR (p. ej. worktree huerfano: su `.git` es un puntero a
+    # `/repo/.git/worktrees/<id>` ya podado -> "fatal: not a git repository"; tambien
+    # cazado por el `git diff` de arriba, que ante ese error sale != 0 y entra aqui).
+    # Antes se logueaba "commiteado" PASE LO QUE PASE y luego se abortaba confuso
+    # ("no tiene commits"): un fallo invisible que mentia. Ahora se comprueba el
+    # resultado y se ABORTA honesto (fail-safe: no se publica ni se anuncia nada).
+    if COMMIT_OUT=$(docker exec "$CONTENEDOR" sh -c \
+        "cd '$WT' && git add -A && git -c user.email='trio@hermes-os' -c user.name='Trio (Ejecutor)' commit -q -m \"\$1\"" \
+        _ "$MSG" 2>&1); then
+      log "trabajo aprobado commiteado en '$RAMA'"
+    else
+      [ -n "$COMMIT_OUT" ] && printf '%s\n' "$COMMIT_OUT" >> "$LOG"
+      log "ABORTADO: no se pudo commitear el trabajo en '$WT' (worktree roto o .git colgante: ${COMMIT_OUT:-sin detalle}). No se publica ni se anuncia."
+      exit 1
+    fi
   else
     log "worktree sin cambios pendientes (ya estaba commiteado)"
   fi
