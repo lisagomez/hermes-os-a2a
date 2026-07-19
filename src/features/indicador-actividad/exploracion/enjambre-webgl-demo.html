@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enjambre "Pensando" — Canvas 2D vs WebGL (demo)</title>
+<style>
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:#04060d;color:#E7E5F0;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;}
+  #cv{position:fixed;inset:0;width:100%;height:100%;display:block;}
+  .hud{position:fixed;font-family:'JetBrains Mono',ui-monospace,monospace;pointer-events:none;}
+  #top{top:18px;left:20px;font-size:12px;line-height:1.7;}
+  #top .n{color:#7FE3FF;font-weight:700;font-size:15px;}
+  #top .k{color:#7a7a86;}
+  #title{top:18px;right:20px;text-align:right;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8b8b96;}
+  #title b{color:#B9E6FF;}
+  #note{left:0;right:0;bottom:18px;text-align:center;font-size:11px;color:#6a6a78;padding:0 20px;line-height:1.6;}
+  #note b{color:#9ca3b8;}
+  #fallback{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:14px;color:#F87171;}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="hud" id="top">
+  <div><span class="n" id="count">0</span> <span class="k">particulas</span></div>
+  <div><span class="n" id="fps">0</span> <span class="k">fps</span></div>
+  <div class="k" id="mode">WebGL2 · point sprites · additive bloom</div>
+</div>
+<div class="hud" id="title">estado <b>Pensando</b><br>render: <b>GPU (WebGL)</b></div>
+<div class="hud" id="note">
+  <b>Lo que Canvas 2D no puede:</b> ~60.000 puntos que respiran y brillan por acumulacion (bloom) a 60fps, con la animacion calculada por particula en la GPU (vertex shader). En Canvas 2D esto serian ~60.000 fillText por frame = se arrastra a &lt;10fps.
+</div>
+<div id="fallback">Tu navegador no expone WebGL2. Este demo necesita GPU; el indicador de produccion usa Canvas 2D justamente por eso (corre en todo).</div>
+
+<script>
+"use strict";
+const cv = document.getElementById('cv');
+const gl = cv.getContext('webgl2', { antialias:true, alpha:false });
+if(!gl){ document.getElementById('fallback').style.display='flex'; }
+else {
+const N = 60000;   // <-- sube/baja esto: Canvas 2D muere sobre ~2.000; la GPU aguanta cientos de miles
+
+const VERT = `#version 300 es
+precision highp float;
+uniform float uTime; uniform float uAspect;
+out float vGlow; out vec3 vColor;
+float hash(float n){ return fract(sin(n)*43758.5453123); }
+void main(){
+  float id = float(gl_VertexID);
+  float rf = hash(id*0.137);      // radio
+  float hf = hash(id*0.911);      // color
+  float sf = hash(id*0.523);      // tamano
+  float breath = 0.5 + 0.5*sin(uTime*0.7);                 // respiracion (converge/diverge)
+  float ang = id*2.399 + sin(uTime*0.3 + id*0.01)*0.8 + uTime*0.06;
+  float r = (0.05 + rf*0.62) * (0.5 + breath*0.95);
+  vec2 p = vec2(cos(ang), sin(ang)) * r;
+  p.x /= uAspect;                 // mantener circular en canvas ancho
+  gl_Position = vec4(p, 0.0, 1.0);
+  gl_PointSize = mix(1.5, 5.5, sf) * (0.6 + breath*0.7) * (0.7 + rf*0.6);
+  vec3 cyan=vec3(0.22,0.72,1.0), viol=vec3(0.49,0.23,0.93), mag=vec3(0.93,0.28,0.60);
+  vColor = hf<0.5 ? mix(cyan,viol,hf*2.0) : mix(viol,mag,(hf-0.5)*2.0);
+  vGlow = (0.30 + 0.70*breath) * (0.45 + sf*0.75);
+}`;
+
+const FRAG = `#version 300 es
+precision highp float;
+in float vGlow; in vec3 vColor; out vec4 frag;
+void main(){
+  vec2 c = gl_PointCoord*2.0 - 1.0;
+  float d = dot(c,c);
+  if(d>1.0) discard;
+  float a = exp(-d*3.5) * vGlow;      // caida radial suave = glow
+  frag = vec4(vColor*a, a);
+}`;
+
+function sh(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+const prog = gl.createProgram();
+gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const uTime = gl.getUniformLocation(prog,'uTime');
+const uAspect = gl.getUniformLocation(prog,'uAspect');
+const vao = gl.createVertexArray(); gl.bindVertexArray(vao);   // VAO vacio: usamos gl_VertexID, sin buffers
+
+gl.disable(gl.DEPTH_TEST);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE);   // ADITIVO = el bloom se acumula donde hay muchas particulas
+
+let dpr=1;
+function resize(){ dpr=Math.min(window.devicePixelRatio||1, 2);
+  cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr; gl.viewport(0,0,cv.width,cv.height); }
+window.addEventListener('resize', resize); resize();
+document.getElementById('count').textContent = N.toLocaleString('es');
+
+let last=performance.now(), acc=0, frames=0;
+function loop(now){
+  const t = now*0.001;
+  frames++; acc += now-last; last=now;
+  if(acc>=500){ document.getElementById('fps').textContent = Math.round(frames*1000/acc); frames=0; acc=0; }
+  gl.clearColor(0.016,0.024,0.051,1.0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniform1f(uTime, t);
+  gl.uniform1f(uAspect, cv.width/cv.height);
+  gl.drawArrays(gl.POINTS, 0, N);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
