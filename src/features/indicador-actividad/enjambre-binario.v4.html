@@ -82,8 +82,8 @@ const LABEL={
   streaming:['Transmitiendo','streaming de salida'], desplegar:['Desplegando','push a produccion'] };
 
 const T = {
-  pensar(i,tt){ const b=.5+.5*Math.sin(tt*.045), ang=i*2.399+Math.sin(tt*.02+i)*.8, r=(38+(i%5)*14)*(.55+b*.85),
-    sp=Math.sin(i*7.3+tt*.06)>.985; return {x:CX+Math.cos(ang)*r*1.5,y:CY+Math.sin(ang)*r*.8,col:sp?C.hot:C.base,a:.45+.3*b}; },
+  pensar(i,tt){ const hs=a=>{const x=Math.sin(a)*43758.5453;return x-Math.floor(x);}, u1=hs(i*.123+1)+1e-6, u2=hs(i*.577+2), g=Math.sqrt(-2*Math.log(u1)), th=6.283*u2, bi=.5+.5*Math.sin(tt*.03+i*.9), spr=28+20*bi, dx=Math.sin(tt*.024+i*1.7)*5, dy=Math.cos(tt*.027+i*2.1)*5,
+    sk=Math.sin(i*7.3+tt*.06)>.985; return {x:CX+g*Math.cos(th)*spr*1.15+dx,y:CY+g*Math.sin(th)*spr*.72+dy,col:sk?C.hot:C.base,a:sk?.95:.4+.3*bi}; },  // blob de pensamiento GAUSSIANO (Box-Muller por hash de i): denso al centro, cae suave -> nube LLENA sin anillo ni hueco (no "agujero negro"). Respiracion DESINCRONIZADA por particula (fase i*.9) + microderiva = converge/diverge organico. Chispa rosa = idea que asoma. Ver cerebro F363
   esperar(i,tt){ const a=i/N*6.283,r=66,d=Math.sin(tt*.012+i)*1.2,b=.5+.5*Math.sin(tt*.03);
     return {x:CX+Math.cos(a)*r*1.55+d,y:CY+Math.sin(a)*r*.72+d,col:C.warn,a:.24+.34*b}; },
   leer(i,tt){ const cols=36,g={x:CX-cols*3.5+(i%cols)*7,y:CY-52+((i/cols)|0)*15},scan=CX-cols*3.5+((tt*2.2)%(cols*7)),h=Math.abs(g.x-scan)<11;
@@ -107,8 +107,11 @@ const T = {
     return {x:CX-66+d*132+jx,y:CY-52+(p<.5?d:1-d)*104+jy,col:C.bad,a:.92}; },
   confirmado(i,tt){ const p=i/N;let x,y; if(p<.4){x=CX-58+p/.4*40;y=CY-4+p/.4*38;}else{x=CX-18+(p-.4)/.6*80;y=CY+34-(p-.4)/.6*70;}
     return {x:x+(i%3-1)*3,y:y+(((i/3)|0)%3-1)*3,col:C.ok,a:1}; },
-  buscar(i,tt){ const ph=(((tt*.85+i*3)%130)/130),ang=i*2.399+tt*.01,r=ph*128,mk=i%9===0;
-    return {x:CX+Math.cos(ang)*r*1.5,y:CY+Math.sin(ang)*r*.75,col:mk&&ph>.7?C.hot:C.blue,a:(1-ph)*.9}; },
+  buscar(i,tt){ const hs=a=>{const x=Math.sin(a)*43758.5453;return x-Math.floor(x);}, beam=((tt*0.0038)%1)*6.283;  // RADAR de AGUJA (referencia de Johann makeagif jWkIkG): vuelta completa ~4.4s
+    if(i<44){ const fr=i/44, r=fr*128; return {x:CX+Math.cos(beam)*r*1.5,y:CY+Math.sin(beam)*r*.68,col:C.blue,a:.5+.5*fr}; }  // la AGUJA: linea radial que rota
+    const k=i-44, th=hs(k*1.3+7)*6.283, rr=(0.15+hs(k*2.9+3)*0.85)*128; let lag=beam-th; if(lag<0)lag+=6.283;  // CAMPO fijo disperso por hash; lag = cuanto hace que la aguja lo barrio
+    const isBlip=(k%16)===0, glow=Math.exp(-lag*(isBlip?0.55:1.6));  // estela corta (cuna que se desvanece tras la aguja) / blip persiste casi toda la vuelta
+    return {x:CX+Math.cos(th)*rr*1.5,y:CY+Math.sin(th)*rr*.68,col:(isBlip&&glow>.25)?C.hot:C.blue,a:isBlip?(0.1+0.9*glow):(glow*0.55+0.03)}; },  // aguja rotatoria + estela angular + ~10 blips que destellan al ser barridos y decaen lento = radar inconfundible (la rotacion de una AGUJA recta no lee como vortice; la espiral de particulas si lo hacia). Calibrado con filmstrip (pipeline ver-animacion). F363 radar/sonar.
   planear(i,tt){ const al=.5+.5*Math.sin(tt*.02),nd=PLAN_NODES[i%12],sc={x:CX+Math.sin(i*9.1)*160,y:CY+Math.cos(i*5.3)*70},
     lit=Math.floor((tt*.06)%12)===(i%12);
     return {x:lerp(sc.x,nd.x,al),y:lerp(sc.y,nd.y,al),col:lit?C.hot:C.base,a:.55+.4*al}; },
@@ -120,9 +123,15 @@ const T = {
     return {x:CX+Math.cos(a)*r*1.4,y:CY+Math.sin(a)*r*.75,col:c>.85?C.ok:C.warn,a:.5+.4*c}; },
   enrutar(i,tt){ const g=i%3,cx=CX+(g-1)*95,win=Math.floor((tt*.02)%3),a=i*2.399+tt*.03,r=30;
     return {x:cx+Math.cos(a)*r,y:CY+Math.sin(a)*r,col:C.hot,a:g===win?1:.28}; },
-  streaming(i,tt){ const ph=((tt*1.4+i*6)%180)/180; return {x:lerp(CX-60,CX+180,ph),y:CY+((i%5)-2)*4,col:C.bone,a:(1-ph)*.9+.1}; },
-  desplegar(i,tt){ const ph=((tt*1.1+i*4)%150)/150; if(ph<.7){const e=ph/.7;return {x:CX+((i%7)-3)*5,y:lerp(STRIP_Y-20,CY-70,e*e*e),col:C.base,a:.5+e*.5};}
-    const e=(ph-.7)/.3,ang=i*2.399;return {x:CX+Math.cos(ang)*e*130,y:(CY-70)-Math.abs(Math.sin(ang))*e*36,col:C.ok,a:1-e}; }
+  streaming(i,tt){ if(i<6){ const bl=(tt%42<26)?1:.22; return {x:CX+150,y:CY+(i-2.5)*5,col:C.bone,a:bl}; }  // CURSOR: barra vertical parpadeante en la SALIDA (la señal "vivo" mas barata, F363)
+    const j=i-6, ph=((tt*1.3+j*7)%200)/200;  // goteo continuo del nucleo (izq) a la salida (der); brillo CRECE hacia la salida (antes invertido: brillaba en el origen)
+    return {x:lerp(CX-72,CX+140,ph),y:CY+((j%5)-2)*4.4,col:C.bone,a:0.1+ph*0.88}; },
+  desplegar(i,tt){ const ph=((tt*1.1+i*4)%150)/150, fail=(Math.floor(tt/150)%3)===2;  // 1 de cada 3 despliegues FALLA (fail global por tt: toda la columna comparte desenlace)
+    if(fail){
+      if(ph<.5){ const e=ph/.5; return {x:CX+((i%7)-3)*5,y:lerp(STRIP_Y-20,CY-84,e*e),col:C.base,a:.5+e*.5}; }  // asciende...
+      const e=(ph-.5)/.5; return {x:CX+((i%7)-3)*5+Math.sin(i*7.1)*4*e,y:lerp(CY-84,STRIP_Y-6,e*e),col:C.bad,a:1-e*.4}; }  // ...y CAE en rojo, acelerando hacia abajo
+    if(ph<.7){ const e=ph/.7; return {x:CX+((i%7)-3)*5,y:lerp(STRIP_Y-20,CY-70,e*e*e),col:C.base,a:.5+e*.5}; }  // EXITO: asciende acelerando (e^3)
+    const e=(ph-.7)/.3,ang=i*2.399; return {x:CX+Math.cos(ang)*e*130,y:(CY-70)-Math.abs(Math.sin(ang))*e*36,col:C.ok,a:1-e}; }  // ...y se dispersa en arco verde
 };
 // ╚═ fin motor ═╝
 
