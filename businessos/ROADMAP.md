@@ -724,20 +724,30 @@ No es una fase; atraviesa todas. Tres superficies con papeles distintos:
   - **Frontends web (código, desde 2026-07-13)** — `businessos/frontends/` reúne las
     **tres superficies** (ver su README): **control-interno** (cabina del equipo,
     NO de cara al cliente; Next 16 + Supabase + Tauri, vendored) ✅ integrado;
-    **cliente-web2** (producto marca-blanca) 🚧 aún sin carpeta; **cliente-a2a-web3**
-    (A2A card / web3) 🎨 solo demo de diseño. Los tres consumen el mismo contrato de
-    daemon (`/chat/stream` SSE + `/api/openclaw/action`) → punto de integración con
-    Hermes/A2A.
+    **cliente-web2** (producto marca-blanca) ✅ desplegada en Vercel con **chat en vivo**
+    (ver bullet abajo); **cliente-a2a-web3** (A2A card / web3) 🎨 solo demo de diseño. Los
+    tres consumen el mismo contrato de daemon (`/chat/stream` SSE + `/api/openclaw/action`)
+    → punto de integración con Hermes/A2A.
   - **control-interno CABLEADO en runtime (2026-07-15, PR #51)**: desplegado en Hetzner
     como contenedor **`frontend-ci`** (`127.0.0.1:3001`), ahora **servicio del compose**
     (project `businessos`) y en **`hermes-net`** (resuelve por DNS los servicios del
     agente). **Supabase real cableado**: creds del proyecto **A2ABot** + las **31 tablas**
     del frontend aplicadas ahí (reconciliando `profiles`/`handle_new_user` sin romper el
     signup del negocio — ver aprendizaje CLAUDE.md 2026-07-15). Sigue en `next dev` (no
-    build de prod). **Pendiente**: (1) el **daemon** que sirva `/chat/stream` +
-    `/api/openclaw/action` (`CLAUDECLAW_URL` aún en `localhost:3099`, sin servicio que lo
-    sirva); (2) crear el usuario de Elisa; (3) opcional build de prod + exponer por `edge`.
-    Estado y cómo retomar en la memoria `project/frontends-control-interno.md`.
+    build de prod). **Pendiente**: (1) el **daemon** de control-interno que sirva
+    `/api/openclaw/action` (el board operado por el agente) — el `/chat/stream` SSE ya tiene
+    implementación de referencia en `chat-web2` (ver bullet cliente-web2), pero control-interno
+    necesita además la parte de acciones; (2) crear el usuario de Elisa; (3) opcional build de
+    prod + exponer por `edge`. Estado en la memoria `project/frontends-control-interno.md`.
+  - **cliente-web2 CHAT EN VIVO ENCENDIDO (2026-07-19, PR #76)**: el hueco funcional de la
+    Fase 11 quedó cerrado. Daemon **`chat-web2`** (servicio del compose, `127.0.0.1:4500`,
+    `hermes-net`) implementa `POST /chat/stream` (SSE) autenticado con Bearer
+    `OPENCLAW_GATEWAY_TOKEN` (falla cerrado). Es un **vendedor LLM** acotado por prompt
+    (OpenRouter, NO expone el agente Hermes privado) que además **captura leads** origen
+    `web2`. Publicado por el **edge Caddy** (bloque `@chat /chat/stream` con `flush_interval -1`;
+    nada más del daemon es público) y cableado a Vercel (`CLAUDECLAW_URL` + token). Verificado
+    end-to-end: `cliente-web2.vercel.app` streamea respuestas reales y persiste leads. Detalle
+    en `frontends/DEPLOY-web2.md` §3 y la memoria `project/frontend-web2.md`.
 
 ---
 
