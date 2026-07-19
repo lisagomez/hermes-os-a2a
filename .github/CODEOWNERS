@@ -1,0 +1,10 @@
+# Revisión requerida en rutas sensibles.
+# Se vuelve obligatorio al activar "Require review from Code Owners" en la protección de master.
+# Ajusten los owners según el equipo.
+
+# Config del agente y del pipeline (mayor apalancamiento de un error/ataque)
+/.claude/                       @lisagomez
+/.github/                       @lisagomez
+
+# El juez del trío (gate de calidad)
+/businessos/supervisor-a2a/     @lisagomez

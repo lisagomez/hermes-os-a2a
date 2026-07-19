@@ -1,0 +1,27 @@
+# Piso mecánico de CI: corre en cada PR sobre el dashboard (typecheck + lint).
+# No corre build (turbopack) ni los pytest de los servicios A2A todavía: cablearlos aparte.
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
