@@ -14,11 +14,14 @@ Layout del sheet (sin padding, celda exacta 16x20):
 Contrato TS que consume este sheet:
   src/features/landing/sections/office/sprites.ts
 
-Solo stdlib (zlib + struct). Cada letra del grid es 1 pixel; '.' = transparente.
+Solo stdlib (zlib + struct via spritelib). Cada letra del grid es 1 pixel; '.' = transparente.
 """
 import os
-import struct
-import zlib
+
+from spritelib import (
+    grid, s, row, clone, blink as _lib_blink, walk_frames, celebrate_frames,
+    hex2rgb, save_png_rgba, SPARKS_L_A, SPARKS_L_B, SPARKS_R_A, SPARKS_R_B,
+)
 
 W, H = 16, 20
 CELL_W, CELL_H = 16, 20
@@ -58,27 +61,6 @@ GLOBAL = {
     'c': '#28C840',  # verde exito
     'l': '#B9A6FF',  # lila
 }
-
-
-def grid(rows):
-    return [list(r) for r in rows]
-
-
-def s(g, x, y, ch):
-    g[y][x] = ch
-
-
-def row(g, x, y, txt):
-    for i, ch in enumerate(txt):
-        g[y][x + i] = ch
-
-
-def clone(g):
-    return [r[:] for r in g]
-
-
-def swap(g, x, y1, y2):
-    g[y1][x], g[y2][x] = g[y2][x], g[y1][x]
 
 
 # ---------- personajes (grids idle aprobados) ----------
@@ -209,81 +191,19 @@ def tesoro():
     return g
 
 
-# ---------- frames ----------
+# ---------- frames (parpadeo especifico de LEDGER-X) ----------
 
-def blink(g, char_id):
-    """idle-B: parpadeo (LEDGER-X no tiene ojos: el glint del visor cambia de lado)."""
-    b = clone(g)
-    if char_id == 'ledger':
-        s(b, 5, 6, 'v'); s(b, 10, 6, 'l')
-        return b
-    for x in range(W):
-        if b[6][x] in ('E', 'w') and b[7][x] == 'E':
-            b[6][x] = 'k'
-        if b[6][x] == 'E':
-            b[6][x] = 'k'
+def _ledger_blink_special(b):
+    """LEDGER-X no tiene ojos: el glint del visor cambia de lado."""
+    s(b, 5, 6, 'v'); s(b, 10, 6, 'l')
     return b
 
 
-def walk_frames(g, swing_x=None):
-    """walk-A/B: piernas alternadas; swing_x = columna del brazo libre que sube en A
-    (None = sin vaiven; el prop en la otra mano se mantiene intacto)."""
-    a = clone(g); b = clone(g)
-    # A: pierna derecha recogida
-    row(a, 9, 17, 'oooo'); row(a, 9, 18, '....')
-    # B: pierna izquierda recogida
-    row(b, 3, 17, 'oooo'); row(b, 3, 18, '....')
-    if swing_x is not None:
-        swap(a, swing_x, 12, 13)  # leve vaiven: la mano libre sube en A
-    return a, b
+def blink(g, char_id):
+    if char_id == 'ledger':
+        return _lib_blink(g, special=_ledger_blink_special)
+    return _lib_blink(g)
 
-
-def _mouth_open(gr):
-    row(gr, 6, 8, 'mmm')  # boca abierta feliz
-
-
-def _arm_up_left(gr):
-    for y in (11, 12, 13):
-        s(gr, 2, y, '.'); s(gr, 3, y, 'o')
-    s(gr, 2, 9, 's'); s(gr, 2, 10, 's'); s(gr, 2, 8, 'k')
-    for y in (8, 9, 10):
-        s(gr, 1, y, 'o')
-    s(gr, 2, 7, 'o')
-
-
-def _arm_up_right(gr):
-    for y in (11, 12, 13):
-        s(gr, 12, y, 'o'); s(gr, 13, y, '.')
-    s(gr, 13, 9, 's'); s(gr, 13, 10, 's'); s(gr, 13, 8, 'k')
-    for y in (8, 9, 10):
-        s(gr, 14, y, 'o')
-    s(gr, 13, 7, 'o')
-
-
-def celebrate_frames(g, arms, spark_ch, sparks_a, sparks_b):
-    """celebrate-A/B: brazo(s) arriba + destello alternante.
-    arms: 'both' | 'left' | 'right' (single-arm = la otra mano conserva su prop).
-    spark_ch: 'c' verde exito | 'G' dorado (legendary)."""
-    def pose(gr):
-        if arms in ('both', 'left'):
-            _arm_up_left(gr)
-        if arms in ('both', 'right'):
-            _arm_up_right(gr)
-        _mouth_open(gr)
-        return gr
-    a = pose(clone(g)); b = pose(clone(g))
-    for x, y in sparks_a:
-        s(a, x, y, spark_ch)
-    for x, y in sparks_b:
-        s(b, x, y, spark_ch)
-    return a, b
-
-
-# Posiciones de destello reutilizables (pixeles libres verificados contra cada grid)
-SPARKS_L_A = [(0, 4), (1, 5), (2, 3)]
-SPARKS_L_B = [(0, 6), (1, 2), (2, 5)]
-SPARKS_R_A = [(13, 3), (14, 5), (15, 4)]
-SPARKS_R_B = [(13, 6), (14, 4), (15, 2)]
 
 # ---------- plantilla (orden = filas del sheet = orden de AGENTS en agents.ts) ----------
 # arms/swing eligen el lado libre: el prop (tablet, calculadora, sello, maletin, taza)
@@ -343,12 +263,7 @@ def char_frames(c):
     return [ia, ib, wa, wb, ca, cb]
 
 
-# ---------- emision PNG (RGBA, stdlib puro) ----------
-
-def hex2rgb(h):
-    h = h.lstrip('#')
-    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
-
+# ---------- emision PNG (RGBA, stdlib puro via spritelib) ----------
 
 def build_sheet_pixels():
     w = SHEET_COLS * CELL_W
@@ -368,21 +283,6 @@ def build_sheet_pixels():
                                        % (c['id'], ch, col, x, y))
                     px[oy + y][ox + x] = hex2rgb(colors[ch]) + (255,)
     return px, w, h
-
-
-def save_png_rgba(path, px, w, h):
-    raw = b''.join(
-        b'\x00' + b''.join(bytes(p) for p in rowpx) for rowpx in px
-    )
-    def chunk(t, d):
-        c = t + d
-        return struct.pack('>I', len(d)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
-    png = (b'\x89PNG\r\n\x1a\n'
-           + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6, 0, 0, 0))
-           + chunk(b'IDAT', zlib.compress(raw, 9))
-           + chunk(b'IEND', b''))
-    with open(path, 'wb') as f:
-        f.write(png)
 
 
 def main():

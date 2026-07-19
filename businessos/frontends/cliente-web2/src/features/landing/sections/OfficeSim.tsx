@@ -5,7 +5,8 @@ import { AGENTS, agentById, KIND_COLOR, type Agent, type DemoLine } from '../age
 import type { Strings } from '@/shared/i18n/strings';
 import { useOfficeSim } from './office/useOfficeSim';
 import { DESKS, DESK_DECOR, SEATS, ZONE_RECTS } from './office/layout';
-import { POSE_COLS, SHEET_COLS, SHEET_ROWS, SPRITE_ROW, SPRITE_SHEET, type SpritePose } from './office/sprites';
+import { POSE_COLS, SHEET_COLS, SHEET_ROWS, SPRITE_ROW, type SpritePose } from './office/sprites';
+import { DEFAULT_THEME_ID, OFFICE_THEMES, THEME_STORAGE_KEY, themeById } from './office/themes';
 import type { AgentState } from './office/types';
 
 const CODE_BARS =
@@ -66,6 +67,35 @@ export function OfficeSim() {
   const [selected, setSelected] = useState(AGENTS[0].id);
   const { state, tick, sceneRef } = useOfficeSim(openId != null);
 
+  // Tema de personajes. PRIMER PAINT SIEMPRE 'a2a' (SSR-safe): la preferencia
+  // guardada se lee en un efecto post-mount, no en el estado inicial.
+  const [themeId, setThemeId] = useState(DEFAULT_THEME_ID);
+  const activeTheme = themeById(themeId) ?? OFFICE_THEMES[0];
+
+  useEffect(() => {
+    // 1) Rehidratar la preferencia (validando contra el registro; si es inválida, se ignora).
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored && themeById(stored)) setThemeId(stored);
+    } catch {
+      /* localStorage no disponible → se queda en el default */
+    }
+    // 2) Precargar TODOS los sheets (~2KB c/u) → al cambiar de tema el swap es instantáneo.
+    for (const th of OFFICE_THEMES) {
+      const img = new Image();
+      img.src = th.sheet;
+    }
+  }, []);
+
+  function selectTheme(id: string) {
+    setThemeId(id);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, id);
+    } catch {
+      /* persistencia best-effort: si falla, el tema sigue aplicado en memoria */
+    }
+  }
+
   // x de la posición anterior (post-commit) para deducir la dirección de marcha
   // sin depender de animaciones: si el nuevo x < previo → camina a la izquierda.
   const prevXRef = useRef<Record<string, number>>({});
@@ -80,8 +110,35 @@ export function OfficeSim() {
   return (
     <section id="oficina" style={{ maxWidth: 'var(--page-max)', margin: '0 auto', padding: '56px 32px 40px' }}>
       <div style={{ marginBottom: 22 }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: 'var(--tracking-kicker)', color: 'var(--success-pale)', marginBottom: 10 }}>
-          {t.officeKicker}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: 'var(--tracking-kicker)', color: 'var(--success-pale)' }}>
+            {t.officeKicker}
+          </div>
+          {/* Selector de estilo (discreto): esquina derecha del header, alineado con el kicker. */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-dim)' }}>◆ estilo</span>
+            <select
+              aria-label={t.officeThemeAria}
+              value={themeId}
+              onChange={(e) => selectTheme(e.target.value)}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                color: 'var(--text-dim)',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border-1)',
+                borderRadius: 8,
+                padding: '4px 8px',
+                cursor: 'pointer',
+              }}
+            >
+              {OFFICE_THEMES.map((th) => (
+                <option key={th.id} value={th.id}>
+                  {th.label[lang]}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <h2 style={{ margin: 0, fontSize: 34, fontWeight: 700 }}>
           <span style={{ background: 'var(--grad-text)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>{t.officeTitle}</span>
@@ -262,7 +319,7 @@ export function OfficeSim() {
                 <div
                   className="office-sprite"
                   style={{
-                    backgroundImage: `url(${SPRITE_SHEET})`,
+                    backgroundImage: `url(${activeTheme.sheet})`,
                     backgroundPosition: `${bgX}% ${bgY}%`,
                     transform: mirror ? 'scaleX(-1)' : undefined,
                     outline: isSel ? '2px solid var(--violet)' : '2px solid transparent',
