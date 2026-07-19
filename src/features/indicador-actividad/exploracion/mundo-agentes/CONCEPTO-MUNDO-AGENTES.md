@@ -150,6 +150,68 @@ productividad, aprovechando la "memoria muscular RTS" de desarrolladores que ya 
   RTS (unidades, recursos, comando) es mejor prestado como METAFORA DE INTERACCION (que puedes HACER)
   que como ESTETICA VISUAL (como se VE).
 
+## AgentCraft, la charla completa: mecanicas concretas (sintesis, no transcripcion)
+
+> Fuente: [Ido Salomon, "AgentCraft: Putting the Orc in Orchestration", AI Engineer (charla, 2026-04-25)](https://www.youtube.com/watch?v=kR64LOqBBCU),
+> 11:18 min. Visto vía transcript (subtitulos descargados con el pipeline `ver-video`, yt-dlp
+> `--write-auto-sub`). Sintesis funcional de las mecanicas mostradas en la demo, no cita textual.
+
+Mecanicas que muestra la demo (funcionales, no visuales, ya que no pude ver el sitio animado):
+
+1. **El mapa ES el sistema de archivos.** Cada carpeta del proyecto es una zona del mapa; cada
+   archivo es una "habitacion". Ver en que archivo trabaja un agente, el diff completo de esa
+   sesion, y el LINAJE (que agente hizo que y cuando) es literal, no una lista aparte.
+2. **Heatmap de colisiones.** Como sabe que archivo toca cada agente, puede pintar un mapa de calor
+   de colisiones (dos agentes en el mismo archivo) y prevenirlas antes de que pasen.
+3. **Ciclo tipo RTS (hotkey entre unidades):** saltar rapido entre los agentes que necesitan tu
+   atencion (aprobar un plan, responder una pregunta), como ciclar entre unidades en un RTS.
+4. **La escalera de autonomia (el hallazgo mas fuerte de la charla).** Salomon describe 3 escalones
+   para sacarse a si mismo de la ecuacion progresivamente:
+   - **Quests auto-generadas:** el agente propone que hacer (encuentra su propio trabajo), el
+     humano solo aprueba con un clic.
+   - **Campanas (containers aislados):** una meta amplia se delega a un "orquestador de campana"
+     que descompone, planea y PRESENTA EL PLAN; el humano revisa el plan, no la ejecucion paso a
+     paso. El esfuerzo humano se mueve de "supervisar" a "planear + revisar".
+   - **Canales autonomos (cron/trigger):** una direccion se fija UNA vez (ej. "revisa X fuente
+     cada dia y actua"), sin relanzar cada vez.
+5. **Bundles de revision:** cuando varios agentes producen resultados en paralelo, una vista de
+   revision por lotes (diff + motivo/tarea + evidencia visual) para no gastar tiempo entrando
+   uno por uno.
+6. **Colaboracion suave (soft collaboration):** un chat compartido humano-humano Y humano-agente
+   donde un agente anuncia "estoy trabajando en X" para que otros (humanos o agentes) no dupliquen
+   esfuerzo, ademas del handoff explicito.
+
+**Que ya teniamos cubierto vs que es nuevo para nosotros:**
+- Mapa=filesystem, colisiones, linaje → confirma y refuerza nuestra "Capa de telemetria" (linaje ya
+  esta en el spec); el HEATMAP de colisiones es una idea nueva, no la teniamos.
+- La escalera de autonomia (quest→campana→canal) mapea directo a nuestra arquitectura real:
+  quest=tarea suelta, campana=coordinador→ejecutores (YA construida en el trio/enjambre), canal=cron
+  autonomo (tenemos crons de Hermes). Vale la pena visualizarla como una progresion EXPLICITA en el
+  mundo (3 "modos" de una tarea), no solo como arquitectura de backend invisible.
+- Bundles de revision con evidencia visual: nueva idea util, sobre todo si el "centro de mando" del
+  OfficeSim se vuelve accionable (ver seccion anterior).
+
+## Sintesis: juegos de gestion de recursos, ideas para agentes
+
+> A peticion de Johann: extraer mecanicas de management games conocidos (no investigados con fuente
+> primaria esta ronda, es conocimiento general del genero; profundizar con captura real si alguna
+> mecanica concreta se decide construir).
+
+| Genero / juegos | Mecanica clave | Adaptacion a nuestro mundo de agentes |
+|---|---|---|
+| **Fabricas/automatizacion** (Factorio, Satisfactory, Captain of Industry) | Cadena de montaje: el item viaja por una banda a traves de ESTACIONES; alertas de "banda atascada" cuando un paso no da abasto | Una TAREA viaja por estaciones visibles (planear→codear→verificar→desplegar) como el ITEM en la banda, no solo un estado en el escritorio del agente. Alerta visual cuando una estacion (ej. verificacion) se atasca = cuello de botella real del sistema |
+| **Colonias/supervivencia** (RimWorld, Oxygen Not Included, Frostpunk) | Panel de NECESIDADES/animo por colono (barras: descanso, comida, alegria); tablero de PRIORIDAD de trabajo (que colono hace que tarea, por prioridad 1-4); medidores de crisis a nivel CIUDAD (esperanza, descontento) | (a) Barra de "salud" compacta por agente (reintentos, bloqueos, presupuesto) tipo panel de colono; (b) tablero de PRIORIDAD/ESPECIALIDAD: Johann asigna que tipo de tarea prefiere cada agente, accionable, no solo informativo (idea que tambien pide AgentCraft: poder actuar, no solo mirar); (c) un DASHBOARD GLOBAL (no por agente) tipo Frostpunk: salud del enjambre completo (cola pendiente, quema de presupuesto, bloqueados), la vista "como va todo" de un vistazo |
+| **Tuberias/redes** (Oxygen Not Included) | Se ve LITERALMENTE el flujo de gas/liquido viajando por tuberias | Ya lo tenemos disenado (negociar-A2A: paquete de bits viajando por una linea de luz entre agentes): ONI lo confirma como patron probado y fuerte, no hace falta cambiar nada |
+| **Medieval/imperios** (Manor Lords, Against the Storm, Europa Universalis IV) | Manor Lords: la cadena de produccion se ve EN el edificio mismo, sin menu aparte; Against the Storm: presion de tiempo narrativa (la tormenta se acerca); EU4: mapa de PROVINCIAS coloreadas por dueño | (a) El escritorio YA es "el edificio con su cadena visible" (telemetria en el propio escritorio, coherente con Manor Lords); (b) presion de tiempo visual para una campana con deadline (una barra que se acerca, no solo un timer numerico); (c) EXTENDER la idea de AgentCraft "mapa=filesystem" con COLOR DE PROPIEDAD tipo EU4: que agente es dueno/responsable de que carpeta/feature, coloreado en el mapa |
+
+**Recomendacion de direccion (no solo lista de ideas):** de los 3 grupos, **colonia/supervivencia
+(RimWorld/ONI/Frostpunk) encaja MEJOR que RTS puro** con lo que ya definimos (oficina calida, 8-bit,
+vista cenital, "equipo que cuidas" vs "tropas que comandas"). Una colonia se NUTRE, un ejercito se
+COMANDA: la primera metafora es mas coherente con la calidez que ya identificamos como ventaja
+sobre AgentCraft. Tomar de AgentCraft el INFO-ARCHITECTURE (mapa=filesystem, escalera de autonomia,
+bundles de revision) y de colonia-sim el LENGUAJE DE CUIDADO (barras de salud, prioridades, panel
+de crisis), ambos renderizados en el 8-bit vista-cenital ya establecido.
+
 ## Pendiente / proximos pasos
 
 - Aterrizar los 8 agentes A2A reales (VENDO-1/FLUJO-7/ORACULO/LEDGER-X/MUSA-3/EMPATIA-2/CUSTODIO/TESORO)
