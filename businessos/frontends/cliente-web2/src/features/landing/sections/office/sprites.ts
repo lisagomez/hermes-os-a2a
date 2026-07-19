@@ -4,14 +4,17 @@
  * Fuente de verdad de los personajes: scripts/gen_sprites.py
  * Regenerar el sheet: `python scripts/gen_sprites.py` → public/office/sprites.png
  *
- * Sheet: 96x160 px, 8 filas x 6 columnas, celda 16x20 sin padding.
+ * Sheet: 120x224 px, 8 filas x 6 columnas, celda 20x28 sin padding.
  * Filas = orden de AGENTS (agents.ts). Columnas = [pose]-A / [pose]-B.
  */
 
 export const SPRITE_SHEET = '/office/sprites.png';
 
-export const SPRITE_W = 16;
-export const SPRITE_H = 20;
+// SPRITE_W/SPRITE_H: estas constantes son DOCUMENTACIÓN del sheet; la geometría
+// de RENDER vive en las variables CSS de .office-sprite (globals.css, bloque
+// OFFICE SIM: --sw/--sh/--k) — cambiar una exige cambiar la otra.
+export const SPRITE_W = 20;
+export const SPRITE_H = 28;
 
 export const SHEET_COLS = 6;
 export const SHEET_ROWS = 8;

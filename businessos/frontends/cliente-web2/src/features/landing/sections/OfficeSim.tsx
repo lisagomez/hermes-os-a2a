@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { useEffect, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useLanding } from '../context';
 import { AGENTS, agentById, KIND_COLOR, type Agent, type DemoLine } from '../agents';
 import type { Strings } from '@/shared/i18n/strings';
@@ -107,12 +107,20 @@ export function OfficeSim() {
   // devuelve el default en servidor/hidratación y la preferencia tras montar.
   const themeId = useSyncExternalStore(subscribeTheme, readStoredTheme, () => DEFAULT_THEME_ID);
   const activeTheme = themeById(themeId) ?? OFFICE_THEMES[0];
+  // Sheets cuya imagen YA terminó de cargar. FLASH-GUARD del riel: la preview de
+  // cada tema solo se pinta cuando su sheet cargó; mientras, placeholder de color.
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Precargar TODOS los sheets (~2KB c/u) → al cambiar de tema el swap es instantáneo.
+    // Precargar TODOS los sheets (~2KB c/u) → al cambiar de tema el swap es
+    // instantáneo; y marcar cada uno como cargado para el FLASH-GUARD del riel.
+    // (La rehidratación del tema la resuelve el external store, no un efecto.)
+    const mark = (id: string) => setLoaded((m) => (m[id] ? m : { ...m, [id]: true }));
     for (const th of OFFICE_THEMES) {
       const img = new Image();
+      img.onload = () => mark(th.id);
       img.src = th.sheet;
+      if (img.complete) mark(th.id); // ya en caché → onload puede no dispararse
     }
   }, []);
 
@@ -120,6 +128,24 @@ export function OfficeSim() {
     writeStoredTheme(id); // persiste + notifica al store (re-render con el tema nuevo)
   }
 
+  // Carrusel: ciclar tema con wrap-around (botones ▲/▼ y flechas de teclado).
+  function cycleTheme(dir: 1 | -1) {
+    const i = OFFICE_THEMES.findIndex((th) => th.id === themeId);
+    const base = i < 0 ? 0 : i;
+    const next = (base + dir + OFFICE_THEMES.length) % OFFICE_THEMES.length;
+    selectTheme(OFFICE_THEMES[next].id);
+  }
+  function onRailKey(e: ReactKeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      cycleTheme(-1);
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      cycleTheme(1);
+    }
+  }
+  // La dirección de marcha (mirror) la resuelve el MOTOR (useOfficeSim) y llega en
+  // el estado del agente (s.mirror); el render queda puro, sin refs (fix cf2a799).
 
   const selectedAgent = agentById(selected) ?? AGENTS[0];
   const selRender = state[selected];
@@ -128,35 +154,9 @@ export function OfficeSim() {
   return (
     <section id="oficina" style={{ maxWidth: 'var(--page-max)', margin: '0 auto', padding: '56px 32px 40px' }}>
       <div style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: 'var(--tracking-kicker)', color: 'var(--success-pale)' }}>
-            {t.officeKicker}
-          </div>
-          {/* Selector de estilo (discreto): esquina derecha del header, alineado con el kicker. */}
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-dim)' }}>◆ estilo</span>
-            <select
-              aria-label={t.officeThemeAria}
-              value={themeId}
-              onChange={(e) => selectTheme(e.target.value)}
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--text-dim)',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border-1)',
-                borderRadius: 8,
-                padding: '4px 8px',
-                cursor: 'pointer',
-              }}
-            >
-              {OFFICE_THEMES.map((th) => (
-                <option key={th.id} value={th.id}>
-                  {th.label[lang]}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* El selector de estilo se movió al RIEL de temas (carrusel) dentro del grid. */}
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: 'var(--tracking-kicker)', color: 'var(--success-pale)', marginBottom: 10 }}>
+          {t.officeKicker}
         </div>
         <h2 style={{ margin: 0, fontSize: 34, fontWeight: 700 }}>
           <span style={{ background: 'var(--grad-text)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>{t.officeTitle}</span>
@@ -165,6 +165,44 @@ export function OfficeSim() {
       </div>
 
       <div className="office-grid a2a-reveal">
+        {/* ===== RIEL DE TEMAS (carrusel — PRIMERA hija del grid en el DOM) ===== */}
+        <div className="office-rail" role="radiogroup" aria-label={t.officeThemeAria} onKeyDown={onRailKey}>
+          <button type="button" className="office-rail-nav" aria-label={t.officeThemePrev} onClick={() => cycleTheme(-1)}>
+            ▲
+          </button>
+          <div className="office-rail-cards">
+            {OFFICE_THEMES.map((th) => {
+              const active = th.id === themeId;
+              const isLoaded = loaded[th.id];
+              return (
+                <button
+                  key={th.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  aria-label={th.label[lang]}
+                  onClick={() => selectTheme(th.id)}
+                  className={'office-rail-card' + (active ? ' is-active' : '')}
+                >
+                  {/* Preview VENDO idle-A (fila 0, col 0 → 0% 0%). FLASH-GUARD: hasta que
+                      el sheet cargó, tile del color del orbe del tema con ◆ centrado. */}
+                  <span
+                    className="office-rail-preview"
+                    aria-hidden="true"
+                    style={isLoaded ? { backgroundImage: `url(${th.sheet})` } : { background: th.swatch }}
+                  >
+                    {isLoaded ? null : '◆'}
+                  </span>
+                  <span className="office-rail-label">{th.short[lang]}</span>
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" className="office-rail-nav" aria-label={t.officeThemeNext} onClick={() => cycleTheme(1)}>
+            ▼
+          </button>
+        </div>
+
         {/* ===== ESCENA (decorativa) ===== */}
         <div
           ref={sceneRef}
@@ -303,7 +341,12 @@ export function OfficeSim() {
                   position: 'absolute',
                   left: `${s.x}%`,
                   top: `${s.y}%`,
-                  transform: 'translate(-50%, -50%)',
+                  // Anclaje por PIES: -100% planta la base del sprite en el punto de
+                  // asiento; el +20px (media celda vieja, 40/2 a 2×) mantiene los pies
+                  // donde ya estaban antes de que el sheet creciera 16px de alto, de modo
+                  // que el personaje crece hacia ARRIBA sin tapar el monitor y los offsets
+                  // en px de burbuja/chip siguen siendo válidos.
+                  transform: 'translate(-50%, calc(-100% + 20px))',
                   cursor: 'pointer',
                   transition: 'left .85s linear, top .85s linear',
                   zIndex: 3,
@@ -356,7 +399,9 @@ export function OfficeSim() {
             const closing = s.state === 'celebrating' || line.k === 'ok' || line.k === 'kpi';
             // Anti-colisión: en sala de reuniones / zona café (estado walking) hasta 3
             // burbujas coinciden → escalona la altura por (índice % 3).
-            const rise = 20 + (s.state === 'walking' ? (i % 3) * 14 : 0);
+            // Base 36 (= 20 previo + 16): los sprites son 16px más altos, así la burbuja
+            // sigue asomando justo por encima de la cabeza (los pies quedan planteados).
+            const rise = 36 + (s.state === 'walking' ? (i % 3) * 14 : 0);
             return (
               <div
                 key={`${a.id}-${s.lineIdx}`}
@@ -394,6 +439,7 @@ export function OfficeSim() {
 
         {/* ===== CENTRO DE MANDO ===== */}
         <div
+          className="office-center"
           style={{
             border: '1px solid var(--border-2)',
             borderRadius: 'var(--radius-l)',

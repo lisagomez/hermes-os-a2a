@@ -98,6 +98,8 @@ export interface Strings {
   officeCenter: string;
   officeCta: string;
   officeThemeAria: string;
+  officeThemePrev: string;
+  officeThemeNext: string;
   stWorking: string;
   stIdle: string;
   stWalking: string;
@@ -206,6 +208,8 @@ const es: Strings = {
   officeCenter: 'CENTRO DE MANDO',
   officeCta: '▶ Demo completa',
   officeThemeAria: 'Elige el estilo visual de los personajes de la oficina',
+  officeThemePrev: 'Estilo anterior',
+  officeThemeNext: 'Estilo siguiente',
   stWorking: 'trabajando',
   stIdle: 'en pausa',
   stWalking: 'moviéndose',
@@ -314,6 +318,8 @@ const en: Strings = {
   officeCenter: 'COMMAND CENTER',
   officeCta: '▶ Full demo',
   officeThemeAria: 'Choose the visual style of the office characters',
+  officeThemePrev: 'Previous style',
+  officeThemeNext: 'Next style',
   stWorking: 'working',
   stIdle: 'idle',
   stWalking: 'moving',

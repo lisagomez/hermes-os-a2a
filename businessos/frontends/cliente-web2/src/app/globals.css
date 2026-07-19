@@ -195,16 +195,29 @@ body {
 }
 
 /* === OFFICE SIM (inicio) === */
-/* Grid de la sección Oficina A2A: escena (62) + centro de mando (38). */
+/* Grid de la sección Oficina A2A: escena · riel de temas (84px) · centro de mando.
+   El riel es la PRIMERA hija en el DOM; grid-template-areas lo coloca en la
+   columna central en desktop y ENCIMA de la escena en móvil (tira horizontal). */
 .office-grid {
   display: grid;
-  grid-template-columns: 62fr 38fr;
+  grid-template-columns: 1fr 84px 0.58fr;
+  grid-template-areas: 'scene rail center';
   gap: 22px;
   align-items: start;
+}
+.office-scene {
+  grid-area: scene;
+}
+.office-rail {
+  grid-area: rail;
+}
+.office-center {
+  grid-area: center;
 }
 @media (max-width: 900px) {
   .office-grid {
     grid-template-columns: 1fr;
+    grid-template-areas: 'rail' 'scene' 'center';
   }
 }
 
@@ -219,21 +232,25 @@ body {
   }
 }
 
-/* Personaje pixel: 2× nativo (16×20 → 32×40) en desktop, 24×30 en móvil.
+/* Personaje pixel — PUNTO ÚNICO DE VERDAD de la geometría de RENDER.
+   Celda nativa --sw×--sh (20×28), escala entera --k (2× desktop, 1.5× móvil).
    SIEMPRE múltiplos enteros del nativo → sin blur ni bleeding. El frame se fija
-   por background-position en % (inline), independiente de la escala. */
+   por background-position en % (inline en OfficeSim), independiente de la escala.
+   Las constantes SPRITE_W/SPRITE_H de sprites.ts son documentación; SI cambian,
+   cambiar aquí --sw/--sh (y el sheet). El override móvil SOLO toca --k. */
 .office-sprite {
-  width: 32px;
-  height: 40px;
+  --sw: 20;
+  --sh: 28;
+  --k: 2;
+  width: calc(var(--sw) * var(--k) * 1px);
+  height: calc(var(--sh) * var(--k) * 1px);
   background-repeat: no-repeat;
-  background-size: 192px 320px; /* 6·16·2 × 8·20·2 */
+  background-size: calc(6 * var(--sw) * var(--k) * 1px) calc(8 * var(--sh) * var(--k) * 1px);
   image-rendering: pixelated;
 }
 @media (max-width: 900px) {
   .office-sprite {
-    width: 24px;
-    height: 30px;
-    background-size: 144px 240px; /* 6·16·1.5 × 8·20·1.5 */
+    --k: 1.5;
   }
 }
 
@@ -276,6 +293,109 @@ body {
   .office-typing {
     animation: none;
     opacity: 0.7;
+  }
+}
+
+/* --- Riel / carrusel de temas (reemplaza el <select>) --- */
+.office-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.office-rail-nav {
+  flex: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  padding: 5px 0;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.office-rail-nav:hover {
+  color: var(--text-2);
+  border-color: var(--violet);
+}
+.office-rail-cards {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+.office-rail-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  padding: 6px 4px;
+  color: var(--text-2);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.office-rail-card:hover {
+  border-color: var(--violet);
+}
+.office-rail-card.is-active {
+  border-color: var(--violet);
+  background: var(--surface-3);
+}
+/* Preview: 1 celda (20×28) a escala 2 → 40×56; VENDO idle-A vive en 0% 0%. */
+.office-rail-preview {
+  width: 40px;
+  height: 56px;
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 240px 448px; /* sheet 120×224 × 2 */
+  image-rendering: pixelated;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+}
+.office-rail-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: inherit;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  /* Tira horizontal por encima de la escena. */
+  .office-rail {
+    flex-direction: row;
+    align-items: stretch;
+    overflow-x: auto;
+  }
+  .office-rail-nav {
+    width: auto;
+    padding: 0 10px;
+    align-self: stretch;
+  }
+  .office-rail-cards {
+    flex-direction: row;
+    width: auto;
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+  .office-rail-card {
+    width: auto;
+    flex: none;
   }
 }
 /* === OFFICE SIM (fin) === */

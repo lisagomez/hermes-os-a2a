@@ -3,7 +3,7 @@
  *
  * Cada tema cambia ÚNICAMENTE el sprite sheet (la url de `backgroundImage`).
  * Todos los sheets comparten la MISMA geometría del contrato en `sprites.ts`
- * (96×160 px, 8 filas × 6 columnas). El resto del render (posiciones, tick,
+ * (120×224 px, 8 filas × 6 columnas). El resto del render (posiciones, tick,
  * chip glyph, pausas) es idéntico entre temas.
  *
  * Unión discriminada por `kind`:
@@ -17,7 +17,11 @@ import type { Lang } from '@/shared/i18n/strings';
 type OfficeThemeBase = {
   id: string;
   label: Record<Lang, string>;
+  /** Nombre corto para la card del riel (label mono 9px). */
+  short: Record<Lang, string>;
   sheet: string;
+  /** Color del "orbe" del tema: tile placeholder del riel mientras carga su sheet. */
+  swatch: string;
 };
 
 export type OfficeTheme = OfficeThemeBase &
@@ -28,25 +32,33 @@ export const OFFICE_THEMES: readonly OfficeTheme[] = [
     id: 'a2a',
     kind: 'original',
     label: { es: 'A2A Original', en: 'A2A Original' },
+    short: { es: 'A2A', en: 'A2A' },
     sheet: '/office/sprites.png',
+    swatch: '#9f7bff',
   },
   {
     id: 'retro',
     kind: 'original',
     label: { es: 'Oficina Retro', en: 'Retro Office' },
+    short: { es: 'Retro', en: 'Retro' },
     sheet: '/office/themes/retro.png',
+    swatch: '#e8a13c',
   },
   {
     id: 'shonen',
     kind: 'original',
     label: { es: 'Guerreros Anime', en: 'Anime Warriors' },
+    short: { es: 'Anime', en: 'Anime' },
     sheet: '/office/themes/shonen.png',
+    swatch: '#ff5d7a',
   },
   {
     id: 'futbol',
     kind: 'original',
     label: { es: 'Once Ideal', en: 'Dream Team' },
+    short: { es: 'Once', en: 'Team' },
     sheet: '/office/themes/futbol.png',
+    swatch: '#33c46b',
   },
 ] as const;
 
