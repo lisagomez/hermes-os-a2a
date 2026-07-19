@@ -10,7 +10,7 @@ de progreso (barra / % / contador). Los bits SON los datos: se ordenan cuando el
 |---|---|---|
 | `enjambre-binario.v3.html` | **PROTOTIPO CANONICO** (decision de Johann) | 18 estados (10 base + 8 futuros), autoplay sin gating, anima con reduced-motion, geometria verificada (ningun estado se sale del marco). Se abre con doble clic. |
 | `enjambre-engine.ts` | Motor TS de los 18 estados, agnostico del renderer | Typecheck limpio. Seam de upgrade: cambiar Canvas 2D por WebGL/WebGPU sin tocar estados. |
-| `enjambre-binario.tsx` | Componente React controlado (`state`, `progress`, `progressMode`) | Para montar en cola/dashboard. Pendiente verificar con `npm install` + dev server. |
+| `enjambre-binario.tsx` | Componente React controlado (`state`, `subtitle`, `progress`, `progressMode`) | Cumple el SPEC fase-10: subtitle = telemetria real + aria-live (guardrail honestidad), reduced-motion = figura FORMADA estatica, pausa fuera de viewport/pestana, paleta teal #5DCAA5 / rojo #E24B4A del SPEC. Typecheck limpio (los ~880 errores del repo son del vendored control-interno). DESTINO evaluado: dashboard de Mission Control (src/app/(main)/dashboard), mapeando estados de la cola `tareas`; NO la landing (ahi van OfficeSim + PR #67). Pendiente: montarlo + dev server + Playwright. |
 | `historial/` | v1 (prototipo original, ex-docs/) y v2 (10 estados) | Linea evolutiva del canonico, versionado `.vN` elegido por Johann. |
 | `exploracion/` | Demos de render (WebGL/WebGPU/morph) + exploracion del personaje "ser IA" (APARCADA) | Cada archivo con veredicto y por que en `exploracion/_LEEME.md`. Incluye la LECCION image-to-particles (leerla antes de retomar el personaje). |
 

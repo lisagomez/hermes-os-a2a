@@ -15,9 +15,9 @@ export interface ObjetivoParticula { x: number; y: number; col: string; a: numbe
 
 // Cambia la PALETA aqui para otra identidad (p. ej. cian) sin tocar la logica.
 export const PALETA = {
-  base: '#7C3AED', hot: '#EC4899', alt: '#38BDF8', ok: '#34D399', bad: '#F87171',
-  warn: '#FBBF24', blue: '#60A5FA', bone: '#EAE6D8', dim: '#5b5570',
-} as const;
+  base: '#7C3AED', hot: '#EC4899', alt: '#38BDF8', ok: '#5DCAA5', bad: '#E24B4A',
+  warn: '#FBBF24', blue: '#60A5FA', bone: '#EAE6D8', dim: '#6d5bc9',
+} as const; // ok/bad/dim alineados al SPEC fase-10 (teal verificado, rojo corrupcion, violeta neutro)
 export const GLITCH = '#%?!§~¬';
 export const DIM = { W: 620, H: 280, CX: 310, CY: 118, STRIP_Y: 236, N: 200 } as const;
 

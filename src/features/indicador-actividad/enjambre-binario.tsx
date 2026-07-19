@@ -1,9 +1,11 @@
 'use client';
 
-// Componente React del indicador "Enjambre Binario". CONTROLADO: el padre pasa `state` (y opcional
-// progress/progressMode). Toda la logica de los 18 estados vive en enjambre-engine.ts (agnostica del
-// renderer); aqui esta SOLO el renderer Canvas 2D + el bucle. Para escalar a WebGL/WebGPU se reemplaza
-// el dibujo de este archivo sin tocar el motor.
+// Componente React del indicador "Enjambre Binario" (SPEC fase-10). CONTROLADO: el padre pasa
+// `state` desde telemetria REAL de la cola (guardrail de honestidad: sin dato -> 'pensar' neutro)
+// y `subtitle` con el dato real (se anuncia por aria-live). Toda la logica de los 18 estados vive
+// en enjambre-engine.ts (agnostica del renderer); aqui SOLO el renderer Canvas 2D + el bucle.
+// SPEC §6: pausa fuera de viewport; prefers-reduced-motion => figura FORMADA estatica (no congelada
+// a media transicion) con el subtitulo como fuente de verdad textual.
 
 import { useEffect, useRef } from 'react';
 import {
@@ -15,12 +17,14 @@ interface Particula { x: number; y: number; c: string; f: number; s: number; }
 
 interface Props {
   state: EstadoAgente;
+  /** Telemetria real ("grafo-a2a · 3 de 7 fuentes"). La animacion jamas afirma lo que este texto no diga. */
+  subtitle?: string;
   progress?: number;        // 0..1
   progressMode?: ModoProgreso;
   className?: string;
 }
 
-export function EnjambreBinario({ state, progress = 0, progressMode = 'off', className }: Props) {
+export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 'off', className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateRef = useRef<EstadoAgente>(state);
   const progRef = useRef<number>(progress);
@@ -47,6 +51,7 @@ export function EnjambreBinario({ state, progress = 0, progressMode = 'off', cla
       });
     }
     let t = 0, cycT = 0, cycI = 0, raf = 0;
+    let running = false, inView = true, lastStatic: EstadoAgente | null = null;
 
     const drawStrip = () => {
       const prog = progRef.current;
@@ -75,10 +80,8 @@ export function EnjambreBinario({ state, progress = 0, progressMode = 'off', cla
       ctx.restore();
     };
 
-    const frame = () => {
-      t++;
+    const paint = (animated: boolean) => {
       const st = stateRef.current;
-      if (modeRef.current === 'cycle' && ++cycT > 150) { cycT = 0; cycI = (cycI + 1) % 3; }
       ctx.clearRect(0, 0, W, H);
       ctx.font = '11px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       const fn = TARGET[st];
@@ -88,35 +91,71 @@ export function EnjambreBinario({ state, progress = 0, progressMode = 'off', cla
         if (--p.f < 0) { p.f = 40 + ((Math.random() * 150) | 0); p.c = g.dirty ? GLITCH[(Math.random() * GLITCH.length) | 0] : (Math.random() < 0.5 ? '0' : '1'); }
         if (g.dirty && '01'.includes(p.c)) p.c = GLITCH[(Math.random() * GLITCH.length) | 0];
         if (!g.dirty && !'01'.includes(p.c)) p.c = Math.random() < 0.5 ? '0' : '1';
-        const jx = (g.dirty && !reduce) ? (Math.random() - 0.5) * 2.4 : 0;
-        const jy = (g.dirty && !reduce) ? (Math.random() - 0.5) * 2.4 : 0;
+        const jx = (g.dirty && animated) ? (Math.random() - 0.5) * 2.4 : 0;
+        const jy = (g.dirty && animated) ? (Math.random() - 0.5) * 2.4 : 0;
         const br = g.a > 0.85;
-        ctx.globalAlpha = g.a * (reduce ? 0.9 : (0.78 + 0.22 * Math.sin(t * 0.05 + i)));
+        ctx.globalAlpha = g.a * (animated ? (0.78 + 0.22 * Math.sin(t * 0.05 + i)) : 0.9);
         ctx.shadowBlur = br ? 8 : 0; ctx.shadowColor = br ? g.col : 'transparent';
         ctx.fillStyle = g.col; ctx.fillText(p.c, p.x + jx, p.y + jy);
       }
       ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-      if (st === 'leer' || st === 'verificar') {
-        const sp = st === 'leer' ? 2.2 : 1.9, cols = 36, sx = CX - cols * 3.5 + ((t * sp) % (cols * 7));
+      const st2 = stateRef.current;
+      if (st2 === 'leer' || st2 === 'verificar') {
+        const sp = st2 === 'leer' ? 2.2 : 1.9, cols = 36, sx = CX - cols * 3.5 + ((t * sp) % (cols * 7));
         ctx.strokeStyle = 'rgba(236,72,153,.5)'; ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.moveTo(sx, CY - 58); ctx.lineTo(sx, CY + 56); ctx.stroke();
       }
       drawStrip();
+    };
+
+    const frame = () => {
+      t++;
+      if (modeRef.current === 'cycle' && ++cycT > 150) { cycT = 0; cycI = (cycI + 1) % 3; }
+      paint(true);
       raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+
+    // reduced-motion (SPEC §6): asentar las particulas en la FIGURA formada y pintar UNA vez.
+    const paintStatic = () => {
+      lastStatic = stateRef.current;
+      for (let k = 0; k < 160; k++) { t++; const fn = TARGET[stateRef.current];
+        for (let i = 0; i < N; i++) { const p = parts[i], g = fn(i, t); p.x += (g.x - p.x) * 0.2; p.y += (g.y - p.y) * 0.2; } }
+      paint(false);
+    };
+
+    const start = () => { if (running || reduce || !inView || document.hidden) return; running = true; raf = requestAnimationFrame(frame); };
+    const stop = () => { if (!running) return; running = false; cancelAnimationFrame(raf); };
+
+    // pausa fuera de viewport (SPEC §6) + pestana oculta
+    const io = new IntersectionObserver((es) => { inView = es[0]?.isIntersecting ?? true; if (inView) start(); else stop(); });
+    io.observe(canvas);
+    const onVis = () => { if (document.hidden) stop(); else start(); };
+    document.addEventListener('visibilitychange', onVis);
+
+    if (reduce) {
+      paintStatic();
+      // repintar la figura formada cuando cambie el estado (poll ligero, sin rAF continuo)
+      const iv = window.setInterval(() => { if (stateRef.current !== lastStatic) paintStatic(); }, 500);
+      return () => { window.clearInterval(iv); io.disconnect(); document.removeEventListener('visibilitychange', onVis); };
+    }
+    start();
+    return () => { stop(); io.disconnect(); document.removeEventListener('visibilitychange', onVis); };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={DIM.W}
-      height={DIM.H}
-      className={className}
-      style={{ width: '100%', display: 'block' }}
-      role="img"
-      aria-label={`Agente: ${LABEL[state][0]}`}
-    />
+    <div className={className}>
+      <canvas
+        ref={canvasRef}
+        width={DIM.W}
+        height={DIM.H}
+        style={{ width: '100%', display: 'block' }}
+        role="img"
+        aria-label={`Agente: ${LABEL[state][0]}${subtitle ? ` · ${subtitle}` : ''}`}
+      />
+      {/* fuente de verdad textual (guardrail honestidad + aria-live, SPEC §2.5/§6) */}
+      <span aria-live="polite" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>
+        {LABEL[state][0]}{subtitle ? ` · ${subtitle}` : ''}
+      </span>
+    </div>
   );
 }
