@@ -62,6 +62,67 @@ primario. Se conservan como CAPACIDADES DE FONDO (heatmap de colisiones, mapa=fi
 escalera de autonomia quest/campana/canal) que el ORQUESTADOR consume y resume, no que el humano
 navega directamente.
 
+## Dos superficies de visualizacion, un mismo dato (2026-07-19, Johann: Sims + tmux + bolsa)
+
+**Referencia adicional que confirma la accesibilidad:** *The Sims* es otro management game que
+CUALQUIERA conoce por experiencia propia, sin expertise (a diferencia de un RTS o un colony-sim
+hardcore). Refuerza lo ya fijado en el Principio rector: metafora cotidiana por encima de
+alfabetizacion de gamer.
+
+**El mundo casual (pixel/cenital) no es la unica vista.** Se necesita una segunda superficie,
+"vista de comandante", para el usuario TECNICO que prefiere datos/texto sobre personajes. Dos
+referencias reales que Johann trae:
+
+1. **tmux** (multiplexor de terminal): grid de paneles pequenos, cada uno una sesion en vivo, con
+   zoom en 3 pasos: mosaico (glance) -> click expande ESE panel sobre los demas, foco -> boton para
+   pantalla completa, interaccion directa. Pixel Agents ya tiene algo parecido (mostrar que hace
+   cada agente), pero Johann lo califica de POCO PRACTICO: se conserva la idea del mosaico
+   expandible en 3 pasos, no la ejecucion de Pixel Agents.
+2. **Bolsa de valores** (ticker board): muchos recuadros a la vez, indicadores rapidos de
+   sube/baja, para identificar el estado de TODOS de un vistazo sin entrar a ninguno.
+
+**No confundir con lo que YA existe:** `OfficeSim.tsx` (Elisa) ya tiene un selector de TEMA
+(dropdown "estilo") que cambia el SKIN de los personajes pixel, pero sigue siendo la MISMA vista de
+mundo. Esto es distinto: no es cambiar el skin, es una SEGUNDA vista completa (modo analitico) que
+renderiza el MISMO dato (los 18 estados F363 + la capa de telemetria ya definida) como dashboard,
+no como personajes. Ambas vistas alimentan al mismo orquestador-concierge para la accion (seccion
+anterior); solo difieren en como se GLANCEA el estado.
+
+**Grounding de diseno** (consultada la skill `dataviz` antes de proponer, regla
+`consultar-cerebro-antes-de-opinar`): cada mini-panel del mosaico es, en terminos de dataviz, un
+STAT TILE (con sparkline de tendencia opcional: burn-rate de tokens, tareas completadas) mas que un
+chart complejo. Reglas que aplican de una vez, sin reinventar:
+- Los colores de ESTADO (idle/trabajando/esperando-gate/bloqueado) son colores de STATUS,
+  reservados, nunca reusados para "categoria": el mismo vocabulario que ya fijamos en el Lenguaje
+  Visual de Estados (ambar=pendiente, rojo=bloqueado, verde=confirmado). El panel analitico HEREDA
+  esa paleta, no inventa una nueva.
+- Un sparkline de tendencia sigue la regla "secuencial = un solo tono, claro a oscuro", nunca arcoiris.
+- Cada tile necesita su propio hover/tooltip (un chart ES interactivo por defecto, regla dataviz).
+
+**Interaccion en 3 pasos (mismo espiritu que el Principio rector: no repetir el error de submenus):**
+1. **Mosaico:** grid completo, todos los agentes, un vistazo. Solo lectura, cero clicks para "ver
+   que pasa".
+2. **Foco:** click en un tile, se expande SOBRE los demas (overlay), sigues viendo el resto de
+   reojo. Aqui vive interaccion ligera (leer el detalle, aprobar algo puntual).
+3. **Pantalla completa:** boton explicito desde el foco, interaccion directa y completa con ESE
+   agente. Equivale a "hablar directo con un agente especifico", ya definido como la EXCEPCION en
+   el Principio rector, no el camino principal.
+
+Esto es COMPLEMENTARIO al Principio rector, no lo contradice: el orquestador sigue siendo el canal
+de ACCION por defecto (decidir/aprobar/asignar); el mosaico/bolsa es una forma alternativa de
+GLANCE para quien prefiere datos densos sobre un mundo pixel-art. Las 2 vistas son un TOGGLE del
+mismo dato, no dos productos distintos.
+
+### Resumen: dos publicos, dos vistas
+
+| | Mundo casual (pixel/cenital) | Panel analitico (tmux/bolsa) |
+|---|---|---|
+| Para quien | cualquiera, sin conocimiento tecnico | usuario tecnico, prefiere datos/texto |
+| Referencia | Pixel Agents, oficina, The Sims | tmux (grid expandible), ticker de bolsa |
+| Densidad | pocos elementos, calido, ambiental | muchos recuadros a la vez, denso, rapido |
+| Accion | via orquestador-concierge (chat) | via orquestador-concierge; drill-down = foco->pantalla completa |
+| Dato subyacente | el mismo: 18 estados F363 + telemetria | el mismo: 18 estados F363 + telemetria |
+
 ## Vista / cámara (nota para tener presente en el desarrollo)
 
 **VISTA CENITAL** (top-down, cámara recta desde arriba) es la referencia de cámara para la oficina,
