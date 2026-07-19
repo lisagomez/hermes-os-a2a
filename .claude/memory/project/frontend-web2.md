@@ -42,8 +42,20 @@ Estado y decisiones de la superficie de cara al cliente humano. Iniciado 2026-07
 
 - ~~Aplicar `supabase-fase11-leads-web2.sql`~~ → **APLICADA en prod 2026-07-17** (management API; CHECK verificado con el MCP).
 - ~~Configurar el proyecto Vercel + publicar~~ → **DESPLEGADO 2026-07-17**: https://cliente-web2.vercel.app (proyecto `cliente-web2`, upload root `frontends/`, rootDirectory `cliente-web2`, installCommand instala también el design-system). Leads verificado end-to-end (POST → fila `origen='web2'` → limpieza). Gotchas del deploy en `frontends/DEPLOY-web2.md` §0 y CLAUDE.md 2026-07-17.
-- (Opt-in, decisión de seguridad de la dueña) exponer el daemon por el edge para el chat live.
+- ~~(Opt-in) exponer el daemon por el edge para el chat live~~ → **CHAT LIVE ENCENDIDO
+  2026-07-19 (PR #76)**. NO se puenteó al agente Hermes privado (Opción A): se construyó un
+  **daemon de venta propio** `businessos/chat-web2/` (Starlette, hermano de ventas-a2a) que
+  sirve `POST /chat/stream` (SSE) auth Bearer `OPENCLAW_GATEWAY_TOKEN` (falla cerrado), motor
+  OpenRouter (gemini-2.5-flash-lite) con prompt de venta, y **captura leads origen web2** (gate
+  por email → extracción JSON → upsert idempotente por lead_id determinista). Publicado por el
+  edge Caddy (SOLO `/chat/stream`, `flush_interval -1`); frontend cableado en Vercel
+  (`CLAUDECLAW_URL` + token, en **production**). Verificado end-to-end (stream real + fila de
+  lead). Gotcha vivido: el `.env` del server quedó con 2 líneas de token por re-ejecución
+  accidental → dejar UNA y recrear el contenedor para que coincida con Vercel (200/401).
+  Detalle en `frontends/DEPLOY-web2.md` §3. Pendiente opcional: replicar las 2 env vars en el
+  entorno **preview** de Vercel.
 - cliente-a2a-web3: subir de scaffold a app (siguiente pase). Ver [[fase5-a2a]] para el contrato A2A.
 
-Rama de trabajo: `feature/design-system-cliente-web2` (aún no PR). Relacionado: [[fase9-adquisicion]]
-(ventas-a2a/leads), [[despliegue-hetzner]] (dónde vive el backend), [[mantener-docs-vivas]].
+Rama de trabajo: `feature/design-system-cliente-web2` (mergeada). El chat live salió en la rama
+`feat/chat-web2-daemon` (PR #76, mergeada). Relacionado: [[fase9-adquisicion]] (ventas-a2a/leads),
+[[despliegue-hetzner]] (dónde vive el backend), [[mantener-docs-vivas]].

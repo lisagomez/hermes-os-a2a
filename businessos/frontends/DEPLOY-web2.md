@@ -1,9 +1,10 @@
 # Deploy de `cliente-web2` (Vercel) + backend
 
-> **Estado: DESPLEGADO** (2026-07-17) — https://cliente-web2.vercel.app
+> **Estado: DESPLEGADO + CHAT EN VIVO** (chat encendido 2026-07-19) — https://cliente-web2.vercel.app
 > Proyecto Vercel `cliente-web2` (scope lisagomezs-projects), upload root `frontends/`,
 > Root Directory `cliente-web2`. Migración fase11 aplicada; leads verificado end-to-end
-> (POST → fila real → limpieza). Chat live sigue degradado (decisión pendiente de la dueña).
+> (POST → fila real → limpieza). **Chat live ENCENDIDO** (Opción A: daemon `chat-web2`, no el
+> agente Hermes privado) — ver §3.
 
 ## 0. Aprendizajes del primer deploy real (2026-07-17)
 
@@ -77,34 +78,47 @@ Sin secretos en el repo; todo por env. `.env.local` es solo para dev.
 - **Captura de leads** → Supabase `leads` (Supabase es cloud/público). ✅
 - **Checkout Polar** → si `POLAR_*` está configurado (API pública). ✅
 
-## 3. Chat en vivo (paso de infra opt-in)
+## 3. Chat en vivo — ENCENDIDO (Opción A, 2026-07-19)
 
-El daemon Hermes (`:3099`) y grafo (`:3000`) están en `127.0.0.1` del Droplet (túnel SSH); hoy
-**solo `edge:443 → ventas-a2a` es público** (`businessos/edge/Caddyfile`). Para encender el chat
-en vivo desde Vercel hay que exponer una ruta pública **autenticada** al daemon por el edge Caddy.
+El runbook original asumía "exponer el daemon Hermes por el edge". Realidad al momento de
+encenderlo: **ese daemon (`hermes-daemon:3099`) nunca existió** — era un residual del ROADMAP.
+Los contenedores Hermes hablan solo por Telegram (sin HTTP entrante, por diseño de seguridad).
 
-Patrón (añadir al site block del `edge/Caddyfile`, sin exponer el resto del daemon):
+Decisión de la dueña: **Opción A — un daemon de venta PROPIO**, no un puente al agente Hermes
+privado. Ventajas: no abre la superficie privada de Hermes a internet, es rápido y en-marca, y
+captura leads. Implementado como servicio **`businessos/chat-web2/`** (Starlette, hermano de
+`ventas-a2a`):
 
-```caddyfile
-# Chat público de la landing web2 → daemon Hermes. Autenticado por el token
-# compartido; rate-limit para proteger. Ajustar el host/puerto real del daemon.
-@chat path /chat/stream
-handle @chat {
-    rate_limit {
-        zone web2chat { key {remote_host}; events 20; window 1m }
-    }
-    request_body { max_size 32KB }
-    reverse_proxy hermes-daemon:3099
-}
-```
+- `POST /chat/stream` → SSE (`text_delta`/`[DONE]`), auth **Bearer `OPENCLAW_GATEWAY_TOKEN`**
+  (falla **cerrado** sin token). Motor OpenRouter (`gemini-2.5-flash-lite`) con prompt de venta
+  A2A Factory y fronteras honestas (no cierra, no fija precios, no firma). **Captura leads**
+  origen `web2` (gate por email → extracción → upsert idempotente por `lead_id`).
+- Servicio del compose (`chat-web2`, `127.0.0.1:4500`, `hermes-net`).
+- **Edge Caddy** publica SOLO `/chat/stream` (bloque `handle` con rate-limit + `flush_interval
+  -1` para el SSE); el resto sigue a `ventas-a2a`. Nada más del daemon es público.
 
-Luego en Vercel: `CLAUDECLAW_URL=https://<dominio-edge>` y `OPENCLAW_GATEWAY_TOKEN=<token>`.
-Mientras esto no esté, el chat **degrada con un aviso claro** (`/api/chat/stream` emite un SSE
-que invita a usar el formulario) — no se cuelga ni finge respuestas.
+### Cómo se encendió (y cómo re-hacerlo)
 
-> Exponer el daemon a internet es una decisión de seguridad de la dueña. Este paso queda
-> documentado, no ejecutado. Alternativa más acotada: enrutar la captura de lead por
-> `ventas-a2a` (ya público) en vez del daemon.
+1. **Backend (Hetzner)**: sincronizar `chat-web2/` + `docker-compose.yml` + `edge/Caddyfile` al
+   snapshot del server (`/home/hermes/repo/businessos/`); generar el token en el server SIN
+   imprimirlo (`openssl rand -hex 32` → `OPENCLAW_GATEWAY_TOKEN` en el `.env`, **una sola
+   línea**); `docker compose --profile a2a --profile edge up -d --build chat-web2 edge`.
+2. **Vercel** (cuenta dueña): fijar en **production** `CLAUDECLAW_URL=https://167-233-233-56.sslip.io`
+   y `OPENCLAW_GATEWAY_TOKEN=<el MISMO valor del server>` (piped, sin imprimirlo); `vercel deploy
+   --prod` desde `frontends/`. Las env vars nuevas exigen redeploy (no afectan deploys existentes).
+3. **Verificación**: `POST cliente-web2.vercel.app/api/chat/stream` devuelve stream real (no el
+   aviso de degradación); un email en la charla persiste una fila `origen='web2'` en `leads`.
+
+⚠️ **El token debe ser idéntico en el `.env` del server y en Vercel.** Si el `.env` queda con dos
+líneas `OPENCLAW_GATEWAY_TOKEN` (p. ej. por re-ejecución accidental), dejar UNA y recrear
+`chat-web2` para que coincida con lo que se puso en Vercel; verificar 200 (token bueno) / 401
+(token malo). Si Vercel no toma las vars, es que falta el **redeploy**.
+
+Si `CLAUDECLAW_URL`/`OPENCLAW_GATEWAY_TOKEN` faltan en Vercel, el chat **degrada con aviso**
+(`/api/chat/stream` emite un SSE que invita al formulario) — no se cuelga ni finge respuestas.
+
+> Pendiente opcional: replicar las 2 env vars en el entorno **preview** de Vercel si se quiere el
+> chat en los deploys de rama (hoy solo están en **production**).
 
 ## 4. Verificación post-deploy
 
