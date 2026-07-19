@@ -40,7 +40,7 @@
   <div class="row" id="states"><span class="cap">Estado del agente (10 base + 8 futuros)</span></div>
   <div class="row" id="progress">
     <span class="cap">Verificacion de progreso</span>
-    <button data-p="cycle" class="on">Ciclo</button><button data-p="bar">Barra</button>
+    <button data-p="cycle">Ciclo</button><button data-p="bar" class="on">Barra</button>
     <button data-p="pct">%</button><button data-p="counter">Contador</button><button data-p="off">Off</button>
     <button id="auto" style="margin-left:auto;">⏸ Auto</button>
   </div>
@@ -127,7 +127,7 @@ const T = {
 
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let t=0,state='pensar',progMode='cycle',auto=true,prog=.12,autoT=0,cycT=0,cycI=0;
+let t=0,state='pensar',progMode='bar',auto=true,prog=.12,autoT=0,cycT=0,cycI=0;  // default BARRA (info funcional pide estabilidad); Ciclo = showcase
 const CYCLE=['bar','pct','counter'];
 const parts=[]; for(let i=0;i<N;i++)parts.push({x:Math.random()*W,y:Math.random()*(STRIP_Y-10),c:Math.random()<.5?'0':'1',f:(Math.random()*160)|0,s:.06+Math.random()*.06});
 
@@ -142,7 +142,7 @@ function drawStrip(){ const m=progMode==='cycle'?CYCLE[cycI]:progMode; if(m==='o
 
 function frame(){ t++; prog+=.0016; if(prog>1)prog=0;
   if(auto&&++autoT>210){autoT=0;setState(STATES[(STATES.indexOf(state)+1)%STATES.length],false);}
-  if(progMode==='cycle'&&++cycT>150){cycT=0;cycI=(cycI+1)%CYCLE.length;}
+  if(progMode==='cycle'&&++cycT>360){cycT=0;cycI=(cycI+1)%CYCLE.length;}  // showcase rota cada ~6s (estudio: formato estable, cambio ocasional)
   ctx.clearRect(0,0,W,H); ctx.font='11px "JetBrains Mono",monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
   const fn=T[state];
   for(let i=0;i<N;i++){ const p=parts[i],g=fn(i,t); p.x+=(g.x-p.x)*p.s; p.y+=(g.y-p.y)*p.s;

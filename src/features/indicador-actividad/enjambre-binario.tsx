@@ -110,7 +110,7 @@ export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 
 
     const frame = () => {
       t++;
-      if (modeRef.current === 'cycle' && ++cycT > 150) { cycT = 0; cycI = (cycI + 1) % 3; }
+      if (modeRef.current === 'cycle' && ++cycT > 360) { cycT = 0; cycI = (cycI + 1) % 3; }  // showcase ~6s (formato estable, cambio ocasional)
       paint(true);
       raf = requestAnimationFrame(frame);
     };
