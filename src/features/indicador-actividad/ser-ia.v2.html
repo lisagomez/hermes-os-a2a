@@ -96,7 +96,7 @@ function setTo(b){ if(b===curB && p>=1) return; curA=(p>=1)?curB:curA; curB=b; p
   document.getElementById('label').textContent=SHAPES[b].label;
   document.getElementById('sub').textContent=SHAPES[b].sub;
   [...document.querySelectorAll('#chips button')].forEach(x=>x.classList.toggle('on',+x.dataset.i===b)); }
-function nextAuto(){ setTo(curB===0 ? (1+((autoIdx++)%(SHAPES.length-1))) : 0); }
+function nextAuto(){ setTo((curB+1)%SHAPES.length); }   // profesion -> profesion directo; reposo solo 1 vez por vuelta (ancla de identidad)
 
 function frame(now){ const dt=Math.min(50,now-last)/1000; last=now; frames++; t+=dt;
   if(p<1){ p=Math.min(1,p+dt/1.7); } else if(auto){ hold+=dt; if(hold>4.5){ hold=0; nextAuto(); } }  // ambiental: reposo domina
