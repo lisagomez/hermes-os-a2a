@@ -208,6 +208,35 @@ body {
   }
 }
 
+/* Lienzo de la escena: 13/7 en desktop, más alto (13/9) en móvil para dar aire
+   a personajes y burbujas. La razón vive AQUÍ (no inline) para poder overridearla. */
+.office-scene {
+  aspect-ratio: 13 / 7;
+}
+@media (max-width: 900px) {
+  .office-scene {
+    aspect-ratio: 13 / 9;
+  }
+}
+
+/* Personaje pixel: 2× nativo (16×20 → 32×40) en desktop, 24×30 en móvil.
+   SIEMPRE múltiplos enteros del nativo → sin blur ni bleeding. El frame se fija
+   por background-position en % (inline), independiente de la escala. */
+.office-sprite {
+  width: 32px;
+  height: 40px;
+  background-repeat: no-repeat;
+  background-size: 192px 320px; /* 6·16·2 × 8·20·2 */
+  image-rendering: pixelated;
+}
+@media (max-width: 900px) {
+  .office-sprite {
+    width: 24px;
+    height: 30px;
+    background-size: 144px 240px; /* 6·16·1.5 × 8·20·1.5 */
+  }
+}
+
 /* Entrada de la burbuja de actividad (se remonta en cada tick). */
 @keyframes office-bubble-in {
   from {
@@ -216,7 +245,8 @@ body {
   }
   to {
     opacity: 1;
-    transform: translate(-50%, calc(-100% - 20px));
+    /* Respeta el escalonado anti-colisión (inline) para no pisar el offset. */
+    transform: translate(-50%, calc(-100% - var(--bubble-rise, 20px)));
   }
 }
 .office-bubble {

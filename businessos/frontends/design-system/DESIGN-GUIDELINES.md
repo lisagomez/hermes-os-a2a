@@ -51,3 +51,6 @@ Sistema de diseño de **A2A·Factory** (nombre comercial por definir; proyecto "
 ## Pendientes / caveats
 - Fuentes vía Google Fonts CDN (no hay binarios propios). Si se compran webfonts, sustituir en `tokens/typography.css`.
 - Nombre de marca por definir; endpoint A2A y URL de calendario simulados (solicitar en desarrollo).
+
+## Excepción aprobada — sprites pixel de la Oficina A2A (2026-07-18)
+La regla 'no introducir SVGs/sprites dibujados' tiene UNA excepción aprobada por el dueño: los personajes pixel de la sección Oficina A2A de cliente-web2. Condiciones: (1) se generan in-house desde cliente-web2/scripts/gen_sprites.py (grids de texto editables — nunca packs de terceros), (2) paleta bloqueada a los tokens del sistema, (3) alcance limitado a la escena de oficina — el orbe sigue siendo el avatar oficial del agente en cards, chips y logo.

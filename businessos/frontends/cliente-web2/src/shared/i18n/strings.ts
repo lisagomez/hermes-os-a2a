@@ -97,6 +97,7 @@ export interface Strings {
   officeCafe: string;
   officeCenter: string;
   officeCta: string;
+  officeThemeAria: string;
   stWorking: string;
   stIdle: string;
   stWalking: string;
@@ -204,6 +205,7 @@ const es: Strings = {
   officeCafe: 'ZONA CAFÉ',
   officeCenter: 'CENTRO DE MANDO',
   officeCta: '▶ Demo completa',
+  officeThemeAria: 'Elige el estilo visual de los personajes de la oficina',
   stWorking: 'trabajando',
   stIdle: 'en pausa',
   stWalking: 'moviéndose',
@@ -311,6 +313,7 @@ const en: Strings = {
   officeCafe: 'COFFEE CORNER',
   officeCenter: 'COMMAND CENTER',
   officeCta: '▶ Full demo',
+  officeThemeAria: 'Choose the visual style of the office characters',
   stWorking: 'working',
   stIdle: 'idle',
   stWalking: 'moving',
