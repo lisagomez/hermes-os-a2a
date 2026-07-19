@@ -32,6 +32,9 @@ export function ChatWidget() {
   async function send() {
     const message = input.trim();
     if (!message || busy) return;
+    // Historial previo (últimos turnos, sin el mensaje en curso) para que el
+    // daemon —stateless— tenga contexto y pueda capturar el lead multi-turno.
+    const history = msgs.filter((m) => m.text).slice(-16);
     setInput('');
     setMsgs((m) => [...m, { role: 'user', text: message }, { role: 'agent', text: '' }]);
     setBusy(true);
@@ -41,7 +44,7 @@ export function ChatWidget() {
       const res = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, source: 'web2-landing' }),
+        body: JSON.stringify({ message, source: 'web2-landing', history }),
       });
       if (!res.body) throw new Error('no body');
 

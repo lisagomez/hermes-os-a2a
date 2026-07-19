@@ -1,4 +1,6 @@
-# Edge publico de BusinessOS. HOY solo publica la card de ventas-a2a.
+# Edge publico de BusinessOS. Publica DOS cosas y nada mas:
+#   - /chat/stream  -> chat-web2:4500  (chat de venta de la landing, Fase 11)
+#   - todo lo demas -> ventas-a2a:4400 (card comercial A2A, Fase 9)
 # Dominio temporal sslip.io (decision de la dueña 2026-07-10, "probar primero");
 # al comprar dominio real: cambiar el site address + VENTAS_PUBLIC_URL y ya.
 {
@@ -7,20 +9,42 @@
 }
 
 167-233-233-56.sslip.io {
-	# 30 req/min por IP: trafico legitimo de una card comercial esta muy por
-	# debajo; protege a ventas-a2a (y a Supabase detras) de scrapers/floods.
-	rate_limit {
-		zone ventas {
-			key {remote_host}
-			events 30
-			window 1m
+	# --- Chat de la landing web2 (SSE) -> daemon chat-web2 ---
+	# handle exclusivo por path: solo /chat/stream entra aqui; el resto cae al
+	# handle catch-all de abajo. Rate-limit propio (mas estricto: un chat legitimo
+	# no manda 20 turnos/min) y flush_interval -1 para NO bufferear el stream SSE.
+	handle /chat/stream {
+		rate_limit {
+			zone web2chat {
+				key {remote_host}
+				events 20
+				window 1m
+			}
+		}
+		# Un turno de chat son unos KB; el daemon ademas valida y acota.
+		request_body {
+			max_size 32KB
+		}
+		reverse_proxy chat-web2:4500 {
+			flush_interval -1
 		}
 	}
 
-	# Un lead A2A son unos KB de JSON-RPC; nadie legitimo manda mas.
-	request_body {
-		max_size 64KB
+	# --- Card comercial A2A (todo lo demas) -> ventas-a2a ---
+	handle {
+		# 30 req/min por IP: trafico legitimo de una card comercial esta muy por
+		# debajo; protege a ventas-a2a (y a Supabase detras) de scrapers/floods.
+		rate_limit {
+			zone ventas {
+				key {remote_host}
+				events 30
+				window 1m
+			}
+		}
+		# Un lead A2A son unos KB de JSON-RPC; nadie legitimo manda mas.
+		request_body {
+			max_size 64KB
+		}
+		reverse_proxy ventas-a2a:4400
 	}
-
-	reverse_proxy ventas-a2a:4400
 }
