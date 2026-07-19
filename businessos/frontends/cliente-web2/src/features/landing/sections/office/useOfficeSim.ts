@@ -30,7 +30,7 @@ function initialState(): OfficeState {
   const map: OfficeState = {};
   for (const a of AGENTS) {
     const seat = SEATS[a.id];
-    map[a.id] = { id: a.id, state: 'working', x: seat.x, y: seat.y, lineIdx: 0 };
+    map[a.id] = { id: a.id, state: 'working', x: seat.x, y: seat.y, lineIdx: 0, mirror: false };
   }
   return map;
 }
@@ -43,6 +43,7 @@ interface SimCell {
   lineIdx: number;
   walkTicks: number;
   idleTicks: number;
+  mirror: boolean;
 }
 
 export interface OfficeSim {
@@ -86,6 +87,7 @@ export function useOfficeSim(externalPaused: boolean): OfficeSim {
         lineIdx: 0,
         walkTicks: 0,
         idleTicks: 0,
+        mirror: false,
       };
       rngs[a.id] = mulberry32(hash(a.id));
     }
@@ -98,7 +100,7 @@ export function useOfficeSim(externalPaused: boolean): OfficeSim {
       const out: OfficeState = {};
       for (const id in sim) {
         const c = sim[id];
-        out[id] = { id: c.id, state: c.state, x: c.x, y: c.y, lineIdx: c.lineIdx };
+        out[id] = { id: c.id, state: c.state, x: c.x, y: c.y, lineIdx: c.lineIdx, mirror: c.mirror };
       }
       return out;
     }
@@ -106,58 +108,70 @@ export function useOfficeSim(externalPaused: boolean): OfficeSim {
     function tick() {
       for (const a of AGENTS) {
         const c = sim[a.id];
-        const rng = rngs[a.id];
-        const seat = SEATS[a.id];
-        const demo = a.demo;
+        // x antes de mover: tras decidir el paso deducimos la dirección de marcha.
+        const prevX = c.x;
 
-        // Avanza la línea demo (cíclico).
-        c.lineIdx = (c.lineIdx + 1) % demo.length;
-        const kind = demo[c.lineIdx].k;
+        // Cuerpo del paso en un IIFE para conservar los early-return (antes
+        // `continue`) sin perder el cálculo de dirección, que va SIEMPRE al final.
+        (() => {
+          const rng = rngs[a.id];
+          const seat = SEATS[a.id];
+          const demo = a.demo;
 
-        if (c.walkTicks > 0) {
-          c.walkTicks--;
-          if (c.walkTicks === 0) {
+          // Avanza la línea demo (cíclico).
+          c.lineIdx = (c.lineIdx + 1) % demo.length;
+          const kind = demo[c.lineIdx].k;
+
+          if (c.walkTicks > 0) {
+            c.walkTicks--;
+            if (c.walkTicks === 0) {
+              c.state = 'working';
+              c.x = seat.x;
+              c.y = seat.y;
+            } else {
+              c.state = 'walking';
+            }
+            return;
+          }
+          if (c.idleTicks > 0) {
+            c.idleTicks--;
+            c.state = c.idleTicks === 0 ? 'working' : 'idle';
+            return;
+          }
+
+          // Cierre / KPI → celebra ese tick (en su silla).
+          if (kind === 'ok' || kind === 'kpi') {
+            c.state = 'celebrating';
+            c.x = seat.x;
+            c.y = seat.y;
+            return;
+          }
+
+          const r = rng();
+          if (r < 0.16) {
+            // working → walking (sala de reuniones o zona café por 2–4 ticks)
+            const zone: Zone = rng() < 0.5 ? 'meeting' : 'cafe';
+            const pt = ZONE_POINTS[zone];
+            const off = WALK_OFFSETS[a.id];
+            c.x = pt.x + off.x;
+            c.y = pt.y + off.y;
+            c.walkTicks = 2 + Math.floor(rng() * 3); // 2–4
+            c.state = 'walking';
+          } else if (r < 0.285) {
+            // ~1 de cada 8 ticks entra idle 1–2 ticks
+            c.idleTicks = 1 + Math.floor(rng() * 2); // 1–2
+            c.state = 'idle';
+          } else {
             c.state = 'working';
             c.x = seat.x;
             c.y = seat.y;
-          } else {
-            c.state = 'walking';
           }
-          continue;
-        }
-        if (c.idleTicks > 0) {
-          c.idleTicks--;
-          c.state = c.idleTicks === 0 ? 'working' : 'idle';
-          continue;
-        }
+        })();
 
-        // Cierre / KPI → celebra ese tick (en su silla).
-        if (kind === 'ok' || kind === 'kpi') {
-          c.state = 'celebrating';
-          c.x = seat.x;
-          c.y = seat.y;
-          continue;
-        }
-
-        const r = rng();
-        if (r < 0.16) {
-          // working → walking (sala de reuniones o zona café por 2–4 ticks)
-          const zone: Zone = rng() < 0.5 ? 'meeting' : 'cafe';
-          const pt = ZONE_POINTS[zone];
-          const off = WALK_OFFSETS[a.id];
-          c.x = pt.x + off.x;
-          c.y = pt.y + off.y;
-          c.walkTicks = 2 + Math.floor(rng() * 3); // 2–4
-          c.state = 'walking';
-        } else if (r < 0.285) {
-          // ~1 de cada 8 ticks entra idle 1–2 ticks
-          c.idleTicks = 1 + Math.floor(rng() * 2); // 1–2
-          c.state = 'idle';
-        } else {
-          c.state = 'working';
-          c.x = seat.x;
-          c.y = seat.y;
-        }
+        // Dirección de marcha (sprite espejado): solo cambia con movimiento
+        // horizontal; en reposo conserva hacia dónde miraba.
+        if (c.x < prevX - 0.01) c.mirror = true;
+        else if (c.x > prevX + 0.01) c.mirror = false;
       }
       setState(snapshot());
       // Un solo re-render por tick (React 19 agrupa ambos setState del callback).

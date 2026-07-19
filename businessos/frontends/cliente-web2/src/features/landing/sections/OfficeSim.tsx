@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { useLanding } from '../context';
 import { AGENTS, agentById, KIND_COLOR, type Agent, type DemoLine } from '../agents';
 import type { Strings } from '@/shared/i18n/strings';
@@ -62,25 +62,54 @@ function orbGlowFor(orb: 'violet' | 'pink') {
   return orb === 'pink' ? 'var(--glow-pink)' : 'var(--glow-violet)';
 }
 
+// --- Tema persistido como external store: SSR-safe (getServerSnapshot = default,
+// primer paint SIEMPRE 'a2a' → hidratación sin desajuste) y sin setState-en-efecto.
+// Tras montar, el snapshot de cliente lee localStorage; la selección en la misma
+// pestaña notifica a mano (el evento 'storage' solo llega a OTRAS pestañas). ---
+const themeListeners = new Set<() => void>();
+
+function readStoredTheme(): string {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return stored && themeById(stored) ? stored : DEFAULT_THEME_ID;
+  } catch {
+    return DEFAULT_THEME_ID;
+  }
+}
+
+function subscribeTheme(cb: () => void): () => void {
+  themeListeners.add(cb);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === THEME_STORAGE_KEY) cb();
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    themeListeners.delete(cb);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
+function writeStoredTheme(id: string) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, id);
+  } catch {
+    /* persistencia best-effort: si falla, el tema sigue aplicado en memoria */
+  }
+  themeListeners.forEach((cb) => cb());
+}
+
 export function OfficeSim() {
   const { lang, t, openId, openDemo } = useLanding();
   const [selected, setSelected] = useState(AGENTS[0].id);
   const { state, tick, sceneRef } = useOfficeSim(openId != null);
 
-  // Tema de personajes. PRIMER PAINT SIEMPRE 'a2a' (SSR-safe): la preferencia
-  // guardada se lee en un efecto post-mount, no en el estado inicial.
-  const [themeId, setThemeId] = useState(DEFAULT_THEME_ID);
+  // Tema de personajes. PRIMER PAINT SIEMPRE 'a2a' (SSR-safe): el external store
+  // devuelve el default en servidor/hidratación y la preferencia tras montar.
+  const themeId = useSyncExternalStore(subscribeTheme, readStoredTheme, () => DEFAULT_THEME_ID);
   const activeTheme = themeById(themeId) ?? OFFICE_THEMES[0];
 
   useEffect(() => {
-    // 1) Rehidratar la preferencia (validando contra el registro; si es inválida, se ignora).
-    try {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      if (stored && themeById(stored)) setThemeId(stored);
-    } catch {
-      /* localStorage no disponible → se queda en el default */
-    }
-    // 2) Precargar TODOS los sheets (~2KB c/u) → al cambiar de tema el swap es instantáneo.
+    // Precargar TODOS los sheets (~2KB c/u) → al cambiar de tema el swap es instantáneo.
     for (const th of OFFICE_THEMES) {
       const img = new Image();
       img.src = th.sheet;
@@ -88,20 +117,9 @@ export function OfficeSim() {
   }, []);
 
   function selectTheme(id: string) {
-    setThemeId(id);
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, id);
-    } catch {
-      /* persistencia best-effort: si falla, el tema sigue aplicado en memoria */
-    }
+    writeStoredTheme(id); // persiste + notifica al store (re-render con el tema nuevo)
   }
 
-  // x de la posición anterior (post-commit) para deducir la dirección de marcha
-  // sin depender de animaciones: si el nuevo x < previo → camina a la izquierda.
-  const prevXRef = useRef<Record<string, number>>({});
-  useEffect(() => {
-    for (const a of AGENTS) prevXRef.current[a.id] = state[a.id]?.x ?? SEATS[a.id].x;
-  }, [state]);
 
   const selectedAgent = agentById(selected) ?? AGENTS[0];
   const selRender = state[selected];
@@ -268,7 +286,7 @@ export function OfficeSim() {
 
           {/* Personajes pixel (sprite sheet) */}
           {AGENTS.map((a) => {
-            const s = state[a.id] ?? { x: SEATS[a.id].x, y: SEATS[a.id].y, state: 'working' as AgentState, lineIdx: 0 };
+            const s = state[a.id] ?? { x: SEATS[a.id].x, y: SEATS[a.id].y, state: 'working' as AgentState, lineIdx: 0, mirror: false };
             const isSel = a.id === selected;
             const rowIdx = SPRITE_ROW[a.id] ?? 0;
             const pose = spritePose(s.state);
@@ -276,8 +294,7 @@ export function OfficeSim() {
             // Background-position en % → independiente de la escala (desktop/móvil).
             const bgX = SHEET_COLS > 1 ? (col / (SHEET_COLS - 1)) * 100 : 0;
             const bgY = SHEET_ROWS > 1 ? (rowIdx / (SHEET_ROWS - 1)) * 100 : 0;
-            const prevX = prevXRef.current[a.id] ?? s.x;
-            const mirror = s.x < prevX - 0.01; // camina a la izquierda
+            const mirror = s.mirror; // dirección de marcha resuelta por el motor
             return (
               <div
                 key={a.id}
