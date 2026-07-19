@@ -52,6 +52,8 @@ export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 
     }
     let t = 0, cycT = 0, cycI = 0, raf = 0;
     let running = false, inView = true, lastStatic: EstadoAgente | null = null;
+    // suavizado de cambio de estado (espejo del v3): al cambiar, la persecucion arranca lenta y sube en ~0.7s
+    const TRANS_FRAMES = 42; let transT = TRANS_FRAMES; let prevState: EstadoAgente = stateRef.current;
 
     const drawStrip = () => {
       const prog = progRef.current;
@@ -80,14 +82,14 @@ export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 
       ctx.restore();
     };
 
-    const paint = (animated: boolean) => {
+    const paint = (animated: boolean, chaseMul = 1) => {
       const st = stateRef.current;
       ctx.clearRect(0, 0, W, H);
       ctx.font = '11px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       const fn = TARGET[st];
       for (let i = 0; i < N; i++) {
         const p = parts[i], g = fn(i, t);
-        p.x += (g.x - p.x) * p.s; p.y += (g.y - p.y) * p.s;
+        p.x += (g.x - p.x) * p.s * chaseMul; p.y += (g.y - p.y) * p.s * chaseMul;
         if (--p.f < 0) { p.f = 40 + ((Math.random() * 150) | 0); p.c = g.dirty ? GLITCH[(Math.random() * GLITCH.length) | 0] : (Math.random() < 0.5 ? '0' : '1'); }
         if (g.dirty && '01'.includes(p.c)) p.c = GLITCH[(Math.random() * GLITCH.length) | 0];
         if (!g.dirty && !'01'.includes(p.c)) p.c = Math.random() < 0.5 ? '0' : '1';
@@ -111,7 +113,11 @@ export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 
     const frame = () => {
       t++;
       if (modeRef.current === 'cycle' && ++cycT > 360) { cycT = 0; cycI = (cycI + 1) % 3; }  // showcase ~6s (formato estable, cambio ocasional)
-      paint(true);
+      if (stateRef.current !== prevState) { prevState = stateRef.current; transT = 0; }
+      if (transT < TRANS_FRAMES) transT++;
+      const k = transT / TRANS_FRAMES;
+      const chaseMul = 0.28 + 0.72 * (k < 0.5 ? 2 * k * k : 1 - ((-2 * k + 2) ** 2) / 2);
+      paint(true, chaseMul);
       raf = requestAnimationFrame(frame);
     };
 
