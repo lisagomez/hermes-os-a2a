@@ -17,6 +17,51 @@ pasandole a quien. Ahi construimos nuestro mundo. Dos ventajas que ellos no tien
    oficina mapea a datos reales de nuestro enjambre, no es cosmetica. Pixel Agents lee logs de Claude
    Code; nosotros leemos el estado real del sistema a2a.
 
+## Principio rector (2026-07-19, correccion de Johann): accesible a CUALQUIERA, el orquestador es el concierge
+
+Corrige una desviacion real de esta exploracion: varias ideas tomadas de AgentCraft (ciclar entre
+agentes con atajos, navegar submenus para un handoff) asumen un usuario GAMER. El publico de nuestro
+producto es lo opuesto: la meta declarada es que CUALQUIERA cree y administre un agente sin saber
+nada tecnico, ni siquiera alfabetizacion de videojuego (la vara: un nino de 10 anios deberia poder).
+Tres decisiones que esto fija, no negociables:
+
+1. **Metafora ganadora: oficina/ciudad, nunca un mapa de guerra tipo RTS.** No es gusto estetico: la
+   gente ya sabe como funciona una oficina o una ciudad porque la vivio; leer un mapa de unidades
+   estilo Warcraft es una alfabetizacion que no todos tienen. Ya lo habiamos sospechado (seccion
+   AgentCraft, "riesgo de la metafora RTS pura"); esto lo confirma como no-negociable.
+
+2. **El ORQUESTADOR es el concierge; el mundo visual es AMBIENTE, no la interfaz de trabajo.** El
+   patron de AgentCraft "navega al mapa, entra al panel del agente, resuelve" es justo lo que hay
+   que evitar. El default de interaccion es un solo chat con EL ORQUESTADOR, que:
+   - FILTRA el ruido de los agentes y solo sube al humano lo que necesita una decision real.
+   - REPORTA proactivamente ("este agente esta libre, ¿le asignas algo?", "este tiene una
+     pregunta"): push, nunca que el humano tenga que ir a buscar quien necesita atencion.
+   - Deja abierta la opcion de hablar directo con un agente especifico (drill-down), pero esa es
+     la excepcion, no el camino principal.
+
+   El mundo visual (oficina/ciudad 8-bit) sigue teniendo valor real: es la vista AMBIENTAL y de
+   confianza (ver que los agentes trabajan, satisfaccion pasiva), y el lugar del drill-down
+   OPCIONAL. Pero NUNCA es donde se decide/aprueba/asigna: eso vive en el chat con el orquestador.
+   Riesgo a vigilar: si el mundo visual acumula botones de accion "por si acaso", se convierte en
+   el mismo laberinto de submenus que se busca evitar.
+
+   **Grounding (no duplica nada existente):** ya hay un `ChatWidget.tsx` en la landing de Elisa
+   (`businessos/frontends/cliente-web2/src/features/landing/sections/ChatWidget.tsx`), pero es la
+   demo PUBLICA de ventas ("Habla con la fabrica", para prospectos). El orquestador-concierge es
+   otra cosa: vive DENTRO del producto (Mission Control), para el cliente ya activo gestionando SUS
+   agentes. Es un componente nuevo, sin colision con lo que ya existe.
+
+3. **El 8/16-bit no es solo estetica retro, es requisito de accesibilidad.** Correr liviano en
+   navegador o celular sin drenar bateria es un objetivo declarado, no un efecto colateral del
+   look. Refuerza (no cambia) lo ya decidido: Canvas 2D / sprites, vista cenital, sin isometrico ni
+   3D (ver seccion siguiente).
+
+**Que queda retractado de la seccion AgentCraft:** el "ciclo tipo RTS" (saltar entre agentes con
+atajos de teclado) y cualquier navegacion por submenus quedan DESCARTADOS como patron de interaccion
+primario. Se conservan como CAPACIDADES DE FONDO (heatmap de colisiones, mapa=filesystem, la
+escalera de autonomia quest/campana/canal) que el ORQUESTADOR consume y resume, no que el humano
+navega directamente.
+
 ## Vista / cámara (nota para tener presente en el desarrollo)
 
 **VISTA CENITAL** (top-down, cámara recta desde arriba) es la referencia de cámara para la oficina,
