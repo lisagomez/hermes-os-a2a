@@ -17,6 +17,16 @@ pasandole a quien. Ahi construimos nuestro mundo. Dos ventajas que ellos no tien
    oficina mapea a datos reales de nuestro enjambre, no es cosmetica. Pixel Agents lee logs de Claude
    Code; nosotros leemos el estado real del sistema a2a.
 
+## Vista / cámara (nota para tener presente en el desarrollo)
+
+**VISTA CENITAL** (top-down, cámara recta desde arriba) es la referencia de cámara para la oficina,
+no isométrica. Verificado contra las 2 referencias reales que tenemos: el screenshot real de Pixel
+Agents (`ref-pixelagents-oficina.jpg`, arriba en esta carpeta) es cenital recto; y el `OfficeSim.tsx`
+que Elisa YA construyó (`businessos/frontends/cliente-web2/src/features/landing/sections/OfficeSim.tsx`)
+posiciona todo por `left/top` en % sobre un plano, sin proyección isométrica real (aunque algunos de
+los conceptos Nano Banana de esta carpeta pidieron "isometric" en el prompt: corregir eso en la
+próxima ronda de generación, pidiendo explícitamente vista cenital/top-down, no isométrica).
+
 ## Las 6 preguntas del observador
 
 | Pregunta | Pixel Agents (hueco) | Nuestro mundo | Fuente |
@@ -100,6 +110,45 @@ never-solo-color (accesibilidad), reduced-motion = pose estatica (no congelar), 
 | `cB-personaje-bits.png` | Personaje ser-IA hecho de bits | util para identidad, no para la escena |
 | `c4-mejorado.png` | Warm-premium + mascotas ojos ambar + red global + cockpit | el mas branded/diferenciado |
 | `c5-interaccion.png` | Colaboracion A2A + estados legibles (delegacion, handoff, descanso) | **el que mejor demuestra la tesis** (legibilidad + A2A) |
+
+## Referencia adicional: AgentCraft (Ido Salomon, 2026)
+
+> Investigado 2026-07-19 (no visto animado: la pagina oficial se congelo al cargar, igual que
+> pixelagent.space; hallazgos son de fuentes de texto, marcadas como tal, no de captura visual propia).
+
+**Que es** [Ido Salomon, AgentCraft: RTS interface for agent orchestration, 2026](https://www.getagentcraft.com/):
+plataforma de control centralizado que usa la estetica y mecanicas de un RTS (Real-Time Strategy, tipo
+StarCraft/Warcraft) para orquestar agentes de codigo. Los AGENTES son UNIDADES en un MAPA; hay
+"buildings" (edificios) para funcionalidades (gestion de skills, plugins), terminal y Git integrados,
+y una "Alliance Hall" para coordinacion colaborativa entre varios desarrolladores. Soporta multiples
+motores: Claude Code, OpenAI, OpenCode, Cursor (contenedores Docker aislados por agente). Charla de
+referencia: [Ido Salomon, "AgentCraft: Putting the Orc in Agent Orchestration": GitNation, 2026](https://gitnation.com/contents/agentcraft-putting-the-orc-in-agent-orchestration).
+Anuncio original: [@idosal1 en X, 2026](https://x.com/idosal1/status/2011124558976434469). Paquete:
+[`@idosal/agentcraft` en npm](https://www.npmjs.com/package/@idosal/agentcraft) (v0.4.9 al momento de
+esta nota).
+
+**El problema que dice resolver** (relevante para nosotros): la capacidad HUMANA de gestionar agentes
+es el cuello de botella, no la capacidad de los agentes; gestionar decenas/cientos de agentes necesita
+mas que "lanzarlos a la fuerza". La apuesta de Salomon es aplicar lecciones de UX de gaming (RTS) a la
+productividad, aprovechando la "memoria muscular RTS" de desarrolladores que ya jugaron estos juegos.
+
+**Que podemos tomar (inspiracion, NO copiar 1:1):**
+- **El agente como UNIDAD accionable, no solo observable.** Pixel Agents y AgentCraft muestran que
+  trabaja el agente; AgentCraft ademas deja LANZAR/CONTROLAR unidades (crear, supervisar, terminar)
+  desde la misma vista. Nuestro mundo hoy es solo-observacion; considerar si el "centro de mando" del
+  OfficeSim (ya existe en el codigo de Elisa, panel lateral) deberia poder ACCIONAR (aprobar un gate,
+  re-lanzar una tarea) directo desde ahi, no solo mostrar.
+- **Vocabulario RTS para delegacion/costo:** "presupuesto"/"recursos" de un RTS mapea 1:1 a nuestro
+  `token_usage` (dimension que YA identificamos como diferenciador vs Pixel Agents, ver seccion de
+  arriba). AgentCraft no lo tiene documentado explicitamente; seria una ventaja nuestra si lo hacemos bien.
+- **"Alliance Hall" (multi-usuario) es un concepto a futuro**, no hoy: nuestro escenario es Johann +
+  Elisa viendo SUS agentes, no un equipo grande coordinando en vivo. Anotar como backlog, no construir.
+- **Riesgo de la metafora RTS pura (vs la nuestra de oficina):** unidades-en-mapa-de-guerra comunica
+  "control/comando" (frio, tactico); oficina-con-personajes comunica "equipo trabajando para ti"
+  (calido, el mismo hueco que identificamos en Pixel Agents). Para un producto de VENTA (landing de
+  Elisa) la oficina calida sigue siendo mas fuerte para conversion que un mapa de guerra; el vocabulario
+  RTS (unidades, recursos, comando) es mejor prestado como METAFORA DE INTERACCION (que puedes HACER)
+  que como ESTETICA VISUAL (como se VE).
 
 ## Pendiente / proximos pasos
 
