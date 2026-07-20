@@ -960,4 +960,32 @@ npm run lint         # ESLint
   al Team de Vercel → borrar el workflow (deja de generar commits vacíos).
 - **Aplicar en**: todo proyecto Vercel Hobby conectado a un repo privado con equipo.
 
+### 2026-07-20: El workflow de reauthor-tip puede adelantarse a tu propio push — verificar tree antes de pisar
+- **Error**: tras dejar una rama pusheada, el workflow `reauthor-tip-vercel.yml` (ver
+  aprendizaje anterior) le agrega un commit vacío por-detrás sin avisar. Si en una sesión
+  posterior se hace `git rebase`/edición y luego `git push --force-with-lease`, el push
+  falla con "stale info" porque el remoto ya no es el que se dejó — el bot lo movió. La
+  tentación es forzar (`--force`) sin mirar, lo que borraría el commit del bot.
+- **Fix**: ante un rechazo "stale info" en una rama con historial de Vercel, `git fetch
+  origin <rama>` y comparar el commit remoto nuevo: si su `git rev-parse <sha>^{tree}`
+  es IDÉNTICO al del commit que se dejó (el bot solo reautoró, no cambió contenido), es
+  seguro adoptarlo (`git reset --hard origin/<rama>`) o pisarlo con `--force-with-lease`
+  a sabiendas de que es un commit vacío. Si el tree difiere, alguien más (humana o CI)
+  metió cambios reales — investigar antes de sobrescribir.
+- **Aplicar en**: todo rebase/edición de historia sobre una rama que ya recibió push y que
+  no sea `master` (el bot solo actúa fuera de `master`, ver aprendizaje anterior).
+
+### 2026-07-20: Una skill recién creada NO aparece en el Skill tool hasta que se lee su SKILL.md
+- **Error**: instalar/crear un `.claude/skills/<nombre>/SKILL.md` nuevo en la MISMA sesión
+  y luego invocarlo con el Skill tool (`Skill({skill: "<nombre>"})`) falla con
+  "Unknown skill" — el registro de skills disponibles no se refresca solo con escribir
+  el archivo.
+- **Fix**: un `Read` del `SKILL.md` recién escrito fuerza el re-escaneo del directorio
+  `.claude/skills/` y lo registra (a veces con un system-reminder explícito de "nuevas
+  skills descubiertas", a veces sin él — no depender del aviso, verificar leyendo). Si
+  aun así no aparece, seguir sus instrucciones directamente desde el contenido ya leído
+  en vez de bloquear la tarea esperando al Skill tool.
+- **Aplicar en**: cualquier sesión que instale o edite una skill y quiera invocarla en el
+  mismo turno/sesión (no en una sesión futura, donde el escaneo ya ocurrió al arrancar).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
