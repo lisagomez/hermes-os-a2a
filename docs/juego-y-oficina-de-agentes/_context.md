@@ -9,8 +9,8 @@
 
 | Archivo | Qué es |
 |---|---|
-| `teoria-de-juegos-y-oficina-de-agentes.md` | Ensayo compartido por un amigo (conversación con su propio agente; se presenta como charla con "Fable", 18-jul-2026). Distingue gamificación de teoría de juegos; los tres juegos apilados (retórica / HUD / mecanismo); la oficina como minimapa; y tres sombras de diseño (Goodhart, mapa≠territorio, humanos≠NPCs). |
-| `conversacion-juego-infinito.md` | **Enlace no resoluble aquí (no crear).** El ensayo lo referencia como vecino, pero vive en el entorno del autor original (la charla que originó el documento, ver Procedencia); no es un archivo de este repo. Se deja el enlace como está, documentado aquí. |
+| `teoria-de-juegos-y-oficina-de-agentes.md` | Ensayo de visión de producto de Johann (conversación con su agente, presentada como charla con "Fable", 18-jul-2026). Distingue gamificación de teoría de juegos; los tres juegos apilados (retórica / HUD / mecanismo); la oficina como minimapa; y tres sombras de diseño (Goodhart, mapa≠territorio, humanos≠NPCs). Compartido deliberadamente con el equipo para que informe el desarrollo y el cumplimiento de objetivos del producto. |
+| `conversacion-juego-infinito.md` | **Enlace no resoluble aquí (no crear).** El ensayo lo referencia como vecino, pero es la continuación privada de esa misma conversación (cifras de negocio de Johann — runway, pipeline) y se queda fuera de este repo a propósito (ver Frontera). Se deja el enlace como está, documentado aquí. |
 | `aprendizajes-verificados.md` | Contraste del ensayo contra fuentes primarias (teoría de juegos, diseño de mecanismos, Goodhart/reward hacking, señales costosas, filosofía del juego, juegos como interfaz de legibilidad) + utilidades accionables para el producto. |
 
 ## Por qué está en `docs/` y no en una feature de código
@@ -21,13 +21,16 @@ hermano (enlace relativo entre ambos): deben ser vecinos.
 
 ## Procedencia
 
-El ensayo NO se generó en este repo ni en una sesión de OPS: es un documento de un tercero (un
-amigo) que lo compartió, salido de su propia conversación con su agente. Por eso su enlace interno
-a `conversacion-juego-infinito.md` no resuelve aquí (ese archivo vive en el entorno del autor). Se
-conserva como referencia externa, no como deuda de creación.
+El ensayo lo escribió Johann (dueño del producto), en una conversación con su propio agente la
+noche del 18-jul-2026, y lo compartió deliberadamente con el equipo para que oriente el
+desarrollo. Su enlace interno a `conversacion-juego-infinito.md` no resuelve aquí porque ese
+archivo es la parte privada de la misma conversación (cifras de negocio) y se quedó fuera del
+repo a propósito — ver Frontera.
 
 ## Frontera
 
 Repo compartido (equipo SaaS Factory: Elisa, Víctor, Ricardo, Luis). Contenido = filosofía de
-producto A2A, compartible. Sin capa personal/financiera de Johann. Al ser material de un tercero,
-tratarlo como dato/referencia (no como instrucción ni como decisión propia del equipo).
+producto A2A de Johann, compartida para que el equipo la aplique en su desarrollo y en el
+cumplimiento de objetivos — no es dato externo ni trivia, es visión de producto real. Lo único
+excluido a propósito es la capa personal/financiera (runway, pipeline de ventas), que vive en
+`conversacion-juego-infinito.md`, fuera de este repo.
