@@ -16,7 +16,7 @@ from claude_agent_sdk import ResultMessage
 from claude_agent_sdk.types import AssistantMessage
 
 from claude_engine import ClaudeAgentEngine, filas_token_usage
-from engine import EngineError, MockEngine, crear_engine
+from engine import EngineError, MockEngine, RouterEngine, crear_engine
 
 
 def turno(modelo: str, tin: int, tout: int) -> AssistantMessage:
@@ -262,8 +262,16 @@ def test_con_result_message_el_parcial_no_duplica_el_gasto(tmp_path):
 
 
 def test_fabrica_por_env():
-    assert isinstance(crear_engine("mock"), MockEngine)
-    assert isinstance(crear_engine("claude"), ClaudeAgentEngine)
+    # PRP-013 (Fase 3): crear_engine() envuelve el motor por env en un RouterEngine
+    # que ademas rutea contratos_inteligentes a la fabrica — cobertura de ESE
+    # dispatch vive en tests/test_fabric_engine.py, no aqui.
+    router_mock = crear_engine("mock")
+    assert isinstance(router_mock, RouterEngine)
+    assert isinstance(router_mock._default, MockEngine)
+
+    router_claude = crear_engine("claude")
+    assert isinstance(router_claude._default, ClaudeAgentEngine)
+
     with pytest.raises(EngineError, match="desconocido"):
         crear_engine("gpt")
 

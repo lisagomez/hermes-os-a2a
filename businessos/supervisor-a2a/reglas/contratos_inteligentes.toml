@@ -1,0 +1,83 @@
+# reglas/contratos_inteligentes.toml — reglas del Supervisor para el
+# departamento CONTRATOS INTELIGENTES (Fase 12, PRP-013).
+#
+# El objeto juzgado es el paquete `paquete-sc/` que el FabricChaincodeEngine
+# (determinista, sin LLM) dejo en el worktree. Dos capas:
+#   1. estaticos (chequeos_fabric.py): el paquete es EXACTAMENTE la plantilla
+#      auditada + parametrizacion declarada en su manifest, integro y
+#      determinista.
+#   2. comandos: el toolchain Go de la imagen re-verifica de cero — build,
+#      vet, gosec, integridad de dependencias y los tests GENERADOS de la spec.
+#
+# La RED EFIMERA no corre aqui: este contenedor no tiene socket Docker por
+# diseño (aislamiento del juez). Ese gate lo ejecuta el host-job
+# `verificar-red-efimera.py` en el nodo sandbox ANTES de la aprobacion humana
+# (PRP-013 Fase 5) y su resultado queda en `contratos_sc`.
+#
+# Mismas invariantes del motor (gates.py):
+# - gate activo con runner inexistente = CONFIG INVALIDA (no arranca).
+# - gate que no puede correr en runtime = `no_ejecutable` → RECHAZO.
+
+departamento = "contratos_inteligentes"
+
+# --- capa 1: chequeos estaticos deterministas (chequeos_fabric.py) ---
+
+[[gate]]
+regla = "paquete_sc_presente"
+runner = "estatico"
+chequeo = "paquete_sc_presente"
+
+[[gate]]
+regla = "manifest_integro"
+runner = "estatico"
+chequeo = "manifest_integro"
+
+[[gate]]
+regla = "diff_acotado_plantilla"
+runner = "estatico"
+chequeo = "diff_acotado_plantilla"
+
+[[gate]]
+regla = "determinismo_chaincode"
+runner = "estatico"
+chequeo = "determinismo_chaincode"
+
+# --- compartido: nada de secretos en el paquete ---
+
+[[gate]]
+regla = "sin_secretos"
+runner = "estatico"
+chequeo = "sin_secretos"
+
+# --- capa 2: toolchain Go (la imagen del Supervisor trae go + gosec) ---
+# `sh -c` porque el paquete vive en paquete-sc/ dentro del worktree.
+
+[[gate]]
+regla = "build"
+runner = "comando"
+comando = "sh -c 'cd paquete-sc && go build ./...'"
+timeout_s = 900
+
+[[gate]]
+regla = "vet"
+runner = "comando"
+comando = "sh -c 'cd paquete-sc && go vet ./...'"
+timeout_s = 600
+
+[[gate]]
+regla = "gosec"
+runner = "comando"
+comando = "sh -c 'cd paquete-sc && gosec ./...'"
+timeout_s = 600
+
+[[gate]]
+regla = "deps_integras"
+runner = "comando"
+comando = "sh -c 'cd paquete-sc && go mod verify'"
+timeout_s = 300
+
+[[gate]]
+regla = "tests"
+runner = "comando"
+comando = "sh -c 'cd paquete-sc && go test ./...'"
+timeout_s = 900

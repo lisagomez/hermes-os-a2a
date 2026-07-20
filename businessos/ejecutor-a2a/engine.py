@@ -56,12 +56,34 @@ class MockEngine:
         }
 
 
+class RouterEngine:
+    """Rutea el motor por `departamento` de la tarea (PRP-013, Fase 3).
+
+    contratos_inteligentes va SIEMPRE al engine determinista de la fabrica —
+    jamas al LLM: generar codigo libre para un contrato inmutable es el
+    anti-patron #1 del PRP-013. Lo demas va al engine por env (mock|claude).
+    """
+
+    def __init__(self, default: Engine, rutas: dict[str, Engine]) -> None:
+        self._default = default
+        self._rutas = dict(rutas)
+
+    async def run(self, tarea: dict, worktree: Path) -> dict[str, Any]:
+        engine = self._rutas.get(tarea.get("departamento", ""), self._default)
+        return await engine.run(tarea, worktree)
+
+
 def crear_engine(nombre: str) -> Engine:
-    """Fabrica por env (`EJECUTOR_ENGINE=mock|claude`)."""
+    """Fabrica por env (`EJECUTOR_ENGINE=mock|claude`) + ruta fija por depto."""
     if nombre == "mock":
-        return MockEngine()
-    if nombre == "claude":
+        base: Engine = MockEngine()
+    elif nombre == "claude":
         from claude_engine import ClaudeAgentEngine  # lazy: solo si se pide el real
 
-        return ClaudeAgentEngine()
-    raise EngineError(f"engine desconocido: {nombre!r} (usa 'mock' o 'claude')")
+        base = ClaudeAgentEngine()
+    else:
+        raise EngineError(f"engine desconocido: {nombre!r} (usa 'mock' o 'claude')")
+
+    from fabric_engine import FabricPaqueteEngine  # lazy: valida su fabrica al crearse
+
+    return RouterEngine(base, {"contratos_inteligentes": FabricPaqueteEngine()})

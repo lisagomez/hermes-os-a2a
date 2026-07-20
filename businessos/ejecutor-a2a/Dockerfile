@@ -34,13 +34,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY trio-contrato/contrato.py .
 # OJO: el COPY es EXPLICITO. Un modulo nuevo sin su linea aqui = ModuleNotFoundError y
 # crash-loop en runtime, y los tests de dev NO lo cazan (paso el 2026-07-10). Los cuatro
-# ultimos son la COLA (PRP-010): cola, worker, pipeline y su tope de gasto.
+# ultimos son la COLA (PRP-010): cola, worker, pipeline y su tope de gasto. fabric_engine.py
+# es el motor del departamento contratos_inteligentes (Fase 3, PRP-013).
 COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
      ejecutor-a2a/claude_engine.py ejecutor-a2a/workspace.py \
      ejecutor-a2a/estado.py ejecutor-a2a/supervisor_cliente.py \
      ejecutor-a2a/cola.py ejecutor-a2a/worker.py ejecutor-a2a/pipeline.py \
-     ejecutor-a2a/presupuesto.py \
+     ejecutor-a2a/presupuesto.py ejecutor-a2a/fabric_engine.py \
      ejecutor-a2a/app.py ./
+
+# La fabrica de contratos inteligentes (Fase 3, PRP-013): FabricPaqueteEngine la
+# carga desde /app/fabrica-sc por defecto (env FABRICA_SC_DIR la override). Sin
+# esto, crear_engine() truena AL CONSTRUIRSE (config invalida, no fallo silencioso
+# en runtime) porque contratos_inteligentes esta SIEMPRE en DEPARTAMENTOS. Solo el
+# catalogo (contrato + engine + plantillas), no sus tests.
+COPY fabrica-sc/contrato_sc.py fabrica-sc/engine fabrica-sc/plantillas ./fabrica-sc/
 
 # Correr como uid/gid 1000 (= hermes del host). Un solo escritor sobre /repo y
 # /workspace: los objetos git que escribe el trio quedan owned 1000 (no root),

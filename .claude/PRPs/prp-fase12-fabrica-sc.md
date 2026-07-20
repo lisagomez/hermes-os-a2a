@@ -1,8 +1,9 @@
 # PRP-013: Fase 12 — Fábrica de Smart Contracts (Hyperledger Fabric)
 
-> **Estado**: EN PROGRESO — Fases 1-2 construidas e integradas al repo el 2026-07-19
-> (`businessos/fabrica-sc/`); Fases 3-6 pendientes. Auditoría humana de escrow-v1 SIN firmar.
-> **Fecha**: 2026-07-19
+> **Estado**: EN PROGRESO — Fases 1-4 construidas, integradas y verificadas en el repo
+> (rama `feat/fase12-fabrica-sc`, 2026-07-19/20); Fases 5-6 pendientes. Auditoría humana
+> de escrow-v1 SIN firmar (bloquea fabricación real, no el trabajo de fábrica/gates).
+> **Fecha**: 2026-07-19 (actualizado 2026-07-20)
 > **Proyecto**: Hermes OS · A2A
 > **Rama sugerida** (Fases 3-6): `feat/fase12-fabrica-sc`
 > **Depende de**: PRP-006 (trío Hermes→Ejecutor→Supervisor) y PRP-007 (Coordinador/enjambre) — YA construidos. PRP-010 (cola) para la espera de turno.
@@ -287,17 +288,37 @@ revisado por la dueña línea por línea UNA vez. Es el activo de la fábrica.
 PENDIENTE (no hay red Fabric en dev); **README de auditoría firmado por la dueña**
 (falta la firma: hasta entonces la plantilla NO habilita fabricación real).
 
-### Fase 3: FabricChaincodeEngine
+### Fase 3: FabricChaincodeEngine — ✅ HECHA (integrada y verificada 2026-07-19/20)
 **Objetivo**: Engine pluggable que parametriza escrow-v1 desde una spec y genera los
 tests de `criterios_aceptacion`. MockEngine para tests.
 **Validación**: spec de ejemplo → chaincode que compila y cuyos tests generados pasan;
-diff contra la plantilla base acotado a los puntos de parametrización.
+diff contra la plantilla base acotado a los puntos de parametrización. →
+`fabrica-sc/engine/fabrica.py` + `testgen.py`, 12 tests en `fabrica-sc/tests/test_engine.py`
+(specs que encajan fabrican; specs que no encajan revientan con el porqué exacto ANTES de
+escribir un archivo). `ejecutor-a2a/fabric_engine.py` + `RouterEngine` en `engine.py` cablean
+el departamento `contratos_inteligentes` al Ejecutor: va SIEMPRE a la fábrica determinista,
+nunca al LLM, sin importar `EJECUTOR_ENGINE` — 9 tests en `tests/test_fabric_engine.py`.
+**Verificación real del toolchain (2026-07-20, no solo unit tests)**: con Go 1.24.5 (mismo
+pin que el Dockerfile) sobre un paquete recién fabricado por el Engine: `go build` OK,
+`go vet` OK, `go mod verify` OK, `go test` → 7/7 verdes, `gosec` → 0 issues/350 líneas
+(mismo número que la auditoría manual de Fase 2). El paquete generado compila y pasa de
+verdad, no solo en teoría.
 
-### Fase 4: Perfil de gates "fabric" en el Supervisor
+### Fase 4: Perfil de gates "fabric" en el Supervisor — ✅ HECHA (lado Supervisor; red efímera es Fase 5)
 **Objetivo**: el Supervisor re-gatea de cero: build, gosec, escaneo de dependencias,
 tests, red efímera con las transiciones y casos negativos de la spec.
 **Validación**: chaincode bueno → verde end-to-end; chaincode saboteado (transición sin
-control de rol) → gate rojo con hallazgo, escalada.
+control de rol) → gate rojo con hallazgo, escalada. →
+`supervisor-a2a/chequeos_fabric.py` (4 chequeos estáticos: paquete presente, manifest
+íntegro por sha256, diff acotado contra la plantilla auditada, cero tokens de
+no-determinismo) + `reglas/contratos_inteligentes.toml` (capa 2: `go build|vet|test`,
+`go mod verify`, `gosec` como gates de comando). 15 tests en
+`tests/test_chequeos_fabric.py` sobre paquetes fabricados de verdad (no fixtures a mano),
+incluida una sabotaje-de-línea-fuera-del-diff y un `time.Now()` colado. La **red efímera**
+(desplegar en `fabric-samples/test-network` y ejecutar las transiciones/negativos de la
+spec) NO corre en el contenedor del Supervisor por diseño (sin socket Docker, aislamiento
+del juez) — es el host-job `verificar-red-efimera.py` de la Fase 5, antes de la aprobación
+humana. Ese gate sigue pendiente.
 
 ### Fase 5: Aprobación humana + despliegue lifecycle
 **Objetivo**: paquete de revisión en Mission Control (banderas G1 arriba);
@@ -330,6 +351,43 @@ en el canal y consultable con `peer lifecycle chaincode querycommitted`.
   `.claude/PRPs/` ANTES de integrarse (aquí: PRP-013/Fase 12). También citaba
   `coordinador-a2a/contrato.py`, que no existe: el contrato del trío vive en
   `trio-contrato/contrato.py` — verificar referencias contra el árbol real.
+
+- **2026-07-20 (Fases 3-4, cierre del residual "código escrito, nunca corrido")**:
+  el trabajo de Fase 3/4 llegó completo en código pero SIN correr contra el árbol real
+  — mapear contexto (bucle agéntico) encontró tres huecos del mismo patrón, ya
+  documentados en `CLAUDE.md` para otros departamentos pero repetidos aquí:
+  (1) `chequeos_fabric.py` (nuevo módulo) nunca se importó en `supervisor-a2a/executor.py`
+  → `gates.CHEQUEOS` nunca se poblaba con sus 4 chequeos → `ConfigInvalida` AL ARRANCAR
+  el servicio (mismo patrón que `chequeos_adquisicion`, gotcha "todo módulo nuevo se
+  registra por import expreso"). (2) los Dockerfiles de `ejecutor-a2a` y `supervisor-a2a`
+  no tenían el `COPY` de los archivos nuevos (`fabric_engine.py`, `chequeos_fabric.py`) NI
+  del directorio `fabrica-sc/` que ambos requieren en runtime (`fabric_engine.py` lo carga
+  de `/app/fabrica-sc`; `chequeos_fabric.py` compara contra `/app/fabrica-sc/plantillas`) —
+  sin esto el Ejecutor entra en crash-loop al primer arranque (`RouterEngine` construye
+  `FabricPaqueteEngine()` SIEMPRE, en `Worker.__init__`, no perezoso) y el gate
+  `diff_acotado_plantilla` sale `no_ejecutable` siempre en producción. El Dockerfile de
+  `supervisor-a2a` tampoco traía el toolchain Go/gosec que sus propios gates de comando
+  declaran (`go build|vet|test`, `go mod verify`, `gosec`) — los 5 gates de comando
+  habrían sido `no_ejecutable` = rechazo automático de TODO paquete, bueno o malo.
+  (3) dos tests preexistentes (`ejecutor-a2a/tests/test_claude_engine.py::test_fabrica_por_env`,
+  `supervisor-a2a/tests/test_config.py::test_directorio_real_carga_ambos_departamentos`)
+  quedaron con aserciones desactualizadas tras envolver el engine en `RouterEngine` y
+  sumar el tercer departamento — pytest los corrió y fallaron, es exactamente el trabajo
+  de "mapear contexto real antes de avanzar de fase" del bucle agéntico.
+  **Fix**: import expreso en `executor.py` (mismo patrón); Go 1.24.5 pineado con sha256
+  verificado contra el checksum publicado en go.dev/dl (no solo confiar en la descarga) +
+  gosec pineado a un tag (`go install` ya verifica contra sum.golang.org); `COPY` explícito
+  de `fabric_engine.py`/`chequeos_fabric.py`/`fabrica-sc/{contrato_sc.py,engine,plantillas}`
+  en ambos Dockerfiles; tests actualizados a la conducta nueva (no revertida). Verificación
+  real (no solo `py_compile`): Go 1.24.5 + gosec v2.28.0 instalados en la máquina de dev
+  (mismos pines del Dockerfile) corriendo build/vet/mod-verify/test/gosec sobre un paquete
+  recién fabricado — los 5 comandos que el Supervisor correrá en producción, verificados
+  antes de que corran en producción por primera vez.
+  **Aplicar en**: toda fase que llegue "completa" desde fuera de una sesión de bucle
+  agéntico — el mapeo de contexto (Paso 2 del blueprint) incluye correr los tests
+  existentes de los servicios tocados, no solo los del código nuevo, y si el perfil de
+  gates declara comandos de un toolchain nuevo (Go, aquí), ese toolchain es parte de la
+  definición de "Dockerfile terminado" (hermano del gotcha 2026-07-10 de CLAUDE.md).
 
 ## Gotchas
 

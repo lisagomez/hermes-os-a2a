@@ -606,7 +606,7 @@ el fetch fallaba en silencio y el trío construía sobre un master de 11 commits
 > sección propia: su estado vive en la corriente "Canales de comunicación" y en
 > `.claude/memory/project/frontend-web2.md`.
 
-## FASE 12 — Departamento de Contratos Inteligentes: fábrica de Smart Contracts (Fabric) 🟡 FUNDADO 2026-07-19; Fases 1-2 construidas, pipeline pendiente
+## FASE 12 — Departamento de Contratos Inteligentes: fábrica de Smart Contracts (Fabric) 🟡 Fases 1-4 integradas y verificadas (2026-07-20); Fases 5-6 pendientes
 
 PRP: `.claude/PRPs/prp-fase12-fabrica-sc.md` (PRP-013). Departamento:
 `businessos/departamentos/contratos-inteligentes.md`. Gobernanza transversal adoptada
@@ -615,21 +615,24 @@ ciclo de vida CDC).
 
 La fábrica convierte requerimientos conversacionales (vertical clientes) en una
 `sc_spec` YAML validada en frío (`businessos/fabrica-sc/contrato_sc.py` — 23 tests
-verdes), que el enjambre materializa **parametrizando plantillas auditadas** (jamás
-código libre; v1: `plantillas/escrow-v1/`, chaincode Go determinista con tests), el
-Supervisor re-gatea de cero con un perfil "fabric" (build+gosec+deps+tests+**red
-efímera**) y el despliegue es un host-job que solo opera filas `aprobada` — doble
-candado humano: cola de Hermes OS + lifecycle de Fabric a dos organizaciones
-(Operadora + **Testigo**, llaves separadas por ceremonia — `businessos/red-tier1-iac/`
-+ `CEREMONIA.md`).
+verdes), que el `FabricChaincodeEngine` materializa **parametrizando plantillas
+auditadas** (jamás código libre; v1: `plantillas/escrow-v1/`, chaincode Go determinista
+con tests generados desde la spec), el Supervisor re-gatea de cero con un perfil
+"fabric" (build+gosec+deps+tests+**red efímera**) y el despliegue es un host-job que
+solo opera filas `aprobada` — doble candado humano: cola de Hermes OS + lifecycle de
+Fabric a dos organizaciones (Operadora + **Testigo**, llaves separadas por ceremonia —
+`businessos/red-tier1-iac/` + `CEREMONIA.md`).
 
 | Hito | Estado |
 |---|---|
 | Contrato de la spec (`validar_sc_spec`) + suite | ✅ integrado, 23 tests verdes |
-| Plantilla escrow-v1 (Go + tests + README-auditoria) | 🟡 código hecho; **firma de auditoría de la dueña PENDIENTE** |
+| Plantilla escrow-v1 (Go + tests + README-auditoria) | 🟡 código hecho; **firma de auditoría de la dueña PENDIENTE** (bloquea fabricación real) |
 | Kit IaC red tier 1 + ceremonia de llaves | ✅ escrito; NO probado contra Docker real |
-| Engine, gates fabric, aprobación+despliegue, e2e | ⬜ Fases 3-6 del PRP-013 |
-| Alta en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill | ⬜ SOLO al cerrar la Fase 4 (no se activa lo que no corre) |
+| `FabricChaincodeEngine` en el Ejecutor (`RouterEngine`: contratos_inteligentes NUNCA al LLM) | ✅ Fase 3 — verificado con Go real: build+vet+mod-verify+test(7/7)+gosec(0 issues) sobre un paquete recién fabricado |
+| Perfil de gates "fabric" en el Supervisor (4 estáticos + build/vet/gosec/deps/tests) | ✅ Fase 4 (lado Supervisor); **red efímera** queda para el host-job de la Fase 5 (sin socket Docker en el juez, por diseño) |
+| Alta en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill | ✅ activado al cerrar Fase 4 |
+| Aprobación humana + `desplegar-chaincode.py` + `contratos_sc` en Supabase | ⬜ Fase 5 del PRP-013 |
+| Validación end-to-end real (Telegram → contrato vivo en canal demo) | ⬜ Fase 6 del PRP-013 |
 
 Decisiones fundacionales (DECISIONES.md 2026-07-19): sandbox fabric en **nodo Hetzner
 aparte**; chaincode **Go**; primera plantilla **escrow**; numeración reconciliada

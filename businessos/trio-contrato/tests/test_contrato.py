@@ -205,3 +205,15 @@ def test_gate_sin_evidencia_es_invalido():
 def test_veredicto_sin_gates_es_invalido():
     with pytest.raises(ContratoInvalido, match="gates"):
         validar_veredicto({"task_id": "t1", "veredicto": "aprobado", "gates": [], "hallazgos": []})
+
+
+# --- departamento contratos_inteligentes (Fase 12, PRP-013) ---
+
+def test_tarea_contratos_inteligentes_valida():
+    t = validar_tarea({**TAREA_OK, "departamento": "contratos_inteligentes"})
+    assert t["departamento"] == "contratos_inteligentes"
+
+
+def test_resultado_contratos_inteligentes_valido():
+    r = validar_resultado({**RESULTADO_OK, "departamento": "contratos_inteligentes"})
+    assert r["departamento"] == "contratos_inteligentes"
