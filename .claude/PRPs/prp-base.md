@@ -172,6 +172,7 @@ Justificación: [por qué este modelo basta para el peor caso de este agente]
 - [ ] `npm run build` exitoso
 - [ ] Playwright screenshot confirma UI
 - [ ] Criterios de éxito cumplidos
+- [ ] Señal costosa: cada criterio lo demuestra un diff/gate que corre — nada se acepta por promesa (decisión `2026-07-20-ensayo-doctrina`)
 
 ---
 
