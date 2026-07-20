@@ -82,6 +82,11 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
 - Bóveda Obsidian (`/opt/data/obsidian`): conocimiento personal versionado.
 - `cobros` y `contratos` (Fase 3): checkouts Polar y acuerdos validados por el grafo
   (host-jobs `polar-cobros.py` / `validar-contratos.py`; aprobar/firmar = solo humano).
+- `contratos_sc` (Fase 12, fundada 2026-07-19 — tabla aún por crear): contratos
+  inteligentes de la fábrica de SC (Hyperledger Fabric) — spec confirmada, hash del
+  paquete, lineage `origen`, aprobador y despliegue. Departamento:
+  `businessos/departamentos/contratos-inteligentes.md`; operación del contrato
+  (PM/oráculo) en la Fase 13.
 - Grafo (Fase 2-3, construido): PostgreSQL propio con el modelo
   proyecto → jurisdicción → dimensión → regla → impacto; MX + fiscal, 11 reglas
   citadas (LISR/CFF/SAT). Veredictos de facturas: `deducibilidad_estado` +

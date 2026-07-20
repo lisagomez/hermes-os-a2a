@@ -1,0 +1,112 @@
+# docker-compose-red.yaml — Red tier 1: 2 peers (Operadora, Testigo) + 1 orderer
+# LevelDB (decisión arquitectura §1: el escrow lee por clave; CouchDB solo si una
+# plantilla futura exige queries JSON). Orderer único = SPOF DOCUMENTADO (§5 de la
+# arquitectura): pasa a 3 nodos en 2 máquinas con el primer cliente pagando.
+# Presupuesto RAM total ≈ 3 GB (peers 2G + orderer 512M + CAs 768M).
+version: "3.8"
+
+networks:
+  red-tier1:
+    name: red-tier1
+
+volumes:
+  peer-operadora-datos:
+  peer-testigo-datos:
+  orderer-datos:
+
+services:
+  orderer:
+    image: hyperledger/fabric-orderer:${FABRIC_VERSION}
+    container_name: orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OperadoraMSP   # tier 1: el orderer es de la Operadora; en tier 2 puede separarse
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      # Sin canal de sistema (Fabric 2.5): los canales se crean por participación
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTAUTHREQUIRED=true
+    volumes:
+      - ./organizaciones/operadora/orderer/msp:/var/hyperledger/orderer/msp
+      - ./organizaciones/operadora/orderer/tls:/var/hyperledger/orderer/tls
+      - orderer-datos:/var/hyperledger/production/orderer
+    ports:
+      - "${ORDERER_PORT}:7050"
+      - "${ORDERER_ADMIN_PORT}:7053"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 512M}
+
+  peer-operadora:
+    image: hyperledger/fabric-peer:${FABRIC_VERSION}
+    container_name: peer-operadora
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.operadora.${DOMINIO}
+      - CORE_PEER_ADDRESS=peer-operadora:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_LOCALMSPID=OperadoraMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer-operadora:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer-operadora:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=red-tier1
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ./organizaciones/operadora/peer0/msp:/etc/hyperledger/fabric/msp
+      - ./organizaciones/operadora/peer0/tls:/etc/hyperledger/fabric/tls
+      - peer-operadora-datos:/var/hyperledger/production
+    ports:
+      - "${PEER_OP_PORT}:7051"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 1024M}
+
+  peer-testigo:
+    image: hyperledger/fabric-peer:${FABRIC_VERSION}
+    container_name: peer-testigo
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.testigo.${DOMINIO}
+      - CORE_PEER_ADDRESS=peer-testigo:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_LOCALMSPID=TestigoMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer-testigo:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer-testigo:9051
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=red-tier1
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ./organizaciones/testigo/peer0/msp:/etc/hyperledger/fabric/msp
+      - ./organizaciones/testigo/peer0/tls:/etc/hyperledger/fabric/tls
+      - peer-testigo-datos:/var/hyperledger/production
+    ports:
+      - "${PEER_TG_PORT}:9051"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 1024M}

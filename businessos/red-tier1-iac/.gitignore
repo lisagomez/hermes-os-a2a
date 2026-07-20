@@ -1,0 +1,6 @@
+# Llaves y material criptográfico: JAMÁS al repo
+organizaciones/
+*.key
+*.pem
+!config/*.yaml
+config/*.block

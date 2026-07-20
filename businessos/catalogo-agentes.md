@@ -33,9 +33,14 @@ marketplaces, Gartner/Deloitte, digitalapplied, atera, herohunt, chatsell. [Prob
 | 17 | Email management | Clasifica, redacta, enruta correo | MEDIA (68% equipos usa IA en email) | sobre |
 | 18 | QA / Testing | Genera y corre pruebas de regresion | MEDIA (72% QA usa IA; poco operacionalizado) | insecto |
 | 19 | Ciberseguridad / SOC | Triage de alertas, respuesta a incidentes | MEDIA (Gartner: 50% SOCs con IA en 2026) | escudo-candado |
-| 20 | Web3 / Pagos on-chain (mazo) | Settlement cripto, escrow, conciliacion | MEDIA (nicho cripto-nativo, no PYME mainstream) | moneda-cadena |
+| 20 | Fabrica de Smart Contracts / Contratos operados (mazo) | Contratos inteligentes Fabric sobre plantillas auditadas + PM/oraculo que opera hitos, evidencias e incumplimientos (antes: "settlement cripto") | MEDIA (B2B con disputa real: escrow, hitos, consorcios; ya no depende del nicho cripto) | moneda-cadena |
 
-**Lectura:** los 8 del mazo estan validados; el mas debil en demanda PYME real es Web3 (nicho).
+**Lectura:** los 8 del mazo estan validados; la carta #20 evoluciono el 2026-07-19 de
+"Web3/settlement" (el mas debil en PYME) a **Fabrica de Smart Contracts + contrato
+operado** — el entregable auditable del departamento de Contratos Inteligentes
+(`departamentos/contratos-inteligentes.md`, Fases 12-13): no vendemos smart contracts,
+vendemos infraestructura de confianza para la web agentica (Constraint + Proof) con fee
+de fabricacion + fee recurrente de operacion.
 Los 3 candidatos con evidencia mas fuerte para el proximo build: **RRHH/Reclutamiento, IT Helpdesk
 y Atencion por WhatsApp** (canal dominante LATAM). SEO merece carta propia separada de Marketing.
 

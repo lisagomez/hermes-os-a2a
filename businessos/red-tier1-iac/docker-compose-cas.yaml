@@ -1,0 +1,73 @@
+# docker-compose-cas.yaml — Autoridades de Certificación de la red tier 1
+# Tres CAs: TLS (transporte), Operadora (identidades op) y Testigo (identidades tg).
+# Las llaves raíz de cada CA viven en ./organizaciones/fabric-ca/<ca>/ — se respaldan
+# en la ceremonia (CEREMONIA.md Fase 5) y JAMÁS se commitean (ver .gitignore).
+version: "3.8"
+
+networks:
+  red-tier1:
+    name: red-tier1
+
+services:
+  ca-tls:
+    image: hyperledger/fabric-ca:${FABRIC_CA_VERSION}
+    container_name: ca-tls
+    command: sh -c 'fabric-ca-server start -b tls-admin:$${CA_TLS_ADMIN_PW} --port 7054'
+    environment:
+      - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-tls
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_CSR_CN=ca-tls.${DOMINIO}
+      - FABRIC_CA_SERVER_CSR_HOSTS=ca-tls.${DOMINIO},localhost
+      - CA_TLS_ADMIN_PW=${CA_TLS_ADMIN_PW}
+    volumes:
+      - ./organizaciones/fabric-ca/ca-tls:/etc/hyperledger/fabric-ca-server
+    ports:
+      - "${CA_TLS_PORT}:7054"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 256M}
+
+  ca-operadora:
+    image: hyperledger/fabric-ca:${FABRIC_CA_VERSION}
+    container_name: ca-operadora
+    command: sh -c 'fabric-ca-server start -b op-admin:$${CA_OP_ADMIN_PW} --port 7055'
+    environment:
+      - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-operadora
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_CSR_CN=ca-operadora.${DOMINIO}
+      - FABRIC_CA_SERVER_CSR_HOSTS=ca-operadora.${DOMINIO},localhost
+      - CA_OP_ADMIN_PW=${CA_OP_ADMIN_PW}
+    volumes:
+      - ./organizaciones/fabric-ca/ca-operadora:/etc/hyperledger/fabric-ca-server
+    ports:
+      - "${CA_OP_PORT}:7055"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 256M}
+
+  # NOTA DE CEREMONIA: ca-testigo corre AQUÍ (misma máquina) pero su ADMIN DE ORG
+  # (admin-despliegue-tg) se enrola desde la MÁQUINA B — la llave privada del admin
+  # Testigo jamás existe en este servidor. La CA emite; la llave nace remota.
+  ca-testigo:
+    image: hyperledger/fabric-ca:${FABRIC_CA_VERSION}
+    container_name: ca-testigo
+    command: sh -c 'fabric-ca-server start -b tg-admin:$${CA_TG_ADMIN_PW} --port 7056'
+    environment:
+      - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-testigo
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_CSR_CN=ca-testigo.${DOMINIO}
+      - FABRIC_CA_SERVER_CSR_HOSTS=ca-testigo.${DOMINIO},localhost
+      - CA_TG_ADMIN_PW=${CA_TG_ADMIN_PW}
+    volumes:
+      - ./organizaciones/fabric-ca/ca-testigo:/etc/hyperledger/fabric-ca-server
+    ports:
+      - "${CA_TG_PORT}:7056"
+    networks: [red-tier1]
+    deploy:
+      resources:
+        limits: {memory: 256M}

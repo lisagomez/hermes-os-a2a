@@ -37,7 +37,9 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
 - **Pago tradicional:** Polar (Merchant of Record; tarjetas/fiat + impuestos)
 - **Pago agéntico (futuro):** Circle / USDC (Agent Wallets con guardrails)
 - **Contratos:** capa documento (cláusulas validadas por el grafo) + capa
-  blockchain opcional (smart contracts con verificación formal Lean 4)
+  blockchain **permisionada (Hyperledger Fabric)** vía el departamento de
+  Contratos Inteligentes (Fases 12-13, fundado 2026-07-19); la verificación
+  formal Lean 4 queda como opción futura sobre esa capa
 - **Conexión de herramientas:** MCP
 - **CLIs agente-nativos:** Printing Press (imprime CLI+MCP por API; ahorro de
   tokens ~100x vs MCP pesado; corre en Claude Code, no en el servidor)
@@ -597,6 +599,52 @@ truncado corrompería el trabajo en silencio.
 **El `git fetch` de master lo hace un cron del HOST** (cada 5 min), no el contenedor: ahí
 dentro no hay llave de GitHub, y no debe haberla (corre el modelo con permisos amplios). Antes
 el fetch fallaba en silencio y el trío construía sobre un master de 11 commits atrás (PR #46).
+
+---
+
+> **Fase 11** (frontends web: cliente-web2 + chat en vivo + control-interno) no tiene
+> sección propia: su estado vive en la corriente "Canales de comunicación" y en
+> `.claude/memory/project/frontend-web2.md`.
+
+## FASE 12 — Departamento de Contratos Inteligentes: fábrica de Smart Contracts (Fabric) 🟡 FUNDADO 2026-07-19; Fases 1-2 construidas, pipeline pendiente
+
+PRP: `.claude/PRPs/prp-fase12-fabrica-sc.md` (PRP-013). Departamento:
+`businessos/departamentos/contratos-inteligentes.md`. Gobernanza transversal adoptada
+con la fundación: `businessos/gobernanza/` (modelo de amenazas, web agéntica, ISO 42001,
+ciclo de vida CDC).
+
+La fábrica convierte requerimientos conversacionales (vertical clientes) en una
+`sc_spec` YAML validada en frío (`businessos/fabrica-sc/contrato_sc.py` — 23 tests
+verdes), que el enjambre materializa **parametrizando plantillas auditadas** (jamás
+código libre; v1: `plantillas/escrow-v1/`, chaincode Go determinista con tests), el
+Supervisor re-gatea de cero con un perfil "fabric" (build+gosec+deps+tests+**red
+efímera**) y el despliegue es un host-job que solo opera filas `aprobada` — doble
+candado humano: cola de Hermes OS + lifecycle de Fabric a dos organizaciones
+(Operadora + **Testigo**, llaves separadas por ceremonia — `businessos/red-tier1-iac/`
++ `CEREMONIA.md`).
+
+| Hito | Estado |
+|---|---|
+| Contrato de la spec (`validar_sc_spec`) + suite | ✅ integrado, 23 tests verdes |
+| Plantilla escrow-v1 (Go + tests + README-auditoria) | 🟡 código hecho; **firma de auditoría de la dueña PENDIENTE** |
+| Kit IaC red tier 1 + ceremonia de llaves | ✅ escrito; NO probado contra Docker real |
+| Engine, gates fabric, aprobación+despliegue, e2e | ⬜ Fases 3-6 del PRP-013 |
+| Alta en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill | ⬜ SOLO al cerrar la Fase 4 (no se activa lo que no corre) |
+
+Decisiones fundacionales (DECISIONES.md 2026-07-19): sandbox fabric en **nodo Hetzner
+aparte**; chaincode **Go**; primera plantilla **escrow**; numeración reconciliada
+(el material llegó de una sesión externa como "Fase 8/9, PRP-008/009").
+
+## FASE 13 — PM A2A · Oráculo de ejecución del SC 🔵 APROBADA (2026-07-19), pendiente de Fase 12
+
+PRP: `.claude/PRPs/prp-fase13-pm-oraculo.md` (PRP-014). La fábrica produce; el **PM/
+oráculo opera**: servicio hermano `pm-a2a` que escucha eventos del chaincode (checkpoint
+de bloque), lleva la agenda determinista de hitos/plazos, inmutabiliza evidencia (hash
+on-chain, archivo en Storage) y ante incumplimiento ejecuta un **catálogo cerrado** de
+acciones — con techo duro por certificado: `rol=oraculo` SOLO puede `registrar_evidencia`
+y `declarar_vencido`; el dinero lo deciden las partes, el árbitro o la regla por defecto
+compilada y auditada (`reembolsar_comprador`). Cierre con acta auditable. Decisiones 1-3
+del PRP resueltas por la dueña (2026-07-19).
 
 ---
 

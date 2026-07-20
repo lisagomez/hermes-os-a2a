@@ -1,0 +1,137 @@
+# configtx.yaml — génesis de canal tier 1 (Fabric 2.5, sin canal de sistema)
+# Punto clave de gobernanza: LifecycleEndorsement y Endorsement en MAJORITY con 2 orgs
+# = AMBAS firman. El "doble candado" del PRP-013 es política de canal, no costumbre.
+
+Organizations:
+  - &Operadora
+    Name: OperadoraMSP
+    ID: OperadoraMSP
+    MSPDir: ../organizaciones/operadora/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OperadoraMSP.admin', 'OperadoraMSP.peer', 'OperadoraMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OperadoraMSP.admin', 'OperadoraMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OperadoraMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('OperadoraMSP.peer')"
+    OrdererEndpoints:
+      - orderer:7050
+    AnchorPeers:
+      - Host: peer-operadora
+        Port: 7051
+
+  - &Testigo
+    Name: TestigoMSP
+    ID: TestigoMSP
+    MSPDir: ../organizaciones/testigo/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('TestigoMSP.admin', 'TestigoMSP.peer', 'TestigoMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('TestigoMSP.admin', 'TestigoMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('TestigoMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('TestigoMSP.peer')"
+    AnchorPeers:
+      - Host: peer-testigo
+        Port: 9051
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_5: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    # Con 2 organizaciones, MAJORITY = las dos. Aprobar chaincode exige
+    # approveformyorg de Operadora Y de Testigo (ceremonia a dos firmas):
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  EtcdRaft:
+    Consenters:
+      - Host: orderer
+        Port: 7050
+        ClientTLSCert: ../organizaciones/operadora/orderer/tls/server.crt
+        ServerTLSCert: ../organizaciones/operadora/orderer/tls/server.crt
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 100
+    AbsoluteMaxBytes: 10 MB
+    PreferredMaxBytes: 2 MB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  # Un canal por cliente: configtxgen -profile CanalTier1 -channelID canal-<cliente>
+  CanalTier1:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *Operadora
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Operadora
+        - *Testigo
