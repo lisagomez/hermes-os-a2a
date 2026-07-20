@@ -114,6 +114,42 @@ CREATE TABLE [tabla] (
 ALTER TABLE [tabla] ENABLE ROW LEVEL SECURITY;
 ```
 
+### Modelo de amenazas (mini — obligatorio desde 2026-07-19)
+
+> Metodología completa en `businessos/gobernanza/modelo-amenazas-v1.md`. 5 pasos en
+> miniatura: ¿qué protege, qué cruza, quién ataca, qué lo frena?
+
+- **Activos que toca**: [A1..A10 del modelo, o nuevos]
+- **Fronteras que cruza**: [qué entra sin confianza y dónde se valida]
+- **Atacante relevante**: [O1..O6 aplicable]
+- **Controles**: [G1..G6 existentes que aplican + brechas nuevas]
+
+### Evaluación de impacto — AISIA (si el sistema toma decisiones que afectan personas)
+
+> Hermana del modelo de amenazas: protege a las PERSONAS del sistema, incluso sin
+> atacante. Plantilla completa en `businessos/gobernanza/adenda-iso42001.md` §3.
+
+- **Partes afectadas**: [quién recibe consecuencias]
+- **Daños posibles SIN atacante**: [decisión errónea del sistema operando "bien"]
+- **Mitigaciones**: [gate humano / gracia / vía de apelación / comunicación]
+
+### Confianza del agente (si este PRP crea o modifica un servicio A2A / plantilla SC)
+
+> Taxonomía en `businessos/gobernanza/adenda-web-agentica.md` §2. Regla de mínimos:
+> nada irreversible se sostiene solo en Claim/Brief — exige Constraint o gate humano.
+
+```
+Confianza: [Constraint | Proof | Reputation | Stake | Brief | Claim]
+Justificación: [por qué este modelo basta para el peor caso de este agente]
+```
+
+### ¿Este PRP cambia comportamiento de agentes? (CDC)
+
+> Cambiar modelo, SOUL, prompt de sistema o plantilla del Engine = cambio del sistema
+> de IA → gate CDC proporcional al radio (`businessos/gobernanza/gobernanza-ciclo-de-vida.md` §3).
+
+- **CDC aplicable**: sí/no — [si sí: qué gate corresponde (completo/estándar/bitácora)]
+
 ---
 
 ## Blueprint (Assembly Line)
