@@ -5,6 +5,25 @@
 > critica de Johann a Pixel Agents (pixelagent.space): es tierno pero cuesta ver que hace cada agente,
 > si trabaja y en que, cuanto lleva, si esta idle, que agente es (especialidad).
 
+## META (el norte, por encima de toda la inspiracion de este documento)
+
+**El objetivo final, sin ambiguedad (Johann, 2026-07-19):** que crear y administrar un agente sea
+PRACTICO y AMIGABLE para TODA la familia, TODAS las edades, TODOS los gustos. La vara ya fijada en
+el Principio rector se mantiene (un nino de 10 anios deberia poder) y se extiende: cubrir todos los
+gustos con exactamente 2 versiones, no una por cada referencia mencionada en este doc:
+- **Version practica/ligera** (tipo juego, el mundo casual pixel/cenital): simple, calida, sin
+  curva de aprendizaje.
+- **Version dura/hardcore** (el panel analitico tipo tmux/bolsa): datos densos, numeros, texto.
+
+**Todo lo demas de este documento (Pixel Agents, AgentCraft, The Sims, Factorio, RimWorld, Oxygen
+Not Included, Frostpunk, Manor Lords, Against the Storm, Europa Universalis IV, tmux, la bolsa de
+valores) es INSPIRACION, no la meta.** Ninguno de esos juegos o herramientas se copia completo; cada
+uno aporto UNA idea puntual (legibilidad, mapa=filesystem, escalera de autonomia, barras de
+necesidad, vista de comandante...) que se adapta al objetivo de arriba. Regla de descarte: si una
+idea de inspiracion compromete "facil para toda la familia" (ej. exige alfabetizacion de gamer), se
+descarta, sin importar cuan buena sea en su juego original. Ya se aplico una vez (seccion "Principio
+rector": se retracto el ciclo tipo RTS de AgentCraft por esta misma razon).
+
 ## Tesis: legibilidad operativa (el hueco de Pixel Agents)
 
 Pixel Agents resolvio la **visibilidad tierna** (agentes como coworkers en una oficina acogedora). El
@@ -16,6 +35,112 @@ pasandole a quien. Ahi construimos nuestro mundo. Dos ventajas que ellos no tien
 2. **Tenemos el dato REAL**: la cola `tareas`, `token_usage` (costo), los gates del supervisor. La
    oficina mapea a datos reales de nuestro enjambre, no es cosmetica. Pixel Agents lee logs de Claude
    Code; nosotros leemos el estado real del sistema a2a.
+
+## Principio rector (2026-07-19, correccion de Johann): accesible a CUALQUIERA, el orquestador es el concierge
+
+Corrige una desviacion real de esta exploracion: varias ideas tomadas de AgentCraft (ciclar entre
+agentes con atajos, navegar submenus para un handoff) asumen un usuario GAMER. El publico de nuestro
+producto es lo opuesto: la meta declarada es que CUALQUIERA cree y administre un agente sin saber
+nada tecnico, ni siquiera alfabetizacion de videojuego (la vara: un nino de 10 anios deberia poder).
+Tres decisiones que esto fija, no negociables:
+
+1. **Metafora ganadora: oficina/ciudad, nunca un mapa de guerra tipo RTS.** No es gusto estetico: la
+   gente ya sabe como funciona una oficina o una ciudad porque la vivio; leer un mapa de unidades
+   estilo Warcraft es una alfabetizacion que no todos tienen. Ya lo habiamos sospechado (seccion
+   AgentCraft, "riesgo de la metafora RTS pura"); esto lo confirma como no-negociable.
+
+2. **El ORQUESTADOR es el concierge; el mundo visual es AMBIENTE, no la interfaz de trabajo.** El
+   patron de AgentCraft "navega al mapa, entra al panel del agente, resuelve" es justo lo que hay
+   que evitar. El default de interaccion es un solo chat con EL ORQUESTADOR, que:
+   - FILTRA el ruido de los agentes y solo sube al humano lo que necesita una decision real.
+   - REPORTA proactivamente ("este agente esta libre, ¿le asignas algo?", "este tiene una
+     pregunta"): push, nunca que el humano tenga que ir a buscar quien necesita atencion.
+   - Deja abierta la opcion de hablar directo con un agente especifico (drill-down), pero esa es
+     la excepcion, no el camino principal.
+
+   El mundo visual (oficina/ciudad 8-bit) sigue teniendo valor real: es la vista AMBIENTAL y de
+   confianza (ver que los agentes trabajan, satisfaccion pasiva), y el lugar del drill-down
+   OPCIONAL. Pero NUNCA es donde se decide/aprueba/asigna: eso vive en el chat con el orquestador.
+   Riesgo a vigilar: si el mundo visual acumula botones de accion "por si acaso", se convierte en
+   el mismo laberinto de submenus que se busca evitar.
+
+   **Grounding (no duplica nada existente):** ya hay un `ChatWidget.tsx` en la landing de Elisa
+   (`businessos/frontends/cliente-web2/src/features/landing/sections/ChatWidget.tsx`), pero es la
+   demo PUBLICA de ventas ("Habla con la fabrica", para prospectos). El orquestador-concierge es
+   otra cosa: vive DENTRO del producto (Mission Control), para el cliente ya activo gestionando SUS
+   agentes. Es un componente nuevo, sin colision con lo que ya existe.
+
+3. **El 8/16-bit no es solo estetica retro, es requisito de accesibilidad.** Correr liviano en
+   navegador o celular sin drenar bateria es un objetivo declarado, no un efecto colateral del
+   look. Refuerza (no cambia) lo ya decidido: Canvas 2D / sprites, vista cenital, sin isometrico ni
+   3D (ver seccion siguiente).
+
+**Que queda retractado de la seccion AgentCraft:** el "ciclo tipo RTS" (saltar entre agentes con
+atajos de teclado) y cualquier navegacion por submenus quedan DESCARTADOS como patron de interaccion
+primario. Se conservan como CAPACIDADES DE FONDO (heatmap de colisiones, mapa=filesystem, la
+escalera de autonomia quest/campana/canal) que el ORQUESTADOR consume y resume, no que el humano
+navega directamente.
+
+## Dos superficies de visualizacion, un mismo dato (2026-07-19, Johann: Sims + tmux + bolsa)
+
+**Referencia adicional que confirma la accesibilidad:** *The Sims* es otro management game que
+CUALQUIERA conoce por experiencia propia, sin expertise (a diferencia de un RTS o un colony-sim
+hardcore). Refuerza lo ya fijado en el Principio rector: metafora cotidiana por encima de
+alfabetizacion de gamer.
+
+**El mundo casual (pixel/cenital) no es la unica vista.** Se necesita una segunda superficie,
+"vista de comandante", para el usuario TECNICO que prefiere datos/texto sobre personajes. Dos
+referencias reales que Johann trae:
+
+1. **tmux** (multiplexor de terminal): grid de paneles pequenos, cada uno una sesion en vivo, con
+   zoom en 3 pasos: mosaico (glance) -> click expande ESE panel sobre los demas, foco -> boton para
+   pantalla completa, interaccion directa. Pixel Agents ya tiene algo parecido (mostrar que hace
+   cada agente), pero Johann lo califica de POCO PRACTICO: se conserva la idea del mosaico
+   expandible en 3 pasos, no la ejecucion de Pixel Agents.
+2. **Bolsa de valores** (ticker board): muchos recuadros a la vez, indicadores rapidos de
+   sube/baja, para identificar el estado de TODOS de un vistazo sin entrar a ninguno.
+
+**No confundir con lo que YA existe:** `OfficeSim.tsx` (Elisa) ya tiene un selector de TEMA
+(dropdown "estilo") que cambia el SKIN de los personajes pixel, pero sigue siendo la MISMA vista de
+mundo. Esto es distinto: no es cambiar el skin, es una SEGUNDA vista completa (modo analitico) que
+renderiza el MISMO dato (los 18 estados F363 + la capa de telemetria ya definida) como dashboard,
+no como personajes. Ambas vistas alimentan al mismo orquestador-concierge para la accion (seccion
+anterior); solo difieren en como se GLANCEA el estado.
+
+**Grounding de diseno** (consultada la skill `dataviz` antes de proponer, regla
+`consultar-cerebro-antes-de-opinar`): cada mini-panel del mosaico es, en terminos de dataviz, un
+STAT TILE (con sparkline de tendencia opcional: burn-rate de tokens, tareas completadas) mas que un
+chart complejo. Reglas que aplican de una vez, sin reinventar:
+- Los colores de ESTADO (idle/trabajando/esperando-gate/bloqueado) son colores de STATUS,
+  reservados, nunca reusados para "categoria": el mismo vocabulario que ya fijamos en el Lenguaje
+  Visual de Estados (ambar=pendiente, rojo=bloqueado, verde=confirmado). El panel analitico HEREDA
+  esa paleta, no inventa una nueva.
+- Un sparkline de tendencia sigue la regla "secuencial = un solo tono, claro a oscuro", nunca arcoiris.
+- Cada tile necesita su propio hover/tooltip (un chart ES interactivo por defecto, regla dataviz).
+
+**Interaccion en 3 pasos (mismo espiritu que el Principio rector: no repetir el error de submenus):**
+1. **Mosaico:** grid completo, todos los agentes, un vistazo. Solo lectura, cero clicks para "ver
+   que pasa".
+2. **Foco:** click en un tile, se expande SOBRE los demas (overlay), sigues viendo el resto de
+   reojo. Aqui vive interaccion ligera (leer el detalle, aprobar algo puntual).
+3. **Pantalla completa:** boton explicito desde el foco, interaccion directa y completa con ESE
+   agente. Equivale a "hablar directo con un agente especifico", ya definido como la EXCEPCION en
+   el Principio rector, no el camino principal.
+
+Esto es COMPLEMENTARIO al Principio rector, no lo contradice: el orquestador sigue siendo el canal
+de ACCION por defecto (decidir/aprobar/asignar); el mosaico/bolsa es una forma alternativa de
+GLANCE para quien prefiere datos densos sobre un mundo pixel-art. Las 2 vistas son un TOGGLE del
+mismo dato, no dos productos distintos.
+
+### Resumen: dos publicos, dos vistas
+
+| | Mundo casual (pixel/cenital) | Panel analitico (tmux/bolsa) |
+|---|---|---|
+| Para quien | cualquiera, sin conocimiento tecnico | usuario tecnico, prefiere datos/texto |
+| Referencia | Pixel Agents, oficina, The Sims | tmux (grid expandible), ticker de bolsa |
+| Densidad | pocos elementos, calido, ambiental | muchos recuadros a la vez, denso, rapido |
+| Accion | via orquestador-concierge (chat) | via orquestador-concierge; drill-down = foco->pantalla completa |
+| Dato subyacente | el mismo: 18 estados F363 + telemetria | el mismo: 18 estados F363 + telemetria |
 
 ## Vista / cámara (nota para tener presente en el desarrollo)
 
