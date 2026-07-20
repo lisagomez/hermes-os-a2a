@@ -29,9 +29,14 @@ export function EnjambreBinario({ state, subtitle, progress = 0, progressMode = 
   const stateRef = useRef<EstadoAgente>(state);
   const progRef = useRef<number>(progress);
   const modeRef = useRef<ModoProgreso>(progressMode);
-  stateRef.current = state;
-  progRef.current = progress;
-  modeRef.current = progressMode;
+
+  // El bucle rAF de abajo monta UNA vez ([]): estos refs son la forma en que lee
+  // valores frescos de state/progress/progressMode sin reiniciar el loop en cada cambio.
+  useEffect(() => {
+    stateRef.current = state;
+    progRef.current = progress;
+    modeRef.current = progressMode;
+  }, [state, progress, progressMode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
