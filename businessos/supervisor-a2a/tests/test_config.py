@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 import chequeos_adquisicion  # noqa: F401 — registra los chequeos comerciales
+import chequeos_fabric  # noqa: F401 — registra los chequeos de contratos_inteligentes
 from gates import ConfigInvalida, cargar_config, cargar_configs
 
 DIR_REGLAS = Path(__file__).resolve().parent.parent / "reglas"
@@ -83,11 +84,11 @@ def test_config_inexistente_no_arranca(tmp_path):
         cargar_config(tmp_path / "nada.toml")
 
 
-# --- multi-departamento (Fase 9): cargar_configs sobre el directorio ---
+# --- multi-departamento (Fase 9, + contratos_inteligentes Fase 4/PRP-013) ---
 
-def test_directorio_real_carga_ambos_departamentos():
+def test_directorio_real_carga_los_tres_departamentos():
     configs = cargar_configs(DIR_REGLAS)
-    assert set(configs) == {"software", "adquisicion"}
+    assert set(configs) == {"software", "adquisicion", "contratos_inteligentes"}
     reglas_adq = {g.regla for g in configs["adquisicion"]}
     assert {
         "claims_aprobados", "precio_en_rango", "plantilla_contrato_intacta",
@@ -95,6 +96,17 @@ def test_directorio_real_carga_ambos_departamentos():
     } <= reglas_adq
     modelo = [g for g in configs["adquisicion"] if g.runner == "modelo"]
     assert modelo and all(not g.activo for g in modelo)
+
+    reglas_ci = {g.regla for g in configs["contratos_inteligentes"]}
+    assert {
+        "paquete_sc_presente", "manifest_integro", "diff_acotado_plantilla",
+        "determinismo_chaincode", "sin_secretos",
+        "build", "vet", "gosec", "deps_integras", "tests",
+    } <= reglas_ci
+    # Todo gate activo tiene runner ejecutable de verdad (misma invariante central).
+    for g in configs["contratos_inteligentes"]:
+        if g.activo:
+            assert g.runner in ("comando", "estatico")
 
 
 def test_cargar_configs_acepta_archivo_suelto_legado():
