@@ -825,17 +825,20 @@ completo en `businessos/departamentos/analisis-planeacion.md`; veredictos en
 
 ---
 
-## Línea CRM conversacional (marca blanca) — CRM-0 ✅ VIVO (2026-07-21)
+## Línea CRM conversacional (marca blanca) — CRM-0 + CRM-1 ✅ VIVOS (2026-07-21)
 
 La línea D del maestro ERP arrancó por decisión de la dueña (goal 2026-07-21):
 `crm-canales` en runtime (Hetzner, :4600 + edge `/crm/*`) con webhooks de
 **Telegram y WhatsApp Cloud API**, marca blanca por configuración
 (`crm_tenants`: marca/tono/casos), techo estructural del plan D-40 en código y
 bitácora completa en `crm_*` (RLS cerrado). Smoke E2E verificado en producción
-por la URL pública; 18 tests. Conectar un tenant real = alta de credenciales de
-canal (BotFather / Meta Business), pasos de la dueña. Detalle y runbook de alta
-en `.claude/memory/project/crm0-canales.md`; fases siguientes (sup-crm, panel,
-niveles A0–A3 medidos) en `crm/propuesta-crm-marca-blanca.md`.
+por la URL pública; 29 tests. **CRM-1**: `sup-crm` (interno :4700) opera el
+nivel A1 del plan D-40 — valida CADA saliente generado (gates deterministas +
+juez LLM adversarial, fail-closed en ambos lados) con auditoría en
+`crm_supervision`. Conectar un tenant real = alta de credenciales de canal
+(BotFather / Meta Business), pasos de la dueña. Detalle y runbook de alta
+en `.claude/memory/project/crm0-canales.md`; fases siguientes (muestreo A2,
+panel, niveles medidos) en `crm/propuesta-crm-marca-blanca.md`.
 
 ---
 

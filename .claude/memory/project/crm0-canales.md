@@ -40,7 +40,19 @@ Cloud API (contacto con wa_id + nombre de profile) · escalado a humano
    `crm_tenants.canales.whatsapp` → registrar webhook en Meta apuntando a
    `/crm/webhook/whatsapp/<tenant>` con `CRM_WHATSAPP_VERIFY_TOKEN`.
 
-## Siguientes fases (blueprint CRM-1..5)
+## CRM-1 — sup-crm VIVO (2026-07-21, PR #107)
 
-sup-crm (validación de salientes por muestreo), panel humano, cruce de perfil
-entre canales, intenciones con niveles A0-A3 medidos, enjambre nocturno.
+Supervisor del blueprint operando en nivel **A1 del plan D-40**: `sup-crm`
+(:4700, interno, sin edge) valida CADA saliente generado por el modelo ANTES
+de enviarse. Gates deterministas (vacío/largo/dato sensible/credencial) → juez
+LLM adversarial stateless → auditoría en `crm_supervision` (RLS, aplicada).
+Fail-safe doble: juez caído = NO aprobado; sup inalcanzable = crm-canales
+traspasa a humano y escala (nunca sale respuesta de modelo sin veredicto).
+Plantillas fijas (escalado/degradación) NO pasan por sup. Smoke E2E en prod:
+camino aprobado (juez real, gates ok) + rechazo por g_sensible verificados;
+29 tests (7 sup + 22 canales).
+
+## Siguientes fases (blueprint CRM-2..5)
+
+muestreo A2 (20%→5% con evidencia en crm_supervision), panel humano, cruce de
+perfil entre canales, intenciones con niveles medidos, enjambre nocturno.
