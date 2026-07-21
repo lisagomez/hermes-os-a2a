@@ -29,6 +29,8 @@
 - [Integración análisis y planeación](project/integracion-analisis-planeacion.md) — decisión del Consejo 2026-07-17: opción C ampliada — costura Consejo→PRP con `decision_id` (prp-base + Paso 6 consejo + `trazas-decisiones.jsonl`, Etapa 1 ✅); tabla/vista Mission Control GATED (≥3 hilos + prospecto que lo pida); de Spartane solo el mapa de 7 fases como checklist white-label. Plan: `businessos/departamentos/analisis-planeacion.md`; veredictos en `.claude/memory/decisiones/`.
 - [Oportunidad — seguros de carga (white-label)](project/oportunidad-seguros-carga.md) — validación de mercado (discovery, 31 fuentes, veredicto viable con 30 días de entrevistas antes) integrada el 2026-07-15 en `businessos/seguros/` y alineada a directrices el 2026-07-17; línea **white-label de Hermes-os-a2a** para brokers/insurtechs de carga MX (no producto con marca propia); diferenciadores: grafo (CNSF/LISF) + coberturas con cláusula citada + A2A vivo; NO es fase comprometida hasta pasar el gate de discovery.
 
+- [CRM-0 — canales marca blanca](project/crm0-canales.md) — VIVO en runtime 2026-07-21 (PR #105): `crm-canales` :4600 + edge `/crm/*`, multi-tenant por `crm_tenants`, webhooks Telegram/WhatsApp verificados E2E en prod, techo D-40 en código, 18 tests; conectar tenant real = token BotFather / número Meta (pasos de la dueña en la memoria).
+
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
 - [Mantener docs vivas](feedback/mantener-docs-vivas.md) — tras cada cambio importante, actualizar aprendizajes (CLAUDE.md), roadmap, memoria y BUSINESS_LOGIC.md.
