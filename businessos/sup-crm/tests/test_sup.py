@@ -20,14 +20,21 @@ class FakeJuez:
 
 
 class FakeAuditoria:
-    def __init__(self, rechazos=0, total=0):
+    def __init__(self, rechazos=0, total=0, historicas=None, nivel="A1"):
         self.filas, self._evidencia = [], (rechazos, total)
+        self._historicas, self._nivel = historicas or [], nivel
 
     async def registrar(self, fila):
         self.filas.append(fila)
 
     async def evidencia(self, tenant_id, limite=100):
         return self._evidencia
+
+    async def filas_recientes(self, tenant_id, limite=1000):
+        return self._historicas
+
+    async def tenant_nivel(self, tenant_id):
+        return self._nivel
 
 
 def _client(juez=None, auditoria=None):
@@ -139,6 +146,70 @@ def test_a1_no_muestrea_juez_siempre():
     v = c.post("/validar", json=BODY).json()
     assert v["nivel"] == "A1" and v["juez_ejecutado"] is True
     assert len(juez.calls) == 1
+
+
+# ---------- expediente de promoción A1→A2 (plan D-40) ----------
+
+def _filas(aprobadas=0, rechazadas=0, gates_fallo=0):
+    return (
+        [{"aprobado": True, "juez_ejecutado": True, "motivo": "ok"}] * aprobadas
+        + [{"aprobado": False, "juez_ejecutado": True, "motivo": "inventa precio"}] * rechazadas
+        + [{"aprobado": False, "juez_ejecutado": False, "motivo": "pide dato sensible"}] * gates_fallo
+    )
+
+
+def test_expediente_promovible_con_todo_cumplido():
+    from expediente import armar_expediente
+    e = armar_expediente("acme", "A1", _filas(aprobadas=248, rechazadas=2))
+    assert e["promovible"] is True and e["salto"] == "A1->A2"
+    assert all(c["cumple"] for c in e["criterios"].values())
+
+
+def test_expediente_sin_evidencia_suficiente_no_se_propone():
+    from expediente import armar_expediente
+    # Constraint, no criterio: 150 veredictos perfectos NO bastan.
+    e = armar_expediente("acme", "A1", _filas(aprobadas=150))
+    assert e["promovible"] is False
+    assert e["criterios"]["veredictos_de_juez"]["cumple"] is False
+
+
+def test_expediente_rechazo_alto_no_promovible():
+    from expediente import armar_expediente
+    e = armar_expediente("acme", "A1", _filas(aprobadas=240, rechazadas=10))  # 4%
+    assert e["promovible"] is False
+    assert e["criterios"]["tasa_rechazo_juez"]["cumple"] is False
+    assert e["ejemplos"]["rechazos_del_juez"][0] == "inventa precio"
+
+
+def test_expediente_fallo_de_gate_bloquea():
+    from expediente import armar_expediente
+    e = armar_expediente("acme", "A1", _filas(aprobadas=250, gates_fallo=1))
+    assert e["promovible"] is False
+    assert e["criterios"]["fallos_de_gates"]["cumple"] is False
+
+
+def test_expediente_desde_a2_nunca_promovible():
+    from expediente import armar_expediente
+    e = armar_expediente("acme", "A2", _filas(aprobadas=250))
+    assert e["promovible"] is False  # ya está en A2; este salto no aplica
+
+
+def test_endpoint_expediente():
+    aud = FakeAuditoria(historicas=_filas(aprobadas=250), nivel="A1")
+    c = TestClient(build_app(juez=FakeJuez(), auditoria=aud))
+    e = c.get("/expediente/acme").json()
+    assert e["promovible"] is True and e["tenant_id"] == "acme"
+
+
+def test_endpoint_expediente_tenant_inexistente_404():
+    aud = FakeAuditoria(nivel=None)
+
+    async def sin_nivel(tenant_id):
+        return None
+
+    aud.tenant_nivel = sin_nivel
+    c = TestClient(build_app(juez=FakeJuez(), auditoria=aud))
+    assert c.get("/expediente/nadie").status_code == 404
 
 
 def test_a2_gates_corren_siempre_aunque_haya_muestreo():

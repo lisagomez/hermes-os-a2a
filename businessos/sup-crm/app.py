@@ -26,6 +26,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from expediente import VENTANA_FILAS, armar_expediente
 from gates import correr_gates, gates_ok
 from juez import JuezError, JuezLLM
 from muestreo import es_sensible, tasa_muestreo
@@ -61,6 +62,48 @@ class Auditoria:
                 log.error("auditoría NO escrita: HTTP %s", r.status_code)
         except httpx.HTTPError as exc:
             log.error("auditoría NO escrita: %s", type(exc).__name__)
+
+    async def filas_recientes(self, tenant_id: str, limite: int = VENTANA_FILAS) -> list[dict] | None:
+        """Filas crudas de supervisión para el expediente. None = no se pudo leer
+        (y un expediente sin datos NO se arma: constraint, no criterio)."""
+        if not (self._url and self._key):
+            return None
+        url = (
+            f"{self._url}/rest/v1/crm_supervision"
+            f"?tenant_id=eq.{tenant_id}"
+            f"&select=aprobado,juez_ejecutado,motivo&order=created_at.desc&limit={limite}"
+        )
+        try:
+            if self._http is not None:
+                r = await self._http.get(url, headers=self._headers())
+            else:
+                async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
+                    r = await client.get(url, headers=self._headers())
+        except httpx.HTTPError as exc:
+            log.error("filas de expediente NO leídas: %s", type(exc).__name__)
+            return None
+        if r.status_code != 200:
+            log.error("filas de expediente NO leídas: HTTP %s", r.status_code)
+            return None
+        return r.json()
+
+    async def tenant_nivel(self, tenant_id: str) -> str | None:
+        """Nivel actual del tenant (None si no existe/inactivo o no se pudo leer)."""
+        if not (self._url and self._key):
+            return None
+        url = f"{self._url}/rest/v1/crm_tenants?tenant_id=eq.{tenant_id}&activo=is.true&select=nivel&limit=1"
+        try:
+            if self._http is not None:
+                r = await self._http.get(url, headers=self._headers())
+            else:
+                async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
+                    r = await client.get(url, headers=self._headers())
+        except httpx.HTTPError as exc:
+            log.error("nivel de tenant NO leído: %s", type(exc).__name__)
+            return None
+        if r.status_code != 200 or not r.json():
+            return None
+        return r.json()[0].get("nivel") or "A1"
 
     async def evidencia(self, tenant_id: str, limite: int = 100) -> tuple[int, int]:
         """(rechazos_del_juez, total_veredictos_de_juez) recientes del tenant.
@@ -158,7 +201,25 @@ def build_app(juez: JuezLLM | None = None, auditoria: Auditoria | None = None, r
         )
         return JSONResponse(veredicto)
 
-    return Starlette(routes=[Route("/health", health, methods=["GET"]), Route("/validar", validar, methods=["POST"])])
+    async def expediente(request: Request) -> JSONResponse:
+        """Expediente de promoción A1→A2 del tenant (solo lectura; no promueve)."""
+        tenant_id = request.path_params["tenant"]
+        nivel = await auditoria.tenant_nivel(tenant_id)
+        if nivel is None:
+            return JSONResponse({"error": "tenant inexistente o datos no disponibles"}, status_code=404)
+        filas = await auditoria.filas_recientes(tenant_id)
+        if filas is None:
+            # Sin evidencia legible no hay expediente que proponer (constraint).
+            return JSONResponse({"error": "evidencia no disponible"}, status_code=503)
+        return JSONResponse(armar_expediente(tenant_id, nivel, filas))
+
+    return Starlette(
+        routes=[
+            Route("/health", health, methods=["GET"]),
+            Route("/validar", validar, methods=["POST"]),
+            Route("/expediente/{tenant}", expediente, methods=["GET"]),
+        ]
+    )
 
 
 app = build_app()
