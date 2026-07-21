@@ -321,7 +321,9 @@ services:
     container_name: sup-crm
     profiles: ["a2a"]
     restart: unless-stopped
-    # INTERNO: sin ports; solo crm-canales le habla dentro de hermes-net.
+    # INTERNO en hermes-net; 127.0.0.1 solo para host-jobs (expediente) e inspección.
+    ports:
+      - "127.0.0.1:4700:4700"
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - SUPABASE_URL=${SUPABASE_URL}
