@@ -32,9 +32,16 @@ cerebro regulatorio multi-país y un dashboard encima.
         │  │  + bot TG │   │  + bot TG │   │  + bot TG │       │
         │  └───────────┘   └───────────┘   └───────────┘       │
         │         cada una: SOUL.md · AGENTS.md · MEMORY.md    │
+        │                                                      │
+        │  grafo (cerebro regulatorio) · grafo-a2a (A2A)       │
+        │  trío de desarrollo: ejecutor · supervisor ·         │
+        │    coordinador (enjambre) — con cola durable         │
+        │  ventas-a2a (dep. adquisición) · chat-web2 (venta)   │
+        │  CRM marca blanca: crm-canales (TG/WA) · sup-crm     │
+        │  frontend-ci (cabina interna) · edge (Caddy :443)    │
         └──────────────────────────────────────────────────────┘
                                    │
-              Supabase (datos)  ·  Grafo (cerebro regulatorio, Fase 2+)
+                         Supabase (datos + RLS)
 ```
 
 Cada vertical es un servicio independiente con su propia persona (`SOUL.md`),
@@ -55,33 +62,48 @@ funden: ese es el primer principio del proyecto.
 | Conocimiento personal | Obsidian (bóveda montada como volumen) |
 | Cerebro regulatorio | Grafo multi-país (Fase 2+) |
 | Datos / dashboard | Supabase + A2ABot (Mission Control) |
-| Pago tradicional | Polar (Merchant of Record) — Fase 3 |
-| Pago agéntico (futuro) | Circle / USDC (Agent Wallets) — Fase 5 |
+| Pago tradicional | Polar (Merchant of Record) — Fase 3 ✅ |
+| Pago agéntico (futuro) | Circle / USDC (Agent Wallets) |
 | Conexión de herramientas | MCP · CLIs agente-nativos (Printing Press) |
-| Conexión entre agentes (futuro) | Protocolo A2A — Fase 5 |
+| Conexión entre agentes | Protocolo A2A ✅ (grafo-a2a, trío, enjambre, ventas-a2a) |
+| CRM conversacional | crm-canales (Telegram + WhatsApp Cloud API) + sup-crm (plan D-40) |
+| Frontends web | cliente-web2 (Vercel, marca propia) · control-interno (cabina equipo) |
 
 > Tag de Hermes pineado: **`v2026.6.19`** (verificado en Docker Hub a 2026-06-26).
 > No usar `:latest` / `:main` — apuntan a builds inestables.
 
 ---
 
-## Estado actual
+## Estado actual (2026-07-21)
 
-**FASE 0 — Infraestructura: ✅ las 3 verticales vivas y respondiendo** (personal/Kiris,
-negocio/@a2aTeamBot, clientes/@a2aClientbot), round-trip verificado. Corren 24/7 como
-servicios Docker en un **servidor Hetzner Cloud** (cx33, `167.233.233.56`), con respaldo
-nocturno a GitHub por vertical. Detalle: **[`businessos/FASE0.md`](businessos/FASE0.md)**;
-la variante concreta de Hetzner (tipo, firewall, costo) en
-**[`businessos/FASE0-hetzner.md`](businessos/FASE0-hetzner.md)**.
+Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
+línea CRM arrancó. En corto:
 
-**FASE 1 — Eficiencia de tokens: ✅ esencialmente cerrada** (2026-06-30). Routing por modelo
-(cerebro `gemini-2.5-flash-lite` con caché de prefijo 97%, ~3s/turno; negocio en `haiku-4.5`
-por su rol agéntico), cadena de fallback por fiabilidad, ingesta de gasto a Supabase
-(`token_usage`) y reporte de presupuesto on-demand ($30/mes, alerta al 80%). Detalle en
-`.claude/memory/project/fase1-eficiencia.md`.
+- **Fases 0–1** ✅ — 3 verticales 24/7 por Telegram (+ Slack interno y grupo del
+  equipo), respaldo nocturno, gasto de tokens controlado ($30/mes, alerta 80%).
+- **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO, contable y
+  contractual MX; todo citado), cobros Polar y contratos validados.
+- **Fases 4–5** ✅ — dashboard **Mission Control** + primer servicio **A2A**
+  (`grafo-a2a`).
+- **Fases 6–7** ✅ — **trío de desarrollo** (Hermes→Ejecutor→Supervisor) y
+  **enjambre** (Coordinador con fan-out acotado y presupuesto); dogfood real
+  aprobado con GLM-5.2 como motor.
+- **Fases 8–10** ✅ — grafo regulatorio (permisos), departamento de
+  **adquisición** (`ventas-a2a` + edge público) y **cola durable** del trío
+  (encola en ~1s, worker serial, avisos a Slack).
+- **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
+  chat de venta en vivo (`chat-web2`).
+- **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**
+  multi-tenant (`crm-canales`), supervisor de salientes (`sup-crm`: gates +
+  juez LLM), **muestreo A2 con evidencia** y **expediente de promoción** con
+  botón humano (plan de autonomía D-40). Conectar un tenant real = alta de
+  credenciales de canal (BotFather / Meta Business).
 
-El mapa de todas las fases (de la infra al grafo, cobro, contratos y economía
-agéntica) está en **[`businessos/ROADMAP.md`](businessos/ROADMAP.md)**.
+El mapa completo de fases y principios está en
+**[`businessos/ROADMAP.md`](businessos/ROADMAP.md)**; el detalle de infra en
+[`businessos/FASE0.md`](businessos/FASE0.md) y
+[`businessos/FASE0-hetzner.md`](businessos/FASE0-hetzner.md); el estado por
+iniciativa en `.claude/memory/` (índice en `MEMORY.md`).
 
 ---
 
@@ -136,16 +158,21 @@ su personalidad, el dashboard abre por túnel SSH
 
 ```
 businessos/
-├── ROADMAP.md            # Mapa de todas las fases (0 → 5) y principios
+├── ROADMAP.md            # Mapa de todas las fases y principios (fuente de verdad)
 ├── FASE0.md              # Guía paso a paso de la infraestructura
-├── docker-compose.yml    # 3 verticales Hermes + dashboard en hermes-net
-├── prep-servidor.sh      # Fase 0 pasos 2-3: endurece el servidor + Docker
-├── init-verticales.sh    # Fase 0 pasos 6-7: wizards + copia de personas
-├── supabase-init.sql     # Esquema inicial de Supabase
-├── .env.example          # Plantilla de variables (sin secretos)
-├── personal/             # SOUL.md · AGENTS.md · MEMORY.md
-├── negocio/              # SOUL.md · AGENTS.md · MEMORY.md
-└── clientes/             # SOUL.md · AGENTS.md · MEMORY.md
+├── docker-compose.yml    # TODOS los servicios en hermes-net (verticales + A2A + CRM + edge)
+├── personal/ negocio/ clientes/   # SOUL.md · AGENTS.md · MEMORY.md por vertical
+├── grafo/  grafo-a2a/    # Cerebro regulatorio (FastAPI + Postgres) y su puente A2A
+├── ejecutor-a2a/ supervisor-a2a/ coordinador-a2a/   # Trío de desarrollo + enjambre
+├── ventas-a2a/           # Departamento de adquisición (card A2A pública)
+├── chat-web2/            # Chat de venta de la landing web2
+├── crm-canales/ sup-crm/ # CRM marca blanca: canales TG/WA + supervisor (plan D-40)
+├── crm/                  # Blueprint del CRM (propuestas + plan de autonomía)
+├── frontends/            # cliente-web2 (Vercel) · control-interno · design-system
+├── edge/                 # Caddy público :443 (chat, /crm/*, card A2A)
+├── supabase-*.sql        # Migraciones aplicadas por fase (init → crm3)
+├── *.py  *.sh            # Host-jobs (ingesta, snapshots, alertas, expedientes)
+└── departamentos/        # Diseño de equipo, Slack y estrategia
 ```
 
 El resto del repositorio (carpeta `.claude/`, `src/`, configs de Next.js) es el
