@@ -52,7 +52,21 @@ Plantillas fijas (escalado/degradación) NO pasan por sup. Smoke E2E en prod:
 camino aprobado (juez real, gates ok) + rechazo por g_sensible verificados;
 29 tests (7 sup + 22 canales).
 
-## Siguientes fases (blueprint CRM-2..5)
+## CRM-2 — muestreo A2 VIVO (2026-07-21, PR de la rama feat/crm2-muestreo-a2)
 
-muestreo A2 (20%→5% con evidencia en crm_supervision), panel humano, cruce de
-perfil entre canales, intenciones con niveles medidos, enjambre nocturno.
+Nivel por TENANT (`crm_tenants.nivel`, default A1; **subir a A2 = botón humano**
+de la dueña vía update). En A2: gates deterministas SIEMPRE; juez LLM sobre
+muestra cuya tasa sale de la evidencia de `crm_supervision` (arranque 20%,
+piso 5% con <3% rechazo en ≥20 veredictos); lo sensible saliente (dinero/
+promesas/contratos/facturación, `muestreo.py::_SENSIBLE_SALIENTE`) pasa por
+juez al 100%; **degradación automática** a validación completa si el rechazo
+llega a 10% (bajar es regla, no junta). Auditoría con `nivel` +
+`juez_ejecutado` (la evidencia se alimenta sola). Verificado en prod: 4/5
+neutrales omitidos (0.20), 1 muestreado ok, y el juez rechazó un precio
+inventado en el camino sensible. Tenant demo devuelto a A1 (la promoción real
+exige el expediente del plan D-40). 37 tests.
+
+## Siguientes fases (blueprint CRM-3..5)
+
+expediente de promoción A1→A2 automatizado (números + botón), panel humano,
+cruce de perfil entre canales, intenciones con niveles medidos, enjambre.
