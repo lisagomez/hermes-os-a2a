@@ -35,6 +35,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname
 log = logging.getLogger("chat-web2")
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# ≥8 dígitos tolerando espacios/guiones/paréntesis/+ entre ellos (gate barato:
+# el extractor LLM valida después; un falso positivo solo cuesta una extracción).
+TELEFONO_RE = re.compile(r"\+?(?:\d[\s().-]*){8,}")
 MAX_MENSAJE = 2000
 MAX_HISTORIAL = 16  # turnos previos que aceptamos (defensivo)
 DEGRADE_ES = (
@@ -53,7 +56,7 @@ def _sse(payload: dict | str) -> bytes:
 
 
 def _texto_usuario(historial: list[dict], mensaje: str) -> str:
-    """Solo lo que ESCRIBIÓ el visitante (para buscar email; ignora al agente)."""
+    """Solo lo que ESCRIBIÓ el visitante (para buscar email/teléfono; ignora al agente)."""
     partes = [t.get("text", "") for t in historial if t.get("role") == "user"]
     partes.append(mensaje)
     return "\n".join(p for p in partes if p)
@@ -147,8 +150,10 @@ def build_app(
                     yield _sse({"type": "text_delta", "text": DEGRADE_ES})
             yield _sse("[DONE]")
 
-            # Captura de lead SOLO si el visitante escribió un email (gate barato).
-            if EMAIL_RE.search(_texto_usuario(historial, mensaje)):
+            # Captura de lead SOLO si el visitante escribió un email o un
+            # teléfono (gate barato; sin dato de contacto no hay lead posible).
+            texto = _texto_usuario(historial, mensaje)
+            if EMAIL_RE.search(texto) or TELEFONO_RE.search(texto):
                 tarea = asyncio.create_task(_capturar(_conversacion(historial, mensaje)))
                 _bg.add(tarea)
                 tarea.add_done_callback(_bg.discard)

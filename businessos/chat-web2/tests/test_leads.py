@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 
-from leads import LeadsStore, lead_id_de_email
+from leads import LeadsStore, lead_id_de_email, lead_id_de_telefono
 
 
 class FakeResp:
@@ -53,6 +53,50 @@ def test_upsert_construye_fila_web2():
     assert fila["mensaje"] == "agente de pedidos"
     assert fila["lead_id"] == lead_id_de_email("ana@empresa.com")
     assert fila["datos"]["source"] == "web2-chat"
+
+
+def test_lead_id_telefono_determinista():
+    a = lead_id_de_telefono("+52 (55) 1234-5678")
+    b = lead_id_de_telefono("52 55 12345678")
+    assert a == b  # solo dígitos → mismo id con o sin separadores
+    assert a.startswith("web2chat-")
+
+
+def test_upsert_solo_telefono_construye_fila():
+    http = FakeHttp()
+    ok = asyncio.run(
+        _store(http).upsert(
+            {
+                "nombre": "Elisa",
+                "email": None,
+                "telefono": "+52 55 1234 5678",
+                "interes": "CRM de proveedores",
+                "horario": "martes 11:00",
+            }
+        )
+    )
+    assert ok is True
+    fila = http.calls[0]["json"]
+    assert fila["lead_id"] == lead_id_de_telefono("+52 55 1234 5678")
+    assert fila["contacto"] == "Elisa · tel +52 55 1234 5678"
+    assert fila["datos"]["telefono"] == "+52 55 1234 5678"
+    assert fila["datos"]["horario"] == "martes 11:00"
+
+
+def test_upsert_email_y_telefono_prioriza_email_como_id():
+    http = FakeHttp()
+    asyncio.run(
+        _store(http).upsert({"nombre": "Ana", "email": "ana@empresa.com", "telefono": "5512345678"})
+    )
+    fila = http.calls[0]["json"]
+    assert fila["lead_id"] == lead_id_de_email("ana@empresa.com")
+    assert fila["contacto"] == "Ana <ana@empresa.com> · tel 5512345678"
+
+
+def test_upsert_sin_contacto_devuelve_false_sin_llamar():
+    http = FakeHttp()
+    assert asyncio.run(_store(http).upsert({"nombre": "Ana"})) is False
+    assert http.calls == []  # ni siquiera intenta el POST
 
 
 def test_upsert_sin_supabase_devuelve_false():
