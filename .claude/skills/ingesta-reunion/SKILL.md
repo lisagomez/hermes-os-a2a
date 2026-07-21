@@ -25,7 +25,7 @@ Telegram/Slack lo que vence.
 ## Cuando NO usar esto
 
 - El transcript no vive dentro de una subcarpeta de negocio de
-  `C:\OPS\_VelOS\proyectos\Transcript reuniones colaborativas\` (si es una clase o algo
+  `C:\OPS\_JOS\Transcript reuniones colaborativas\` (si es una clase o algo
   suelto, no es este flujo).
 - La reunion es de OTRO negocio del portafolio de Johann (Zelandia/VelOS Ambiental):
   este skill vive en el repo `hermes-os-a2a` y solo aplica a reuniones de **a2a**. Otro
@@ -34,14 +34,14 @@ Telegram/Slack lo que vence.
 ## Pasos (los 4, en el mismo turno; no basta con solo correr el script)
 
 1. **Ubicar el transcript** dentro de
-   `C:\OPS\_VelOS\proyectos\Transcript reuniones colaborativas\a2a\` (si el usuario no
+   `C:\OPS\_JOS\Transcript reuniones colaborativas\a2a\` (si el usuario no
    dio la ruta exacta, listar esa carpeta y preguntar cual).
 
 2. **Leer las DOS fuentes de contexto** (viven FUERA de este repo a proposito: nunca
    las copies dentro de `hermes-os-a2a`, son compartidas entre negocios/repos):
-   - `C:\OPS\_VelOS\proyectos\Transcript reuniones colaborativas\SYSTEM-PROMPT-ingesta-reunion-negocio.md`
+   - `C:\OPS\_JOS\Transcript reuniones colaborativas\SYSTEM-PROMPT-ingesta-reunion-negocio.md`
      (el prompt generico, con los placeholders `{NEGOCIO}`, `{PARTICIPANTES}`, etc.)
-   - `C:\OPS\_VelOS\proyectos\Transcript reuniones colaborativas\a2a\_contexto-negocio.md`
+   - `C:\OPS\_JOS\Transcript reuniones colaborativas\a2a\_contexto-negocio.md`
      (los valores de esos placeholders para a2a: participantes, hoja de ruta, reglas de
      canal).
 
