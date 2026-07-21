@@ -29,9 +29,11 @@ TIMEOUT_S = 120.0
 _EXTRACT_SYSTEM = (
     "Extraes datos de contacto de una conversación entre un visitante y un "
     "asistente de ventas. Devuelve SOLO un objeto JSON con las claves: "
-    "nombre (string|null), email (string|null), empresa (string|null), "
-    "interes (string|null, una frase de qué quiere construir). Usa null cuando "
-    "el dato no aparezca. No inventes."
+    "nombre (string|null), email (string|null), telefono (string|null, con lada/"
+    "código de país si aparece), empresa (string|null), "
+    "interes (string|null, una frase de qué quiere construir), "
+    "horario (string|null, día y hora que el visitante eligió para la llamada, "
+    "tal como lo dijo). Usa null cuando el dato no aparezca. No inventes."
 )
 
 
@@ -87,7 +89,9 @@ class MotorOpenRouter:
                 await client.aclose()
 
     async def extraer_lead(self, conversacion: str) -> dict | None:
-        """Extrae {nombre,email,empresa,interes} de la charla. None si no hay email."""
+        """Extrae {nombre,email,telefono,empresa,interes,horario} de la charla.
+
+        None si no hay NINGÚN dato de contacto (ni email ni teléfono)."""
         body = {
             "model": MODELO_EXTRACT,
             "messages": [
@@ -110,11 +114,14 @@ class MotorOpenRouter:
             if self._http is None:
                 await client.aclose()
         email = (datos.get("email") or "").strip()
-        if not email:
+        telefono = (datos.get("telefono") or "").strip()
+        if not email and not telefono:
             return None
         return {
             "nombre": (datos.get("nombre") or "").strip() or None,
-            "email": email,
+            "email": email or None,
+            "telefono": telefono or None,
             "empresa": (datos.get("empresa") or "").strip() or None,
             "interes": (datos.get("interes") or "").strip() or None,
+            "horario": (datos.get("horario") or "").strip() or None,
         }

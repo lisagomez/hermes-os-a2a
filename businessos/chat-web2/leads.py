@@ -3,9 +3,10 @@
 Mismo patrón PostgREST que ventas-a2a/leads.py, con dos diferencias:
   - origen 'web2' (invariante un-escritor-por-origen: el chat es superficie web2,
     igual que la route /api/leads del frontend; NO reusa 'a2a' ni 'manual').
-  - UPSERT idempotente por `lead_id` determinista (sha1 del email): el daemon es
-    stateless y ve toda la conversación en cada turno; si el mismo email vuelve a
-    aparecer, el upsert actualiza la misma fila en vez de crear duplicados.
+  - UPSERT idempotente por `lead_id` determinista (sha1 del email o, si el
+    visitante solo dejó teléfono, de sus dígitos): el daemon es stateless y ve
+    toda la conversación en cada turno; si el mismo contacto vuelve a aparecer,
+    el upsert actualiza la misma fila en vez de crear duplicados.
 
 Semántica de fallo: el chat ya respondió (el texto salió por SSE), así que un
 fallo al guardar NO tumba la conversación — pero SÍ se loguea fuerte (doctrina
@@ -29,6 +30,14 @@ def lead_id_de_email(email: str) -> str:
     return f"web2chat-{h}"
 
 
+def lead_id_de_telefono(telefono: str) -> str:
+    """ID determinista por teléfono (solo dígitos: mismo número con o sin
+    espacios/guiones/paréntesis → mismo id)."""
+    digitos = "".join(c for c in telefono if c.isdigit())
+    h = hashlib.sha1(digitos.encode()).hexdigest()[:16]
+    return f"web2chat-{h}"
+
+
 class LeadsStore:
     def __init__(
         self,
@@ -47,27 +56,34 @@ class LeadsStore:
     async def upsert(self, lead: dict) -> bool:
         """Guarda/actualiza el lead. True si persistió; False si no hay Supabase.
 
-        `lead` = {nombre, email, empresa, interes} (email obligatorio). No lanza:
-        loguea el fallo y devuelve False (el chat no debe romperse por esto).
+        `lead` = {nombre, email, telefono, empresa, interes, horario}; email o
+        teléfono obligatorio (al menos uno). No lanza: loguea el fallo y
+        devuelve False (el chat no debe romperse por esto).
         """
-        if not self.activo:
-            log.warning("lead NO persistido: Supabase no configurado (email=%s)", _mask(lead.get("email")))
+        email = lead.get("email")
+        telefono = lead.get("telefono")
+        if not email and not telefono:
+            log.warning("lead NO persistido: sin email ni teléfono")
             return False
-        email = lead["email"]
+        if not self.activo:
+            log.warning("lead NO persistido: Supabase no configurado (contacto=%s)", _mask(email) if email else _mask_tel(telefono))
+            return False
         nombre = lead.get("nombre")
         fila = {
-            "lead_id": lead_id_de_email(email),
+            "lead_id": lead_id_de_email(email) if email else lead_id_de_telefono(telefono),
             "origen": "web2",
             "empresa": lead.get("empresa") or "",
-            "contacto": f"{nombre} <{email}>" if nombre else email,
+            "contacto": _contacto(nombre, email, telefono),
             "mensaje": lead.get("interes") or "",
             "etapa": "nuevo",
             "datos": {
                 "source": "web2-chat",
                 "nombre": nombre,
                 "email": email,
+                "telefono": telefono,
                 "empresa": lead.get("empresa"),
                 "interes": lead.get("interes"),
+                "horario": lead.get("horario"),
             },
         }
         headers = {
@@ -85,13 +101,25 @@ class LeadsStore:
                 async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
                     r = await client.post(url, headers=headers, json=fila)
         except httpx.HTTPError as exc:
-            log.error("lead NO guardado (email=%s): %s", _mask(email), type(exc).__name__)
+            log.error("lead NO guardado (contacto=%s): %s", _mask_lead(email, telefono), type(exc).__name__)
             return False
         if r.status_code not in (200, 201, 204):
-            log.error("lead NO guardado (email=%s): HTTP %s", _mask(email), r.status_code)
+            log.error("lead NO guardado (contacto=%s): HTTP %s", _mask_lead(email, telefono), r.status_code)
             return False
-        log.info("lead capturado en chat (email=%s)", _mask(email))
+        log.info("lead capturado en chat (contacto=%s)", _mask_lead(email, telefono))
         return True
+
+
+def _contacto(nombre: str | None, email: str | None, telefono: str | None) -> str:
+    """Campo `contacto` legible: "Ana <ana@x.com> · tel +52..." según lo que haya."""
+    partes = []
+    if email:
+        partes.append(f"{nombre} <{email}>" if nombre else email)
+    elif nombre:
+        partes.append(nombre)
+    if telefono:
+        partes.append(f"tel {telefono}")
+    return " · ".join(partes)
 
 
 def _mask(email: str | None) -> str:
@@ -100,3 +128,15 @@ def _mask(email: str | None) -> str:
         return "?"
     usuario, dominio = email.split("@", 1)
     return f"{usuario[:2]}***@{dominio}"
+
+
+def _mask_tel(telefono: str | None) -> str:
+    """Enmascara el teléfono en logs: solo los últimos 3 dígitos visibles."""
+    if not telefono:
+        return "?"
+    digitos = "".join(c for c in telefono if c.isdigit())
+    return f"***{digitos[-3:]}" if len(digitos) >= 3 else "?"
+
+
+def _mask_lead(email: str | None, telefono: str | None) -> str:
+    return _mask(email) if email else _mask_tel(telefono)

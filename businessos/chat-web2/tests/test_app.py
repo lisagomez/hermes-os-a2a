@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from starlette.testclient import TestClient
 
-from app import build_app, _texto_usuario, _validar, EMAIL_RE
+from app import build_app, _texto_usuario, _validar, EMAIL_RE, TELEFONO_RE
 from motor import MotorError
 
 
@@ -102,3 +102,13 @@ def test_gate_email_solo_texto_del_visitante():
     hist = [{"role": "agent", "text": "escríbenos a ventas@a2a.mx"}]
     assert not EMAIL_RE.search(_texto_usuario(hist, "no dejé correo"))
     assert EMAIL_RE.search(_texto_usuario(hist, "soy ana@empresa.com"))
+
+
+def test_gate_telefono_dispara_captura():
+    # Un teléfono (con o sin separadores) también es dato de contacto capturable.
+    assert TELEFONO_RE.search("mi cel es 55 1234 5678")
+    assert TELEFONO_RE.search("llámame al +52 (55) 1234-5678")
+    assert TELEFONO_RE.search("5512345678")
+    # Texto sin teléfono: números cortos o fechas no disparan.
+    assert not TELEFONO_RE.search("quiero 3 agentes para 2026")
+    assert not TELEFONO_RE.search("el plan de 490 USD")
