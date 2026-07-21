@@ -1,6 +1,13 @@
 # PROPUESTA DE MARCA BLANCA — CRM AGÉNTICO CONVERSACIONAL
 ## Canales WhatsApp y Telegram · Operado por A2A · Atención por niveles
 
+> **ESTADO (2026-07-21): CRM-0/1/2/3 CONSTRUIDOS y vivos en runtime** —
+> `businessos/crm-canales/` (canales TG/WA multi-tenant) + `businessos/sup-crm/`
+> (supervisor: gates + juez, muestreo A2 con evidencia, expediente de promoción
+> con botón humano). Detalle y runbook de alta de tenant:
+> `.claude/memory/project/crm0-canales.md`. Este documento sigue siendo el
+> blueprint de las fases restantes (panel humano, cruce de perfil, enjambre).
+
 Documento de producto derivado del Documento Maestro ERP Agéntico (v9),
 generado con el patrón de blueprint de dep-pln (ERP-7). Hereda arquitectura,
 nomenclatura, compuertas, tarjetas de agente, trazabilidad y auditoría de la
