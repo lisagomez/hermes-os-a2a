@@ -292,6 +292,30 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  crm-canales:
+    build: ./crm-canales
+    container_name: crm-canales
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4600:4600"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - CRM_MODELO=${CRM_MODELO:-google/gemini-2.5-flash-lite}
+      - CRM_TELEGRAM_WEBHOOK_SECRET=${CRM_TELEGRAM_WEBHOOK_SECRET}
+      - CRM_WHATSAPP_VERIFY_TOKEN=${CRM_WHATSAPP_VERIFY_TOKEN}
+      # Tokens por tenant (marca blanca): CRM_TELEGRAM_TOKEN__<TENANT> /
+      # CRM_WHATSAPP_TOKEN__<TENANT>. Se agregan al .env al dar de alta el
+      # tenant; sin token el saliente queda en bitacora con enviado=false.
+      - CRM_TELEGRAM_TOKEN__A2A_DEMO=${CRM_TELEGRAM_TOKEN__A2A_DEMO:-}
+      - CRM_WHATSAPP_TOKEN__A2A_DEMO=${CRM_WHATSAPP_TOKEN__A2A_DEMO:-}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   # ---------- EDGE (proxy publico, gate de la dueña abierto 2026-07-10) ----------
   # La UNICA pieza que publica un puerto en 0.0.0.0: Caddy con TLS automatico
   # (Let's Encrypt) + rate limiting (30 req/min por IP), delante de ventas-a2a
