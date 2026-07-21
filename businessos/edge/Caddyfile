@@ -1,6 +1,7 @@
-# Edge publico de BusinessOS. Publica DOS cosas y nada mas:
-#   - /chat/stream  -> chat-web2:4500  (chat de venta de la landing, Fase 11)
-#   - todo lo demas -> ventas-a2a:4400 (card comercial A2A, Fase 9)
+# Edge publico de BusinessOS. Publica TRES cosas y nada mas:
+#   - /chat/stream  -> chat-web2:4500    (chat de venta de la landing, Fase 11)
+#   - /crm/*        -> crm-canales:4600  (webhooks Telegram/WhatsApp del CRM, CRM-0)
+#   - todo lo demas -> ventas-a2a:4400   (card comercial A2A, Fase 9)
 # Dominio temporal sslip.io (decision de la dueña 2026-07-10, "probar primero");
 # al comprar dominio real: cambiar el site address + VENTAS_PUBLIC_URL y ya.
 {
@@ -28,6 +29,24 @@
 		reverse_proxy chat-web2:4500 {
 			flush_interval -1
 		}
+	}
+
+	# --- Webhooks del CRM marca blanca (Telegram/WhatsApp) -> crm-canales ---
+	# Telegram valida por secret-token de header; WhatsApp por verify_token.
+	handle /crm/* {
+		rate_limit {
+			zone crm {
+				key {remote_host}
+				events 60
+				window 1m
+			}
+		}
+		request_body {
+			max_size 64KB
+		}
+		# El servicio expone /webhook/...; /crm es solo el prefijo publico.
+		uri strip_prefix /crm
+		reverse_proxy crm-canales:4600
 	}
 
 	# --- Card comercial A2A (todo lo demas) -> ventas-a2a ---
