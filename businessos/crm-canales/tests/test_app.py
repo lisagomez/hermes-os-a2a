@@ -77,8 +77,8 @@ class FakeSup:
     def __init__(self, veredicto={"aprobado": True, "gates": {}, "motivo": ""}):
         self.veredicto, self.calls = veredicto, []
 
-    async def validar(self, tenant_id, marca, conversacion, respuesta, conversacion_id=None):
-        self.calls.append({"respuesta": respuesta, "conversacion": conversacion})
+    async def validar(self, tenant_id, marca, conversacion, respuesta, conversacion_id=None, nivel="A1"):
+        self.calls.append({"respuesta": respuesta, "conversacion": conversacion, "nivel": nivel})
         return self.veredicto
 
 
@@ -206,6 +206,16 @@ def test_sup_valida_cada_saliente_generado():
            headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
     assert len(sup.calls) == 1  # nivel A1: todo saliente de modelo pasa por sup
     assert sup.calls[0]["respuesta"] == "Claro, con gusto."
+    assert sup.calls[0]["nivel"] == "A1"  # tenant sin nivel explícito → A1
+
+
+def test_nivel_a2_del_tenant_viaja_a_sup():
+    sup = FakeSup()
+    tenant_a2 = dict(TENANT, nivel="A2")
+    c = _client(store=FakeStore(tenant=tenant_a2), sup=sup)
+    c.post("/webhook/telegram/acme", json=_tg_update("hola"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert sup.calls[0]["nivel"] == "A2"  # el botón humano (crm_tenants.nivel) manda
 
 
 def test_sup_rechaza_traspasa_a_humano():

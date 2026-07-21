@@ -23,15 +23,22 @@ class SupervisorClient:
         self._http = http_client
 
     async def validar(
-        self, tenant_id: str, marca: str, conversacion: str, respuesta: str, conversacion_id: int | None = None
+        self,
+        tenant_id: str,
+        marca: str,
+        conversacion: str,
+        respuesta: str,
+        conversacion_id: int | None = None,
+        nivel: str = "A1",
     ) -> dict | None:
-        """Veredicto {aprobado, gates, motivo} o None si sup no está disponible."""
+        """Veredicto {aprobado, gates, motivo, ...} o None si sup no está disponible."""
         body = {
             "tenant_id": tenant_id,
             "marca": marca,
             "conversacion": conversacion,
             "respuesta": respuesta,
             "conversacion_id": conversacion_id,
+            "nivel": nivel,
         }
         try:
             if self._http is not None:

@@ -7,7 +7,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY gates.py juez.py app.py ./
+COPY gates.py juez.py muestreo.py app.py ./
 
 EXPOSE 4700
 
