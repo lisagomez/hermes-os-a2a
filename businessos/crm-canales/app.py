@@ -93,11 +93,15 @@ def build_app(
             historial = await store.historial(conv["id"])
             try:
                 respuesta = await motor.responder(system_prompt(tenant, canal), historial, texto)
-                # Nivel A1 (plan D-40): sup-crm valida CADA saliente generado.
-                # Fail-closed: rechazo o sup caído → traspaso a humano, nunca
-                # sale una respuesta de modelo sin veredicto.
+                # Plan D-40: sup-crm valida el saliente según el nivel del tenant
+                # (A1 = juez siempre; A2 = gates siempre + juez muestreado, y el
+                # 100% de lo sensible). Fail-closed: rechazo o sup caído →
+                # traspaso a humano, nunca sale respuesta de modelo sin veredicto.
                 charla = "\n".join(f"{m['role']}: {m['content']}" for m in historial) + f"\nuser: {texto}"
-                veredicto = await sup.validar(tenant_id, tenant["marca"], charla, respuesta, conv["id"])
+                veredicto = await sup.validar(
+                    tenant_id, tenant["marca"], charla, respuesta, conv["id"],
+                    nivel=tenant.get("nivel") or "A1",
+                )
                 if veredicto is None or not veredicto.get("aprobado"):
                     motivo = "sup no disponible" if veredicto is None else veredicto.get("motivo", "")
                     log.warning("saliente NO aprobado (tenant=%s conv=%s): %s", tenant_id, conv["id"], motivo)
