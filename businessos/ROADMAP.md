@@ -825,7 +825,7 @@ completo en `businessos/departamentos/analisis-planeacion.md`; veredictos en
 
 ---
 
-## Línea CRM conversacional (marca blanca) — CRM-0/1/2 ✅ VIVOS (2026-07-21)
+## Línea CRM conversacional (marca blanca) — CRM-0/1/2/3 ✅ VIVOS (2026-07-21)
 
 La línea D del maestro ERP arrancó por decisión de la dueña (goal 2026-07-21):
 `crm-canales` en runtime (Hetzner, :4600 + edge `/crm/*`) con webhooks de

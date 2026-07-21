@@ -66,7 +66,20 @@ neutrales omitidos (0.20), 1 muestreado ok, y el juez rechazó un precio
 inventado en el camino sensible. Tenant demo devuelto a A1 (la promoción real
 exige el expediente del plan D-40). 37 tests.
 
-## Siguientes fases (blueprint CRM-3..5)
+## CRM-3 — expediente de promoción A1→A2 VIVO (2026-07-21)
 
-expediente de promoción A1→A2 automatizado (números + botón), panel humano,
-cruce de perfil entre canales, intenciones con niveles medidos, enjambre.
+"Subir = expediente + botón humano" operando: `sup-crm GET /expediente/{tenant}`
+(criterios: ≥200 veredictos de juez, rechazo <3%, cero fallos de gates —
+constraint, no criterio: sin evidencia completa `promovible=false` por
+construcción) + host-job `expediente-promocion.py` en el cron nocturno
+(nightly-jobs.sh): expira pendientes vencidos, registra en `crm_expedientes`
+(bitácora de compuerta, caducidad 7 días, dedupe) y PRESENTA a la dueña por
+Telegram con números y el botón exacto (decir "aprueba el expediente N" al
+agente, o el SQL del mensaje). El job jamás promueve. sup-crm ahora expone
+127.0.0.1:4700 (host-jobs). Smoke E2E en prod con evidencia sintética
+(expediente #1 presentado + dedupe verificado; datos limpiados). 47 tests.
+
+## Siguientes fases (blueprint CRM-4..5)
+
+panel humano, cruce de perfil entre canales, intenciones con niveles medidos,
+enjambre nocturno de calidad.
