@@ -71,11 +71,23 @@ class FakeCanales:
         return self.ok
 
 
-def _client(motor=None, store=None, canales=None):
+class FakeSup:
+    """None = sup caído (fail-closed); dict = veredicto."""
+
+    def __init__(self, veredicto={"aprobado": True, "gates": {}, "motivo": ""}):
+        self.veredicto, self.calls = veredicto, []
+
+    async def validar(self, tenant_id, marca, conversacion, respuesta, conversacion_id=None):
+        self.calls.append({"respuesta": respuesta, "conversacion": conversacion})
+        return self.veredicto
+
+
+def _client(motor=None, store=None, canales=None, sup=None):
     app = build_app(
         motor=motor or FakeMotor(),
         store=store or FakeStore(),
         canales=canales or FakeCanales(),
+        sup=sup or FakeSup(),
         tg_secret=TG_SECRET,
         wa_verify=WA_VERIFY,
     )
@@ -185,6 +197,45 @@ def test_whatsapp_flujo_feliz_con_perfil():
     assert store.contactos[0] == {"canal": "whatsapp", "canal_uid": "5215512345678", "nombre": "Eli W"}
     assert canales.enviados[0]["phone_id"] == "555000"
     assert [m["direccion"] for m in store.mensajes] == ["entrante", "saliente"]
+
+
+def test_sup_valida_cada_saliente_generado():
+    sup = FakeSup()
+    c = _client(sup=sup)
+    c.post("/webhook/telegram/acme", json=_tg_update("hola"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert len(sup.calls) == 1  # nivel A1: todo saliente de modelo pasa por sup
+    assert sup.calls[0]["respuesta"] == "Claro, con gusto."
+
+
+def test_sup_rechaza_traspasa_a_humano():
+    store = FakeStore()
+    sup = FakeSup(veredicto={"aprobado": False, "gates": {}, "motivo": "inventa precio"})
+    c = _client(store=store, sup=sup)
+    c.post("/webhook/telegram/acme", json=_tg_update("¿cuánto cuesta?"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert store.escaladas == [7]
+    assert "una persona del equipo de Acme Tours" in store.mensajes[1]["texto"]
+    assert "Claro, con gusto." not in store.mensajes[1]["texto"]  # el saliente rechazado NO sale
+
+
+def test_sup_caido_fail_closed():
+    store = FakeStore()
+    c = _client(store=store, sup=FakeSup(veredicto=None))
+    c.post("/webhook/telegram/acme", json=_tg_update("hola"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert store.escaladas == [7]  # sin veredicto no sale respuesta de modelo
+    assert "una persona del equipo" in store.mensajes[1]["texto"]
+
+
+def test_escalado_y_degradacion_no_pasan_por_sup():
+    sup = FakeSup()
+    c = _client(motor=FakeMotor(error=True), sup=sup)
+    c.post("/webhook/telegram/acme", json=_tg_update("hola"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    c.post("/webhook/telegram/acme", json=_tg_update("quiero hablar con una persona"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert sup.calls == []  # plantillas fijas de la casa: no las generó un modelo
 
 
 def test_canal_sin_token_bitacora_enviado_false():

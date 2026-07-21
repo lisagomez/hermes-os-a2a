@@ -28,6 +28,7 @@ from canales import Canales
 from motor import MotorError, MotorOpenRouter
 from prompt import requiere_humano, system_prompt
 from store import Store
+from sup import SupervisorClient
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("crm")
@@ -41,12 +42,17 @@ RESPUESTA_DEGRADADA = (
     "En este momento no puedo responderte; una persona del equipo de {marca} "
     "dará seguimiento a tu mensaje."
 )
+RESPUESTA_SUPERVISADA = (
+    "Prefiero que una persona del equipo de {marca} te confirme esto para no "
+    "darte información imprecisa. Ya tienen tu mensaje y el contexto."
+)
 
 
 def build_app(
     motor: MotorOpenRouter | None = None,
     store: Store | None = None,
     canales: Canales | None = None,
+    sup: SupervisorClient | None = None,
     tg_secret: str | None = None,
     wa_verify: str | None = None,
 ) -> Starlette:
@@ -54,6 +60,7 @@ def build_app(
     motor = motor or MotorOpenRouter()
     store = store or Store()
     canales = canales or Canales()
+    sup = sup or SupervisorClient()
     tg_secret = tg_secret if tg_secret is not None else os.environ.get("CRM_TELEGRAM_WEBHOOK_SECRET", "")
     wa_verify = wa_verify if wa_verify is not None else os.environ.get("CRM_WHATSAPP_VERIFY_TOKEN", "")
 
@@ -86,6 +93,16 @@ def build_app(
             historial = await store.historial(conv["id"])
             try:
                 respuesta = await motor.responder(system_prompt(tenant, canal), historial, texto)
+                # Nivel A1 (plan D-40): sup-crm valida CADA saliente generado.
+                # Fail-closed: rechazo o sup caído → traspaso a humano, nunca
+                # sale una respuesta de modelo sin veredicto.
+                charla = "\n".join(f"{m['role']}: {m['content']}" for m in historial) + f"\nuser: {texto}"
+                veredicto = await sup.validar(tenant_id, tenant["marca"], charla, respuesta, conv["id"])
+                if veredicto is None or not veredicto.get("aprobado"):
+                    motivo = "sup no disponible" if veredicto is None else veredicto.get("motivo", "")
+                    log.warning("saliente NO aprobado (tenant=%s conv=%s): %s", tenant_id, conv["id"], motivo)
+                    await store.escalar(conv["id"])
+                    respuesta = RESPUESTA_SUPERVISADA.format(marca=tenant["marca"])
             except MotorError as exc:
                 log.error("motor falló (tenant=%s): %s", tenant_id, exc)
                 respuesta = RESPUESTA_DEGRADADA.format(marca=tenant["marca"])

@@ -316,6 +316,22 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  sup-crm:
+    build: ./sup-crm
+    container_name: sup-crm
+    profiles: ["a2a"]
+    restart: unless-stopped
+    # INTERNO: sin ports; solo crm-canales le habla dentro de hermes-net.
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUP_MODELO=${SUP_MODELO:-google/gemini-2.5-flash-lite}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   # ---------- EDGE (proxy publico, gate de la dueña abierto 2026-07-10) ----------
   # La UNICA pieza que publica un puerto en 0.0.0.0: Caddy con TLS automatico
   # (Let's Encrypt) + rate limiting (30 req/min por IP), delante de ventas-a2a
