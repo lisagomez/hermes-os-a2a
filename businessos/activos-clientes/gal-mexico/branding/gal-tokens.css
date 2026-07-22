@@ -1,0 +1,32 @@
+/* ══════════════════════════════════════════════════════════════
+   INFRAESTRUCTURA DE MARCA — Cliente: GAL MEXICO (GAL Logistics)
+   Fuente: "Paleta de colores GAL Logistics.zip" (recibido 2026-07-22)
+   Este archivo NO es un entregable: es la fuente de verdad de tokens
+   para generar activos digitales del cliente.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  /* Escala monocromática GAL — ÚNICO color de marca (nunca otro matiz) */
+  --gal-100: #FFFBEC; /* Productividad — fondos claros, sistemas limpios */
+  --gal-200: #FDEEB0;
+  --gal-400: #F7C948; /* Amarillo GAL — color base: Eficiencia, urgencia Express */
+  --gal-600: #C79A00; /* Confianza — tono medio, fiabilidad corporativa */
+  --gal-800: #8A6D00;
+  --gal-950: #2A2205; /* Seguridad — amarillo profundo casi negro */
+
+  /* Mapeo semántico (espejo estructural de las vars del design system A2A,
+     para reutilizar patrones de componentes con piel GAL) */
+  --bg: var(--gal-100);
+  --ink: var(--gal-950);
+  --surface-1: #FFFFFF;
+  --surface-2: var(--gal-100);
+  --surface-3: var(--gal-200);
+  --surface-4: var(--gal-950);      /* panel oscuro de contraste (hero, Seguridad) */
+  --accent: var(--gal-400);          /* CTAs primarios */
+  --accent-deep: var(--gal-600);     /* estados activos, badges */
+  --border: rgba(42, 34, 5, 0.14);   /* gal-950 al 14% */
+
+  /* Tipografía (de la propuesta de branding) */
+  --font-display: 'Archivo', sans-serif;    /* 800/900, letter-spacing -1.5px */
+  --font-ui: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;  /* labels/eyebrows, tracking 1.5–3px, MAYÚSCULAS */
+}
