@@ -26,6 +26,9 @@ mkdir -p /home/hermes/logs
   # estado del trio -> tareas.json en el volumen de negocio. El bot NO tiene credenciales
   # (por diseño): sin este snapshot no puede consultar una tarea y ADIVINA (1a corrida real).
   python3 snapshot-tareas.py
+  # proyectos de clientes -> proyectos.json en el volumen de CLIENTES. El bot no tiene el
+  # repo: lee este snapshot (fuente origin/master, que el cron de fetch refresca cada 5 min).
+  python3 snapshot-proyectos.py
   # expedientes de promoción A1->A2 del CRM (plan D-40): el sistema arma los números
   # y los PRESENTA a la dueña por Telegram; promover es botón humano, jamás del job.
   python3 expediente-promocion.py
