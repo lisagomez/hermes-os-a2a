@@ -1,0 +1,395 @@
+<!-- ═══════════════════════════════════════════════════
+     ACTIVO DIGITAL ENTREGABLE AL CLIENTE
+     Cliente : GAL MEXICO (GAL Logistics)
+     ID      : GALMX-001
+     Fecha   : 2026-07-22
+     Tipo    : Mock HTML autocontenido — Home del rediseño web
+     Origen  : A2A Factory · Hermes OS
+     Nota    : Copy propuesto = BORRADOR (pendiente de textos
+               reales del cliente). Quitar la barra "MOCK" y
+               este bloque en la versión final.
+     ═══════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAL Logistics — Tu carga, en el próximo vuelo disponible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── Tokens GAL (espejo de branding/gal-tokens.css) ─────────── */
+  :root{
+    --gal-100:#FFFBEC; --gal-200:#FDEEB0; --gal-400:#F7C948;
+    --gal-600:#C79A00; --gal-800:#8A6D00; --gal-950:#2A2205;
+    --bg:var(--gal-100); --ink:var(--gal-950);
+    --surface-1:#FFFFFF; --surface-2:var(--gal-100);
+    --surface-3:var(--gal-200); --surface-4:var(--gal-950);
+    --accent:var(--gal-400); --accent-deep:var(--gal-600);
+    --border:rgba(42,34,5,.14);
+    --font-display:'Archivo',sans-serif;
+    --font-ui:'IBM Plex Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);
+       font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* ── Utilidades de marca ────────────────────────────────────── */
+  .eyebrow{font-family:var(--font-mono);font-size:12px;font-weight:600;
+           letter-spacing:3px;text-transform:uppercase;color:var(--accent-deep)}
+  .display{font-family:var(--font-display);font-weight:900;letter-spacing:-1.5px;line-height:1.05}
+  .mono{font-family:var(--font-mono)}
+  .btn{display:inline-block;font-family:var(--font-ui);font-weight:600;font-size:16px;
+       padding:14px 28px;border-radius:12px;border:1.5px solid transparent;
+       cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--accent);color:var(--gal-950);
+               box-shadow:0 6px 24px rgba(199,154,0,.35)}
+  .btn-ghost-dark{border-color:rgba(255,251,236,.4);color:var(--gal-100)}
+  .btn-ghost-light{border-color:var(--border);color:var(--ink)}
+  .pill{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:600;
+        letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border-radius:999px}
+
+  /* ── Barra interna de revisión (quitar en versión final) ────── */
+  .mockbar{background:var(--gal-950);color:var(--gal-200);font-family:var(--font-mono);
+           font-size:11px;letter-spacing:2px;text-align:center;padding:6px 12px;text-transform:uppercase}
+
+  /* ── Topbar ─────────────────────────────────────────────────── */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,251,236,.92);
+         backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .wordmark{font-family:var(--font-display);font-weight:900;font-size:22px;letter-spacing:-.5px}
+  .wordmark span{font-weight:700;color:var(--accent-deep)}
+  nav{display:flex;gap:28px;align-items:center}
+  nav a{font-size:15px;font-weight:500;opacity:.85}
+  nav a:hover{opacity:1;color:var(--accent-deep)}
+  .nav-cta{background:var(--accent);color:var(--gal-950);font-weight:600;
+           padding:10px 20px;border-radius:10px}
+  .nav-cta:hover{color:var(--gal-950)}
+
+  /* ── Hero (panel oscuro de contraste = Seguridad) ───────────── */
+  .hero{padding:56px 0 72px}
+  .hero-panel{background:var(--surface-4);color:var(--gal-100);border-radius:22px;
+              padding:64px 56px;display:grid;grid-template-columns:1.15fr .85fr;
+              gap:48px;align-items:center;position:relative;overflow:hidden}
+  .hero-panel::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;
+              border-radius:50%;background:radial-gradient(circle,rgba(247,201,72,.22),transparent 65%)}
+  .hero h1{font-size:clamp(38px,5.2vw,60px);color:var(--gal-100);margin:18px 0 20px}
+  .hero p.lead{font-size:19px;color:rgba(255,251,236,.82);max-width:46ch;margin-bottom:32px}
+  .hero .eyebrow{color:var(--accent)}
+  .hero-ctas{display:flex;gap:16px;flex-wrap:wrap}
+
+  /* ── Card de rastreo (de la lámina de aplicación) ───────────── */
+  .track-card{background:var(--surface-1);color:var(--ink);border-radius:18px;
+              padding:28px;box-shadow:0 24px 60px rgba(42,34,5,.35);position:relative;z-index:1}
+  .track-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px}
+  .track-head h3{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .pill-transito{background:var(--gal-600);color:var(--gal-100)}
+  .track-step{display:flex;align-items:center;gap:14px;padding:9px 0;font-size:15.5px}
+  .dot{width:12px;height:12px;border-radius:50%;flex:none}
+  .dot-hecho{background:var(--gal-600)}
+  .dot-activo{background:var(--gal-400);box-shadow:0 0 0 5px rgba(247,201,72,.25)}
+  .dot-pend{background:var(--gal-200)}
+  .track-step.activo{font-weight:600}
+  .track-step.pend{color:rgba(42,34,5,.55)}
+  .track-bar{height:8px;border-radius:999px;background:var(--gal-200);margin-top:20px;overflow:hidden}
+  .track-bar i{display:block;height:100%;width:62%;border-radius:999px;background:var(--gal-600)}
+  .track-eta{margin-top:14px;font-family:var(--font-mono);font-size:12px;
+             letter-spacing:1.5px;color:var(--accent-deep);text-transform:uppercase}
+
+  /* ── Franja de confianza (stats) ────────────────────────────── */
+  .stats{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+         background:var(--surface-1)}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:36px 0;text-align:center}
+  .stat b{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:-1px;display:block}
+  .stat span{font-family:var(--font-mono);font-size:11.5px;letter-spacing:2px;
+             text-transform:uppercase;color:var(--accent-deep)}
+
+  /* ── Secciones ──────────────────────────────────────────────── */
+  section{padding:88px 0}
+  .sec-head{max-width:640px;margin-bottom:48px}
+  .sec-head h2{font-size:clamp(30px,3.6vw,42px);margin:14px 0 14px}
+  .sec-head p{color:rgba(42,34,5,.75)}
+
+  /* Servicios */
+  .grid-serv{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .serv{background:var(--surface-1);border:1px solid var(--border);border-radius:16px;
+        padding:28px 24px;display:flex;flex-direction:column;gap:12px;
+        transition:transform .15s ease,box-shadow .15s ease}
+  .serv:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(42,34,5,.12)}
+  .serv .num{font-family:var(--font-mono);font-size:12px;font-weight:600;
+             letter-spacing:2px;color:var(--accent-deep)}
+  .serv h3{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.3px}
+  .serv p{font-size:15px;color:rgba(42,34,5,.75)}
+  .serv .liga{font-family:var(--font-mono);font-size:12.5px;font-weight:600;
+              letter-spacing:1.5px;text-transform:uppercase;color:var(--accent-deep);margin-top:auto}
+  .serv .liga:hover{color:var(--ink)}
+
+  /* Valores (cada valor en su nivel de la escala, como el branding) */
+  .grid-val{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .val{border-radius:16px;padding:28px 24px;min-height:190px;display:flex;
+       flex-direction:column;gap:10px}
+  .val h3{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .val p{font-size:14.5px;line-height:1.55}
+  .val .chip{width:26px;height:26px;border-radius:8px;margin-bottom:6px}
+  .val-seguridad{background:var(--gal-950);color:var(--gal-100)}
+  .val-seguridad p{color:rgba(255,251,236,.78)}
+  .val-seguridad .chip{border:1.5px solid var(--gal-600)}
+  .val-confianza{background:var(--gal-600);color:var(--gal-100)}
+  .val-confianza p{color:rgba(255,251,236,.85)}
+  .val-confianza .chip{background:var(--gal-100)}
+  .val-productividad{background:var(--surface-1);border:1px solid var(--border)}
+  .val-productividad p{color:rgba(42,34,5,.75)}
+  .val-productividad .chip{background:var(--gal-950)}
+  .val-eficiencia{background:var(--gal-400)}
+  .val-eficiencia p{color:rgba(42,34,5,.8)}
+  .val-eficiencia .chip{background:var(--gal-950)}
+
+  /* Cómo funciona */
+  .pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:paso}
+  .paso{background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:28px 24px}
+  .paso::before{counter-increment:paso;content:"0" counter(paso);
+                font-family:var(--font-mono);font-weight:600;font-size:13px;
+                letter-spacing:2px;color:var(--accent-deep);display:block;margin-bottom:12px}
+  .paso h3{font-family:var(--font-display);font-weight:800;font-size:19px;margin-bottom:8px;letter-spacing:-.3px}
+  .paso p{font-size:15px;color:rgba(42,34,5,.75)}
+
+  /* CTA final */
+  .cta-final{background:var(--gal-400);border-radius:22px;padding:56px;text-align:center}
+  .cta-final h2{font-size:clamp(28px,3.4vw,40px);margin-bottom:12px}
+  .cta-final p{max-width:52ch;margin:0 auto 28px;color:rgba(42,34,5,.8)}
+  .btn-dark{background:var(--gal-950);color:var(--gal-100)}
+
+  /* Footer */
+  footer{background:var(--gal-950);color:rgba(255,251,236,.75);margin-top:88px}
+  .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;padding:56px 0 40px}
+  .foot .wordmark{color:var(--gal-100);margin-bottom:10px}
+  .foot h4{font-family:var(--font-mono);font-size:11.5px;font-weight:600;letter-spacing:2px;
+           text-transform:uppercase;color:var(--gal-600);margin-bottom:14px}
+  .foot a{display:block;font-size:14.5px;padding:4px 0}
+  .foot a:hover{color:var(--gal-100)}
+  .foot-base{border-top:1px solid rgba(255,251,236,.12);padding:20px 0;
+             font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.5px;
+             display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+  /* ── Responsive ─────────────────────────────────────────────── */
+  @media (max-width:960px){
+    .hero-panel{grid-template-columns:1fr;padding:44px 32px}
+    .grid-serv,.grid-val{grid-template-columns:repeat(2,1fr)}
+    .stats-row{grid-template-columns:repeat(2,1fr)}
+    .foot{grid-template-columns:1fr 1fr}
+    nav a:not(.nav-cta){display:none}
+  }
+  @media (max-width:560px){
+    .grid-serv,.grid-val,.pasos{grid-template-columns:1fr}
+    .cta-final{padding:40px 24px}
+  }
+</style>
+</head>
+<body>
+
+<div class="mockbar">Mock · borrador para revisión · GALMX-001 · 2026-07-22 · copy pendiente de validar con el cliente</div>
+
+<header>
+  <div class="wrap topbar">
+    <a class="wordmark" href="#">GAL <span>Logistics</span></a>
+    <nav>
+      <a href="#servicios">Servicios</a>
+      <a href="#valores">Por qué GAL</a>
+      <a href="#como">Cómo funciona</a>
+      <a class="nav-cta" href="#cotizar">Cotizar envío</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="wrap hero">
+    <div class="hero-panel">
+      <div>
+        <span class="eyebrow">Express Freight Services</span>
+        <h1 class="display">Tu carga, en el próximo vuelo disponible.</h1>
+        <p class="lead">Logística express aérea y terrestre en México: hand carry,
+           vuelos charter y paquetería crítica. Cotiza en minutos y sigue tu envío
+           en tiempo real, de recolección a entrega.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#cotizar" id="cotizar">Cotizar envío</a>
+          <a class="btn btn-ghost-dark" href="#rastrear">Rastrear</a>
+        </div>
+      </div>
+      <aside class="track-card" id="rastrear" aria-label="Ejemplo de rastreo de envío">
+        <div class="track-head">
+          <h3>Envío <span class="mono">#GAL-4471</span></h3>
+          <span class="pill pill-transito">En tránsito</span>
+        </div>
+        <div class="track-step"><span class="dot dot-hecho"></span> Recolección · Monterrey</div>
+        <div class="track-step activo"><span class="dot dot-activo"></span> En tránsito aéreo · Charter</div>
+        <div class="track-step pend"><span class="dot dot-pend"></span> Destino · CDMX</div>
+        <div class="track-bar"><i></i></div>
+        <div class="track-eta">ETA · Hoy 18:40 · CDMX</div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- STATS DE CONFIANZA (cifras BORRADOR: validar con el cliente) -->
+  <div class="stats">
+    <div class="wrap stats-row">
+      <div class="stat"><b>24/7</b><span>Operación continua</span></div>
+      <div class="stat"><b>&lt; 2 h</b><span>Respuesta a cotización</span></div>
+      <div class="stat"><b>100%</b><span>Rastreo del trayecto</span></div>
+      <div class="stat"><b>MX</b><span>Cobertura nacional</span></div>
+    </div>
+  </div>
+
+  <!-- SERVICIOS -->
+  <section id="servicios">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Servicios</span>
+        <h2 class="display">Cuatro maneras de llegar a tiempo.</h2>
+        <p>Del documento urgente al embarque completo: elige el servicio que tu
+           operación necesita hoy.</p>
+      </div>
+      <div class="grid-serv">
+        <article class="serv">
+          <span class="num">01 — HAND CARRY</span>
+          <h3>Hand Carry</h3>
+          <p>Un courier dedicado viaja con tu pieza crítica, puerta a puerta, en el
+             siguiente vuelo comercial.</p>
+          <a class="liga" href="#cotizar">Cotizar →</a>
+        </article>
+        <article class="serv">
+          <span class="num">02 — CHARTER</span>
+          <h3>Charter</h3>
+          <p>Aeronave completa para embarques que no pueden esperar itinerarios:
+             tú defines la ruta y la hora.</p>
+          <a class="liga" href="#cotizar">Cotizar →</a>
+        </article>
+        <article class="serv">
+          <span class="num">03 — PARCEL</span>
+          <h3>Parcel</h3>
+          <p>Paquetería express con recolección el mismo día y rastreo punto a punto
+             en todo México.</p>
+          <a class="liga" href="#cotizar">Cotizar →</a>
+        </article>
+        <article class="serv">
+          <span class="num">04 — EXPRESS FREIGHT</span>
+          <h3>Express Freight</h3>
+          <p>Carga consolidada o dedicada en el próximo vuelo disponible, con
+             despacho y entrega coordinados.</p>
+          <a class="liga" href="#cotizar">Cotizar →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALORES (cada valor en su nivel de la escala monocromática) -->
+  <section id="valores" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Por qué GAL</span>
+        <h2 class="display">Un solo color. Cuatro promesas.</h2>
+        <p>Nuestra marca es una escala de un único amarillo — y cada nivel es un
+           compromiso operativo.</p>
+      </div>
+      <div class="grid-val">
+        <article class="val val-seguridad">
+          <span class="chip"></span>
+          <h3>Seguridad</h3>
+          <p>Custodia y protocolo en cada eslabón: tu carga viaja protegida y
+             documentada.</p>
+        </article>
+        <article class="val val-confianza">
+          <span class="chip"></span>
+          <h3>Confianza</h3>
+          <p>Fiabilidad corporativa: cumplimos la hora prometida y respondemos
+             por cada envío.</p>
+        </article>
+        <article class="val val-productividad">
+          <span class="chip"></span>
+          <h3>Productividad</h3>
+          <p>Sistemas limpios que rinden: cotización, documentación y rastreo sin
+             fricción.</p>
+        </article>
+        <article class="val val-eficiencia">
+          <span class="chip"></span>
+          <h3>Eficiencia</h3>
+          <p>Velocidad y energía Express: el siguiente vuelo disponible, siempre.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CÓMO FUNCIONA -->
+  <section id="como" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Cómo funciona</span>
+        <h2 class="display">De la llamada a la entrega.</h2>
+      </div>
+      <div class="pasos">
+        <div class="paso"><h3>Cotiza</h3>
+          <p>Cuéntanos origen, destino y qué envías. Recibes tarifa y ventana de
+             entrega en minutos.</p></div>
+        <div class="paso"><h3>Recolectamos</h3>
+          <p>Un operador GAL recoge tu carga el mismo día y la documenta para el
+             siguiente vuelo.</p></div>
+        <div class="paso"><h3>Entregamos</h3>
+          <p>Sigues el trayecto en tiempo real hasta la confirmación de entrega
+             con evidencia.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="cta-final">
+        <span class="eyebrow" style="color:var(--gal-800)">¿Listo para enviar?</span>
+        <h2 class="display">Tu cotización, en menos de dos horas.</h2>
+        <p>Escríbenos qué necesitas mover y a dónde. El equipo GAL te responde con
+           tarifa, ruta y hora estimada de entrega.</p>
+        <a class="btn btn-dark" href="#cotizar">Cotizar envío ahora</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <div class="wordmark">GAL <span style="color:var(--gal-600)">Logistics</span></div>
+      <p style="font-size:14px;max-width:34ch">Hand Carry · Charter · Parcel ·
+         Express Freight Services. México.</p>
+    </div>
+    <div>
+      <h4>Servicios</h4>
+      <a href="#servicios">Hand Carry</a><a href="#servicios">Charter</a>
+      <a href="#servicios">Parcel</a><a href="#servicios">Express Freight</a>
+    </div>
+    <div>
+      <h4>Empresa</h4>
+      <a href="#valores">Por qué GAL</a><a href="#como">Cómo funciona</a>
+      <a href="#">Contacto <span class="mono" style="font-size:11px">[pendiente]</span></a>
+    </div>
+    <div>
+      <h4>Contacto</h4>
+      <a href="#">Tel. [pendiente]</a>
+      <a href="#">correo@[pendiente]</a>
+      <a href="#">Dirección [pendiente]</a>
+    </div>
+  </div>
+  <div class="wrap foot-base">
+    <span>© 2026 GAL LOGISTICS</span>
+    <span>SEGURIDAD · CONFIANZA · PRODUCTIVIDAD · EFICIENCIA</span>
+  </div>
+</footer>
+
+</body>
+</html>

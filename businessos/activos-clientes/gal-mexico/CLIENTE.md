@@ -15,7 +15,7 @@
 
 | Servicio | Proyecto | Estado |
 |----------|----------|--------|
-| S-01 Rediseño web con marca del cliente | `proyectos/rediseno-web/` | propuesta |
+| S-01 Rediseño web con marca del cliente | `proyectos/rediseno-web/` | en_curso |
 | S-02 Ingesta de branding digital | — (completado como parte del alta) | ✅ 2026-07-22 |
 
 ## Branding
@@ -30,7 +30,7 @@
 
 | Proyecto | Estado | Inicio | Cierre |
 |----------|--------|--------|--------|
-| rediseno-web | propuesta | 2026-07-22 | — |
+| rediseno-web | en_curso | 2026-07-22 | — |
 
 ## Notas de relación
 
