@@ -4,7 +4,7 @@
 |-------|-------|
 | **proyecto_id** | `gal-mexico/rediseno-web` |
 | Servicios (catálogo) | S-01 (rediseño web), S-02 (branding, ✅ hecho) |
-| Estado | **propuesta** |
+| Estado | **en_curso** (alcance aprobado por Elisa 2026-07-22) |
 | Inicio | 2026-07-22 |
 | Presupuesto tokens | pendiente de fijar (se propone tope al aprobar alcance) |
 | Gate de salida | **Nada llega al cliente sin OK de Elisa** |
@@ -16,7 +16,7 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 
 ## Alcance
 
-**Incluye (borrador — afinar con Elisa/cliente):**
+**Incluye (aprobado 2026-07-22):**
 - Home con hero, propuesta de valor y CTAs "Cotizar envío" / "Rastrear" (patrón de la
   lámina de aplicación del branding).
 - Página/sección de servicios: Hand Carry · Charter · Parcel · Express Freight.
@@ -38,8 +38,8 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 
 | # | Hito | Entregables (IDs) | Estado | Fecha |
 |---|------|-------------------|--------|-------|
-| 1 | Alcance aprobado (páginas + contenido) | — | pendiente | — |
-| 2 | Mock de home | GALMX-001 | pendiente | — |
+| 1 | Alcance aprobado (páginas + contenido) | — | ✅ hecho | 2026-07-22 |
+| 2 | Mock de home | GALMX-001 | en_revision | 2026-07-22 |
 | 3 | Mocks páginas restantes | GALMX-002+ | pendiente | — |
 | 4 | Aprobación del cliente | — | pendiente | — |
 | 5 | (Si aplica) código de producción | — | pendiente | — |
@@ -48,7 +48,7 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 
 | ID | Descripción | Archivo | Estado | Tokens | OK Elisa |
 |----|-------------|---------|--------|--------|----------|
-| — | (aún sin entregables) | — | — | — | — |
+| GALMX-001 | Mock home (desktop+móvil verificados Playwright) | `entregables/GALMX-001-home.html` | borrador | ~27,400 est | pendiente |
 
 ## Riesgos / notas
 
