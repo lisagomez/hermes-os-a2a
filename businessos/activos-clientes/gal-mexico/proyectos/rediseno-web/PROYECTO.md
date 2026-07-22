@@ -48,7 +48,7 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 
 | ID | Descripción | Archivo | Estado | Tokens | OK Elisa |
 |----|-------------|---------|--------|--------|----------|
-| GALMX-001 | Mock home (desktop+móvil verificados Playwright) | `entregables/GALMX-001-home.html` | **entregado** | ~27,400 est | ✅ 2026-07-22 |
+| GALMX-001 | Mock home (desktop+móvil verificados Playwright) | `entregables/GALMX-001-home.html` | entregado | ~27,400 est | ✅ 2026-07-22 |
 
 ## Riesgos / notas
 
