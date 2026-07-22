@@ -70,7 +70,7 @@ def filas_tabla(md: str) -> list[list[str]]:
     for linea in md.splitlines():
         if not linea.strip().startswith("|"):
             continue
-        celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
+        celdas = [re.sub(r"[`*]", "", c).strip() for c in linea.strip().strip("|").split("|")]
         if celdas and not all(re.fullmatch(r":?-{2,}:?", c or "-") for c in celdas):
             filas.append(celdas)
     return filas
