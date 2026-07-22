@@ -39,7 +39,7 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 | # | Hito | Entregables (IDs) | Estado | Fecha |
 |---|------|-------------------|--------|-------|
 | 1 | Alcance aprobado (páginas + contenido) | — | ✅ hecho | 2026-07-22 |
-| 2 | Mock de home | GALMX-001 | en_revision | 2026-07-22 |
+| 2 | Mock de home | GALMX-001 | ✅ hecho (OK Elisa) | 2026-07-22 |
 | 3 | Mocks páginas restantes | GALMX-002+ | pendiente | — |
 | 4 | Aprobación del cliente | — | pendiente | — |
 | 5 | (Si aplica) código de producción | — | pendiente | — |
@@ -48,7 +48,7 @@ sus 4 valores (Seguridad, Confianza, Productividad, Eficiencia) y sus servicios 
 
 | ID | Descripción | Archivo | Estado | Tokens | OK Elisa |
 |----|-------------|---------|--------|--------|----------|
-| GALMX-001 | Mock home (desktop+móvil verificados Playwright) | `entregables/GALMX-001-home.html` | borrador | ~27,400 est | pendiente |
+| GALMX-001 | Mock home (desktop+móvil verificados Playwright) | `entregables/GALMX-001-home.html` | **entregado** | ~27,400 est | ✅ 2026-07-22 |
 
 ## Riesgos / notas
 
