@@ -1,15 +1,22 @@
 'use client'
 
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+
 /**
- * Combo de departamento para /desarrollo: lista los departamentos dados de
- * alta (Supervisor ∪ tabla `tareas`) y filtra la lista al elegir uno.
+ * Combo de departamento (vive en el NAVBAR): lista los departamentos dados de
+ * alta (Supervisor ∪ tabla `tareas`) y al elegir uno navega a /desarrollo
+ * filtrado. Desde cualquier vista, elegir un departamento te lleva a sus
+ * tareas.
  *
- * Sin hooks a propósito: navega con window.location (la página es
- * force-dynamic, el reload completo es el comportamiento correcto) y así el
- * componente sigue siendo una función pura renderizable por los tests del
- * gate `tests` (mismo patrón que TareasTable/EstadoTareaBadge).
+ * La vista (DepartamentoComboView) no usa hooks a propósito: navega con
+ * window.location (la página destino es force-dynamic, el reload completo es
+ * el comportamiento correcto) y así sigue siendo una función pura renderizable
+ * por los tests del gate `tests` (mismo patrón que TareasTable). La selección
+ * actual se lee de la URL en el wrapper (useSearchParams) para que el combo
+ * refleje el filtro activo también tras un reload.
  */
-export function DepartamentoCombo({
+export function DepartamentoComboView({
   departamentos,
   seleccionado,
 }: {
@@ -37,5 +44,27 @@ export function DepartamentoCombo({
         ))}
       </select>
     </label>
+  )
+}
+
+function ComboConSeleccion({ departamentos }: { departamentos: string[] }) {
+  const seleccionado = useSearchParams().get('departamento') ?? undefined
+  // key: re-monta el <select> (uncontrolled) cuando cambia el filtro en la URL
+  return (
+    <DepartamentoComboView
+      key={seleccionado ?? 'todos'}
+      departamentos={departamentos}
+      seleccionado={seleccionado}
+    />
+  )
+}
+
+export function DepartamentoCombo({ departamentos }: { departamentos: string[] }) {
+  // useSearchParams exige Suspense si algún día una vista del grupo (main) se
+  // vuelve estática; el fallback es el mismo combo sin selección marcada.
+  return (
+    <Suspense fallback={<DepartamentoComboView departamentos={departamentos} />}>
+      <ComboConSeleccion departamentos={departamentos} />
+    </Suspense>
   )
 }

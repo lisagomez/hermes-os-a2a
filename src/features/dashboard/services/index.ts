@@ -1,8 +1,10 @@
 import 'server-only'
 import type { AiSpend, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import { DEPARTAMENTOS_REGISTRADOS } from '../types'
 import { mockAiSpend, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
 import {
   realAiSpend,
+  realDepartamentos,
   realDesarrollo,
   realGrafoVista,
   realPantheon,
@@ -20,6 +22,7 @@ export interface DataSource {
   grafoVista(): Promise<GrafoVista>
   pantheon(): Promise<Pantheon>
   desarrollo(departamento?: string): Promise<DesarrolloVista>
+  departamentos(): Promise<string[]>
 }
 
 const mockSource: DataSource = {
@@ -29,9 +32,8 @@ const mockSource: DataSource = {
   // Las tareas fixture son todas del departamento software: filtrar por otro
   // devuelve lista vacía (mismo comportamiento honesto que la fuente real).
   desarrollo: async (departamento) =>
-    departamento && departamento !== 'software'
-      ? { ...mockDesarrollo, tareas: [] }
-      : mockDesarrollo,
+    departamento && departamento !== 'software' ? [] : mockDesarrollo,
+  departamentos: async () => [...DEPARTAMENTOS_REGISTRADOS],
 }
 
 const realSource: DataSource = {
@@ -39,6 +41,7 @@ const realSource: DataSource = {
   grafoVista: realGrafoVista,
   pantheon: realPantheon,
   desarrollo: realDesarrollo,
+  departamentos: realDepartamentos,
 }
 
 export function getDataSource(): DataSource {

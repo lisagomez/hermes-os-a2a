@@ -7,9 +7,10 @@
  * (Directivas v3: el proyecto usa tailwindcss 3.4 + postcss clásico.)
  */
 
-/* Tipografía base del panel: 18px (pedido de la dueña, 2026-07-23). Las escalas
-   de Tailwind son rem, así que esto agranda TODO proporcionalmente (tablas,
-   badges, navegación) sin tocar componente por componente. */
+/* Tipografía base del panel: 20px (pedido de la dueña, 2026-07-23; 18px le
+   seguía pareciendo pequeña). Las escalas de Tailwind son rem, así que esto
+   agranda TODO proporcionalmente (tablas, badges, navegación) sin tocar
+   componente por componente. */
 html {
-  font-size: 18px;
+  font-size: 20px;
 }

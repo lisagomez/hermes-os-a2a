@@ -189,24 +189,25 @@ export async function realDesarrollo(departamento?: string): Promise<DesarrolloV
   const filtro = departamento
     ? `&departamento=eq.${encodeURIComponent(departamento)}`
     : ''
-  const [tareas, conTareas] = await Promise.all([
-    sb(
-      `tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20${filtro}`,
-      z.array(tareaSchema)
-    ),
-    // DISTINCT vive en la vista (supabase-vista-departamentos.sql): PostgREST
-    // no lo expone inline. Se une con los registrados en el Supervisor para
-    // listar también los dados de alta sin tareas todavía.
-    sb(
-      'v_departamentos?select=departamento',
-      z.array(z.object({ departamento: z.string() }))
-    ),
-  ])
-  const departamentos = [
+  return sb(
+    `tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20${filtro}`,
+    z.array(tareaSchema)
+  )
+}
+
+export async function realDepartamentos(): Promise<string[]> {
+  // Opciones del combo del navbar. DISTINCT vive en la vista
+  // (supabase-vista-departamentos.sql): PostgREST no lo expone inline. Se une
+  // con los registrados en el Supervisor (DEPARTAMENTOS_REGISTRADOS) para
+  // listar también los dados de alta sin tareas todavía.
+  const conTareas = await sb(
+    'v_departamentos?select=departamento',
+    z.array(z.object({ departamento: z.string() }))
+  )
+  return [
     ...new Set([
       ...DEPARTAMENTOS_REGISTRADOS,
       ...conTareas.map((d) => d.departamento),
     ]),
   ].sort()
-  return { departamentos, tareas }
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { DepartamentoCombo } from '../src/features/dashboard/components/desarrollo/departamento-combo'
+import { DepartamentoComboView } from '../src/features/dashboard/components/desarrollo/departamento-combo'
 import { DEPARTAMENTOS_REGISTRADOS } from '../src/features/dashboard/types'
 
 /**
@@ -29,7 +29,7 @@ function renderText(node: unknown): string {
 
 test('el combo lista "Todos" + los departamentos registrados en el Supervisor', () => {
   const text = renderText(
-    DepartamentoCombo({ departamentos: [...DEPARTAMENTOS_REGISTRADOS] })
+    DepartamentoComboView({ departamentos: [...DEPARTAMENTOS_REGISTRADOS] })
   )
   expect(text).toContain('Departamento')
   expect(text).toContain('Todos')
@@ -39,7 +39,7 @@ test('el combo lista "Todos" + los departamentos registrados en el Supervisor', 
 
 test('el combo formatea guiones bajos como espacios en el label', () => {
   const text = renderText(
-    DepartamentoCombo({ departamentos: ['contratos_inteligentes'] })
+    DepartamentoComboView({ departamentos: ['contratos_inteligentes'] })
   )
   expect(text).toContain('contratos inteligentes')
   expect(text).not.toContain('contratos_inteligentes')
@@ -49,7 +49,7 @@ test('un departamento presente solo en `tareas` (no registrado) también se list
   // El combo pinta lo que le llegue del data layer: la unión registrados ∪
   // v_departamentos se hace en services, aquí solo se verifica que no filtra.
   const text = renderText(
-    DepartamentoCombo({ departamentos: ['software', 'ventas_nuevo'] })
+    DepartamentoComboView({ departamentos: ['software', 'ventas_nuevo'] })
   )
   expect(text).toContain('ventas nuevo')
 })
