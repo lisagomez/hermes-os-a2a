@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { dataSourceLabel } from '@/features/dashboard/services'
+import { DepartamentoCombo } from '@/features/dashboard/components/desarrollo/departamento-combo'
+import { dataSourceLabel, getDataSource } from '@/features/dashboard/services'
 
 const vistas = [
   { href: '/dashboard', label: 'Pantheon' },
@@ -8,12 +9,13 @@ const vistas = [
   { href: '/desarrollo', label: 'Desarrollo' },
 ]
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const fuente = dataSourceLabel()
+  const departamentos = await getDataSource().departamentos()
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-800 bg-slate-900/60">
@@ -32,8 +34,11 @@ export default function MainLayout({
               </Link>
             ))}
           </div>
+          <div className="ml-auto">
+            <DepartamentoCombo departamentos={departamentos} />
+          </div>
           <span
-            className={`ml-auto rounded-full px-3 py-0.5 text-xs font-semibold ${
+            className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
               fuente === 'mock'
                 ? 'bg-amber-900/60 text-amber-300'
                 : 'bg-emerald-900/60 text-emerald-300'

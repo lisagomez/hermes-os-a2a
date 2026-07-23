@@ -226,8 +226,5 @@ export const DEPARTAMENTOS_REGISTRADOS = [
   'software',
 ] as const
 
-export const desarrolloVistaSchema = z.object({
-  departamentos: z.array(z.string()),
-  tareas: z.array(tareaSchema),
-})
+export const desarrolloVistaSchema = z.array(tareaSchema)
 export type DesarrolloVista = z.infer<typeof desarrolloVistaSchema>
