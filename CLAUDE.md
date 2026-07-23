@@ -988,4 +988,22 @@ npm run lint         # ESLint
 - **Aplicar en**: cualquier sesión que instale o edite una skill y quiera invocarla en el
   mismo turno/sesión (no en una sesión futura, donde el escaneo ya ocurrió al arrancar).
 
+### 2026-07-23: Un deploy verde en SU ruta puede convivir con 500s viejos — smoke de TODAS las vistas
+- **Error(es)**: al verificar el deploy de `/desarrollo` (mission-control-2026-0001), el
+  smoke de las demás rutas destapó que `/ai-spend` y `/grafo` llevaban días en 500 en
+  producción SIN que nadie lo viera (código idéntico desde el 07-12 — era drift, no
+  regresión): (a) un **enum Zod sobre un dominio que CRECE** (`vertical`) reventó cuando
+  el ledger del trío empezó a escribir `vertical='trio'` en `token_usage` — el schema era
+  más estricto que la BD, y la UI hasta tenía fallback para verticales desconocidos;
+  (b) un **agregado inline de PostgREST** (`cuenta:id.count()`) que Supabase rechaza con
+  `PGRST123` (agregados deshabilitados por defecto en la plataforma).
+- **Fix**: (a) `vertical: z.string()` — si la UI ya tolera valores nuevos, el schema no
+  debe ser el eslabón frágil; enum solo cuando el dominio es cerrado DE VERDAD;
+  (b) mover el agregado a una vista (`v_facturas_resumen`, security_invoker + revoke
+  anon/authenticated) — mismo patrón que `v_presupuesto_mensual`. DDL en prod: MCP en
+  read-only → management API (`POST /database/query`, UA `curl/8.0`).
+- **Aplicar en**: todo deploy de a2abot (smoke de las 5 rutas, no solo la nueva), todo
+  schema Zod sobre tablas donde escriben actores que se multiplican (verticales,
+  departamentos, modelos), y toda query PostgREST con agregados.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

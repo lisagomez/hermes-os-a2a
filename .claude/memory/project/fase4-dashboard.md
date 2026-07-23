@@ -39,6 +39,23 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
 - La tabla `pantheon` hoy tiene datos de FIXTURE (validación del camino de
   escritura); el primer run real en runtime los sobrescribe.
 
+## Post-Fase: vista /desarrollo + drift de prod (2026-07-23)
+
+- **/desarrollo VIVA en prod** (tarea del trío `mission-control-2026-0001`, PR #39;
+  verificada y re-desplegada 2026-07-23): últimas 20 filas de `tareas` vía
+  `getDataSource().desarrollo()`, badges por estado, 10 tests Playwright sin browser.
+- **Dos 500 preexistentes cazados por el smoke post-deploy** (PR #120):
+  (a) `/ai-spend` — ZodError: el ledger del trío escribe `vertical='trio'` en
+  `token_usage` y `presupuestoMesSchema` tenía enum cerrado → ahora `z.string()`
+  (el dominio vive en la BD; la UI ya tenía fallback de color).
+  (b) `/grafo` — PGRST123: Supabase tiene los agregados inline de PostgREST
+  DESHABILITADOS por defecto → el conteo de facturas vive en la vista
+  `v_facturas_resumen` (`supabase-fix-vista-facturas.sql`, security_invoker +
+  revoke anon/authenticated; aplicada por management API, MCP en read-only).
+- Regla operativa: tras cada deploy de a2abot, smoke de las 5 rutas
+  (`/ /dashboard /ai-spend /grafo /desarrollo`) — un 200 en la ruta nueva no
+  garantiza las viejas (drift de datos/plataforma).
+
 ## Residuales
 
 - ~~**Runtime**: build de imagen + `compose up a2abot` + cron de snapshot-pantheon~~ →
