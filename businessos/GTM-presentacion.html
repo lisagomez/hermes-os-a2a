@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan Go-to-Market · Hermes OS · A2A</title>
+<style>
+/* =============================================================================
+   PLAN GTM — Presentación
+   Sistema visual: TITANIUMORPHISM (Stripe elevation + Apple glass + Linear depth)
+   Tokens tomados de businessos/frontends/control-interno/src/app/globals.css
+   ============================================================================= */
+
+:root {
+  /* ===== MARCA ===== */
+  --primary: #683ACC;
+  --primary-rgb: 104, 58, 204;
+  --primary-hover: #5A32B3;
+  --accent-purple: #8B5CF6;
+  --gold: #ff9101;
+  --gold-rgb: 255, 145, 1;
+
+  /* ===== SUPERFICIES (dark titanium) ===== */
+  --background: #0a0a0e;
+  --foreground: #f4f4f5;
+  --muted: #a1a1aa;
+  --muted-strong: #71717a;
+
+  --titanium-top: #23232b;
+  --titanium-mid: #17171d;
+  --titanium-bot: #0f0f14;
+  --titanium-border: rgba(255, 255, 255, 0.09);
+  --titanium-border-top: rgba(255, 255, 255, 0.16);
+  --titanium-shine-1: rgba(255, 255, 255, 0.14);
+  --titanium-screen-top: #191920;
+  --titanium-screen-bot: #111116;
+
+  --rim-light: rgba(255, 255, 255, 0.10);
+  --rim-light-strong: rgba(255, 255, 255, 0.16);
+
+  /* ===== PROFUNDIDAD (titanium canon) ===== */
+  --depth-rest: 0 1px 2px rgba(0, 0, 0, 0.44),
+                0 10px 28px rgba(0, 0, 0, 0.38),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --depth-hover: 0 1px 2px rgba(0, 0, 0, 0.50),
+                 0 18px 44px rgba(0, 0, 0, 0.48),
+                 inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --depth-rest-soft: 0 1px 2px rgba(0, 0, 0, 0.32),
+                     0 8px 22px rgba(0, 0, 0, 0.30);
+  --depth-anchor: 0 18px 50px rgba(var(--primary-rgb), 0.28),
+                  0 4px 18px rgba(0, 0, 0, 0.46);
+
+  /* ===== GLOWS ===== */
+  --glow-purple: 0 0 24px rgba(var(--primary-rgb), 0.30),
+                 0 8px 40px rgba(var(--primary-rgb), 0.20);
+  --glow-gold: 0 0 24px rgba(var(--gold-rgb), 0.25),
+               0 8px 40px rgba(var(--gold-rgb), 0.16);
+
+  /* ===== GLASS ===== */
+  --glass-bg-strong: rgba(22, 22, 28, 0.85);
+  --glass-border: rgba(var(--primary-rgb), 0.20);
+  --glass-blur-strong: 20px;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(var(--primary-rgb), 0.30);
+
+  /* ===== TIPOGRAFÍA ===== */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Monaco, monospace;
+
+  --duration-fast: 180ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(var(--primary-rgb), 0.20), transparent 62%),
+    radial-gradient(900px 520px at 92% 4%, rgba(var(--gold-rgb), 0.09), transparent 58%),
+    linear-gradient(180deg, #101016 0%, var(--background) 55%, #08080b 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* =============================================================================
+   PRIMITIVAS TITANIUM
+   ============================================================================= */
+
+.titanium-panel {
+  position: relative;
+  background: linear-gradient(180deg, var(--titanium-top) 0%, var(--titanium-mid) 48%, var(--titanium-bot) 100%);
+  border: 1px solid var(--titanium-border);
+  border-top-color: var(--titanium-border-top);
+  border-radius: 0.75rem;
+  box-shadow: var(--depth-rest);
+}
+.titanium-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--titanium-shine-1), transparent 38%);
+  opacity: 0.42;
+}
+.titanium-panel > * { position: relative; z-index: 1; }
+
+.titanium-bezel {
+  position: relative;
+  padding: 1px;
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, var(--rim-light-strong), transparent 18%),
+    linear-gradient(135deg, rgba(var(--primary-rgb), 0.42), rgba(var(--gold-rgb), 0.24), transparent 64%);
+  box-shadow: var(--depth-anchor);
+}
+.titanium-screen {
+  position: relative;
+  border-radius: calc(1rem - 1px);
+  background: linear-gradient(180deg, var(--titanium-screen-top), var(--titanium-screen-bot));
+  border: 1px solid var(--titanium-border);
+  overflow: hidden;
+}
+
+.card-interactive {
+  position: relative;
+  background: linear-gradient(180deg, var(--titanium-top) 0%, var(--titanium-mid) 50%, var(--titanium-bot) 100%);
+  border: 1px solid var(--titanium-border);
+  border-top-color: var(--titanium-border-top);
+  border-radius: 0.75rem;
+  box-shadow: var(--depth-rest-soft);
+  transition: transform var(--duration-fast) var(--ease-out-expo),
+              border-color var(--duration-fast) var(--ease-out-expo),
+              box-shadow var(--duration-fast) var(--ease-out-expo);
+}
+.card-interactive:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--depth-hover);
+}
+
+/* =============================================================================
+   CHROME DEL DECK
+   ============================================================================= */
+
+.deck { height: 100vh; display: flex; flex-direction: column; }
+
+.deck-header {
+  flex: none;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem clamp(1rem, 3vw, 2.5rem);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  border-top: 1px solid var(--rim-light);
+  z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 0.7rem; }
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 8px; flex: none;
+  background: linear-gradient(140deg, var(--primary), var(--accent-purple) 55%, var(--gold));
+  box-shadow: var(--glow-purple);
+  position: relative;
+}
+.brand-mark::after {
+  content: ''; position: absolute; inset: 1px; border-radius: 7px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28), transparent 52%);
+}
+.brand-text { font-weight: 650; font-size: 0.94rem; letter-spacing: -0.01em; }
+.brand-text span { color: var(--muted); font-weight: 450; }
+
+.progress-shell {
+  flex: 1; height: 4px; border-radius: 99px;
+  background: rgba(255,255,255,0.07);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--accent-purple) 60%, var(--gold));
+  box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.7);
+  transition: width 420ms var(--ease-out-expo);
+}
+.counter {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--muted); letter-spacing: 0.04em; flex: none;
+}
+.counter b { color: var(--foreground); font-weight: 600; }
+
+/* ===== ÁREA DE SLIDES ===== */
+.stage { flex: 1; position: relative; overflow: hidden; }
+
+.slide {
+  position: absolute; inset: 0;
+  padding: clamp(1.2rem, 3.4vh, 2.6rem) clamp(1rem, 4vw, 3.4rem);
+  overflow-y: auto;
+  opacity: 0; visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity 380ms var(--ease-out-expo),
+              transform 380ms var(--ease-out-expo),
+              visibility 380ms;
+}
+.slide.is-active { opacity: 1; visibility: visible; transform: none; }
+.slide-inner { max-width: 1180px; margin: 0 auto; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--gold);
+  margin-bottom: 0.9rem;
+}
+.eyebrow::before {
+  content: ''; width: 20px; height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+h1 {
+  font-size: clamp(2rem, 5.4vw, 3.9rem);
+  line-height: 1.04; letter-spacing: -0.035em; font-weight: 700;
+  margin-bottom: 1rem;
+}
+h2 {
+  font-size: clamp(1.5rem, 3.4vw, 2.5rem);
+  line-height: 1.12; letter-spacing: -0.028em; font-weight: 680;
+  margin-bottom: 1.4rem;
+}
+h3 { font-size: 1.02rem; font-weight: 640; letter-spacing: -0.012em; margin-bottom: 0.45rem; }
+
+.grad {
+  background: linear-gradient(120deg, #fff 8%, var(--accent-purple) 52%, var(--gold) 96%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.lede { font-size: clamp(1rem, 1.7vw, 1.22rem); color: var(--muted); line-height: 1.6; max-width: 62ch; }
+p { line-height: 1.62; }
+strong { color: #fff; font-weight: 620; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex; align-items: center; gap: 0.38rem;
+  font-family: var(--font-mono); font-size: 0.64rem;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 0.24rem 0.55rem; border-radius: 99px;
+  border: 1px solid var(--titanium-border);
+  border-top-color: var(--rim-light-strong);
+  white-space: nowrap;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 99px; }
+.badge-built {
+  color: #c9b6ff; background: rgba(var(--primary-rgb), 0.16);
+  border-color: rgba(var(--primary-rgb), 0.4);
+}
+.badge-built::before { background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
+.badge-prop {
+  color: #ffcf94; background: rgba(var(--gold-rgb), 0.13);
+  border-color: rgba(var(--gold-rgb), 0.38);
+}
+.badge-prop::before { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+
+/* ===== GRIDS ===== */
+.grid { display: grid; gap: 0.9rem; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.pad { padding: 1.05rem 1.15rem; }
+.muted { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+.tiny { font-size: 0.82rem; }
+
+/* ===== NUM / OLAS ===== */
+.num {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 0.82rem; letter-spacing: 0.04em;
+  width: 30px; height: 30px; border-radius: 9px; flex: none;
+  display: grid; place-items: center; margin-bottom: 0.7rem;
+  background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.55), rgba(var(--primary-rgb), 0.18));
+  border: 1px solid rgba(var(--primary-rgb), 0.5);
+  color: #e2d8ff;
+  box-shadow: var(--glow-purple);
+}
+.num-gold {
+  background: linear-gradient(160deg, rgba(var(--gold-rgb), 0.5), rgba(var(--gold-rgb), 0.14));
+  border-color: rgba(var(--gold-rgb), 0.5); color: #ffd9a8;
+  box-shadow: var(--glow-gold);
+}
+
+/* ===== TABLA ===== */
+.t-wrap { overflow-x: auto; border-radius: 0.75rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 520px; }
+th {
+  text-align: left; font-family: var(--font-mono);
+  font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.11em;
+  color: var(--muted); font-weight: 500;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--titanium-border);
+  background: rgba(255,255,255,0.028);
+}
+td { padding: 0.72rem 0.9rem; border-bottom: 1px solid var(--border-subtle); vertical-align: top; line-height: 1.5; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background var(--duration-fast) var(--ease-out-expo); }
+tbody tr:hover { background: rgba(var(--primary-rgb), 0.07); }
+.mono { font-family: var(--font-mono); font-size: 0.82rem; color: #c9b6ff; }
+
+/* ===== LISTAS ===== */
+ul.clean { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+ul.clean li { display: flex; gap: 0.62rem; align-items: flex-start; line-height: 1.55; font-size: 0.93rem; }
+ul.clean li::before {
+  content: ''; flex: none; width: 6px; height: 6px; border-radius: 99px; margin-top: 0.5rem;
+  background: linear-gradient(140deg, var(--accent-purple), var(--primary));
+  box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.8);
+}
+ul.clean.gold li::before {
+  background: linear-gradient(140deg, var(--gold), #e07a00);
+  box-shadow: 0 0 8px rgba(var(--gold-rgb), 0.8);
+}
+
+/* ===== QUOTE / PITCH ===== */
+.quote { font-size: clamp(1.02rem, 1.9vw, 1.32rem); line-height: 1.5; font-weight: 560; letter-spacing: -0.014em; }
+.quote-mark { font-family: Georgia, serif; font-size: 2.4rem; line-height: 0; color: var(--gold); opacity: 0.55; }
+
+/* ===== KPI ===== */
+.kpi { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.kpi-gold { color: var(--gold); text-shadow: 0 0 24px rgba(var(--gold-rgb), 0.4); }
+.kpi-purple { color: #c9b6ff; text-shadow: 0 0 24px rgba(var(--primary-rgb), 0.55); }
+
+/* ===== FLUJO ===== */
+.flow { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; font-family: var(--font-mono); font-size: 0.76rem; }
+.flow span {
+  padding: 0.34rem 0.6rem; border-radius: 7px;
+  background: linear-gradient(180deg, var(--titanium-top), var(--titanium-bot));
+  border: 1px solid var(--titanium-border); border-top-color: var(--rim-light);
+  box-shadow: var(--depth-rest-soft);
+}
+.flow i { color: var(--muted-strong); font-style: normal; }
+.flow .win { color: #ffd9a8; border-color: rgba(var(--gold-rgb), 0.42); background: rgba(var(--gold-rgb), 0.12); }
+
+/* ===== NAV ===== */
+.deck-nav {
+  flex: none; display: flex; align-items: center; justify-content: center; gap: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  border-top: 1px solid var(--glass-border);
+  z-index: 20;
+}
+.nav-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font: inherit; font-size: 0.82rem; font-weight: 560; color: var(--foreground);
+  padding: 0.46rem 0.95rem; border-radius: 9px; cursor: pointer;
+  background: linear-gradient(180deg, var(--titanium-top), var(--titanium-bot));
+  border: 1px solid var(--titanium-border); border-top-color: var(--rim-light-strong);
+  box-shadow: var(--depth-rest-soft);
+  transition: all var(--duration-fast) var(--ease-out-expo);
+}
+.nav-btn:hover:not(:disabled) { border-color: var(--border-accent); transform: translateY(-1px); box-shadow: var(--depth-hover); }
+.nav-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+.dots { display: flex; gap: 0.4rem; }
+.dot {
+  width: 7px; height: 7px; border-radius: 99px; cursor: pointer; border: none; padding: 0;
+  background: rgba(255,255,255,0.18);
+  transition: all 240ms var(--ease-out-expo);
+}
+.dot:hover { background: rgba(255,255,255,0.4); }
+.dot.is-active {
+  width: 22px;
+  background: linear-gradient(90deg, var(--primary), var(--gold));
+  box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.8);
+}
+.hint { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted-strong); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .g4, .g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .g2, .g3, .g4, .g5 { grid-template-columns: 1fr; }
+  .hint { display: none; }
+  body { overflow: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <header class="deck-header">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">Plan Go-to-Market <span>· Hermes OS · A2A</span></div>
+    </div>
+    <div class="progress-shell"><div class="progress-bar" id="bar"></div></div>
+    <div class="counter"><b id="cur">01</b> / <span id="tot">13</span></div>
+  </header>
+
+  <div class="stage" id="stage">
+
+    <!-- 1 · PORTADA -->
+    <section class="slide is-active">
+      <div class="slide-inner" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">
+        <div class="eyebrow">Estrategia comercial · 2026-07-20</div>
+        <h1>Plan <span class="grad">Go-to-Market</span></h1>
+        <p class="lede" style="margin-bottom:1.8rem;">
+          Land-and-expand: una cuña que convierte rápido para generar caja y referencias,
+          mientras la apuesta de fondo madura en paralelo.
+        </p>
+        <div class="grid g3">
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">01</div>
+            <h3>La cuña</h3>
+            <p class="muted">CRM conversacional marca blanca. Ciclo corto, propuesta ya escrita.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num num-gold">02</div>
+            <h3>La apuesta de fondo</h3>
+            <p class="muted">Seguros de carga MX. Mayor techo y el moat más fuerte.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">03</div>
+            <h3>El upsell</h3>
+            <p class="muted">White-label de software a quien ya confía.</p>
+          </div>
+        </div>
+        <p class="muted tiny" style="margin-top:1.6rem;">
+          <span class="badge badge-built">construido</span> = verificado y corriendo en producción &nbsp;·&nbsp;
+          <span class="badge badge-prop">propuesta</span> = recomendación a calibrar con el equipo
+        </p>
+      </div>
+    </section>
+
+    <!-- 2 · TESIS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">La tesis</div>
+        <h2>El CRM es la cuña.<br>Los seguros, la apuesta de fondo.</h2>
+        <div class="titanium-bezel" style="margin-bottom:1.4rem;">
+          <div class="titanium-screen" style="padding:1.5rem 1.7rem;">
+            <p style="font-size:clamp(1rem,1.9vw,1.28rem);line-height:1.55;font-weight:560;letter-spacing:-0.015em;">
+              Se vende primero lo que <strong>ya está redactado y se fabrica con alto reuso</strong> (CRM),
+              se usa cada cliente como banco de pruebas del aislamiento real, y se reinvierte la
+              tracción en el <strong>moat de mayor techo</strong> (grafo regulatorio de seguros).
+            </p>
+          </div>
+        </div>
+        <div class="grid g2">
+          <div class="titanium-panel pad">
+            <h3>Por qué esta secuencia</h3>
+            <ul class="clean">
+              <li>El CRM convierte en <strong>semanas</strong>; seguros exige 30 días de discovery <em>antes</em> de escribir código.</li>
+              <li>Caja y referencias tempranas financian la apuesta larga.</li>
+              <li>Cada cliente CRM valida el aislamiento multi-tenant de verdad.</li>
+            </ul>
+          </div>
+          <div class="titanium-panel pad">
+            <h3>La promesa que cruza todo</h3>
+            <p class="quote" style="margin-bottom:0.6rem;">Copiloto, no autopiloto.</p>
+            <p class="muted">Departamento con supervisión automática <em>y</em> humana en lo irreversible.
+            Nunca <em>"el agente lo hace solo"</em> — el gate <span class="mono">claims_aprobados</span> lo impide por código.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · QUÉ VENDEMOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">La oferta</div>
+        <h2>Qué vendemos</h2>
+        <div class="titanium-bezel" style="margin-bottom:1.5rem;">
+          <div class="titanium-screen" style="padding:1.6rem 1.7rem;text-align:center;">
+            <p class="quote"><span class="quote-mark">“</span>Tu departamento con IA bajo supervisión, con tu marca.<span class="quote-mark">”</span></p>
+          </div>
+        </div>
+        <div class="grid g3">
+          <div class="titanium-panel pad card-interactive">
+            <h3 style="color:#c9b6ff;">Se fabrica, no se desarrolla</h3>
+            <p class="muted">El trío, los gates y el catálogo de skills son idénticos para todos.
+            Por cliente cambian marca, reglas, datos y qué departamentos activa.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <h3 style="color:#c9b6ff;">Time-to-value en semanas</h3>
+            <p class="muted">Implantación por etapas que se prueban antes de avanzar.
+            Solo se pasa de etapa cuando la anterior funciona comprobadamente.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <h3 style="color:#ffd9a8;">Margen conocido antes de firmar</h3>
+            <p class="muted">La fábrica ya mide su costo por operación
+            (<span class="mono">token_usage</span> por tenant). No se improvisa precio.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · EL MOTOR CONSTRUIDO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Lo que ya existe</div>
+        <h2>El motor comercial <span class="grad">ya está construido</span></h2>
+        <p class="lede" style="margin-bottom:1.4rem;">No es plan: la maquinaria de venta corre en producción desde la Fase 9.</p>
+        <div class="grid g2" style="margin-bottom:0.9rem;">
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;"><span class="mono">ventas-a2a</span></h3>
+            <p class="muted">Card comercial pública en internet (edge Caddy, TLS + rate-limit 30 req/min).
+            Recibe interés y comparte la oferta aprobada.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;">Tabla <span class="mono">leads</span></h3>
+            <p class="muted">La verdad durable del pipeline: 10 etapas, escritor único, fallo visible.
+            Slack coordina; Supabase registra.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;">Gates comerciales</h3>
+            <p class="muted">Binarios y deterministas: claims aprobados, precio en rango,
+            plantilla de contrato intacta, política intocable.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;"><span class="mono">cliente-web2</span></h3>
+            <p class="muted">Landing bilingüe + cotizador deck-builder + chat de venta en vivo (SSE real)
+            que captura leads origen <span class="mono">web2</span>.</p>
+          </div>
+        </div>
+        <div class="titanium-panel pad" style="border-color:rgba(255,145,1,0.28);">
+          <p class="tiny"><strong style="color:var(--gold);">Fronteras negativas literales</strong>
+          declaradas en la card: no cierra tratos, no fija precios finales, no firma, no envía correos.
+          <strong>La firma es exclusivamente humana.</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · CATÁLOGO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Catálogo</div>
+        <h2>Madurez comercial por oferta</h2>
+        <div class="titanium-panel t-wrap">
+          <table>
+            <thead><tr><th>Oferta</th><th>Estado real</th><th>Ciclo de conversión</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>CRM conversacional</strong><br><span class="muted tiny">WhatsApp / Telegram</span></td>
+                <td>Propuesta comercial completa y redactada; alto % de reuso de la fábrica</td>
+                <td><strong style="color:var(--gold);">El más corto</strong> — piloto en semanas</td>
+              </tr>
+              <tr>
+                <td><strong>White-label de software</strong><br><span class="muted tiny">el trío construye y mantiene</span></td>
+                <td>Validado en dogfood real: GLM-5.2, enjambre de 3 sub-tareas, 8 gates verdes</td>
+                <td>Medio-largo; comprador más técnico</td>
+              </tr>
+              <tr>
+                <td><strong>Seguros de carga MX</strong><br><span class="muted tiny">línea white-label</span></td>
+                <td>Oportunidad validada como viable, con gate de discovery obligatorio</td>
+                <td>Largo — 30 días de entrevistas antes de comprometer</td>
+              </tr>
+              <tr>
+                <td>ERP logística · OCR · vuelos</td>
+                <td>Blueprints y propuestas escritas</td>
+                <td>Variable, sin priorizar</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · LAS 3 OLAS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Secuencia <span class="badge badge-prop" style="margin-left:0.4rem;">propuesta</span></div>
+        <h2>Tres olas</h2>
+        <div class="grid g4">
+          <div class="titanium-panel pad card-interactive">
+            <div class="num num-gold">0</div>
+            <h3>Desatascar</h3>
+            <p class="muted tiny" style="margin-bottom:0.7rem;">~2 semanas</p>
+            <p class="muted">No se vende nada nuevo hasta cerrar los gates que hoy frenan la conversión.
+            Son decisiones de la dueña, no deuda técnica.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive" style="border-color:rgba(var(--primary-rgb),0.42);box-shadow:var(--depth-hover),var(--glow-purple);">
+            <div class="num">1</div>
+            <h3>CRM como cuña</h3>
+            <p class="muted tiny" style="margin-bottom:0.7rem;">semanas 2 – 8</p>
+            <p class="muted"><strong>Meta: 2 pilotos firmados en 60 días.</strong>
+            Cada uno cierra en <strong>CRM-3</strong>: una venta resuelta de punta a punta en su WhatsApp.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num num-gold">2</div>
+            <h3>Discovery seguros</h3>
+            <p class="muted tiny" style="margin-bottom:0.7rem;">paralelo · mes 1 – 2</p>
+            <p class="muted">30 días, 10–20 entrevistas con brokers e insurtechs.
+            Trabajo de campo, no de código. No espera a la Ola 1.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">3</div>
+            <h3>Expandir</h3>
+            <p class="muted tiny" style="margin-bottom:0.7rem;">mes 3+</p>
+            <p class="muted">Segundo tenant CRM (la prueba real de marca blanca), upsell de software,
+            y seguros si el discovery dio verde.</p>
+          </div>
+        </div>
+        <div class="titanium-panel pad" style="margin-top:1rem;">
+          <p class="tiny muted"><strong>Ola 0 en detalle:</strong> elegir BSP de WhatsApp (P-01) ·
+          dominio real para la card pública · aprobar motor LLM real + host-job de envío de emails.
+          <em>Sin esto, el motor de adquisición existe pero dispara con salva.</em></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · ICP -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">A quién le vendemos <span class="badge badge-prop" style="margin-left:0.4rem;">propuesta</span></div>
+        <h2>ICP priorizado</h2>
+        <div class="titanium-panel t-wrap">
+          <table>
+            <thead><tr><th>Oferta</th><th>Comprador</th><th>Señales de adopción</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:var(--gold);">CRM</strong><br><span class="muted tiny">la cuña</span></td>
+                <td>Dueño o gerente de PYME con alto volumen conversacional: retail, e-commerce, clínicas, servicios con cobranza</td>
+                <td>Ya vive en WhatsApp · pierde ventas por no responder a tiempo · equipo pequeño saturado</td>
+              </tr>
+              <tr>
+                <td><strong style="color:#c9b6ff;">Seguros</strong><br><span class="muted tiny">apuesta de fondo</span></td>
+                <td>Socio o director de broker de carga / insurtech logística <strong>con cédula CNSF</strong></td>
+                <td>Maneja varias aseguradoras · compara pólizas en Excel · opera rutas de alto riesgo</td>
+              </tr>
+              <tr>
+                <td><strong>Software</strong><br><span class="muted tiny">upsell</span></td>
+                <td>Cliente CRM que ya confía y necesita construir o mantener un SaaS propio</td>
+                <td>Tiene backlog de producto · no quiere equipo técnico interno</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted tiny" style="margin-top:0.9rem;">
+          En seguros, el usuario diario es el ejecutivo de suscripción que hoy compara PDFs y captura dos veces.
+          Forwarders y 3PL son <strong>segundo anillo</strong>: usuarios del flujo, no operadores de la intermediación.
+        </p>
+      </div>
+    </section>
+
+    <!-- 8 · CANALES -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Cómo llegan</div>
+        <h2>Motions de canal</h2>
+        <p class="lede" style="margin-bottom:1.4rem;">Los tres ya tienen su pieza construida.</p>
+        <div class="grid g3" style="margin-bottom:1.1rem;">
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;">Inbound</h3>
+            <p class="muted">La landing es el imán, el <strong>cotizador</strong> da precio orientativo
+            antes de hablar con nadie, y el <strong>chat en vivo</strong> captura el lead.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-built">construido</span>
+            <h3 style="margin-top:0.7rem;">Outbound A2A + humano</h3>
+            <p class="muted">La card pública recibe interés de agentes de terceros. El outreach lo
+            <strong>redacta el Ejecutor bajo gates</strong> y lo <strong>aprueba el PM</strong> antes de enviar.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <span class="badge badge-prop">propuesta</span>
+            <h3 style="margin-top:0.7rem;">Warm · red del equipo</h3>
+            <p class="muted">Los 5 del equipo son el primer canal de pilotos: donde un piloto
+            imperfecto todavía es tolerable.</p>
+          </div>
+        </div>
+        <div class="titanium-bezel">
+          <div class="titanium-screen" style="padding:1.3rem 1.5rem;">
+            <p style="font-size:1.02rem;line-height:1.5;">
+              <strong>Primer paso de todo lead, en los tres canales:</strong> la sesión de descubrimiento
+              de <strong style="color:var(--gold);">60 minutos sin costo</strong>. El prospecto sale con un
+              diagnóstico de su operación y una propuesta cerrada con alcance, plazos y precio.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 · PRICING -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Modelo económico</div>
+        <h2>Oferta y pricing</h2>
+        <div class="grid g2" style="margin-bottom:1.1rem;">
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">01</div>
+            <h3>Implantación</h3>
+            <p class="muted">Por proyecto cerrado, con blueprint de alcance fijo según casos de uso.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num num-gold">02</div>
+            <h3>Mensualidad por tiers</h3>
+            <p class="muted">Por nivel de uso (conversaciones y operaciones al mes), medida con precisión.
+            El cliente paga por lo que realmente usa.</p>
+          </div>
+        </div>
+        <div class="titanium-bezel">
+          <div class="titanium-screen" style="padding:1.5rem 1.7rem;">
+            <div class="kpi kpi-gold" style="margin-bottom:0.5rem;">Margen conocido antes de firmar</div>
+            <p class="muted">La fábrica ya mide su costo por operación vía <span class="mono">token_usage</span>
+            por tenant, y el gate <span class="mono">precio_en_rango</span> impide que ningún material
+            salga fuera de la política de precios. <strong>No se improvisa precio.</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · PITCH -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">El discurso</div>
+        <h2>El pitch que la saca del estadio</h2>
+        <div class="grid" style="gap:0.85rem;">
+          <div class="titanium-panel pad card-interactive" style="display:flex;gap:1.1rem;align-items:flex-start;">
+            <div class="num" style="margin-bottom:0;">1</div>
+            <div>
+              <p class="quote">“Tu departamento con IA, con tu marca, en semanas — no un chatbot que inventa.”</p>
+            </div>
+          </div>
+          <div class="titanium-panel pad card-interactive" style="display:flex;gap:1.1rem;align-items:flex-start;">
+            <div class="num" style="margin-bottom:0;">2</div>
+            <div>
+              <p class="quote">“Nada delicado pasa solo: lo irreversible lo aprueba tu equipo con un botón.”</p>
+              <p class="muted tiny" style="margin-top:0.45rem;">→ copiloto, no autopiloto</p>
+            </div>
+          </div>
+          <div class="titanium-panel pad card-interactive" style="display:flex;gap:1.1rem;align-items:flex-start;border-color:rgba(var(--gold-rgb),0.32);">
+            <div class="num num-gold" style="margin-bottom:0;">3</div>
+            <div>
+              <p class="quote">“Cada dato que te damos cita su fuente.”</p>
+              <p class="muted tiny" style="margin-top:0.45rem;">→ el grafo regulatorio, que ningún competidor identificado tiene como núcleo</p>
+            </div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:1.2rem;">
+          En <strong>seguros</strong>, la tercera frase <strong>es el moat entero</strong>
+          (cláusula CNSF/LISF citada, con vigencia). En <strong>CRM</strong>, la primera y la segunda son las que cierran.
+        </p>
+      </div>
+    </section>
+
+    <!-- 11 · FUNNEL Y KPIs -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Medición</div>
+        <h2>Funnel y KPIs</h2>
+        <div class="titanium-panel pad" style="margin-bottom:1.1rem;">
+          <p class="muted tiny" style="margin-bottom:0.7rem;">Ya instrumentado en la tabla <span class="mono">leads</span>:</p>
+          <div class="flow">
+            <span>nuevo</span><i>→</i><span>calificado</span><i>→</i><span>contactado</span><i>→</i>
+            <span>descubrimiento</span><i>→</i><span>propuesta</span><i>→</i><span>negociación</span><i>→</i>
+            <span>contrato</span><i>→</i><span>onboarding</span><i>→</i><span class="win">ganado</span>
+          </div>
+        </div>
+        <div class="grid g5">
+          <div class="titanium-panel pad card-interactive">
+            <div class="kpi kpi-purple">01</div>
+            <h3 style="margin-top:0.5rem;">Leads calificados / semana</h3>
+            <p class="muted tiny">Salud del tope del funnel</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="kpi kpi-purple">02</div>
+            <h3 style="margin-top:0.5rem;">Discovery → piloto</h3>
+            <p class="muted tiny">Calidad de la calificación</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="kpi kpi-purple">03</div>
+            <h3 style="margin-top:0.5rem;">Piloto → tenant pagando</h3>
+            <p class="muted tiny">Lo único que es conversión de verdad</p>
+          </div>
+          <div class="titanium-panel pad card-interactive" style="border-color:rgba(var(--gold-rgb),0.34);">
+            <div class="kpi kpi-gold">04</div>
+            <h3 style="margin-top:0.5rem;">Time-to-CRM-3</h3>
+            <p class="muted tiny">Prueba la promesa “semanas, no meses”</p>
+          </div>
+          <div class="titanium-panel pad card-interactive" style="border-color:rgba(var(--gold-rgb),0.34);">
+            <div class="kpi kpi-gold">05</div>
+            <h3 style="margin-top:0.5rem;">Margen unitario / tenant</h3>
+            <p class="muted tiny">Que crecer no queme caja</p>
+          </div>
+        </div>
+        <p class="muted tiny" style="margin-top:0.9rem;">Revisión semanal en <span class="mono">#dep-adquisicionclientes</span>.</p>
+      </div>
+    </section>
+
+    <!-- 12 · GATES -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Bloqueantes</div>
+        <h2>Gates de la dueña</h2>
+        <p class="lede" style="margin-bottom:1.3rem;">Nada corre solo. Estas cinco decisiones destraban la conversión.</p>
+        <div class="titanium-panel t-wrap">
+          <table>
+            <thead><tr><th>Bloqueante</th><th>Impacto</th><th>Decide</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:var(--gold);">BSP de WhatsApp</strong> <span class="mono">P-01</span></td>
+                <td>Frena todo el CRM, la vía rápida</td>
+                <td>CEO + CFO</td>
+              </tr>
+              <tr>
+                <td><strong>Motor real + envío de emails</strong></td>
+                <td>Sin esto el outreach no sale del worktree</td>
+                <td>CEO</td>
+              </tr>
+              <tr>
+                <td><strong>Dominio real para el edge</strong></td>
+                <td>La card pública luce temporal ante prospectos</td>
+                <td>CEO</td>
+              </tr>
+              <tr>
+                <td><strong>Mapa persona → rol</strong></td>
+                <td>Las compuertas las sostiene el juicio humano, no la config</td>
+                <td>CEO</td>
+              </tr>
+              <tr>
+                <td><strong>Gate discovery seguros</strong></td>
+                <td>Condiciona la apuesta de fondo</td>
+                <td>Equipo · campo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 · MOVIMIENTOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Ejecución</div>
+        <h2>Los primeros <span class="grad">5 movimientos</span></h2>
+        <div class="grid g2" style="margin-bottom:1rem;">
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">1</div>
+            <h3>Cerrar el BSP de WhatsApp</h3>
+            <p class="muted">Evaluar proveedores con los criterios ya definidos: sandbox, precio por
+            conversación, estabilidad, contrato apto para marca blanca multi-tenant.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">2</div>
+            <h3>Nombrar los 2 prospectos CRM</h3>
+            <p class="muted">Desde la red del equipo, y agendarles la sesión de descubrimiento de 60 minutos.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num num-gold">3</div>
+            <h3>Arrancar el discovery de seguros</h3>
+            <p class="muted">Lista de 4–6 brokers de carga y guión de las 5 hipótesis a validar.</p>
+          </div>
+          <div class="titanium-panel pad card-interactive">
+            <div class="num">4</div>
+            <h3>Aprobar dominio + motor real</h3>
+            <p class="muted">Para que <span class="mono">ventas-a2a</span> deje de disparar en Mock.</p>
+          </div>
+        </div>
+        <div class="titanium-bezel">
+          <div class="titanium-screen" style="padding:1.3rem 1.5rem;display:flex;gap:1.1rem;align-items:flex-start;">
+            <div class="num num-gold" style="margin-bottom:0;">5</div>
+            <div>
+              <h3>Instalar el ritual semanal de pipeline</h3>
+              <p class="muted">En <span class="mono">#dep-adquisicionclientes</span>, con los 5 KPIs
+              leídos directamente de <span class="mono">leads</span>. Lo que no se mide semanalmente, no se convierte.</p>
+            </div>
+          </div>
+        </div>
+        <p class="muted tiny" style="margin-top:1.3rem;">
+          <strong>Nota de método:</strong> la secuencia “CRM primero” y las metas numéricas son la
+          recomendación de esta sesión, no un veredicto del equipo. Para presionarla desde ángulos que
+          chocan, el camino del proyecto es la skill <span class="mono">consejo</span> — y su veredicto
+          se registra con <span class="mono">decision_id</span> hasta el PRP que lo ejecute.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <nav class="deck-nav">
+    <button class="nav-btn" id="prev">← Anterior</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next">Siguiente →</button>
+    <span class="hint">← → · espacio</span>
+  </nav>
+
+</div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var i = 0;
+
+  var bar = document.getElementById('bar');
+  var cur = document.getElementById('cur');
+  var tot = document.getElementById('tot');
+  var dotsWrap = document.getElementById('dots');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var stage = document.getElementById('stage');
+
+  tot.textContent = String(total).padStart(2, '0');
+
+  slides.forEach(function (_, n) {
+    var d = document.createElement('button');
+    d.className = 'dot' + (n === 0 ? ' is-active' : '');
+    d.setAttribute('aria-label', 'Ir a la lámina ' + (n + 1));
+    d.addEventListener('click', function () { go(n); });
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function go(n) {
+    i = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });
+    dots.forEach(function (d, k) { d.classList.toggle('is-active', k === i); });
+    bar.style.width = ((i + 1) / total * 100) + '%';
+    cur.textContent = String(i + 1).padStart(2, '0');
+    prev.disabled = i === 0;
+    next.disabled = i === total - 1;
+    slides[i].scrollTop = 0;
+  }
+
+  prev.addEventListener('click', function () { go(i - 1); });
+  next.addEventListener('click', function () { go(i + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+  });
+
+  // swipe en móvil
+  var x0 = null;
+  stage.addEventListener('touchstart', function (e) { x0 = e.changedTouches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 60) { go(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, { passive: true });
+
+  go(0);
+})();
+</script>
+
+</body>
+</html>
