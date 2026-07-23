@@ -1,8 +1,16 @@
 import { test, expect } from '@playwright/test'
 import { EmbudoCanvas } from '../src/features/dashboard/components/crm/embudo-canvas'
 import { ConversacionesPanel } from '../src/features/dashboard/components/crm/conversaciones-panel'
+import { EstadoLeadBadge } from '../src/features/dashboard/components/crm/estado-lead-badge'
+import { LeadsTable } from '../src/features/dashboard/components/crm/leads-table'
 import { DepartamentoSubnavView } from '../src/features/dashboard/components/nav/departamento-subnav'
-import { ETAPAS_EMBUDO, type EtapaEmbudo } from '../src/features/dashboard/types'
+import { STATUS } from '../src/features/dashboard/components/ai-spend/colors'
+import {
+  ETAPAS_EMBUDO,
+  ETAPAS_MOVIBLES,
+  type EtapaEmbudo,
+  type LeadResumen,
+} from '../src/features/dashboard/types'
 
 /**
  * Tests de /crm (embudo + panel + submenú), sin navegador: mismo patrón que
@@ -110,4 +118,55 @@ test('el submenú de adquisición lista Tareas y CRM; otros departamentos no pin
 
   const sinDepartamento = render(DepartamentoSubnavView({}))
   expect(sinDepartamento.text).toBe('')
+})
+
+// ------------------------------ LeadsTable ------------------------------
+
+const accionStub = async (): Promise<void> => {}
+
+const LEADS_FIXTURE: LeadResumen[] = [
+  {
+    lead_id: 'web2-abc',
+    origen: 'web2',
+    empresa: 'Mi IA',
+    contacto: 'Elisa <elisa@ejemplo.mx>',
+    etapa: 'nuevo',
+    updated_at: '2026-07-19T04:04:15Z',
+  },
+  {
+    lead_id: 'lead-xyz',
+    origen: 'a2a',
+    empresa: null,
+    contacto: null,
+    etapa: 'ganado',
+    updated_at: '2026-07-18T23:39:11Z',
+  },
+]
+
+test('LeadsTable pinta cada lead con su origen, etapa y el formulario de mover', () => {
+  const { text } = render(LeadsTable({ leads: LEADS_FIXTURE, accionMover: accionStub }))
+  expect(text).toContain('Mi IA')
+  expect(text).toContain('web2')
+  expect(text).toContain('a2a')
+  expect(text).toContain('Sin empresa') // empresa null no rompe la fila
+  expect(text).toContain('Mover')
+  // el select de mover ofrece TODAS las etapas movibles (embudo + perdido)
+  for (const etapa of ETAPAS_MOVIBLES) {
+    expect(text).toContain(etapa.replace(/_/g, ' '))
+  }
+})
+
+test('LeadsTable con cero leads muestra empty state, no tabla rota', () => {
+  const { text } = render(LeadsTable({ leads: [], accionMover: accionStub }))
+  expect(text).toContain('Sin leads todavía')
+  expect(text).not.toContain('Mover')
+})
+
+test('EstadoLeadBadge: ganado verde, perdido rojo, etapas vivas azules', () => {
+  const ganado = render(EstadoLeadBadge({ etapa: 'ganado' }))
+  expect(ganado.styles[0]?.color).toBe(STATUS.good)
+  const perdido = render(EstadoLeadBadge({ etapa: 'perdido' }))
+  expect(perdido.styles[0]?.color).toBe(STATUS.critical)
+  const vivo = render(EstadoLeadBadge({ etapa: 'propuesta' }))
+  expect(vivo.styles[0]?.color).toBe('#3987e5')
 })
