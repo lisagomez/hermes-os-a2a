@@ -261,10 +261,25 @@ export const conversacionResumenSchema = z.object({
 })
 export type ConversacionResumen = z.infer<typeof conversacionResumenSchema>
 
+// Etapas a las que un humano puede MOVER un lead desde el dashboard:
+// las del embudo + la salida `perdido` (dominio completo del check de la BD).
+export const ETAPAS_MOVIBLES = [...ETAPAS_EMBUDO, 'perdido'] as const
+
+export const leadResumenSchema = z.object({
+  lead_id: z.string(),
+  origen: z.string(), // a2a | manual | slack | web2 (check en BD)
+  empresa: z.string().nullable(),
+  contacto: z.string().nullable(),
+  etapa: z.string(),
+  updated_at: z.string(),
+})
+export type LeadResumen = z.infer<typeof leadResumenSchema>
+
 export const crmVistaSchema = z.object({
   // Etapas del embudo EN ORDEN, con cuenta 0 incluida; `perdido` aparte.
   embudo: z.array(etapaEmbudoSchema),
   perdidos: z.number().int().nonnegative(),
   conversaciones: z.array(conversacionResumenSchema),
+  leads: z.array(leadResumenSchema),
 })
 export type CrmVista = z.infer<typeof crmVistaSchema>

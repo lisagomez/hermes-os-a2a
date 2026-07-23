@@ -6,6 +6,7 @@ import {
   realAiSpend,
   realCrm,
   realDepartamentos,
+  realMoverLeadEtapa,
   realDesarrollo,
   realGrafoVista,
   realPantheon,
@@ -25,6 +26,7 @@ export interface DataSource {
   desarrollo(departamento?: string): Promise<DesarrolloVista>
   departamentos(): Promise<string[]>
   crm(): Promise<CrmVista>
+  moverLeadEtapa(leadId: string, etapa: string): Promise<void>
 }
 
 const mockSource: DataSource = {
@@ -37,6 +39,8 @@ const mockSource: DataSource = {
     departamento && departamento !== 'software' ? [] : mockDesarrollo,
   departamentos: async () => [...DEPARTAMENTOS_REGISTRADOS],
   crm: async () => mockCrm,
+  // En mock no hay dónde persistir: la acción es un no-op explícito.
+  moverLeadEtapa: async () => {},
 }
 
 const realSource: DataSource = {
@@ -46,6 +50,7 @@ const realSource: DataSource = {
   desarrollo: realDesarrollo,
   departamentos: realDepartamentos,
   crm: realCrm,
+  moverLeadEtapa: realMoverLeadEtapa,
 }
 
 export function getDataSource(): DataSource {
