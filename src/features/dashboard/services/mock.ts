@@ -174,7 +174,10 @@ export const mockPantheon: Pantheon = [
 // Réplicas de tareas reales del trío (dogfoods Fase 6/7 documentados en
 // CLAUDE.md): mission-control-2026-0001, dogfood-swarm-1 aprobado, etc.
 // Ordenadas por created_at desc, igual que la query real (limit 20).
-export const mockDesarrollo: DesarrolloVista = [
+export const mockDesarrollo: DesarrolloVista = {
+  // Espejo de los TOML del Supervisor + los presentes en las tareas fixture
+  departamentos: ['adquisicion', 'contratos_inteligentes', 'software'],
+  tareas: [
   {
     task_id: 'mission-control-2026-0001',
     objetivo: 'Crear página /desarrollo en Mission Control con la lista de tareas del trío',
@@ -238,4 +241,5 @@ export const mockDesarrollo: DesarrolloVista = [
     intentos: 0,
     created_at: '2026-07-05T13:45:00Z',
   },
-]
+  ],
+}

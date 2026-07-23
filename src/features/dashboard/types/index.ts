@@ -214,5 +214,20 @@ export const tareaSchema = z.object({
 })
 export type Tarea = z.infer<typeof tareaSchema>
 
-export const desarrolloVistaSchema = z.array(tareaSchema)
+// Departamentos dados de alta en el Supervisor: espejo de
+// businessos/supervisor-a2a/reglas/*.toml (un TOML por departamento). El combo
+// de /desarrollo los UNE con los presentes en `tareas` (v_departamentos), así
+// un departamento nuevo aparece en cuanto despacha su primera tarea aunque
+// esta lista vaya atrás — y uno recién dado de alta se puede filtrar aunque
+// todavía no tenga tareas.
+export const DEPARTAMENTOS_REGISTRADOS = [
+  'adquisicion',
+  'contratos_inteligentes',
+  'software',
+] as const
+
+export const desarrolloVistaSchema = z.object({
+  departamentos: z.array(z.string()),
+  tareas: z.array(tareaSchema),
+})
 export type DesarrolloVista = z.infer<typeof desarrolloVistaSchema>
