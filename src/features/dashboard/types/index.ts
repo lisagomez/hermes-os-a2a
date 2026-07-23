@@ -14,7 +14,10 @@ import { z } from 'zod'
 
 export const presupuestoMesSchema = z.object({
   mes: z.string(), // 'YYYY-MM'
-  vertical: z.enum(['personal', 'negocio', 'clientes', 'TOTAL']),
+  // string, no enum: los escritores de token_usage crecen ('trio' desde 2026-07;
+  // un enum aquí tira /ai-spend entera al aparecer el siguiente). La UI ya tiene
+  // fallback de color para verticales desconocidos.
+  vertical: z.string(),
   tokens_in: z.number(),
   tokens_out: z.number(),
   costo_usd: z.number(),

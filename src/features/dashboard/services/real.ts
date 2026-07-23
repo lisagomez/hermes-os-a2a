@@ -115,8 +115,10 @@ export async function realGrafoVista(): Promise<GrafoVista> {
       (e) => (e ?? []).map(aplanarEvaluacion)
     ),
     sb(
-      // PostgREST agrega con select=deducibilidad_estado,cuenta:count
-      'facturas?select=deducibilidad_estado,cuenta:id.count()',
+      // El agregado vive en la vista (supabase-fix-vista-facturas.sql): PostgREST
+      // de Supabase rechaza agregados inline con PGRST123 (deshabilitados por
+      // defecto en la plataforma). Mismo patrón que v_presupuesto_mensual.
+      'v_facturas_resumen?select=deducibilidad_estado,cuenta&order=deducibilidad_estado',
       z.array(facturaResumenSchema)
     ),
     sb(
