@@ -12,6 +12,7 @@ import {
   presupuestoMesSchema,
   saludConocimientoSchema,
   tareaSchema,
+  DEPARTAMENTOS_REGISTRADOS,
   verticalPantheonSchema,
   type AiSpend,
   type DesarrolloVista,
@@ -178,14 +179,34 @@ export async function realPantheon(): Promise<Pantheon> {
   })
 }
 
-export async function realDesarrollo(): Promise<DesarrolloVista> {
-  // Últimas 20 tareas del trío (Ejecutor + Supervisor). La tabla `tareas` la
-  // escriben los servicios A2A con service_role (Fase 6/7); aquí solo se lee.
-  // Sin catch: si Supabase cae, la página falla honestamente (igual que
-  // contratos/cobros en realGrafoVista). El "0 filas" se resuelve como empty
-  // state en la UI, no como error.
-  return sb(
-    'tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20',
-    z.array(tareaSchema)
-  )
+export async function realDesarrollo(departamento?: string): Promise<DesarrolloVista> {
+  // Últimas 20 tareas del trío (Ejecutor + Supervisor), opcionalmente filtradas
+  // por departamento. La tabla `tareas` la escriben los servicios A2A con
+  // service_role (Fase 6/7); aquí solo se lee. Sin catch: si Supabase cae, la
+  // página falla honestamente (igual que contratos/cobros en realGrafoVista).
+  // El "0 filas" se resuelve como empty state en la UI, no como error. Un
+  // departamento inexistente en el query param da lista vacía, no error.
+  const filtro = departamento
+    ? `&departamento=eq.${encodeURIComponent(departamento)}`
+    : ''
+  const [tareas, conTareas] = await Promise.all([
+    sb(
+      `tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20${filtro}`,
+      z.array(tareaSchema)
+    ),
+    // DISTINCT vive en la vista (supabase-vista-departamentos.sql): PostgREST
+    // no lo expone inline. Se une con los registrados en el Supervisor para
+    // listar también los dados de alta sin tareas todavía.
+    sb(
+      'v_departamentos?select=departamento',
+      z.array(z.object({ departamento: z.string() }))
+    ),
+  ])
+  const departamentos = [
+    ...new Set([
+      ...DEPARTAMENTOS_REGISTRADOS,
+      ...conTareas.map((d) => d.departamento),
+    ]),
+  ].sort()
+  return { departamentos, tareas }
 }

@@ -19,14 +19,19 @@ export interface DataSource {
   aiSpend(): Promise<AiSpend>
   grafoVista(): Promise<GrafoVista>
   pantheon(): Promise<Pantheon>
-  desarrollo(): Promise<DesarrolloVista>
+  desarrollo(departamento?: string): Promise<DesarrolloVista>
 }
 
 const mockSource: DataSource = {
   aiSpend: async () => mockAiSpend,
   grafoVista: async () => mockGrafoVista,
   pantheon: async () => mockPantheon,
-  desarrollo: async () => mockDesarrollo,
+  // Las tareas fixture son todas del departamento software: filtrar por otro
+  // devuelve lista vacía (mismo comportamiento honesto que la fuente real).
+  desarrollo: async (departamento) =>
+    departamento && departamento !== 'software'
+      ? { ...mockDesarrollo, tareas: [] }
+      : mockDesarrollo,
 }
 
 const realSource: DataSource = {
