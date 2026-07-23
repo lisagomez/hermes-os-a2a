@@ -228,3 +228,43 @@ export const DEPARTAMENTOS_REGISTRADOS = [
 
 export const desarrolloVistaSchema = z.array(tareaSchema)
 export type DesarrolloVista = z.infer<typeof desarrolloVistaSchema>
+
+// ---------- CRM (departamento adquisición) ----------
+// Embudo de cliente: el ORDEN de las etapas es conocimiento del dashboard
+// (espejo del check constraint `leads_etapa_check`, supabase-fase9/11).
+// `perdido` no es una etapa del embudo: es la salida, se pinta aparte. Una
+// etapa nueva en la BD que este espejo no conozca se muestra al final del
+// embudo (no se pierde ni revienta — lección del enum de vertical).
+
+export const ETAPAS_EMBUDO = [
+  'nuevo',
+  'calificado',
+  'contactado',
+  'descubrimiento',
+  'propuesta',
+  'negociacion',
+  'contrato',
+  'onboarding',
+  'ganado',
+] as const
+
+export const etapaEmbudoSchema = z.object({
+  etapa: z.string(),
+  cuenta: z.number().int().nonnegative(),
+})
+export type EtapaEmbudo = z.infer<typeof etapaEmbudoSchema>
+
+export const conversacionResumenSchema = z.object({
+  estado: z.string(), // abierta | escalada | cerrada (check en BD)
+  nivel: z.string(), // A0..A3 (check en BD)
+  cuenta: z.number().int().nonnegative(),
+})
+export type ConversacionResumen = z.infer<typeof conversacionResumenSchema>
+
+export const crmVistaSchema = z.object({
+  // Etapas del embudo EN ORDEN, con cuenta 0 incluida; `perdido` aparte.
+  embudo: z.array(etapaEmbudoSchema),
+  perdidos: z.number().int().nonnegative(),
+  conversaciones: z.array(conversacionResumenSchema),
+})
+export type CrmVista = z.infer<typeof crmVistaSchema>

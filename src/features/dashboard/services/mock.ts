@@ -1,5 +1,6 @@
 import 'server-only'
-import type { AiSpend, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type { AiSpend, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import { ETAPAS_EMBUDO } from '../types'
 
 /**
  * Fixtures de desarrollo: réplicas de datos REALES del sistema
@@ -239,3 +240,15 @@ export const mockDesarrollo: DesarrolloVista = [
     created_at: '2026-07-05T13:45:00Z',
   },
 ]
+
+// Réplica del estado real del CRM (2026-07-23): 3 leads en `nuevo` (2 a2a +
+// 1 web2), el resto del embudo en cero y sin conversaciones CRM todavía
+// (tenant real pendiente de alta).
+export const mockCrm: CrmVista = {
+  embudo: ETAPAS_EMBUDO.map((etapa) => ({
+    etapa,
+    cuenta: etapa === 'nuevo' ? 3 : 0,
+  })),
+  perdidos: 0,
+  conversaciones: [],
+}

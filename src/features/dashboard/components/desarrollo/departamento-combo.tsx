@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 /**
  * Combo de departamento (vive en el NAVBAR): lista los departamentos dados de
@@ -48,7 +48,10 @@ export function DepartamentoComboView({
 }
 
 function ComboConSeleccion({ departamentos }: { departamentos: string[] }) {
-  const seleccionado = useSearchParams().get('departamento') ?? undefined
+  const pathname = usePathname()
+  const param = useSearchParams().get('departamento') ?? undefined
+  // Estar en /crm (submenú de adquisición) cuenta como ese departamento
+  const seleccionado = pathname.startsWith('/crm') ? 'adquisicion' : param
   // key: re-monta el <select> (uncontrolled) cuando cambia el filtro en la URL
   return (
     <DepartamentoComboView

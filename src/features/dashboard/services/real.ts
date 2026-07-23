@@ -12,7 +12,12 @@ import {
   presupuestoMesSchema,
   saludConocimientoSchema,
   tareaSchema,
+  conversacionResumenSchema,
+  etapaEmbudoSchema,
   DEPARTAMENTOS_REGISTRADOS,
+  ETAPAS_EMBUDO,
+  type CrmVista,
+  type EtapaEmbudo,
   verticalPantheonSchema,
   type AiSpend,
   type DesarrolloVista,
@@ -193,6 +198,27 @@ export async function realDesarrollo(departamento?: string): Promise<DesarrolloV
     `tareas?select=task_id,objetivo,estado,intentos,created_at&order=created_at.desc&limit=20${filtro}`,
     z.array(tareaSchema)
   )
+}
+
+export async function realCrm(): Promise<CrmVista> {
+  // Embudo de cliente (leads por etapa) + resumen de conversaciones CRM.
+  // Los agregados viven en vistas (supabase-vistas-crm-embudo.sql): PostgREST
+  // no expone GROUP BY inline. El orden del embudo lo pone ETAPAS_EMBUDO;
+  // una etapa desconocida que venga de la BD se anexa al final (no se pierde).
+  const [porEtapa, conversaciones] = await Promise.all([
+    sb('v_embudo_leads?select=etapa,cuenta', z.array(etapaEmbudoSchema)),
+    sb(
+      'v_crm_conversaciones_resumen?select=estado,nivel,cuenta&order=estado,nivel',
+      z.array(conversacionResumenSchema)
+    ),
+  ])
+  const cuentas = new Map(porEtapa.map((e) => [e.etapa, e.cuenta]))
+  const conocidas = new Set<string>([...ETAPAS_EMBUDO, 'perdido'])
+  const embudo: EtapaEmbudo[] = [
+    ...ETAPAS_EMBUDO.map((etapa) => ({ etapa, cuenta: cuentas.get(etapa) ?? 0 })),
+    ...porEtapa.filter((e) => !conocidas.has(e.etapa)),
+  ]
+  return { embudo, perdidos: cuentas.get('perdido') ?? 0, conversaciones }
 }
 
 export async function realDepartamentos(): Promise<string[]> {
