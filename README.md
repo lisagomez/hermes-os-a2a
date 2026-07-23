@@ -83,8 +83,9 @@ línea CRM arrancó. En corto:
   equipo), respaldo nocturno, gasto de tokens controlado ($30/mes, alerta 80%).
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO, contable y
   contractual MX; todo citado), cobros Polar y contratos validados.
-- **Fases 4–5** ✅ — dashboard **Mission Control** + primer servicio **A2A**
-  (`grafo-a2a`).
+- **Fases 4–5** ✅ — dashboard **Mission Control** (5 vistas: Pantheon, AI Spend,
+  Grafo, Desarrollo y CRM con el **embudo de cliente operable** — los leads se
+  mueven de etapa desde el panel) + primer servicio **A2A** (`grafo-a2a`).
 - **Fases 6–7** ✅ — **trío de desarrollo** (Hermes→Ejecutor→Supervisor) y
   **enjambre** (Coordinador con fan-out acotado y presupuesto); dogfood real
   aprobado con GLM-5.2 como motor.

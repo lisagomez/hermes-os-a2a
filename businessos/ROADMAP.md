@@ -198,6 +198,21 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
   íntegras (Pantheon, AI Spend, Grafo con fuente citada + disclaimer)
 - **Salida:** ✅ panel único con las 3 vistas funcionando (mock en dev; `real`
   conmutado por env en runtime).
+- [x] **Post-fase (2026-07-23, PRs #120–#126)** — el panel creció a **5 vistas** y ganó
+  su primera acción de escritura:
+  - Vista **Desarrollo** (`/desarrollo`, tarea del trío `mission-control-2026-0001`
+    verificada y desplegada): últimas 20 filas de `tareas` con badge por estado y
+    **combo de departamento en el navbar** (registrados en el Supervisor ∪ presentes
+    en `tareas` vía `v_departamentos` — autoactualizable en ambas direcciones).
+  - Vista **CRM** (`/crm`, submenú `Tareas | CRM` del departamento adquisición):
+    **canvas del embudo de cliente** (9 etapas de `leads.etapa` + `perdido` aparte,
+    conteos vivos vía `v_embudo_leads`), panel de conversaciones CRM
+    (`v_crm_conversaciones_resumen`) y tabla de **leads con "Mover a"** — única
+    escritura del panel (server action + Zod + fila-afectada verificada; e2e real
+    probado en producción). Tipografía base 20px (pedido de la dueña).
+  - **Dos 500 preexistentes cazados y corregidos** al verificar el deploy: enum Zod
+    vs `vertical='trio'` en `/ai-spend`, y agregado inline PostgREST (PGRST123) en
+    `/grafo` → vista `v_facturas_resumen`. Ver aprendizaje CLAUDE.md 2026-07-23.
 
 ## FASE 5 — Interoperabilidad A2A ✅ COMPLETA en runtime (smoke 2026-07-08); capa económica FUTURA
 
