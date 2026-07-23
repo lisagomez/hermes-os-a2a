@@ -83,3 +83,11 @@ agente, o el SQL del mensaje). El job jamás promueve. sup-crm ahora expone
 
 panel humano, cruce de perfil entre canales, intenciones con niveles medidos,
 enjambre nocturno de calidad.
+
+## Observabilidad (2026-07-23)
+
+Mission Control ganó la vista `/crm` (submenú del departamento adquisición):
+embudo de `leads` por etapa con **mover-de-etapa desde el panel** (única
+escritura), y resumen de `crm_conversaciones` por estado × nivel — hoy en empty
+state honesto hasta conectar el primer tenant real. Detalle en
+[[fase4-dashboard]].

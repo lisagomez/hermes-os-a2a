@@ -52,9 +52,36 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   DESHABILITADOS por defecto → el conteo de facturas vive en la vista
   `v_facturas_resumen` (`supabase-fix-vista-facturas.sql`, security_invoker +
   revoke anon/authenticated; aplicada por management API, MCP en read-only).
-- Regla operativa: tras cada deploy de a2abot, smoke de las 5 rutas
-  (`/ /dashboard /ai-spend /grafo /desarrollo`) — un 200 en la ruta nueva no
+- Regla operativa: tras cada deploy de a2abot, smoke de las 6 rutas
+  (`/ /dashboard /ai-spend /grafo /desarrollo /crm`) — un 200 en la ruta nueva no
   garantiza las viejas (drift de datos/plataforma).
+
+## Post-Fase 2: combo de departamentos + vista CRM operable (2026-07-23, PRs #122–#126)
+
+- **Navbar**: combo "Departamento" global (registrados del Supervisor —
+  `DEPARTAMENTOS_REGISTRADOS` espejo de `supervisor-a2a/reglas/*.toml` — ∪
+  `v_departamentos`); elegir uno filtra /desarrollo. **Submenú por departamento**
+  (2ª fila): adquisición → `Tareas | CRM`; estar en /crm marca adquisición.
+  Tipografía base **20px** (pedido de Elisa; 16→18→20 en dos iteraciones).
+- **Vista /crm**: `EmbudoCanvas` (9 etapas de `leads_etapa_check` EN ORDEN — el
+  orden es conocimiento del dashboard, `ETAPAS_EMBUDO`; etapa desconocida se anexa
+  sin reventar; `perdido` aparte) + `ConversacionesPanel` (estado × nivel A0-A3,
+  empty state honesto sin tenant) + `LeadsTable` con **"Mover a"**.
+- **Única escritura del panel**: server action `moverLeadEtapa` (Zod +
+  `Prefer: return=representation` — 0 filas afectadas = error visible). El acceso
+  sigue siendo 127.0.0.1:9200 + túnel SSH (sin auth, YAGNI una usuaria). Probada
+  e2e en producción con browser real (smoke movió un lead de smoke y lo regresó).
+- **Patrón de testing**: componentes puros sin hooks (navegación con
+  window.location, selección vía wrapper useSearchParams+usePathname en Suspense)
+  → renderizables por el walker JSX de los tests sin navegador (22 tests).
+- **Vistas SQL de agregados** (PGRST123: PostgREST de Supabase con agregados
+  deshabilitados): `v_departamentos`, `v_embudo_leads`,
+  `v_crm_conversaciones_resumen` (+ `v_facturas_resumen` del fix); todas
+  `security_invoker` + revoke anon/authenticated; aplicadas por management API
+  (MCP en read-only). Archivos `businessos/supabase-vista*-*.sql`.
+- Gotcha menor: el MCP de Playwright exige Chrome (`/opt/google/chrome`) — para
+  e2e local usar script node con el playwright del repo (patrón smoke de
+  frontend-web2), el chromium de `npx playwright install chromium` sí está.
 
 ## Residuales
 
