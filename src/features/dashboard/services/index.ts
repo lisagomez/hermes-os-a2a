@@ -1,9 +1,10 @@
 import 'server-only'
-import type { AiSpend, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type { AiSpend, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
 import { DEPARTAMENTOS_REGISTRADOS } from '../types'
-import { mockAiSpend, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
+import { mockAiSpend, mockCrm, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
 import {
   realAiSpend,
+  realCrm,
   realDepartamentos,
   realDesarrollo,
   realGrafoVista,
@@ -23,6 +24,7 @@ export interface DataSource {
   pantheon(): Promise<Pantheon>
   desarrollo(departamento?: string): Promise<DesarrolloVista>
   departamentos(): Promise<string[]>
+  crm(): Promise<CrmVista>
 }
 
 const mockSource: DataSource = {
@@ -34,6 +36,7 @@ const mockSource: DataSource = {
   desarrollo: async (departamento) =>
     departamento && departamento !== 'software' ? [] : mockDesarrollo,
   departamentos: async () => [...DEPARTAMENTOS_REGISTRADOS],
+  crm: async () => mockCrm,
 }
 
 const realSource: DataSource = {
@@ -42,6 +45,7 @@ const realSource: DataSource = {
   pantheon: realPantheon,
   desarrollo: realDesarrollo,
   departamentos: realDepartamentos,
+  crm: realCrm,
 }
 
 export function getDataSource(): DataSource {

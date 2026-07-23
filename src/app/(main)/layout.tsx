@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { DepartamentoCombo } from '@/features/dashboard/components/desarrollo/departamento-combo'
+import { DepartamentoSubnav } from '@/features/dashboard/components/nav/departamento-subnav'
 import { dataSourceLabel, getDataSource } from '@/features/dashboard/services'
 
 const vistas = [
@@ -48,6 +49,7 @@ export default async function MainLayout({
             datos: {fuente}
           </span>
         </nav>
+        <DepartamentoSubnav />
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
     </div>
