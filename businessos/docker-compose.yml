@@ -292,6 +292,32 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- TRANSCRIPCION-A2A (puente STT, EG.CRM Hito 3) ----------
+  # Puente determinista de speech-to-text del depto adquisicion: {card, rpc,
+  # /health}, SIN LLM. El audio entra por el volumen adquisicion-audio (los
+  # bytes nunca viajan por JSON-RPC); la transcripcion se persiste en la tabla
+  # `transcripciones` anclada al lead. Motor por STT_ENGINE (default mock;
+  # el motor real es eleccion pendiente de la duena — un valor desconocido
+  # impide el arranque, jamas degrada en silencio).
+  transcripcion-a2a:
+    build: ./transcripcion-a2a
+    container_name: transcripcion-a2a
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4800:4800"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - TRANSCRIPCION_PUBLIC_URL=${TRANSCRIPCION_PUBLIC_URL:-http://transcripcion-a2a:4800}
+      - STT_ENGINE=${STT_ENGINE:-mock}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    volumes:
+      - adquisicion-audio:/audio:ro   # el puente LEE audio; jamas lo escribe
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   crm-canales:
     build: ./crm-canales
     container_name: crm-canales
@@ -553,3 +579,7 @@ volumes:
   # Certificados TLS del edge (ACME): persistir evita re-emitir en cada
   # recreate y pegarle a los rate limits de Let's Encrypt.
   caddy-data:
+  # Audio de entrevistas de descubrimiento (EG.CRM Hito 3): lo deposita un
+  # host-job/humano; transcripcion-a2a lo lee (ro). Privacidad: no sale del
+  # perimetro del volumen.
+  adquisicion-audio:

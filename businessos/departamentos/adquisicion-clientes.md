@@ -163,9 +163,10 @@ hito → skill:
 
 **Estado:** versionadas en el repo, NO desplegadas al volumen de
 Hermes-Negocio (una rutina documentada no es una rutina aplicada: desplegarlas
-antes de que existan sus insumos —motor real de `adquisicion`, puente STT—
-haría confabular al bot). El despliegue al volumen es parte del gate de la
-dueña de §9.
+antes de que existan sus insumos —motor real de `adquisicion`, motor STT
+real— haría confabular al bot). El puente `transcripcion-a2a` y el host-job
+`enviar-salientes.py` ya existen (2026-07-24, ver §9); el despliegue al
+volumen es parte del gate de la dueña de §9.
 
 ---
 
@@ -196,7 +197,8 @@ Cero tokens (MockEngine), igual que el dogfood de software:
 | Negociación A2A externa autónoma | política de límites firmada + auth en la card + revisión legal |
 | Card en internet (0.0.0.0/TLS) | dominio + rate limiting; hoy solo hermes-net + túnel SSH |
 | Cobro (Polar producción) | ya definido en Fase 3 |
-| Puente STT (`adquisicion-transcripcion`) — servicio {card, rpc, /health} | elegir motor STT + construir el servicio (patrón grafo-a2a); el skill ya define el contrato |
+| Envío real por `enviar-salientes.py` | el host-job YA EXISTE (2026-07-24: dry-run por defecto, integridad sha256 + autenticidad contra `aprobaciones_salientes`); gate: aprobación de la dueña + SMTP/dominio/remitente + `ENVIAR_REAL=1` |
+| Motor STT real en `transcripcion-a2a` | el servicio YA EXISTE (2026-07-24: puerto 4800, {card, rpc, /health}, motor mock, 21 tests + interop, compose + volumen `adquisicion-audio`); gate: elegir motor STT real (candidato: faster-whisper) + aplicar `supabase-egcrm-herramientas.sql` + deploy |
 | Skills EG.CRM activas en el volumen de Hermes-Negocio (§7.1) | motor real `adquisicion` + sync explícito repo→volumen |
 
 ---
