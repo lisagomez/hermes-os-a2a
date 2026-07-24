@@ -15,8 +15,11 @@ import pytest
 
 BUSINESSOS = Path(__file__).resolve().parent.parent
 SCRIPT = BUSINESSOS / "personalizar-deck.py"
-PLANTILLA = (BUSINESSOS / "departamentos" / "adquisicion" / "plantillas"
-             / "pitch-deck-whitelabel.html")
+PLANTILLAS_DIR = BUSINESSOS / "departamentos" / "adquisicion" / "plantillas"
+PLANTILLA = PLANTILLAS_DIR / "pitch-deck-whitelabel.html"
+# Todas las plantillas de deck del departamento: los checks compartidos
+# (marcadores, claims aprobados) valen para CUALQUIER variante de vertical.
+TODAS_LAS_PLANTILLAS = sorted(PLANTILLAS_DIR.glob("pitch-deck-*.html"))
 
 spec = importlib.util.spec_from_file_location("personalizar_deck", SCRIPT)
 mod = importlib.util.module_from_spec(spec)
@@ -74,10 +77,16 @@ def test_color_invalido_no_emite():
         mod.personalizar(PLANTILLA.read_text(encoding="utf-8"), cfg)
 
 
-def test_claims_de_la_plantilla_son_los_aprobados():
-    """Los CLAIM del deck existen TEXTUALES en claims-aprobados.txt (gate)."""
+@pytest.mark.parametrize("plantilla", TODAS_LAS_PLANTILLAS,
+                         ids=lambda p: p.stem)
+def test_claims_de_la_plantilla_son_los_aprobados(plantilla):
+    """Los CLAIM de CADA deck existen TEXTUALES en claims-aprobados.txt (gate).
+
+    Vale para toda variante de vertical: una plantilla nueva no puede colar un
+    claim sin aprobar solo por vivir en otro archivo (mismo contrato que el
+    gate `claims_aprobados` del Supervisor)."""
     import re
-    html = PLANTILLA.read_text(encoding="utf-8")
+    html = plantilla.read_text(encoding="utf-8")
     aprobados = {
         l.strip() for l in
         (BUSINESSOS / "departamentos" / "adquisicion" / "claims-aprobados.txt")
@@ -85,6 +94,21 @@ def test_claims_de_la_plantilla_son_los_aprobados():
         if l.strip() and not l.lstrip().startswith("#")
     }
     claims = re.findall(r'<p class="claim"[^>]*>([^<]+)', html)
-    assert claims, "el deck perdio sus claims"
+    assert claims, f"{plantilla.name} perdio sus claims"
     for c in claims:
-        assert c.strip() in aprobados, f"claim NO aprobado en el deck: {c.strip()!r}"
+        assert c.strip() in aprobados, \
+            f"claim NO aprobado en {plantilla.name}: {c.strip()!r}"
+
+
+@pytest.mark.parametrize("plantilla", TODAS_LAS_PLANTILLAS,
+                         ids=lambda p: p.stem)
+def test_toda_plantilla_es_personalizable(plantilla):
+    """Cada plantilla del repo tiene marcadores vivos + UN bloque BRAND, y se
+    personaliza sin dejar ningun marcador."""
+    raw = plantilla.read_text(encoding="utf-8")
+    assert raw.count("BRAND:START") == 1 and raw.count("BRAND:END") == 1
+    for m in mod.MARCADORES:
+        assert m in raw, f"{plantilla.name} perdio el marcador {m}"
+    html = mod.personalizar(raw, CONFIG_OK)
+    for m in mod.MARCADORES:
+        assert m not in html, f"{plantilla.name}: marcador {m} sobrevivio"
