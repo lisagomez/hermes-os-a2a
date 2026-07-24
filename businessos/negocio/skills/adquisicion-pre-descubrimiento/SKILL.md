@@ -34,8 +34,10 @@ De la ficha del lead: nombre del prospecto, **empresa** (mínimo), **WAB**, **we
 
 1. **Reúne fuentes públicas.** Con URLs, parte de ahí; sin URLs, localiza por **empresa + WAB** (nombre comercial, directorios, redes públicas). Solo información pública.
 2. **Extrae señales** de a qué se dedica: productos/servicios, sector, tamaño aparente, público, propuesta de valor, presencia digital.
-3. **Infiere dolores**, marcando cada uno como **`observado`** (hay evidencia) o **`hipótesis`** (inferencia). Esta distinción es la regla de oro del proyecto aplicada aquí: *señala, no afirma sin fuente*.
-4. **Propón puntos de abordaje**: ángulos concretos ligados a dolores, listos para abrir conversación.
+3. **Infiere dolores por tipo.** Clasifica cada dolor en una de cuatro cubetas —**operativo**, **documental**, **regulatorio/compliance**, **comercial/estratégico**— y marca cada uno **`observado`** (hay evidencia) o **`hipótesis`** (inferencia). Esta distinción es la regla de oro del proyecto aplicada aquí: *señala, no afirma sin fuente*. Las cubetas alimentan aguas abajo: la **regulatoria** se confirma después contra `grafo-a2a`; la **comercial** entra al diagnóstico de factibilidad. *No rellenes una cubeta sin señal.*
+4. **Mapea el comité comprador.** Anticipa stakeholders (**champion, comprador económico, sponsor, influenciador**; p. ej. CFO, operaciones, IT/legal, dirección): qué le importa a cada uno y su probable objeción. La decisión B2B es una red, no un solo interlocutor. Cada rol va marcado `observado`|`hipótesis`.
+5. **Lee readiness/urgencia.** En una línea: ¿hay señales de urgencia, un disparador reciente, presupuesto aparente o un sponsor interno? Marca `observado`|`hipótesis`. Es la semilla temprana del gate `Factible`+`Prioritario` del diagnóstico.
+6. **Propón puntos de abordaje**: ángulos concretos ligados a dolores, listos para abrir conversación.
 
 ## Salida — Ficha de Inteligencia (formato fijo)
 
@@ -47,8 +49,22 @@ Fuentes consultadas: [URLs / búsquedas]  ← obligatorio; sin fuentes no se ent
 ## Giro / Tema
 [2-4 líneas]
 
-## Dolores detectados
+## Dolores detectados (por tipo)
+### Operativos
 - [Dolor] — (observado | hipótesis) — [evidencia o razonamiento]
+### Documentales
+- [Dolor] — (observado | hipótesis) — [evidencia o razonamiento]
+### Regulatorios / compliance
+- [Dolor] — (observado | hipótesis) — [evidencia o razonamiento]  ← lo fiscal/contable/contractual se confirma después contra grafo-a2a
+### Comerciales / estratégicos
+- [Dolor] — (observado | hipótesis) — [evidencia o razonamiento]
+> Omite una cubeta entera si no hay señal; no la rellenes por rellenar.
+
+## Comité comprador (hipótesis a validar en la llamada)
+- [Rol / cargo] — le importa [X] — posible objeción [Y] — (observado | hipótesis)
+
+## Readiness / urgencia
+[1 línea: urgencia · disparador reciente · presupuesto aparente · sponsor] — (observado | hipótesis)
 
 ## Puntos de abordaje
 - [Ángulo ligado a un dolor]
@@ -74,7 +90,7 @@ Fuentes consultadas: [URLs / búsquedas]  ← obligatorio; sin fuentes no se ent
 
 ## Integración
 
-Su salida alimenta a `adquisicion-entrevista-dinamica` (Hito 3), que adapta la guía de preguntas a partir de esta ficha.
+Su salida alimenta a `adquisicion-entrevista-dinamica` (Hito 3), que adapta la guía de preguntas a partir de esta ficha. Las cubetas de dolor, el comité comprador y la línea de readiness/urgencia también preparan el terreno de `adquisicion-diagnostico-factibilidad`: la cubeta **regulatoria** se lleva al `grafo-a2a` con fuente citada, y el readiness siembra el gate `Factible`+`Prioritario`.
 
 ---
 *Método basado en "Guía de supervivencia para vender con IA" (diio.com), CC BY-SA 4.0.*
