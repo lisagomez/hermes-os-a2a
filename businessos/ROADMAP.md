@@ -564,6 +564,14 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   mienta. Smoke end-to-end por la URL pública: lead → `TASK_STATE_COMPLETED`,
   `persistido=true`, fila real en `leads` de prod. Con dominio real: cambiar
   `edge/Caddyfile` + `VENTAS_PUBLIC_URL` y recrear.
+- [x] **Paquete de competencias EG.CRM (2026-07-24)**: 7 skills del pipeline
+  comercial (método diio) versionadas en `negocio/skills/adquisicion-*/` —
+  pre-descubrimiento, entrevista dinámica, transcripción (puente STT por
+  construir), diagnóstico de factibilidad, coaching del asesor, análisis
+  profundo y paquete comercial. Mapa hito→skill en
+  `departamentos/adquisicion-clientes.md` §7.1. Versionadas ≠ desplegadas: NO
+  van al volumen de Hermes-Negocio hasta el gate del motor real (evitar que el
+  bot prometa capacidades que no existen).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
   de autenticidad de aprobación); negociación A2A externa autónoma (política

@@ -142,6 +142,27 @@ Config: `supervisor-a2a/reglas/adquisicion.toml` (el Supervisor carga TODOS los
 - **El grafo** (dimensión `contractual`) — validación de cláusulas con fuente.
 - **RAG por ámbito del prospecto** — FUTURO (mismo pendiente que software).
 
+### 7.1 Paquete de competencias EG.CRM (7 skills, `negocio/skills/adquisicion-*/`)
+
+Los Activos Digitales del pipeline comercial (método diio, CC BY-SA 4.0),
+versionados en el repo como fuente de verdad. Mapa hito → skill:
+
+| Hito EG.CRM | Skill | Activo Digital |
+|-------------|-------|----------------|
+| 2 — se agenda la 1ª llamada | `adquisicion-pre-descubrimiento` | Ficha de Inteligencia (fuentes públicas, `observado`/`hipótesis`) |
+| 3 — descubrimiento | `adquisicion-entrevista-dinamica` | Guía de entrevista personalizada desde la ficha |
+| 3 — descubrimiento | `adquisicion-transcripcion` | Transcripción STT diarizada (puente determinista, cero LLM) |
+| 3 — post-entrevista | `adquisicion-diagnostico-factibilidad` | Evaluación de Factibilidad (FODA, regulatorio vía grafo) |
+| 3 — post-entrevista (interno) | `adquisicion-coaching-asesor` | Coaching del asesor (rúbrica 7 dimensiones; nunca al cliente) |
+| 5 — tras consenso Factible+Prioritario (Hito 4 = votación humana) | `adquisicion-analisis-profundo` | Informe de Análisis (costo-beneficio, contingencias) |
+| 6 — propuesta | `adquisicion-paquete-comercial` | Propuesta + Cotización + Contrato DNA (envío = gate humano) |
+
+**Estado:** versionadas en el repo, NO desplegadas al volumen de
+Hermes-Negocio (una rutina documentada no es una rutina aplicada: desplegarlas
+antes de que existan sus insumos —motor real de `adquisicion`, puente STT—
+haría confabular al bot). El despliegue al volumen es parte del gate de la
+dueña de §9.
+
 ---
 
 ## 8. Recorrido de escritorio (dogfood): "propuesta para el lead ACME"
@@ -171,6 +192,8 @@ Cero tokens (MockEngine), igual que el dogfood de software:
 | Negociación A2A externa autónoma | política de límites firmada + auth en la card + revisión legal |
 | Card en internet (0.0.0.0/TLS) | dominio + rate limiting; hoy solo hermes-net + túnel SSH |
 | Cobro (Polar producción) | ya definido en Fase 3 |
+| Puente STT (`adquisicion-transcripcion`) — servicio {card, rpc, /health} | elegir motor STT + construir el servicio (patrón grafo-a2a); el skill ya define el contrato |
+| Skills EG.CRM activas en el volumen de Hermes-Negocio (§7.1) | motor real `adquisicion` + sync explícito repo→volumen |
 
 ---
 
