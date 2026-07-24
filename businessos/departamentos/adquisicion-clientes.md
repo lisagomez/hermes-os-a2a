@@ -145,7 +145,11 @@ Config: `supervisor-a2a/reglas/adquisicion.toml` (el Supervisor carga TODOS los
 ### 7.1 Paquete de competencias EG.CRM (7 skills, `negocio/skills/adquisicion-*/`)
 
 Los Activos Digitales del pipeline comercial (método diio, CC BY-SA 4.0),
-versionados en el repo como fuente de verdad. Mapa hito → skill:
+versionados en el repo como fuente de verdad. El documento madre del pipeline
+(7 hitos, canales de captación, panel de habilitación, modelo de datos y KPIs
+por canal) es `crm/egcrm-pipeline-propuesta.md` (v1.0, borrador para revisión
+de la dueña — sus puntos `(sugerido)` siguen abiertos en su §9). Mapa
+hito → skill:
 
 | Hito EG.CRM | Skill | Activo Digital |
 |-------------|-------|----------------|

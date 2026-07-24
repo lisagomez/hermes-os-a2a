@@ -569,7 +569,9 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   pre-descubrimiento, entrevista dinámica, transcripción (puente STT por
   construir), diagnóstico de factibilidad, coaching del asesor, análisis
   profundo y paquete comercial. Mapa hito→skill en
-  `departamentos/adquisicion-clientes.md` §7.1. Versionadas ≠ desplegadas: NO
+  `departamentos/adquisicion-clientes.md` §7.1; documento madre del pipeline
+  (7 hitos + captación multicanal + KPIs por canal, v1.0 borrador) en
+  `crm/egcrm-pipeline-propuesta.md`. Versionadas ≠ desplegadas: NO
   van al volumen de Hermes-Negocio hasta el gate del motor real (evitar que el
   bot prometa capacidades que no existen).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
