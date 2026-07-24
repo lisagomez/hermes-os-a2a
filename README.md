@@ -21,7 +21,7 @@ cerebro regulatorio multi-país y un dashboard encima.
 
 ```
                     ┌─────────────────────────────┐
-                    │   Mission Control (A2ABot)  │   ← dashboard, túnel SSH
+                    │   Mission Control (A2ABot)  │   ← dashboard: túnel SSH + Vercel (auth)
                     └──────────────┬──────────────┘
                                    │
         ┌──────────────────────────┼──────────────────────────┐

@@ -1049,4 +1049,24 @@ npm run lint         # ESLint
   en general, todo prompt cuya salida deba encajar en un esquema existente — anclarlo al esquema
   real, no dejar que invente uno plausible.
 
+### 2026-07-24: Exponer en público una superficie con `service_role` EXIGE auth+allowlist ANTES
+- **Contexto**: Mission Control (a2abot) se abrió a los compañeros vía Vercel. El panel renderiza
+  TODO el negocio (revenue, facturas, contratos, cobros, leads, gasto IA) con
+  `SUPABASE_SERVICE_ROLE_KEY` server-side. Vivía "protegido" solo por ser `127.0.0.1` + túnel SSH.
+- **Regla**: el `service_role` **nunca** protege por sí mismo — bypassa RLS por diseño. Mover una
+  superficie así de localhost a una URL pública sin auth = filtrar el negocio entero. La auth no
+  es una feature opcional del deploy: es el **prerequisito** del deploy. Patrón aplicado: magic
+  link passwordless + **allowlist fail-closed** (`PANEL_ALLOWED_EMAILS`, vacío = nadie entra) en
+  `middleware.ts`; el envío del OTP se gatea en el SERVIDOR antes de tocar Supabase (sin
+  email-bombing de arbitrarios ni oráculo de enumeración: respuesta siempre genérica).
+- **Gotchas**: (1) el PWA/service worker de un panel con datos sensibles debe ser conservador —
+  **NUNCA** cachear navegaciones/HTML ni respuestas de Supabase (serviría página obsoleta o
+  saltaría el redirect de login); cachear solo `/_next/static` e iconos. (2) Si el mismo código
+  corre además en Docker (Hetzner), el middleware aplica **también** ahí al reconstruir la imagen
+  → poner las vars de auth en su `.env` o el túnel queda en `/login` sin poder entrar. (3) Next
+  16.2: `middleware` está deprecado a favor de `proxy` (solo warning; sigue funcionando).
+- **Aplicar en**: cualquier dashboard/superficie que use service_role o datos de negocio y se
+  quiera exponer fuera de localhost. Detalle: `businessos/DEPLOY-mission-control.md` +
+  `.claude/memory/project/fase4-dashboard.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
