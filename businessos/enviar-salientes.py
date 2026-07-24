@@ -28,6 +28,7 @@ Reglas no negociables:
 from __future__ import annotations
 
 import argparse
+import email.utils
 import hashlib
 import json
 import os
@@ -109,12 +110,14 @@ def enviar_smtp(destinatario: str, asunto: str, cuerpo: str) -> str:
     remitente = os.environ.get("SMTP_FROM", user)
     msg = EmailMessage()
     msg["From"], msg["To"], msg["Subject"] = remitente, destinatario, asunto
+    # Message-Id propio: smtplib no lo genera; sin esto mensaje_id seria ficcion.
+    msg["Message-Id"] = email.utils.make_msgid()
     msg.set_content(cuerpo)
     with smtplib.SMTP(host, port, timeout=30) as s:
         s.starttls()
         s.login(user, os.environ["SMTP_PASS"])
         s.send_message(msg)
-    return msg["Message-Id"] or f"enviado-a-{destinatario}"
+    return msg["Message-Id"]
 
 
 def main() -> int:
@@ -174,7 +177,19 @@ def main() -> int:
             log(f"FALLO {rel} → {destinatario}: {type(exc).__name__}: {exc}")
             saltados += 1
             continue
-        sb.marcar_enviado(fila["id"], mensaje_id)
+        try:
+            sb.marcar_enviado(fila["id"], mensaje_id)
+        except Exception as exc:
+            # El correo YA salio: si esto muriera sin marcar, la siguiente
+            # corrida RE-ENVIARIA al cliente. Se ABORTA la corrida (no se
+            # procesa nada mas) y se exige el marcado manual — jamas doble envio.
+            log(f"CRITICO {rel}: enviado ({mensaje_id}) pero NO marcado en "
+                f"aprobaciones_salientes (fila {fila['id']}): "
+                f"{type(exc).__name__}: {exc}")
+            log(f"CRITICO: marcar A MANO antes de re-correr: PATCH "
+                f"aprobaciones_salientes id=eq.{fila['id']} "
+                f"{{enviado_at: now(), mensaje_id: {mensaje_id!r}}}")
+            return 1
         log(f"ENVIADO {rel} → {destinatario} ({mensaje_id})")
         enviados += 1
 
