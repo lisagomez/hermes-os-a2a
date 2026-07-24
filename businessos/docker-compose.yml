@@ -383,6 +383,10 @@ services:
       # (este contenedor aislado solo ve SUS mounts — mismo criterio que el
       # safe.directory '*' de la imagen).
       - IS_SANDBOX=1
+      # En la imagen los .py van aplanados a /app → el default de fabric_engine
+      # (parent.parent/fabrica-sc = /fabrica-sc) NO existe; el COPY la deja en
+      # /app/fabrica-sc. Sin esto el ejecutor entra en crash-loop al arrancar.
+      - FABRICA_SC_DIR=/app/fabrica-sc
       - EJECUTOR_PUBLIC_URL=http://ejecutor-a2a:4100
       - SUPERVISOR_URL=http://supervisor-a2a:4200
       - TRIO_REPO=/repo
