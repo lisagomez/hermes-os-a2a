@@ -1006,4 +1006,24 @@ npm run lint         # ESLint
   schema Zod sobre tablas donde escriben actores que se multiplican (verticales,
   departamentos, modelos), y toda query PostgREST con agregados.
 
+### 2026-07-23: "Integrado y verificado en dev" ≠ imagen desplegable (1er rebuild real del Ejecutor)
+- **Error(es)**: al encolar la 1ª tarea del depto Procesos hubo que reconstruir el Ejecutor
+  (imagen 4 días vieja → su `contrato.py` no conocía `procesos`: habría rechazado la tarea) y
+  el rebuild destapó DOS minas de Fase 12 que llevaban días latentes: (1) el default de
+  `fabric_engine` (`parent.parent / "fabrica-sc"`) funciona en dev pero en la imagen APLANADA
+  (`/app/*.py`) resuelve a `/fabrica-sc` inexistente → crash-loop; (2) **`COPY` multi-fuente
+  con directorios APLANA su contenido** (semántica documentada de Docker: `COPY a dir1 dir2
+  dest/` copia el *contenido* de dir1/dir2, no los directorios) → `engine/fabrica.py` no
+  existía en la imagen. Los 281 tests verdes de dev no ven NADA de esto (corren del directorio
+  fuente — hermano del gotcha 2026-07-10).
+- **Fix**: `FABRICA_SC_DIR=/app/fabrica-sc` en compose (PR #131) + una línea de COPY por
+  directorio (PR #132) + `openpyxl` que el motor necesita para el xlsx de Procesos (PR #130).
+  Reglas nuevas: (a) el gate de terminado de un servicio dockerizado incluye **build de la
+  imagen + arranque real**, no solo pytest; (b) antes de encolar una tarea de un departamento
+  nuevo, verificar qué contrato corre la imagen VIVA
+  (`docker exec <c> python -c "import contrato; print(contrato.DEPARTAMENTOS)"`); (c) señal:
+  primera reconstrucción tras N días = esperar minas de todo lo integrado en medio.
+- **Aplicar en**: los 6 servicios A2A con COPY explícito y todo path-default resuelto con
+  `Path(__file__).parent...` que deba sobrevivir al aplanado de la imagen.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

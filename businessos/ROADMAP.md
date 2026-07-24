@@ -666,7 +666,7 @@ del PRP resueltas por la dueña (2026-07-19).
 
 ---
 
-## Departamento de Procesos (alta 2026-07-23) ✅ VIVO en runtime (desplegado 2026-07-23); primera corrida real = gate de la dueña
+## Departamento de Procesos (alta 2026-07-23) ✅ OPERATIVO — primera corrida real APROBADA (2026-07-23, proceso propio)
 
 Cuarto departamento del trío ("se configura, no se programa", patrón Fase 9).
 SPEC: `departamentos/procesos.md`. No entrega software ni ventas: **diagnostica
@@ -703,8 +703,21 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
   copiado al volumen de negocio (`/opt/data/skills/procesos`, uid 10000, era
   copia nueva — no había nada que diffear) + restart de `hermes-negocio`
   (`TERMINAL_ENV=local` verificado tras el restart, gotcha 2026-07-11).
-- [ ] **Gates de la dueña**: primera corrida real (proceso propio antes de
-  cliente), y runner de modelo para `revision_metodologica`/`tono_de_marca`.
+- [x] **Primera corrida real (2026-07-23, ordenada por la dueña)**:
+  `procesos-2026-0001` — diagnóstico del proceso propio "sincronización
+  repo→runtime" (el deploy manual que ese mismo día mordió 3 veces). Encolada
+  por A2A (cola Fase 10), motor GLM-5.2, **APROBADA al 1er intento: 12/12
+  gates verdes**; paquete to-be completo en el worktree (diagnostico.yaml,
+  reporte.md honesto — el ROI laboral NO justifica solo, el argumento es
+  fiabilidad del último kilómetro—, presupuesto MXN/USD, build-spec de 5
+  automatizaciones con gate humano). Gasto: 122k in / 38k out, $3.03 nominal
+  (tarifa Anthropic; real z.ai ~1/6) de tope $5. Prerrequisito descubierto:
+  rebuild del EJECUTOR (imagen pre-#128 sin `procesos` en el contrato) que
+  destapó 2 minas de Fase 12 (PRs #130/#131/#132 — ver aprendizaje 2026-07-23
+  en CLAUDE.md). **La build-spec NO se dispara sola**: encolar sus 5 ítems a
+  Software espera la aprobación de Elisa.
+- [ ] **Gate de la dueña restante**: runner de modelo para
+  `revision_metodologica`/`tono_de_marca` (siguen INACTIVOS por diseño).
 - **Sin servicio A2A nuevo ni puerto público**: Procesos es interno, corre por
   el trío existente.
 
