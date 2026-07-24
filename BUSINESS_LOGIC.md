@@ -141,7 +141,10 @@ businessos/
 - **Conexión entre agentes:** protocolo A2A (`grafo-a2a` vivo desde Fase 5; SDK `a2a-sdk` 1.1.0)
 
 ### Decisiones de infra ya tomadas (Fase 0)
-- Acceso al dashboard SOLO por túnel SSH (sin Caddy/puertos públicos).
+- Acceso al dashboard: en Docker (Hetzner) por túnel SSH; y desde 2026-07-24 (PR #143)
+  exponible en Vercel para el equipo, con auth obligatoria (magic link + allowlist
+  fail-closed `PANEL_ALLOWED_EMAILS`). El `service_role` no protege por sí solo → la
+  allowlist es el candado. Runbook: `businessos/DEPLOY-mission-control.md`.
 - Rutas de volumen con `${HOME}` (Compose no expande `~`).
 - SSH endurecido (lockdown root/password tras verificar llave), swap 2 GB,
   fail2ban, unattended-upgrades. Ojo: Docker se salta UFW.

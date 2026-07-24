@@ -213,6 +213,16 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
     (`v_crm_conversaciones_resumen`) y tabla de **leads con "Mover a"** — única
     escritura del panel (server action + Zod + fila-afectada verificada; e2e real
     probado en producción). Tipografía base 20px (pedido de la dueña).
+- [x] **Post-fase (2026-07-24, PR #143) — auth + PWA + listo para Vercel**: el panel se
+  abre a los compañeros. Como renderiza todo el negocio con `service_role`, la auth es
+  prerequisito (no opcional): **magic link passwordless + allowlist fail-closed**
+  (`PANEL_ALLOWED_EMAILS`) en `middleware.ts`; OTP gateado en el servidor (sin
+  email-bombing ni oráculo de enumeración). **PWA instalable** (manifest + service worker
+  conservador que nunca cachea HTML/Supabase + iconos radar). App en la raíz → Root
+  Directory `.` + `.vercelignore`. Runbook en `businessos/DEPLOY-mission-control.md`.
+  Build/typecheck/lint verdes + smoke de runtime. El `vercel deploy` lo hace la dueña
+  (elección "solo déjalo listo"). Convive con el a2abot Docker (túnel SSH) — el middleware
+  también aplicará ahí al reconstruir la imagen (poner vars de auth en su `.env`).
   - **Dos 500 preexistentes cazados y corregidos** al verificar el deploy: enum Zod
     vs `vertical='trio'` en `/ai-spend`, y agregado inline PostgREST (PGRST123) en
     `/grafo` → vista `v_facturas_resumen`. Ver aprendizaje CLAUDE.md 2026-07-23.
