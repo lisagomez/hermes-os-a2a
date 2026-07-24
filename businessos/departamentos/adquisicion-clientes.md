@@ -156,7 +156,7 @@ Config: `supervisor-a2a/reglas/adquisicion.toml` (el Supervisor carga TODOS los
 - **El grafo** (dimensión `contractual`) — validación de cláusulas con fuente.
 - **RAG por ámbito del prospecto** — FUTURO (mismo pendiente que software).
 
-### 7.1 Paquete de competencias EG.CRM (7 skills, `negocio/skills/adquisicion-*/`)
+### 7.1 Paquete de competencias EG.CRM (7 skills de pipeline + 1 herramienta off-pipeline, `negocio/skills/adquisicion-*/`)
 
 Los Activos Digitales del pipeline comercial (método diio, CC BY-SA 4.0),
 versionados en el repo como fuente de verdad. El documento madre del pipeline
@@ -167,13 +167,21 @@ hito → skill:
 
 | Hito EG.CRM | Skill | Activo Digital |
 |-------------|-------|----------------|
-| 2 — se agenda la 1ª llamada | `adquisicion-pre-descubrimiento` | Ficha de Inteligencia (fuentes públicas, `observado`/`hipótesis`) |
+| 2 — se agenda la 1ª llamada | `adquisicion-pre-descubrimiento` | Ficha de Inteligencia (fuentes públicas, `observado`/`hipótesis`; dolores en 4 cubetas —operativo/documental/regulatorio/comercial—, comité comprador y readiness/urgencia) |
 | 3 — descubrimiento | `adquisicion-entrevista-dinamica` | Guía de entrevista personalizada desde la ficha |
 | 3 — descubrimiento | `adquisicion-transcripcion` | Transcripción STT diarizada (puente determinista, cero LLM) |
 | 3 — post-entrevista | `adquisicion-diagnostico-factibilidad` | Evaluación de Factibilidad (FODA, regulatorio vía grafo) |
 | 3 — post-entrevista (interno) | `adquisicion-coaching-asesor` | Coaching del asesor (rúbrica 7 dimensiones; nunca al cliente) |
 | 5 — tras consenso Factible+Prioritario (Hito 4 = votación humana) | `adquisicion-analisis-profundo` | Informe de Análisis (costo-beneficio, contingencias) |
 | 6 — propuesta | `adquisicion-paquete-comercial` | Propuesta + Cotización + Contrato DNA (envío = gate humano) |
+
+**Herramienta off-pipeline** (no es un hito del funnel): `adquisicion-persona-sintetica`
+genera buyer personas **ficticias** de alta fidelidad para **probar/calibrar el CRM**
+(ICP, scoring, entrevista, retro en vivo) y **role-play de coaching**. Es el inverso del
+pre-descubrimiento (aquí SÍ se inventa, marcado como sintético) y tiene **frontera dura de
+datos: NO escribe en `leads`** (un escritor por origen). Reutiliza las 4 cubetas de dolor del
+pipeline para que el dataset de prueba encaje. Incluye el ejemplo trabajado
+`ejemplos/freight-forwarder-gal.md` (vertical logístico, contexto GAL + regulatorio e-AWB).
 
 **Estado:** versionadas en el repo, NO desplegadas al volumen de
 Hermes-Negocio (una rutina documentada no es una rutina aplicada: desplegarlas
