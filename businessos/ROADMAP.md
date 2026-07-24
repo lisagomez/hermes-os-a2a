@@ -666,7 +666,7 @@ del PRP resueltas por la dueña (2026-07-19).
 
 ---
 
-## Departamento de Procesos (alta 2026-07-23) ✅ instalado y verificado en dev; despliegue a runtime pendiente
+## Departamento de Procesos (alta 2026-07-23) ✅ VIVO en runtime (desplegado 2026-07-23); primera corrida real = gate de la dueña
 
 Cuarto departamento del trío ("se configura, no se programa", patrón Fase 9).
 SPEC: `departamentos/procesos.md`. No entrega software ni ventas: **diagnostica
@@ -697,9 +697,12 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
   MOTOR real del Supervisor (`cargar_configs` + `correr_gates` sobre el TOML
   real); suites en verde: supervisor 107 (31 nuevos), contrato 45, ejecutor 63,
   coordinador 58, presupuesto 9.
-- [ ] **Runtime (siguiente deploy)**: rebuild `supervisor-a2a` en Hetzner (el
-  COPY + requirements nuevos) y sync del skill al volumen de negocio (los `.md`
-  del repo son fuente, no despliegue — aprendizaje 2026-07-12).
+- [x] **Runtime (2026-07-23)**: `git pull` a efa1e2d + rebuild `supervisor-a2a`
+  en Hetzner (healthy, import de `chequeos_procesos` + `procesos.toml` en la
+  imagen verificados; el arranque limpio valida los gates activos) + skill
+  copiado al volumen de negocio (`/opt/data/skills/procesos`, uid 10000, era
+  copia nueva — no había nada que diffear) + restart de `hermes-negocio`
+  (`TERMINAL_ENV=local` verificado tras el restart, gotcha 2026-07-11).
 - [ ] **Gates de la dueña**: primera corrida real (proceso propio antes de
   cliente), y runner de modelo para `revision_metodologica`/`tono_de_marca`.
 - **Sin servicio A2A nuevo ni puerto público**: Procesos es interno, corre por
