@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[CLIENTE] · Agentic Insurtech</title>
+<!--
+  pitch-deck-insurtech.html — variante del pitch deck white-label para el
+  VERTICAL SEGUROS (EG.CRM Hito 6). Misma mecánica que pitch-deck-whitelabel.html:
+    - Colores: bloque BRAND del CSS (delimitado START..END; lo reescribe
+      businessos/personalizar-deck.py). Default: azul-confianza / dorado-Florida.
+    - Textos: marcadores [CLIENTE] [LOGO] [ASESOR] [CONTACTO] [FECHA].
+  Encuadre: dos frentes agénticos — A2C (atención al asegurado, lenguaje de
+  crm/propuesta-crm-comercial.md) + B2A (departamento de software white-label).
+  Los CLAIM son TEXTUALES de adquisicion/claims-aprobados.txt (test lo fija).
+  BARRERA REGULATORIA (slide 6, no negociable): cero actos con licencia en
+  automático — asesoría/vinculación/ajuste de siniestros los hace un humano
+  licenciado; la capa agéntica hace intake/triage/FAQ/ruteo bajo supervisión.
+  El cumplimiento de Florida lo valida el equipo licenciado del cliente.
+  Personalizar con:
+    python3 businessos/personalizar-deck.py --config cliente.json \
+      --out deck.html --plantilla businessos/departamentos/adquisicion/plantillas/pitch-deck-insurtech.html
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* BRAND:START — personalizado por personalizar-deck.py */
+  :root{
+    --brand-1:#3E7BFA;
+    --brand-2:#F2B33D;
+    --brand-on:#08122A;
+    --bg:#080B16;
+  }
+  /* BRAND:END */
+  :root{
+    --surface-1:color-mix(in srgb,var(--bg) 95%,white);
+    --surface-2:color-mix(in srgb,var(--bg) 92%,white);
+    --surface-3:color-mix(in srgb,var(--bg) 88%,white);
+    --border-1:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.13);
+    --text-1:#EAF0FB; --text-2:#AEB9D2; --text-3:#8590AC; --text-dim:#69728C;
+    --success:#31C77E; --alert:#F2B33D;
+    --grad-brand:linear-gradient(120deg,var(--brand-1),var(--brand-2));
+    --font-display:'Space Grotesk',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    --radius-m:12px; --radius-l:16px; --radius-xl:22px; --radius-pill:999px;
+    --shadow-card:0 24px 60px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text-2);font-family:var(--font-display);
+       font-size:15px;line-height:1.6}
+  .slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;
+         justify-content:center;padding:64px clamp(24px,7vw,110px);position:relative;
+         overflow:hidden}
+  .slide+.slide{border-top:1px solid var(--border-1)}
+  .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;
+          text-transform:uppercase;color:var(--text-3);margin-bottom:18px}
+  .kicker b{color:var(--brand-1);font-weight:500}
+  h1,h2{color:var(--text-1);line-height:1.08;font-weight:700;text-wrap:balance}
+  h1{font-size:clamp(34px,5.2vw,58px)}
+  h2{font-size:clamp(26px,3.4vw,36px);margin-bottom:22px}
+  .grad{background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;
+        color:transparent}
+  .lead{font-size:clamp(15px,1.5vw,18px);max-width:640px;color:var(--text-2)}
+  .mono{font-family:var(--font-mono)}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-2);
+        border-radius:var(--radius-pill);padding:7px 16px;font-family:var(--font-mono);
+        font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2)}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--grad-brand)}
+  .grid{display:grid;gap:16px}
+  .cards-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:34px}
+  .cards-3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:34px}
+  .card{background:var(--surface-1);border:1px solid var(--border-1);
+        border-radius:var(--radius-l);padding:26px 24px;box-shadow:var(--shadow-card)}
+  .card.big{padding:32px 30px}
+  .card .glyph{font-size:20px;color:var(--brand-1);margin-bottom:12px}
+  .card h3{color:var(--text-1);font-size:17px;margin-bottom:8px}
+  .card.big h3{font-size:21px}
+  .card p{font-size:13.5px;color:var(--text-3)}
+  .card .tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;
+             color:var(--text-dim);text-transform:uppercase;display:block;margin-top:14px}
+  .card ul{list-style:none;margin-top:14px}
+  .card ul li{display:flex;gap:9px;font-size:13.5px;color:var(--text-2);padding:5px 0}
+  .card ul li::before{content:"▸";color:var(--brand-1);font-family:var(--font-mono)}
+  .claim{border-left:2px solid transparent;border-image:var(--grad-brand) 1;
+         padding:10px 18px;margin:10px 0;background:var(--surface-1);
+         color:var(--text-1);font-size:15.5px;max-width:720px}
+  .claim small{display:block;font-family:var(--font-mono);font-size:10px;
+               letter-spacing:.16em;color:var(--text-dim);margin-top:4px}
+  .statbar{margin:14px 0;max-width:560px}
+  .statbar .lbl{display:flex;justify-content:space-between;font-family:var(--font-mono);
+                font-size:11px;letter-spacing:.12em;color:var(--text-3);margin-bottom:6px}
+  .statbar .bar{height:8px;border-radius:var(--radius-pill);background:var(--surface-3);
+                overflow:hidden}
+  .statbar .fill{height:100%;border-radius:var(--radius-pill);background:var(--grad-brand)}
+  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:30px;
+        font-family:var(--font-mono);font-size:12.5px}
+  .flow .node{border:1px solid var(--border-2);border-radius:var(--radius-m);
+              padding:12px 16px;background:var(--surface-2);color:var(--text-1)}
+  .flow .node em{display:block;font-style:normal;font-size:10px;letter-spacing:.14em;
+                 color:var(--text-dim);text-transform:uppercase;margin-top:4px}
+  .flow .arrow{color:var(--brand-1)}
+  .flow .human{border-color:var(--brand-2);color:var(--brand-2)}
+  .checks{list-style:none;margin-top:24px;max-width:680px}
+  .checks li{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border-1);
+             color:var(--text-2)}
+  .checks li::before{content:"✓";color:var(--success);font-family:var(--font-mono)}
+  .no-es{border:1px dashed var(--border-2);border-radius:var(--radius-l);padding:22px 24px;
+         margin-top:26px;max-width:720px;background:var(--surface-1)}
+  .no-es h4{color:var(--text-1);font-size:15px;margin-bottom:12px;font-family:var(--font-mono);
+            letter-spacing:.04em}
+  .no-es li{list-style:none;display:flex;gap:10px;padding:6px 0;color:var(--text-2);
+            font-size:14px}
+  .no-es li .x{color:var(--brand-2);font-family:var(--font-mono);flex:none}
+  .precio{display:flex;gap:16px;flex-wrap:wrap;margin-top:30px}
+  .precio .box{background:var(--surface-1);border:1px solid var(--border-1);
+               border-radius:var(--radius-xl);padding:26px 30px;min-width:230px;max-width:440px}
+  .precio .box h4{color:var(--text-1);font-size:15px;margin-bottom:8px}
+  .precio .box p{font-size:13px;color:var(--text-3)}
+  .precio .box .mono{color:var(--brand-1);font-size:12px;letter-spacing:.1em;
+                     display:block;margin-top:10px}
+  .disclaimer{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);
+              margin-top:26px;max-width:680px;border-top:1px solid var(--border-1);
+              padding-top:14px;line-height:1.7}
+  .brandmark{display:flex;align-items:center;gap:14px;margin-bottom:44px}
+  .brandmark .logo{font-family:var(--font-mono);font-weight:700;font-size:15px;
+                   letter-spacing:.14em;padding:10px 18px;border-radius:var(--radius-m);
+                   background:var(--grad-brand);color:var(--brand-on)}
+  .brandmark .who{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;
+                  text-transform:uppercase;color:var(--text-3)}
+  .orb{position:absolute;border-radius:50%;filter:blur(72px);opacity:.30;pointer-events:none}
+  .orb.a{width:440px;height:440px;right:-130px;top:-130px;
+         background:radial-gradient(circle at 35% 30%,var(--brand-1),transparent 74%)}
+  .orb.b{width:360px;height:360px;left:-110px;bottom:-150px;
+         background:radial-gradient(circle at 35% 30%,var(--brand-2),transparent 74%)}
+  .counter{position:fixed;right:22px;bottom:18px;font-family:var(--font-mono);font-size:11px;
+           letter-spacing:.14em;color:var(--text-dim);z-index:9}
+  .next{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
+        color:var(--text-dim);font-family:var(--font-mono);font-size:11px;
+        letter-spacing:.2em;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translate(-50%,6px)}}
+  @media (prefers-reduced-motion:reduce){.next{animation:none}html{scroll-behavior:auto}}
+  .contact{margin-top:36px;display:flex;gap:14px;flex-wrap:wrap}
+  .contact .cta{background:var(--grad-brand);color:var(--brand-on);border-radius:var(--radius-pill);
+                padding:14px 26px;font-weight:600;text-decoration:none}
+  .contact .alt{border:1px solid var(--border-2);color:var(--text-1);
+                border-radius:var(--radius-pill);padding:14px 26px;text-decoration:none;
+                font-family:var(--font-mono);font-size:13px}
+  @media print{
+    html{scroll-snap-type:none}
+    .slide{min-height:auto;page-break-after:always;padding:40px}
+    .counter,.next,.orb{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- S1 · Portada -->
+<section class="slide">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="brandmark">
+    <span class="logo">[LOGO]</span>
+    <span class="who">para [CLIENTE] · [FECHA]</span>
+  </div>
+  <p class="kicker"><b>◆</b> propuesta · agentic insurtech · marca blanca</p>
+  <h1>La agencia de <span class="grad">[CLIENTE]</span>,<br>
+      atendiendo y operando con agentes. Bajo licencia y supervisión humana.</h1>
+  <p class="lead" style="margin-top:22px">Dos frentes con agentes de IA — hacia tus
+     <b style="color:var(--text-1)">asegurados</b> (A2C) y dentro de tu
+     <b style="color:var(--text-1)">operación</b> (B2A) — con tu marca, y con una persona
+     licenciada al mando de todo acto regulado.</p>
+  <div style="margin-top:34px"><span class="pill"><span class="dot"></span> Florida · B2A + A2C · con tu identidad</span></div>
+  <div class="next">▾ desplázate</div>
+</section>
+
+<!-- S2 · Costo de la inacción -->
+<section class="slide">
+  <p class="kicker"><b>01</b> · el costo de esperar</p>
+  <h2>El lead que escribe a las 9 p.m. no espera a mañana</h2>
+  <p class="lead">En seguros, la velocidad ES la venta. Una cotización que tarda, un primer
+     aviso de siniestro (FNOL) que se atora, una renovación que nadie recordó — cada uno
+     es prima que se va con el competidor que contestó primero.</p>
+  <div style="margin-top:34px">
+    <div class="statbar">
+      <div class="lbl"><span>LEADS FUERA DE HORARIO SIN RESPUESTA</span><span class="mono">⚡ venta</span></div>
+      <div class="bar"><div class="fill" style="width:78%"></div></div>
+    </div>
+    <div class="statbar">
+      <div class="lbl"><span>TIEMPO A PRIMERA COTIZACIÓN</span><span class="mono">⚡ conversión</span></div>
+      <div class="bar"><div class="fill" style="width:66%"></div></div>
+    </div>
+    <div class="statbar">
+      <div class="lbl"><span>RENOVACIONES QUE SE CAEN POR OLVIDO</span><span class="mono">⚡ retención</span></div>
+      <div class="bar"><div class="fill" style="width:59%"></div></div>
+    </div>
+  </div>
+  <p class="disclaimer">Barras ilustrativas de las fugas típicas de una agencia; en el
+     descubrimiento las medimos con tus números reales.</p>
+</section>
+
+<!-- S3 · Tesis: dos frentes -->
+<section class="slide">
+  <div class="orb a"></div>
+  <p class="kicker"><b>02</b> · la propuesta en una imagen</p>
+  <h2>Dos frentes agénticos, <span class="grad">un solo estándar</span>: verificar antes de confiar</h2>
+  <div class="grid cards-2">
+    <div class="card big">
+      <div class="glyph">◆</div>
+      <h3>A2C — hacia tus asegurados</h3>
+      <p>Un equipo de atención en WhatsApp y Telegram que responde en segundos, 24/7, con
+         tus datos reales — y que sabe cuándo pasar la conversación a una persona.</p>
+      <span class="tag">agent-to-consumer</span>
+    </div>
+    <div class="card big">
+      <div class="glyph">⚙</div>
+      <h3>B2A — dentro de tu operación</h3>
+      <p>Tu departamento de software agéntico: construye y mantiene tus herramientas
+         insurtech con tu marca, cada entrega re-verificada y aprobada por una persona.</p>
+      <span class="tag">business-to-agent</span>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:26px">El mismo motor verificado por dentro y por fuera.
+     Tu marca al frente; tus licencias, al mando.</p>
+</section>
+
+<!-- S4 · A2C detalle -->
+<section class="slide">
+  <p class="kicker"><b>03</b> · A2C · atención a tus asegurados</p>
+  <h2>Responde en segundos. Escala con criterio. Nunca inventa.</h2>
+  <div class="grid cards-3">
+    <div class="card">
+      <div class="glyph">▸</div><h3>Cotización</h3>
+      <p>Recibe la solicitud, califica y arma el expediente; la cotización en firme y la
+         vinculación las hace tu agente licenciado.</p>
+      <span class="tag">intake · califica · rutea</span>
+    </div>
+    <div class="card">
+      <div class="glyph">▸</div><h3>Primer aviso de siniestro</h3>
+      <p>Captura el FNOL completo con fotos y datos, abre el caso y lo pasa al ajustador —
+         no adjudica ni determina cobertura.</p>
+      <span class="tag">FNOL · documenta · abre caso</span>
+    </div>
+    <div class="card">
+      <div class="glyph">▸</div><h3>Renovación y servicio</h3>
+      <p>Recordatorios de renovación, cambios de póliza, dudas frecuentes y documentos —
+         con promesa de seguimiento registrada.</p>
+      <span class="tag">retiene · atiende</span>
+    </div>
+  </div>
+  <div class="flow">
+    <span class="node">asegurado<em>escribe 24/7</em></span><span class="arrow">▸</span>
+    <span class="node">agente A2C<em>atiende · documenta</em></span><span class="arrow">▸</span>
+    <span class="node human">humano licenciado<em>decide · vincula · asesora</em></span>
+  </div>
+  <p class="claim" style="margin-top:28px">Con su marca: mismo motor verificado, identidad del cliente
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S5 · B2A detalle -->
+<section class="slide">
+  <div class="orb b"></div>
+  <p class="kicker"><b>04</b> · B2A · tu departamento de software</p>
+  <h2>Un trío de agentes construye tu insurtech. Nada se entrega por confianza.</h2>
+  <p class="lead">Portal del asegurado, integraciones con tus carriers, tableros de cartera,
+     automatización de renovaciones — construidos y mantenidos por agentes, con tu marca, y
+     re-verificados por un supervisor independiente antes de cada entrega.</p>
+  <div class="flow">
+    <span class="node">tarea<em>criterios</em></span><span class="arrow">▸</span>
+    <span class="node">ejecutor<em>construye · aislado</em></span><span class="arrow">▸</span>
+    <span class="node">gates<em>build · test · lint</em></span><span class="arrow">▸</span>
+    <span class="node human">supervisor<em>veredicto</em></span><span class="arrow">▸</span>
+    <span class="node" style="border-color:var(--success);color:var(--success)">entrega<em>con evidencia</em></span>
+  </div>
+  <p class="claim" style="margin-top:26px">Departamento de software con IA bajo supervision humana
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+  <p class="claim">Gates deterministas re-ejecutados antes de cada entrega
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S6 · Control, cumplimiento, honestidad -->
+<section class="slide">
+  <p class="kicker"><b>05</b> · control · cumplimiento · lo que NO hace</p>
+  <h2>Tus licencias al mando. <span class="grad">Cero</span> actos regulados en automático.</h2>
+  <ul class="checks">
+    <li>Nada delicado sucede solo: vinculación, pagos, cancelaciones y envíos masivos requieren aprobación de tu equipo con un botón.</li>
+    <li>Cada conversación y cada acción quedan registradas de punta a punta: reconstruyes cualquier caso.</li>
+    <li>Consentimiento y privacidad en regla; las reglas de WhatsApp y Telegram se cumplen por diseño.</li>
+    <li>Tus datos, aislados de cualquier otro negocio en la plataforma, y exportables si algún día decides irte.</li>
+  </ul>
+  <div class="no-es">
+    <h4>Lo que esta propuesta NO es</h4>
+    <li><span class="x">✕</span> No da asesoría de seguros con licencia — eso lo hace tu agente licenciado.</li>
+    <li><span class="x">✕</span> No vincula pólizas ni fija primas por su cuenta; prepara, un humano decide.</li>
+    <li><span class="x">✕</span> No adjudica siniestros ni determina cobertura — documenta y escala al ajustador.</li>
+    <li><span class="x">✕</span> No es "la IA lo hace sola": es un equipo con supervisión automática y humana.</li>
+  </div>
+  <p class="claim" style="margin-top:22px">Aprobacion humana obligatoria en todo lo irreversible
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+  <p class="disclaimer">Cumplimiento regulatorio de Florida (licenciamiento, avisos,
+     manejo de datos del asegurado): lo valida tu equipo licenciado con su marco legal; el
+     sistema señala requisitos con fuente, nunca los sustituye ni improvisa un dictamen legal.</p>
+</section>
+
+<!-- S7 · Aislamiento + implantación + inversión -->
+<section class="slide">
+  <div class="orb a"></div>
+  <p class="kicker"><b>06</b> · cómo lo implantamos · inversión</p>
+  <h2>Semanas, no meses. Por etapas que se prueban antes de avanzar.</h2>
+  <div class="grid cards-3">
+    <div class="card"><div class="glyph mono">1</div><h3>Conectamos</h3>
+      <p>Tus canales, tu información y tu tono de marca — definido por escrito, no al criterio de una máquina.</p></div>
+    <div class="card"><div class="glyph mono">2</div><h3>Piloto real</h3>
+      <p>Una cotización o un FNOL resuelto de principio a fin en tu WhatsApp, con tu equipo mirando.</p></div>
+    <div class="card"><div class="glyph mono">3</div><h3>Escalamos</h3>
+      <p>Encendemos el reporte diario y sumamos casos de uso con datos reales. Solo se avanza cuando lo anterior funciona.</p></div>
+  </div>
+  <div class="precio">
+    <div class="box">
+      <h4>Modelo de inversión</h4>
+      <p>Implantación por proyecto cerrado (según casos de uso) + mensualidad por nivel de
+         uso, medida con precisión: pagas por lo que tu agencia realmente usa.</p>
+      <span class="mono">cifras tras el descubrimiento</span>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;justify-content:center">
+      <p style="color:var(--text-2)">Sesión de descubrimiento de 60 minutos, sin costo:
+         mapeamos tu caso de uso y sales con un diagnóstico y un plan.</p>
+    </div>
+  </div>
+  <p class="claim" style="margin-top:24px">Aislamiento por cliente: repo, datos y workspace separados
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S8 · Siguiente paso -->
+<section class="slide">
+  <div class="orb b"></div>
+  <p class="kicker"><b>07</b> · siguiente paso</p>
+  <h2>Agenda el descubrimiento de <span class="grad">[CLIENTE]</span></h2>
+  <p class="lead">60 minutos, sin costo ni compromiso. Sales con un diagnóstico de tus fugas
+     (leads, FNOL, renovaciones), un plan por etapas y una cifra concreta.</p>
+  <div class="contact">
+    <a class="cta" href="mailto:[CONTACTO]">Agendar descubrimiento</a>
+    <a class="alt" href="mailto:[CONTACTO]">[CONTACTO]</a>
+  </div>
+  <p class="disclaimer">Te atiende [ASESOR] · [CLIENTE] · [FECHA]. Registro informativo:
+     ningún precio ni término queda pactado por este material; toda propuesta, cotización,
+     contrato y firma pasa por aprobación humana.</p>
+</section>
+
+<div class="counter mono"><span id="cur">1</span> / <span id="tot">8</span></div>
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  document.getElementById('tot').textContent=slides.length;
+  const cur=document.getElementById('cur');
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting)cur.textContent=slides.indexOf(e.target)+1;
+  }),{threshold:.6});
+  slides.forEach(s=>io.observe(s));
+  addEventListener('keydown',e=>{
+    const i=+cur.textContent-1;
+    if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();slides[Math.min(i+1,slides.length-1)].scrollIntoView();}
+    if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();slides[Math.max(i-1,0)].scrollIntoView();}
+  });
+</script>
+</body>
+</html>

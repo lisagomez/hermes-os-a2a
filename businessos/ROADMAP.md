@@ -593,11 +593,14 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   (c) `supabase-egcrm-herramientas.sql` (transcripciones +
   aprobaciones_salientes, RLS sin políticas) validado idempotente en Postgres
   efímero — NO aplicado a producción aún (se aplica al desplegar, management
-  API como siempre). (d) **Pitch deck white-label (2026-07-24)**:
-  `adquisicion/plantillas/pitch-deck-whitelabel.html` (System UI de la fábrica,
-  marca del cliente parametrizada, claims aprobados textuales fijados por
-  test) + `personalizar-deck.py` (JSON del cliente → deck; marcador vivo = no
-  se emite) — el material del Hito 6 se genera por configuración, no a mano.
+  API como siempre). (d) **Pitch decks (2026-07-24)**:
+  `adquisicion/plantillas/pitch-deck-*.html` (System UI de la fábrica, marca
+  del cliente parametrizada, claims aprobados textuales fijados por test
+  parametrizado) + `personalizar-deck.py --plantilla` (JSON del cliente →
+  deck; marcador vivo = no se emite) — el material del Hito 6 se genera por
+  configuración, no a mano. Variantes: `pitch-deck-whitelabel.html` (oferta
+  general) y `pitch-deck-insurtech.html` (vertical seguros, B2A + A2C, con
+  barrera regulatoria: cero actos con licencia en automático).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
   remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de

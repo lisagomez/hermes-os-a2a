@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Personaliza el pitch deck white-label para UN cliente (EG.CRM Hito 6).
+"""Personaliza un pitch deck del departamento para UN cliente (EG.CRM Hito 6).
 
-Toma la plantilla (adquisicion/plantillas/pitch-deck-whitelabel.html) y un JSON
-de marca del cliente, y emite el deck personalizado:
+Toma una plantilla de adquisicion/plantillas/pitch-deck-*.html y un JSON de
+marca del cliente, y emite el deck personalizado. Plantillas disponibles:
+  - pitch-deck-whitelabel.html  (default) — oferta general del white-label.
+  - pitch-deck-insurtech.html   — vertical seguros (B2A + A2C), via --plantilla.
+Elige la plantilla del vertical del prospecto con --plantilla; el resto es igual:
 
   - Reescribe el bloque /* BRAND:START */ ... /* BRAND:END */ con los colores.
   - Sustituye los marcadores [CLIENTE] [LOGO] [ASESOR] [CONTACTO] [FECHA].
