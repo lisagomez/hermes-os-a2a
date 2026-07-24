@@ -172,6 +172,14 @@ fase pide este cliente y con qué pieza la cubro?"), no proceso obligatorio.
 | 6. Calidad | Gates deterministas del Supervisor + Playwright + anti-sello-de-goma | ✅ Vivo |
 | 7. Implementación | Deploy Hetzner/compose + Mission Control + ledger `token_usage` (resultado medido) | ✅ Vivo |
 
+**Compuerta de Procesos (alta 2026-07-23):** dentro de este mismo descubrimiento,
+Hermes-Negocio aplica las preguntas de
+`negocio/skills/procesos/references/descubrimiento.md` y juzga: si el proyecto
+**rediseña un proceso que ya opera** (no greenfield), activa el **departamento de
+Procesos** (`departamentos/procesos.md`) ANTES de encolar construcción a Software —
+el diagnóstico 5S+ESOA y su build-spec aprobada por humano son quienes disparan
+SDD/Skills/CLIs. Si es greenfield, se omite y va directo a Software (fila 3→5).
+
 Lectura del mapa: **Hermes-os-a2a ya tiene las 7 fases en producción** — lo que Spartane
 empaqueta como metodología, Hermes-os-a2a lo tiene como runtime. Lo que faltaba era el hilo
 que las une (el `decision_id`) y el lenguaje comercial para contarlo. Ese es el pitch del

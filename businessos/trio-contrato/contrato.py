@@ -18,7 +18,7 @@ import re
 from collections import deque
 from typing import Any
 
-DEPARTAMENTOS = ("software", "adquisicion", "contratos_inteligentes")
+DEPARTAMENTOS = ("software", "adquisicion", "contratos_inteligentes", "procesos")
 
 # Ciclo de estados de `tareas` (SPEC-trio §7.2 + escalada/cancelada).
 ESTADOS = (

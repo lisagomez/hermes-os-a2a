@@ -22,6 +22,7 @@ from a2a.types import TaskState
 
 import chequeos_adquisicion  # noqa: F401 — registra sus chequeos en gates.CHEQUEOS
 import chequeos_fabric  # noqa: F401 — registra sus chequeos en gates.CHEQUEOS
+import chequeos_procesos  # noqa: F401 — registra sus chequeos en gates.CHEQUEOS
 from contrato import ContratoInvalido, validar_resultado
 from gates import Gate, cargar_configs, correr_gates
 from veredicto import emitir_veredicto
