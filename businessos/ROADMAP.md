@@ -577,6 +577,18 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   `crm/egcrm-pipeline-propuesta.md`. Versionadas ≠ desplegadas: NO
   van al volumen de Hermes-Negocio hasta el gate del motor real (evitar que el
   bot prometa capacidades que no existen).
+- [x] **Skill off-pipeline `adquisicion-persona-sintetica` (2026-07-24)** —
+  8ª skill del paquete, NO es un hito del funnel: genera buyer personas
+  **ficticias** de alta fidelidad para probar/calibrar el CRM (ICP, scoring,
+  entrevista, retro en vivo) y role-play de coaching. Inverso del
+  pre-descubrimiento (aquí SÍ se inventa, marcado como sintético) con
+  **frontera dura de datos: NO escribe en `leads`** (un escritor por origen);
+  reutiliza las 4 cubetas de dolor del pipeline. Incluye el ejemplo trabajado
+  `ejemplos/freight-forwarder-gal.md`. En la misma tanda, la Ficha de
+  Inteligencia del pre-descubrimiento se enriqueció (4 cubetas de dolor +
+  comité comprador + readiness/urgencia), sin tocar la regla de cero-invención.
+  Mapa actualizado en `adquisicion-clientes.md` §7.1. Mismo gate: versionadas,
+  NO desplegadas al volumen hasta el motor real.
 - [x] **Herramientas EG.CRM construidas (2026-07-24)** — listas para que los
   gates de abajo tengan qué aprobar: (a) **`transcripcion-a2a`** (puerto 4800,
   perfil `a2a`): puente STT determinista {card, rpc, /health} patrón
