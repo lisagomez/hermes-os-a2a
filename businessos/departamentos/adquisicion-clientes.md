@@ -135,8 +135,15 @@ Config: `supervisor-a2a/reglas/adquisicion.toml` (el Supervisor carga TODOS los
 
 ## 7. Fuentes de conocimiento
 
-- **`adquisicion/` del repo objetivo** — claims, política de precios, plantilla
-  (la verdad comercial versionada).
+- **`adquisicion/` del repo objetivo** — claims, política de precios, plantillas
+  (la verdad comercial versionada). Incluye el **pitch deck white-label**
+  (`plantillas/pitch-deck-whitelabel.html`): metodología del System UI de la
+  fábrica con la marca del CLIENTE parametrizada (bloque BRAND + marcadores
+  `[CLIENTE] [LOGO] [ASESOR] [CONTACTO] [FECHA]`); se personaliza por cliente
+  con `businessos/personalizar-deck.py` (config JSON → deck; un marcador vivo
+  = no se emite, doctrina `sin_marcadores`). Sus CLAIM son textuales de
+  `claims-aprobados.txt` (test lo fija) y su envío pasa por la frontera de
+  aprobación como todo lo de cara al cliente.
 - **`white-label.md`** — qué se vende y la honestidad comercial (§5).
 - **La tabla `leads`** — el estado real del pipeline (vía snapshot para Hermes).
 - **El grafo** (dimensión `contractual`) — validación de cláusulas con fuente.

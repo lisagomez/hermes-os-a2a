@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[CLIENTE] · Departamento de software con IA</title>
+<!--
+  pitch-deck-whitelabel.html — plantilla EG.CRM Hito 6 (marca blanca).
+  Metodologia del System UI de A2A Factory (capas, kickers mono, stats, cartas)
+  con la MARCA DEL CLIENTE parametrizada:
+    - Colores: el bloque BRAND del CSS (delimitado START..END; lo reescribe
+      businessos/personalizar-deck.py desde el JSON del cliente).
+    - Textos: marcadores [CLIENTE] [LOGO] [ASESOR] [CONTACTO] [FECHA]
+      (convencion del gate sin_marcadores: ninguno puede llegar vivo al cliente).
+  Los CLAIM del contenido son TEXTUALES de adquisicion/claims-aprobados.txt;
+  los precios son el rango de referencia de politica-precios.json via oferta.py.
+  Cambiar claims/precios aqui = PR humano (gate politica_intocable).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* BRAND:START — unico bloque que personaliza personalizar-deck.py */
+  :root{
+    --brand-1:#9F7BFF;            /* color primario del cliente */
+    --brand-2:#FF4D8D;            /* color acento del cliente */
+    --brand-on:#0B0A10;           /* texto sobre color de marca */
+    --bg:#0B0A10;                 /* fondo (casi-negro por metodologia) */
+  }
+  /* BRAND:END */
+
+  :root{
+    --surface-1:color-mix(in srgb,var(--bg) 96%,white);
+    --surface-2:color-mix(in srgb,var(--bg) 93%,white);
+    --surface-3:color-mix(in srgb,var(--bg) 90%,white);
+    --border-1:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.12);
+    --text-1:#EDEAF4; --text-2:#B4ADC7; --text-3:#9A93AC; --text-dim:#7A7390;
+    --energy:#E8A320; --success:#28C840;
+    --grad-brand:linear-gradient(120deg,var(--brand-1),var(--brand-2));
+    --font-display:'Space Grotesk',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    --radius-m:12px; --radius-l:16px; --radius-xl:22px; --radius-pill:999px;
+    --shadow-card:0 24px 60px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text-2);font-family:var(--font-display);
+       font-size:15px;line-height:1.6}
+  .slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;
+         justify-content:center;padding:64px clamp(24px,7vw,110px);position:relative;
+         overflow:hidden}
+  .slide+.slide{border-top:1px solid var(--border-1)}
+  .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;
+          text-transform:uppercase;color:var(--text-3);margin-bottom:18px}
+  .kicker b{color:var(--brand-1);font-weight:500}
+  h1,h2{color:var(--text-1);line-height:1.08;font-weight:700}
+  h1{font-size:clamp(34px,5.2vw,58px)}
+  h2{font-size:clamp(26px,3.4vw,36px);margin-bottom:22px}
+  .grad{background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;
+        color:transparent}
+  .lead{font-size:clamp(15px,1.5vw,18px);max-width:640px;color:var(--text-2)}
+  .mono{font-family:var(--font-mono)}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-2);
+        border-radius:var(--radius-pill);padding:7px 16px;font-family:var(--font-mono);
+        font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2)}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--grad-brand)}
+  .grid{display:grid;gap:16px}
+  .cards-3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:34px}
+  .card{background:var(--surface-1);border:1px solid var(--border-1);
+        border-radius:var(--radius-l);padding:26px 24px;box-shadow:var(--shadow-card)}
+  .card .glyph{font-size:20px;color:var(--brand-1);margin-bottom:12px}
+  .card h3{color:var(--text-1);font-size:17px;margin-bottom:8px}
+  .card p{font-size:13.5px;color:var(--text-3)}
+  .card .tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;
+             color:var(--text-dim);text-transform:uppercase;display:block;margin-top:14px}
+  .claim{border-left:2px solid transparent;border-image:var(--grad-brand) 1;
+         padding:10px 18px;margin:10px 0;background:var(--surface-1);
+         color:var(--text-1);font-size:15.5px;max-width:720px}
+  .claim small{display:block;font-family:var(--font-mono);font-size:10px;
+               letter-spacing:.16em;color:var(--text-dim);margin-top:4px}
+  .statbar{margin:14px 0}
+  .statbar .lbl{display:flex;justify-content:space-between;font-family:var(--font-mono);
+                font-size:11px;letter-spacing:.12em;color:var(--text-3);margin-bottom:6px}
+  .statbar .bar{height:8px;border-radius:var(--radius-pill);background:var(--surface-3);
+                overflow:hidden}
+  .statbar .fill{height:100%;border-radius:var(--radius-pill);background:var(--grad-brand)}
+  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:30px;
+        font-family:var(--font-mono);font-size:12.5px}
+  .flow .node{border:1px solid var(--border-2);border-radius:var(--radius-m);
+              padding:12px 16px;background:var(--surface-2);color:var(--text-1)}
+  .flow .node em{display:block;font-style:normal;font-size:10px;letter-spacing:.14em;
+                 color:var(--text-dim);text-transform:uppercase;margin-top:4px}
+  .flow .arrow{color:var(--brand-1)}
+  .flow .gate{border-style:dashed;color:var(--energy)}
+  .checks{list-style:none;margin-top:24px;max-width:660px}
+  .checks li{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border-1);
+             color:var(--text-2)}
+  .checks li::before{content:"✓";color:var(--success);font-family:var(--font-mono)}
+  .no-es{border:1px dashed var(--border-2);border-radius:var(--radius-l);padding:20px 24px;
+         margin-top:30px;max-width:660px;background:var(--surface-1)}
+  .no-es b{color:var(--text-1)}
+  .no-es .x{color:var(--brand-2);font-family:var(--font-mono);margin-right:8px}
+  .precio{display:flex;gap:16px;flex-wrap:wrap;margin-top:30px}
+  .precio .box{background:var(--surface-1);border:1px solid var(--border-1);
+               border-radius:var(--radius-xl);padding:28px 30px;min-width:230px;
+               max-width:440px}
+  .precio .num{font-family:var(--font-mono);font-size:34px;color:var(--text-1)}
+  .precio .num span{background:var(--grad-brand);-webkit-background-clip:text;
+                    background-clip:text;color:transparent}
+  .precio small{display:block;font-family:var(--font-mono);font-size:10.5px;
+                letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;
+                margin-top:8px}
+  .disclaimer{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);
+              margin-top:26px;max-width:640px;border-top:1px solid var(--border-1);
+              padding-top:14px}
+  .brandmark{display:flex;align-items:center;gap:14px;margin-bottom:44px}
+  .brandmark .logo{font-family:var(--font-mono);font-weight:700;font-size:15px;
+                   letter-spacing:.14em;padding:10px 18px;border-radius:var(--radius-m);
+                   background:var(--grad-brand);color:var(--brand-on)}
+  .brandmark .who{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;
+                  text-transform:uppercase;color:var(--text-3)}
+  .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.32;pointer-events:none}
+  .orb.a{width:420px;height:420px;right:-120px;top:-120px;
+         background:radial-gradient(circle at 35% 30%,var(--brand-1),transparent 75%)}
+  .orb.b{width:360px;height:360px;left:-110px;bottom:-140px;
+         background:radial-gradient(circle at 35% 30%,var(--brand-2),transparent 75%)}
+  .counter{position:fixed;right:22px;bottom:18px;font-family:var(--font-mono);font-size:11px;
+           letter-spacing:.14em;color:var(--text-dim);z-index:9}
+  .next{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
+        color:var(--text-dim);font-family:var(--font-mono);font-size:11px;
+        letter-spacing:.2em;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translate(-50%,6px)}}
+  .contact{margin-top:36px;display:flex;gap:14px;flex-wrap:wrap}
+  .contact .cta{background:var(--grad-brand);color:var(--brand-on);border-radius:var(--radius-pill);
+                padding:14px 26px;font-weight:600;text-decoration:none}
+  .contact .alt{border:1px solid var(--border-2);color:var(--text-1);
+                border-radius:var(--radius-pill);padding:14px 26px;text-decoration:none;
+                font-family:var(--font-mono);font-size:13px}
+  @media print{
+    html{scroll-snap-type:none}
+    .slide{min-height:auto;page-break-after:always;padding:40px}
+    .counter,.next,.orb{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- S1 · Portada -->
+<section class="slide">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="brandmark">
+    <span class="logo">[LOGO]</span>
+    <span class="who">para [CLIENTE] · [FECHA]</span>
+  </div>
+  <p class="kicker"><b>◆</b> propuesta · departamento de software con ia</p>
+  <h1>El departamento de software de <span class="grad">[CLIENTE]</span>,<br>
+      operado por agentes. Supervisado por personas.</h1>
+  <p class="lead" style="margin-top:22px">Un trío de agentes construye y mantiene tu
+     software con <b style="color:var(--text-1)">tu marca</b> — y cada entrega pasa por
+     verificación determinista y aprobación humana antes de tocar nada irreversible.</p>
+  <div style="margin-top:34px"><span class="pill"><span class="dot"></span> marca blanca · con tu identidad</span></div>
+  <div class="next">▾ desplázate</div>
+</section>
+
+<!-- S2 · El costo de seguir igual -->
+<section class="slide">
+  <p class="kicker"><b>01</b> · el costo de la inacción</p>
+  <h2>Cada sprint que no sale, ya lo estás pagando</h2>
+  <p class="lead">Backlog que envejece, dependencia de terceros con agenda propia y
+     features que llegan tarde al mercado. No hace falta un desastre: la fuga es
+     silenciosa y mensual.</p>
+  <div class="statbar" style="max-width:560px;margin-top:34px">
+    <div class="lbl"><span>BACKLOG QUE ESPERA</span><span class="mono">⚡ tiempo</span></div>
+    <div class="bar"><div class="fill" style="width:82%"></div></div>
+  </div>
+  <div class="statbar" style="max-width:560px">
+    <div class="lbl"><span>DEPENDENCIA DE PROVEEDOR</span><span class="mono">⚡ control</span></div>
+    <div class="bar"><div class="fill" style="width:64%"></div></div>
+  </div>
+  <div class="statbar" style="max-width:560px">
+    <div class="lbl"><span>COSTO DE OPORTUNIDAD</span><span class="mono">⚡ mercado</span></div>
+    <div class="bar"><div class="fill" style="width:71%"></div></div>
+  </div>
+</section>
+
+<!-- S3 · Qué es: el trío -->
+<section class="slide">
+  <div class="orb a"></div>
+  <p class="kicker"><b>02</b> · qué es</p>
+  <h2>Un trío de agentes, un solo estándar: <span class="grad">verificar antes de confiar</span></h2>
+  <div class="grid cards-3">
+    <div class="card">
+      <div class="glyph">◆</div>
+      <h3>Orquestador</h3>
+      <p>Recibe lo que necesitas en lenguaje natural, lo convierte en tareas con
+         criterios de aceptación y coordina el trabajo.</p>
+      <span class="tag">entiende · reparte</span>
+    </div>
+    <div class="card">
+      <div class="glyph">▶</div>
+      <h3>Ejecutor</h3>
+      <p>Construye el software en un espacio de trabajo aislado de tu empresa:
+         tu repo, tus datos, tus secretos.</p>
+      <span class="tag">construye · aislado</span>
+    </div>
+    <div class="card">
+      <div class="glyph">⚙</div>
+      <h3>Supervisor</h3>
+      <p>Independiente del que construye: re-ejecuta las verificaciones sobre cada
+         entrega y rechaza lo que no pasa.</p>
+      <span class="tag">verifica · rechaza</span>
+    </div>
+  </div>
+  <p class="claim" style="margin-top:34px">Departamento de software con IA bajo supervision humana
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S4 · Calidad: gates -->
+<section class="slide">
+  <p class="kicker"><b>03</b> · cómo se garantiza la calidad</p>
+  <h2>Nada se entrega por confianza. Todo se re-verifica.</h2>
+  <p class="lead">Cada entrega pasa por compuertas deterministas — compilación, tipos,
+     lint, pruebas — ejecutadas por el Supervisor, no por quien escribió el código.
+     Si una falla, la entrega se rechaza con evidencia.</p>
+  <div class="flow">
+    <span class="node">tarea<em>criterios</em></span><span class="arrow">▸</span>
+    <span class="node">ejecutor<em>construye</em></span><span class="arrow">▸</span>
+    <span class="node gate">gates<em>build · test · lint</em></span><span class="arrow">▸</span>
+    <span class="node">supervisor<em>veredicto</em></span><span class="arrow">▸</span>
+    <span class="node" style="border-color:var(--success);color:var(--success)">entrega<em>con evidencia</em></span>
+  </div>
+  <p class="claim" style="margin-top:34px">Gates deterministas re-ejecutados antes de cada entrega
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S5 · Aislamiento -->
+<section class="slide">
+  <div class="orb b"></div>
+  <p class="kicker"><b>04</b> · tu información, en tu compartimento</p>
+  <h2>Aislamiento por diseño, no por promesa</h2>
+  <ul class="checks">
+    <li>Tu código vive en <b>tu repositorio</b>; los agentes nunca cruzan a otro cliente.</li>
+    <li>Tus datos y tu conocimiento operan en <b>tu propio ámbito</b>, inaccesible desde fuera.</li>
+    <li>Tus credenciales viven en <b>tu almacén de secretos</b>, fuera del código.</li>
+    <li>Cada ejecución corre en un <b>workspace aislado</b>: un fallo ajeno no te toca.</li>
+  </ul>
+  <p class="claim" style="margin-top:30px">Aislamiento por cliente: repo, datos y workspace separados
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S6 · Honestidad: supervisión humana -->
+<section class="slide">
+  <p class="kicker"><b>05</b> · lo que NO te vamos a vender</p>
+  <h2>Esto <span class="grad">no</span> es "la IA lo hace sola"</h2>
+  <p class="lead">Es un departamento con doble control: supervisión automática en cada
+     entrega y una persona aprobando todo lo irreversible — deploys, dinero y lo que
+     ve tu cliente final. Vender reglas flojas sería vender falsa seguridad.</p>
+  <div class="no-es">
+    <p><span class="x">✕</span><b>Sin humano no pasa:</b> despliegues a producción,
+       movimientos de dinero, comunicación de cara a tus clientes y firmas.</p>
+  </div>
+  <p class="claim" style="margin-top:30px">Aprobacion humana obligatoria en todo lo irreversible
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+</section>
+
+<!-- S7 · Con tu marca + qué incluye + inversión -->
+<section class="slide">
+  <div class="orb a"></div>
+  <p class="kicker"><b>06</b> · con tu marca · qué incluye</p>
+  <h2>Mismo motor verificado. La identidad es la de <span class="grad">[CLIENTE]</span></h2>
+  <ul class="checks">
+    <li>Trío de agentes (orquestador, ejecutor, supervisor) operando con tu marca.</li>
+    <li>Ejecución en workspace aislado: repo, datos y secretos separados.</li>
+    <li>Cada entrega re-verificada por un supervisor independiente con gates deterministas.</li>
+    <li>Aprobación humana obligatoria en todo lo irreversible.</li>
+  </ul>
+  <div class="precio">
+    <div class="box">
+      <div class="num">$500<span>–$5,000</span></div>
+      <small>USD / mes · según alcance · referencia</small>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;justify-content:center">
+      <p style="font-size:13.5px;color:var(--text-3)">El alcance (departamentos activos,
+         volumen, reglas propias) se define en el descubrimiento. El precio final
+         siempre se acuerda con una persona.</p>
+    </div>
+  </div>
+  <p class="claim" style="margin-top:30px">Con su marca: mismo motor verificado, identidad del cliente
+    <small>CLAIM aprobado · lista curada de afirmaciones</small></p>
+  <p class="disclaimer">Registro informativo: un humano del equipo da seguimiento.
+     Ningún precio ni término queda pactado por este material; toda propuesta,
+     negociación y firma pasa por aprobación humana.</p>
+</section>
+
+<!-- S8 · Siguientes pasos -->
+<section class="slide">
+  <div class="orb b"></div>
+  <p class="kicker"><b>07</b> · siguientes pasos</p>
+  <h2>Tres pasos, cero compromiso hoy</h2>
+  <div class="grid cards-3">
+    <div class="card"><div class="glyph mono">1</div><h3>Descubrimiento</h3>
+      <p>Una conversación sobre tu proceso y tu backlog: qué duele, qué es alcanzable.</p></div>
+    <div class="card"><div class="glyph mono">2</div><h3>Análisis y propuesta</h3>
+      <p>Factibilidad honesta, costo-beneficio y alcance por fases — con riesgos medidos.</p></div>
+    <div class="card"><div class="glyph mono">3</div><h3>Arranque supervisado</h3>
+      <p>Tu departamento se configura (no se programa) y entrega bajo doble control.</p></div>
+  </div>
+  <div class="contact">
+    <a class="cta" href="mailto:[CONTACTO]">Agendar descubrimiento</a>
+    <a class="alt" href="mailto:[CONTACTO]">[CONTACTO]</a>
+  </div>
+  <p class="disclaimer">Te atiende [ASESOR] · [CLIENTE] · [FECHA]</p>
+</section>
+
+<div class="counter mono"><span id="cur">1</span> / <span id="tot">8</span></div>
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  document.getElementById('tot').textContent=slides.length;
+  const cur=document.getElementById('cur');
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting)cur.textContent=slides.indexOf(e.target)+1;
+  }),{threshold:.6});
+  slides.forEach(s=>io.observe(s));
+  addEventListener('keydown',e=>{
+    const i=+cur.textContent-1;
+    if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();slides[Math.min(i+1,slides.length-1)].scrollIntoView();}
+    if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();slides[Math.max(i-1,0)].scrollIntoView();}
+  });
+</script>
+</body>
+</html>
