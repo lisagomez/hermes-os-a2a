@@ -577,11 +577,30 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   `crm/egcrm-pipeline-propuesta.md`. Versionadas ≠ desplegadas: NO
   van al volumen de Hermes-Negocio hasta el gate del motor real (evitar que el
   bot prometa capacidades que no existen).
+- [x] **Herramientas EG.CRM construidas (2026-07-24)** — listas para que los
+  gates de abajo tengan qué aprobar: (a) **`transcripcion-a2a`** (puerto 4800,
+  perfil `a2a`): puente STT determinista {card, rpc, /health} patrón
+  grafo-a2a/ventas-a2a, motor pluggable (mock por default; `STT_ENGINE`
+  desconocido = no arranca), audio por volumen `adquisicion-audio` (ro),
+  persistencia con escritor único en `transcripciones` (fallo visible,
+  reintentable), 21 tests + interop con el cliente real del SDK, imagen
+  construida y arrancada en dev (gate 2026-07-23). (b) **host-job
+  `enviar-salientes.py`**: frontera de envío con doble verificación —
+  integridad sha256 (réplica del gate del Supervisor) + AUTENTICIDAD contra
+  `aprobaciones_salientes` (fila que el motor no puede fabricar: sin
+  credenciales); dry-run por defecto, `ENVIAR_REAL=1` + SMTP para el envío
+  real; todo skip/fallo se imprime (nada best-effort silencioso).
+  (c) `supabase-egcrm-herramientas.sql` (transcripciones +
+  aprobaciones_salientes, RLS sin políticas) validado idempotente en Postgres
+  efímero — NO aplicado a producción aún (se aplica al desplegar, management
+  API como siempre).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
-  `adquisicion`; host-job `enviar-salientes.py` (email real con verificación
-  de autenticidad de aprobación); negociación A2A externa autónoma (política
-  de límites + auth en la card + revisión legal); dominio real para el edge
-  (hoy sslip.io temporal); `#dep-adquisicion` en Slack.
+  `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
+  remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de
+  `transcripcion-a2a` (candidato: faster-whisper) y desplegarlo; negociación
+  A2A externa autónoma (política de límites + auth en la card + revisión
+  legal); dominio real para el edge (hoy sslip.io temporal);
+  `#dep-adquisicion` en Slack.
 - **Salida esperada:** un lead entra por A2A o manual, el pipeline vive en
   `leads`, el Ejecutor redacta bajo gates comerciales deterministas, y TODO lo
   de cara al cliente (correo, propuesta, contrato, firma) pasa por humano según
