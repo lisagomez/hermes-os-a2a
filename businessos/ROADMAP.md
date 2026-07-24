@@ -506,6 +506,17 @@ regulación debe cumplir el seguro de un dron para delivery?
   siguiente país/ámbito.
 - [ ] **Futuro**: más países/ámbitos regulatorios sobre la misma dimensión
   (el código `regulatorio` ya es genérico a propósito, no específico a drones).
+- [x] **Habilitador de investigación→seed (2026-07-24)**: `grafo/PLANTILLA-INVESTIGACION-SEED.md`
+  — plantilla que aterriza una investigación regulatoria (primer dominio objetivo:
+  documentación electrónica de exportación logística — e-AWB/BL/carta porte, vertical
+  freight-forwarder/GAL) a la **Salida B sembrable** del grafo real: esquema de
+  `impactos[]`, vocab de 3 valores (`permitido`/`no_permitido`/`dudoso` con fail-safe),
+  categorías por keywords+exclusiones, checklist del gate de procedencia y frontera dura
+  Salida A (investigación/producto, incl. nodos que el grafo NO modela) vs Salida B (seed).
+  Corrige un borrador que inventaba un esquema (`nodo_id`/`actor`/12 veredictos) que el
+  grafo no tiene → habría producido output no-sembrable. Incluye ejemplo e-AWB validado
+  contra `gen_seed_sql.py --check`. Aún NO hay reglas de exportación sembradas: es el
+  método, no el seed.
 - **Salida:** ✅ el grafo responde preguntas de permiso/cumplimiento operativo
   (no solo fiscales) con la misma regla de oro (fail-safe, fuente citada,
   disclaimer siempre), verificado por humano (REST) y por agente (A2A) en

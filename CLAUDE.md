@@ -1026,4 +1026,27 @@ npm run lint         # ESLint
 - **Aplicar en**: los 6 servicios A2A con COPY explícito y todo path-default resuelto con
   `Path(__file__).parent...` que deba sobrevivir al aplanado de la imagen.
 
+### 2026-07-24: Un prompt de investigación→seed del grafo debe traer el esquema REAL adentro
+- **Error/riesgo**: un borrador de investigación regulatoria (documentación de exportación
+  logística) traía su propia plantilla de "salida para grafo" **inventada**: `nodo_id`,
+  `actor_afectado`, `subcategoria`, `nivel_certeza`, `condicion/evidencia_minima` y un
+  vocabulario de ~12 "veredictos" que mezclaba 5 ejes distintos (veredicto + estatus de
+  requisito + dependencia + accesibilidad de datos + automatización/riesgo). El grafo real
+  (`grafo/seed/reglas.json`) NO tiene nada de eso: su modelo es `jurisdiccion × dimension ×
+  categoria(keywords+exclusiones) × regimen → impactos[]{veredicto_base, requisitos[],
+  banderas[], parametros}`, `veredicto_base` ∈ 3 valores por dimensión (regulatorio:
+  `permitido`/`no_permitido`/`dudoso`, fail-safe `dudoso`), y **no existe entidad `nodo` ni
+  `actor`**. Un agente que no conoce el grafo habría producido el esquema equivocado con total
+  confianza → output no-sembrable (el gate `gen_seed_sql.py --check` lo rechaza).
+- **Fix**: todo prompt de investigación→seed trae el esquema real EMBEBIDO + el checklist del
+  gate + frontera dura **Salida A** (investigación/producto, incl. nodos/automatización/riesgo)
+  vs **Salida B** (solo reglas con fuente primaria, en el esquema real). Validar el ejemplo con
+  `python3 gen_seed_sql.py --check --json <tmp>` ANTES de confiar. "obligatorio/condicionado" es
+  estatus de un `requisito`, NO un veredicto; nodo/riesgo/automatización nunca van al seed.
+  Entregado: `grafo/PLANTILLA-INVESTIGACION-SEED.md` (PR #144). Detalle en
+  `.claude/memory/project/fase8-grafo-regulatorio.md` (act. 2026-07-24).
+- **Aplicar en**: toda investigación que alimente el grafo (seguros, logística, más países) y,
+  en general, todo prompt cuya salida deba encajar en un esquema existente — anclarlo al esquema
+  real, no dejar que invente uno plausible.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

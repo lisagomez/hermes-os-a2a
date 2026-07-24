@@ -288,3 +288,39 @@ revisamos", 2026-07-09). Pendientes para retomar, en orden sugerido:
    - Si en el futuro se decide investigar la CUSF (documento secundario,
      mucho más largo) para completar examen/cédula/garantía con fuente
      primaria real, es un PRP aparte — no bloqueante hoy.
+
+## ACTUALIZACIÓN 2026-07-24 — plantilla de investigación→seed (siguiente dominio: logística)
+
+Elisa trajo un borrador de prompt para investigar la documentación electrónica de
+exportación (e-AWB aéreo, BL marítimo, carta porte terrestre; vertical
+freight-forwarder/GAL) y alimentar el grafo. Al revisarlo contra el esquema REAL
+(`seed/reglas.json` + gate de `gen_seed_sql.py`), el borrador **inventaba un esquema
+que el grafo no tiene** — `nodo_id`, `actor_afectado`, `subcategoria`, `nivel_certeza`,
+`condicion/evidencia_minima`, y un vocabulario de 12 "veredictos" que mezclaba 5 ejes
+(veredicto real + estatus de requisito + dependencia + accesibilidad de datos +
+automatización/riesgo). Corrido tal cual habría producido output **no-sembrable**, con
+total confianza (el peor fallo: un agente que no conoce el grafo genera el esquema
+equivocado sin dudar).
+
+**Entregado:** `grafo/PLANTILLA-INVESTIGACION-SEED.md` (companion del borrador, PR #144)
+— trae el esquema correcto ADENTRO: `impactos[]` real, vocab de 3 valores
+(`permitido`/`no_permitido`/`dudoso`, fail-safe `dudoso`), categorías por
+keywords+exclusiones (recordando la colisión `AGENTES_SEGUROS` vs `DRONES_DELIVERY`),
+checklist del gate, crosswalk de campos del borrador→esquema real, y **frontera dura
+Salida A vs Salida B**. Ejemplo `EXPORT_AEREO_EAWB` VALIDADO (`gen_seed_sql.py --check`
+= OK): veredicto `dudoso` porque estándar sectorial IATA (Res. 672) ≠ exigencia de
+autoridad, con base legal MX (Ley Aduanera/RGCE/VUCEM) marcada como hueco de
+conocimiento. Aún NO hay reglas de exportación en el seed — es el método, no el seed.
+
+**Aprendizaje reusable (aplica a TODA investigación futura del grafo — seguros,
+logística, más países):**
+1. El grafo NO tiene entidad `nodo` ni `actor`. Fichas nodo-céntricas = **Salida A**
+   (investigación/producto), no sembrables; modelar nodo como `regimen`/`banderas` o
+   proponer extensión de esquema = **decisión de la dueña**, no un supuesto.
+2. `veredicto_base` = 3 valores por dimensión (regulatorio: permitido/no_permitido/
+   dudoso). "obligatorio/condicionado" es estatus de un `requisito` (string), NO un
+   veredicto. Automatización/riesgo/transparencia = Salida A, nunca seed.
+3. Exportación documental → dimensión `regulatorio`, `regimen: GENERAL` (no cruza a
+   fiscal/contable/contractual).
+4. Todo prompt de investigación→seed debe traer el esquema real embebido y validarse
+   con `gen_seed_sql.py --check` antes de confiar. Ver [[fuentes-legales-mx]].
