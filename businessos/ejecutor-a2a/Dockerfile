@@ -48,7 +48,12 @@ COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
 # esto, crear_engine() truena AL CONSTRUIRSE (config invalida, no fallo silencioso
 # en runtime) porque contratos_inteligentes esta SIEMPRE en DEPARTAMENTOS. Solo el
 # catalogo (contrato + engine + plantillas), no sus tests.
-COPY fabrica-sc/contrato_sc.py fabrica-sc/engine fabrica-sc/plantillas ./fabrica-sc/
+# OJO gotcha COPY multi-fuente: un directorio como fuente copia su CONTENIDO,
+# no el directorio → engine/ y plantillas/ quedaban aplanados y _cargar_fabrica()
+# no encontraba engine/fabrica.py (crash-loop, visto 2026-07-23). Una linea por dir.
+COPY fabrica-sc/contrato_sc.py ./fabrica-sc/
+COPY fabrica-sc/engine ./fabrica-sc/engine
+COPY fabrica-sc/plantillas ./fabrica-sc/plantillas
 
 # Correr como uid/gid 1000 (= hermes del host). Un solo escritor sobre /repo y
 # /workspace: los objetos git que escribe el trio quedan owned 1000 (no root),
