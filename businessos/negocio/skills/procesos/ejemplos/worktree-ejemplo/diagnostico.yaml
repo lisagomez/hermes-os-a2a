@@ -1,0 +1,50 @@
+proyecto: comnorte-clasificador-facturas
+cliente: "Comercializadora del Norte"
+alcance: mediano
+supuestos:
+  - "Volumen estimado 1200 facturas/mes (a confirmar)"
+linea_base:
+  volumen_mes: 200
+  horas_humano_corrida: 1.5
+  costo_hora_op_usd: 25
+  costo_actual_mensual_usd: 7500
+  costo_actual_anual_usd: 90000
+  costo_error: "Un día de retrabajo por lote mal clasificado; ~1/mes."
+  es_estimado: true
+  supuestos: ["Costo-hora operativo asumido en 25 USD (a validar)"]
+pasos_as_is:
+  - id: 1
+    paso: "Descargar el PDF de la factura del correo"
+    responsable: "Auxiliar contable"
+    sistema: "Gmail"
+    veredicto_esoa: simplificar
+    justificacion: "El correo es un handoff manual; se recibe en bandeja estándar."
+  - id: 2
+    paso: "Determinar si el gasto es deducible"
+    responsable: "Contador"
+    sistema: "Excel"
+    veredicto_esoa: automatizar
+    justificacion: "Decisión con reglas fiscales; candidata a agente + grafo."
+cinco_s:
+  seiri_clasificar: "Se capturan 2 columnas que nadie usa."
+  seiton_ordenar: "Los PDFs viven en correos personales; sin ubicación estándar."
+  seiso_limpiar: "RFC falta en ~10% de los PDFs."
+  seiketsu_estandarizar: "Cada proveedor manda formato distinto."
+  shitsuke_disciplina: "Sin validación que sostenga el estándar."
+diseno_a2a:
+  - automatizacion: "Clasificación de deducibilidad"
+    complejidad: media
+    agentes: ["agente-clasificador-fiscal"]
+    coordinacion_a2a: "consulta grafo-a2a para la regla fiscal con fuente"
+    integraciones: ["Contpaqi API", "grafo"]
+    control_humano: "revisar las marcadas 'dudoso' antes de contabilizar"
+    manejo_error: "sin regla aplicable -> dudoso -> escala a humano"
+consejo: >-
+  Estandarizar la entrada (5S) y luego automatizar la clasificación con revisión
+  humana de las dudosas. Empezar por la estandarización; sin ella la
+  automatización es cara. Resultado esperado: liberar ~85% del tiempo humano.
+reto_limitantes:
+  - "Contpaqi sin API documentada: validar integración antes de cotizar en firme."
+  - "10% de PDFs sin RFC: sin Seiso la clasificación falla; incluir normalización."
+  - "El criterio fiscal debe citar el grafo; no automatizarlo sin fuente."
+  - "Contabilizar es irreversible: gate humano obligatorio en las dudosas."

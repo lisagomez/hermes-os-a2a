@@ -1,0 +1,92 @@
+# reglas/procesos.toml — reglas del Supervisor para el DEPARTAMENTO DE PROCESOS.
+#
+# Config VERSIONADA y diff-eable (SPEC-trio §7.4: auditables, no improvisadas).
+# El reto "en software es npm build, ¿aqui que?" se resuelve gateando la
+# ESTRUCTURA y las invariantes del paquete to-be (diagnostico.yaml, reporte.md,
+# presupuesto.xlsx, build-spec.yaml) que el Ejecutor deja en el worktree — no
+# la calidad del razonamiento (eso es gate de modelo, inactivo hasta tener
+# runner). Runners en chequeos_procesos.py; SPEC en departamentos/procesos.md §5.
+#
+# Mismas invariantes del motor (gates.py):
+# - gate activo con runner inexistente = CONFIG INVALIDA (no arranca).
+# - gate que no puede correr en runtime = `no_ejecutable` → RECHAZO.
+
+departamento = "procesos"
+
+# --- chequeos estaticos deterministas (chequeos_procesos.py) ---
+
+[[gate]]
+regla = "estructura_diagnostico"
+runner = "estatico"
+chequeo = "estructura_diagnostico"
+
+[[gate]]
+regla = "linea_base_cuantificada"
+runner = "estatico"
+chequeo = "linea_base_cuantificada"
+
+[[gate]]
+regla = "esoa_completo"
+runner = "estatico"
+chequeo = "esoa_completo"
+
+[[gate]]
+regla = "cinco_s_aplicado"
+runner = "estatico"
+chequeo = "cinco_s_aplicado"
+
+[[gate]]
+regla = "control_humano_por_automatizacion"
+runner = "estatico"
+chequeo = "control_humano_por_automatizacion"
+
+[[gate]]
+regla = "consejo_y_reto"
+runner = "estatico"
+chequeo = "consejo_y_reto"
+
+[[gate]]
+regla = "presupuesto_dos_monedas"
+runner = "estatico"
+chequeo = "presupuesto_dos_monedas"
+
+[[gate]]
+regla = "build_spec_valida"
+runner = "estatico"
+chequeo = "build_spec_valida"
+
+[[gate]]
+regla = "herramientas_en_stack"
+runner = "estatico"
+chequeo = "herramientas_en_stack"
+
+[[gate]]
+regla = "sin_marcadores"
+runner = "estatico"
+chequeo = "sin_marcadores"
+
+[[gate]]
+regla = "fuentes_citadas"
+runner = "estatico"
+chequeo = "fuentes_citadas"
+
+# --- compartido con software/adquisicion: secret-scrubbing (chequeo base) ---
+
+[[gate]]
+regla = "sin_secretos"
+runner = "estatico"
+chequeo = "sin_secretos"
+
+# --- gates de modelo: DECLARADOS pero inactivos hasta tener runner real ---
+# (igual que code_review/security_review en software.toml: activarlos sin
+# runner es imposible por diseño — config invalida)
+
+[[gate]]
+regla = "revision_metodologica"
+runner = "modelo"
+activo = false
+
+[[gate]]
+regla = "tono_de_marca"
+runner = "modelo"
+activo = false

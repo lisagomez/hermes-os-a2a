@@ -9,6 +9,7 @@ import pytest
 
 import chequeos_adquisicion  # noqa: F401 — registra los chequeos comerciales
 import chequeos_fabric  # noqa: F401 — registra los chequeos de contratos_inteligentes
+import chequeos_procesos  # noqa: F401 — registra los chequeos de procesos
 from gates import ConfigInvalida, cargar_config, cargar_configs
 
 DIR_REGLAS = Path(__file__).resolve().parent.parent / "reglas"
@@ -84,11 +85,12 @@ def test_config_inexistente_no_arranca(tmp_path):
         cargar_config(tmp_path / "nada.toml")
 
 
-# --- multi-departamento (Fase 9, + contratos_inteligentes Fase 4/PRP-013) ---
+# --- multi-departamento (Fase 9, + contratos_inteligentes Fase 4/PRP-013,
+#     + procesos 2026-07-23) ---
 
-def test_directorio_real_carga_los_tres_departamentos():
+def test_directorio_real_carga_los_cuatro_departamentos():
     configs = cargar_configs(DIR_REGLAS)
-    assert set(configs) == {"software", "adquisicion", "contratos_inteligentes"}
+    assert set(configs) == {"software", "adquisicion", "contratos_inteligentes", "procesos"}
     reglas_adq = {g.regla for g in configs["adquisicion"]}
     assert {
         "claims_aprobados", "precio_en_rango", "plantilla_contrato_intacta",
@@ -105,6 +107,20 @@ def test_directorio_real_carga_los_tres_departamentos():
     } <= reglas_ci
     # Todo gate activo tiene runner ejecutable de verdad (misma invariante central).
     for g in configs["contratos_inteligentes"]:
+        if g.activo:
+            assert g.runner in ("comando", "estatico")
+
+    reglas_proc = {g.regla for g in configs["procesos"]}
+    assert {
+        "estructura_diagnostico", "linea_base_cuantificada", "esoa_completo",
+        "cinco_s_aplicado", "control_humano_por_automatizacion", "consejo_y_reto",
+        "presupuesto_dos_monedas", "build_spec_valida", "herramientas_en_stack",
+        "sin_marcadores", "fuentes_citadas", "sin_secretos",
+    } <= reglas_proc
+    modelo_proc = {g.regla: g for g in configs["procesos"] if g.runner == "modelo"}
+    assert set(modelo_proc) == {"revision_metodologica", "tono_de_marca"}
+    assert all(not g.activo for g in modelo_proc.values())
+    for g in configs["procesos"]:
         if g.activo:
             assert g.runner in ("comando", "estatico")
 

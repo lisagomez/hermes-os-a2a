@@ -1,0 +1,25 @@
+proyecto: comnorte-clasificador-facturas
+alcance: mediano
+resumen: "Automatizar clasificación de deducibilidad con revisión humana."
+stack_cliente:
+  suite: M365
+  herramientas: ["Power Automate", "Copilot", "Contpaqi"]
+construir:
+  - id: cls-01
+    automatizacion: "Clasificación de deducibilidad de facturas"
+    complejidad: media
+    departamento_destino: software
+    sdd: true
+    spec_ref: "specs/clasificador-facturas.md"
+    skills_requeridas: ["trio-software"]
+    clis_requeridos: ["contpaqi", "grafo"]
+    herramientas_propuestas: ["Power Automate", "Copilot"]
+    justificacion_herramientas: ""
+    integraciones: ["Contpaqi API", "grafo (fiscal MX)"]
+    control_humano: "revisar dudosas antes de contabilizar"
+    gate_humano_irreversible: true
+disparo:
+  cola: true
+  requiere_aprobacion_humana: true
+  tope_gasto_usd: 5
+  orden: ["cls-01"]

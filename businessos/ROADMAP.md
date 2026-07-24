@@ -666,6 +666,47 @@ del PRP resueltas por la dueña (2026-07-19).
 
 ---
 
+## Departamento de Procesos (alta 2026-07-23) ✅ instalado y verificado en dev; despliegue a runtime pendiente
+
+Cuarto departamento del trío ("se configura, no se programa", patrón Fase 9).
+SPEC: `departamentos/procesos.md`. No entrega software ni ventas: **diagnostica
+procesos que YA operan** con 5S (capa de información) + ESOA (Eliminar →
+Simplificar → Optimizar → Automatizar, capa de flujo), cuantifica la **línea
+base**, costea en **MXN y USD** (aritmética determinista, cero tokens —
+`genera_presupuesto.py`) y emite una **build-spec** que, tras aprobación
+humana, dispara SDD/Skills/CLIs en el departamento destino (Software, por la
+cola de Fase 10). Se activa por **descubrimiento** (criterio del orquestador):
+solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software.
+
+- [x] `DEPARTAMENTOS += "procesos"` en `trio-contrato/contrato.py` (+2 tests)
+- [x] Gates deterministas: `supervisor-a2a/reglas/procesos.toml` (formato real
+  `[[gate]]`) + `chequeos_procesos.py` — 12 activos sobre la estructura del
+  paquete to-be (línea base cuantificada, ESOA completo, 5S, control humano por
+  automatización —"cero humanos" prohibido—, consejo+reto, dos monedas con TC,
+  build-spec con candado `requiere_aprobacion_humana`, herramientas en stack,
+  sin marcadores de marca blanca, fuentes citadas, sin secretos) + 2 de modelo
+  declarados INACTIVOS. El módulo se registra en `gates.CHEQUEOS` vía adaptador
+  (patrón chequeos_adquisicion/fabric); `sin_secretos` reusa el chequeo base.
+- [x] COPY en el Dockerfile del supervisor EN EL MISMO CAMBIO (gotcha
+  2026-07-10) + `pyyaml`/`openpyxl` pineados en requirements.
+- [x] Skill de ejecución `negocio/skills/procesos/` (absorbe `diagnostico-a2a`):
+  SKILL.md + 6 references (metodología, descubrimiento, línea base/consejo,
+  costeo/pricing, plantillas, disparadores SDD/Skills/CLI) + script del
+  presupuesto + `ejemplos/worktree-ejemplo/` que pasa los 12 gates.
+- [x] Verificado en dev, cero tokens: ejemplo APROBADO por el CLI y por el
+  MOTOR real del Supervisor (`cargar_configs` + `correr_gates` sobre el TOML
+  real); suites en verde: supervisor 107 (31 nuevos), contrato 45, ejecutor 63,
+  coordinador 58, presupuesto 9.
+- [ ] **Runtime (siguiente deploy)**: rebuild `supervisor-a2a` en Hetzner (el
+  COPY + requirements nuevos) y sync del skill al volumen de negocio (los `.md`
+  del repo son fuente, no despliegue — aprendizaje 2026-07-12).
+- [ ] **Gates de la dueña**: primera corrida real (proceso propio antes de
+  cliente), y runner de modelo para `revision_metodologica`/`tono_de_marca`.
+- **Sin servicio A2A nuevo ni puerto público**: Procesos es interno, corre por
+  el trío existente.
+
+---
+
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
 No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se

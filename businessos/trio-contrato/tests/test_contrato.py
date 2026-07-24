@@ -168,6 +168,18 @@ def test_resultado_departamento_desconocido_es_invalido():
         validar_resultado({**RESULTADO_OK, "departamento": "finanzas"})
 
 
+# --- departamento procesos (alta 2026-07-23) ---
+
+def test_tarea_procesos_valida():
+    t = validar_tarea({**TAREA_OK, "departamento": "procesos"})
+    assert t["departamento"] == "procesos"
+
+
+def test_resultado_procesos_valido():
+    r = validar_resultado({**RESULTADO_OK, "departamento": "procesos"})
+    assert r["departamento"] == "procesos"
+
+
 # --- veredicto (invariantes anti-sello-de-goma) ---
 
 def test_veredicto_rechazo_valido():
