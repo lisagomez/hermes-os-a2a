@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { DepartamentoCombo } from '@/features/dashboard/components/desarrollo/departamento-combo'
 import { DepartamentoSubnav } from '@/features/dashboard/components/nav/departamento-subnav'
 import { dataSourceLabel, getDataSource } from '@/features/dashboard/services'
+import { SignOutButton } from '@/features/auth/components/sign-out-button'
+import { createClient } from '@/lib/supabase/server'
 
 const vistas = [
   { href: '/dashboard', label: 'Pantheon' },
@@ -17,6 +19,10 @@ export default async function MainLayout({
 }) {
   const fuente = dataSourceLabel()
   const departamentos = await getDataSource().departamentos()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-800 bg-slate-900/60">
@@ -48,6 +54,7 @@ export default async function MainLayout({
           >
             datos: {fuente}
           </span>
+          <SignOutButton email={user?.email} />
         </nav>
         <DepartamentoSubnav />
       </header>

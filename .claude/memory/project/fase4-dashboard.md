@@ -83,6 +83,34 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   e2e local usar script node con el playwright del repo (patrón smoke de
   frontend-web2), el chromium de `npx playwright install chromium` sí está.
 
+## Auth + PWA + Vercel-ready (2026-07-24)
+
+- **Se cayó el YAGNI "una sola usuaria"**: el panel se expone a los compañeros →
+  auth obligatoria ANTES de Vercel (renderiza todo el negocio con service_role;
+  en URL pública sería abierto). Método: **magic link passwordless + allowlist
+  fail-closed** (`PANEL_ALLOWED_EMAILS`, coma-separado; vacío = nadie entra).
+- **Archivos nuevos**: `src/middleware.ts` (proxy: exige user + allowlist en toda
+  ruta salvo `/login` y `/auth/*`), `src/lib/supabase/middleware.ts` (updateSession),
+  `src/lib/auth/allowlist.ts`, `src/app/auth/{otp,callback,signout}/route.ts`,
+  `src/features/auth/components/{login-form,sign-out-button}.tsx`. El OTP se envía
+  desde un **route server-side** que gatea por allowlist ANTES de llamar a Supabase
+  (sin email-bombing de arbitrarios, sin oráculo de enumeración: respuesta SIEMPRE
+  genérica). Callback verifica allowlist otra vez (defensa en profundidad).
+- **PWA**: `public/manifest.webmanifest` + `public/sw.js` (conservador: NUNCA
+  cachea navegaciones/HTML ni Supabase → jamás sirve página sensible obsoleta ni
+  salta el redirect de login; solo `/_next/static` e iconos) + iconos generados
+  con sharp (radar emerald sobre slate) + `PWARegister` (solo en prod).
+- **Deploy**: runbook en `businessos/DEPLOY-mission-control.md`. App en la RAÍZ
+  (Root Directory `.`, `.vercelignore` excluye `businessos/`). Requiere config de
+  redirect URL en Supabase Auth. Elección de la dueña: "solo déjalo listo" (el
+  `vercel deploy` lo hace ella). Build+typecheck+lint verdes; smoke de runtime OK
+  (307→/login en protegidas, 200 en assets, OTP gate genérico).
+- **OJO Docker Hetzner**: el middleware aplica también al `a2abot` de Hetzner
+  cuando se reconstruya la imagen → hay que poner las vars de auth + allowlist en
+  su `.env` del compose o el túnel SSH quedará en `/login` sin poder entrar.
+- Gotcha Next 16.2: `middleware` está deprecado a favor de `proxy` (solo warning;
+  sigue funcionando y el build lo reporta como "Proxy (Middleware)").
+
 ## Residuales
 
 - ~~**Runtime**: build de imagen + `compose up a2abot` + cron de snapshot-pantheon~~ →
