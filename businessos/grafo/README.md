@@ -1,11 +1,13 @@
-# grafo — cerebro regulatorio fiscal (Fase 2)
+# grafo — cerebro regulatorio multi-ámbito (Fase 2/3/8)
 
 Servicio Docker en `hermes-net` que evalúa conceptos contra reglas citadas y devuelve
 veredicto por concepto **con fuente**, banderas rojas y checklist. **Señala riesgos; NO asesora.**
-Ámbitos (Fase 3): **fiscal MX** (deducibilidad, PM Título II), **fiscal CO** (Estatuto
-Tributario), **contable MX** (NIF/CFF) y **contractual MX** (cláusulas: CCF/CCo/LFPDPPP).
-Pasa `jurisdiccion`/`dimension`/`regimen` en el contexto; `GENERAL` en un impacto aplica
-a cualquier régimen. La clasificación solo considera categorías del ámbito consultado.
+Ámbitos: **fiscal MX** (deducibilidad, PM Título II), **fiscal CO** (Estatuto Tributario),
+**contable MX** (NIF/CFF), **contractual MX** (cláusulas: CCF/CCo/LFPDPPP) y **regulatorio MX**
+(permisos/cumplimiento operativo — veredicto `permitido`/`no_permitido`/`dudoso`; hoy
+drones-delivery e intermediación de seguros; Fase 8). Pasa `jurisdiccion`/`dimension`/`regimen`
+en el contexto; `GENERAL` en un impacto aplica a cualquier régimen. La clasificación solo
+considera categorías del ámbito consultado.
 
 Regla de oro: **cero afirmación fiscal sin fuente citada.** Lo no clasificable sale
 `dudoso` con razón `sin regla aplicable` (fail-safe: el grafo nunca adivina).
@@ -29,14 +31,19 @@ curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application
 
 | Pieza | Qué es |
 |-------|--------|
-| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: 24 reglas / 27 impactos (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo/LFPDPPP) |
+| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: 29 reglas / 32 impactos (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo/LFPDPPP, LAC/NOM-107/LISF regulatorio MX) |
 | `seed/gen_seed_sql.py` | Valida el seed (gate de procedencia) y genera `02-seed.sql`. `--check` = solo validar |
+| `PLANTILLA-INVESTIGACION-SEED.md` | Método investigación→seed: aterriza una investigación regulatoria a la Salida B sembrable (esquema real, gate, frontera Salida A vs B). Para dominios nuevos, p. ej. documentación de exportación logística |
 | `seed/01-schema.sql`, `seed/02-seed.sql` | Corren vía initdb de postgres (orden alfabético) |
 | `evaluador.py` | Motor puro (sin DB/LLM/red): clasificación por keywords, vigencia, regla rectora, topes |
 | `schemas.py` / `app.py` | Contrato Pydantic + FastAPI. `app.openapi()` funciona SIN postgres (pool lazy) |
 | `db.py` | Postgres lazy: conocimiento cacheado en memoria, evaluaciones persistidas best-effort |
 
 ## Editar el conocimiento (reglas)
+
+> Para un **dominio regulatorio nuevo** (p. ej. documentación de exportación logística),
+> parte de [`PLANTILLA-INVESTIGACION-SEED.md`](PLANTILLA-INVESTIGACION-SEED.md): estructura
+> la investigación en la Salida B sembrable (esquema real + gate) antes de tocar `reglas.json`.
 
 1. Editar `seed/reglas.json` (nunca `02-seed.sql`, es generado).
 2. `python3 seed/gen_seed_sql.py` (corre el gate de procedencia y regenera el SQL).
