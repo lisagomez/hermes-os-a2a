@@ -21,7 +21,10 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
   `167.233.233.56`, Falkenstein `fsn1`); corre TODO incl. grafo por ~$9/mes. Runbook
   en `FASE0-hetzner.md` (delta sobre FASE0.md, que conserva los pasos genéricos de
   servidor). No bajar de 4 GB para las 3 verticales: en 2 GB el stack hace OOM-kill
-  (FASE0.md §1); con 1 vertical + limits recortados, 2 GB alcanza.
+  (FASE0.md §1); con 1 vertical + limits recortados, 2 GB alcanza. El plan de
+  escalamiento por fases (interno → MVP → multitenant → alto volumen, con
+  costeo unitario y FODA de Hetzner) vive en `plan-escalamiento-hermes.md`
+  (v. jul-2026 de la dueña + anexo de deltas verificados).
 - **Orquestación:** Docker + docker-compose (un contenedor por vertical)
 - **Agente:** Hermes Agent (Nous Research) — memory, skills, soul, crons, loop
 - **Modelos (opt-in GLM-5.2, seam listo 2026-07-04):** `z-ai/glm-5.2` (~1/6 del costo de
