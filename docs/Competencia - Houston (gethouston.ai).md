@@ -82,6 +82,53 @@ con certeza, el siguiente paso es un agente que le hable JSON-RPC crudo a un end
   Fuentes: [gethouston.ai/privacy/](https://gethouston.ai/privacy/),
   [gethouston.ai/terms/](https://gethouston.ai/terms/).
 
+### 5.1 Conexion a herramientas externas (Gmail/Calendar) via OAuth, investigado 2026-07-24
+
+Flujo: el usuario conecta la herramienta desde Houston, Google muestra su propia pantalla OAuth
+(Houston nunca ve la contrasena), Google emite un token que Houston guarda para que el agente lo
+use despues.
+
+Privacy Policy, seccion "Connector credentials": *"the credentials and tokens needed to authorize
+those connections are stored either on your local machine (desktop app) or, if you use Houston
+Cloud, encrypted on our servers."* Seccion "Connected applications": *"data flows between Houston
+and that application as needed for the connector to work. The third party's use of your data is
+governed by its own terms."* Fuente: [gethouston.ai/privacy/](https://gethouston.ai/privacy/).
+
+**Punto ciego detectado (cruce contra su propio README tecnico):** el motor de integracion no es
+de Houston, es **Composio** (asi conectan las "1000+ herramientas"). El README dice que por
+defecto corre en **"platform mode" a traves de Composio**; para que el token quede solo local o en
+Houston Cloud como promete la privacy policy, el usuario tendria que crear y auto-hospedar su
+propio proyecto Composio (opcion que existe, no es el default). Fuente:
+[github.com/gethouston/houston](https://github.com/gethouston/houston). Composio no aparece
+nombrado ni una vez en la privacy policy fetcheada como subprocesador. **[Suponiendo, sin
+confirmacion directa de Houston]:** en el modo por defecto es plausible que el token de Gmail
+pase por o quede en infraestructura de Composio, no solo "local o Houston Cloud" como dice la
+politica. No hay fuente primaria de Houston que lo confirme o lo niegue explicitamente.
+
+Composio (el proveedor) publica buenas practicas propias como plataforma (AES-256 en reposo,
+tokens nunca puestos en el contexto del LLM para evitar exfiltracion por prompt injection, scopes
+minimos por conexion) pero eso es una garantia del producto Composio en general, no una
+confirmacion especifica de que Houston las aplique en la practica. Fuente: Composio, "Per-User
+OAuth for AI Agents" (https://composio.dev/content/per-user-oauth-for-ai-agents).
+
+No se aclara si el acceso a Gmail es consulta en vivo por pedido del agente o si se cachea/
+sincroniza contenido en algun lado; la politica solo dice que el flujo de datos "es gobernado por
+los terminos del tercero", trasladando la responsabilidad al usuario.
+
+**Riesgo practico no verificado:** Google exige verificacion (CASA) para apps que piden scopes
+sensibles de Gmail; sin verificar, el usuario ve la pantalla "unverified app... unsafe" y la app
+queda limitada a 100 usuarios de prueba. No se encontro evidencia publica de que Houston o
+Composio (como cliente OAuth) hayan pasado esa verificacion. Si no la pasaron, cualquier empresa
+real que quiera conectar Gmail se topa con esa friccion, algo que no aparece en su marketing
+("para gente no tecnica").
+
+**Contraste con nuestra doctrina:** este repo ya decidio (gotcha 2026-06-30, CLAUDE.md) que el
+agente Hermes NUNCA maneja secretos directo (patron host-job + snapshot: un job de confianza del
+host toca la credencial, el agente solo lee el resultado sanitizado). Houston hace lo opuesto por
+diseno: el agente mismo trae el token OAuth y toca Gmail directo. Mas comodo para el usuario, pero
+es la misma superficie de ataque (exfiltracion de token por prompt injection) que Composio
+reconoce como riesgo en su propia documentacion.
+
 ## 6. Cumplimiento regulatorio / LATAM
 
 No se encontró ninguna feature de cumplimiento fiscal/legal/contractual multi-país. El
