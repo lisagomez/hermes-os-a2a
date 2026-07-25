@@ -196,7 +196,7 @@ No hay landing sectorial dedicada más allá de esos ejemplos de finanzas/contab
   probablemente no instala software de escritorio en su flujo diario.
 - **Amenaza geográfica real, no hipotética:** fundadores colombianos, pilotos corporativos en
   Colombia, hackathon planeado en el país. Houston está reclutando y validando en el mismo
-  mercado que Zelandia/a2a apunta.
+  mercado que Hermes OS A2A apunta.
 - Houston es **open source (MIT)** en su motor, vale la pena que alguien del equipo revise el
   repo si se quiere entender su arquitectura interna con más profundidad que lo que exponen
   públicamente en marketing.
