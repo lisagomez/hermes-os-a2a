@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import time
 from pathlib import Path
+from typing import Awaitable, Callable
 
 from a2a.helpers import get_data_parts, new_data_part, new_task, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
@@ -35,6 +37,11 @@ from supervisor_cliente import SupervisorCliente, SupervisorError
 
 FAN_OUT_DEFAULT = 3
 DEFAULT_WORKSPACE = "/workspace"
+
+# Reintento del Planner ante fallos TRANSITORIOS del proveedor (429/5xx/conexion), 2026-07-25.
+PLAN_TRANSITORIOS_MAX = 6   # reintentos antes de rendirse (fusible ante mala clasificacion)
+BACKOFF_BASE_S = 60.0       # 1er reintento; luego exponencial (60, 120, 240…)
+ESPERA_MAX_S = 3600.0       # techo de una sola pausa (ni un `resets_at` raro cuelga la corrida)
 
 
 def heredar_modelo_pref(plan: dict, tarea: dict) -> dict:
@@ -92,6 +99,8 @@ class CoordinadorA2A(AgentExecutor):
         integrar=None,
         repo: Path | None = None,
         workspace_root: Path | None = None,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        reloj: Callable[[], float] = time.time,
     ) -> None:
         self._planner = planner or crear_planner(os.environ.get("COORDINADOR_PLANNER", "mock"))
         self._estado = estado or EstadoCoordinador()
@@ -103,6 +112,9 @@ class CoordinadorA2A(AgentExecutor):
         self._workspace_root = workspace_root or Path(
             os.environ.get("TRIO_WORKSPACE", DEFAULT_WORKSPACE)
         )
+        # Inyectables para que los tests no duerman de verdad ni dependan del reloj real.
+        self._sleep = sleep
+        self._reloj = reloj
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Blinda la corrida: si el cliente se va, el enjambre SIGUE.
@@ -155,11 +167,9 @@ class CoordinadorA2A(AgentExecutor):
             await self._fallar(updater, f"tarea padre invalida: {exc}")
             return
 
-        try:
-            plan = heredar_modelo_pref(await self._planner.plan(tarea), tarea)
-        except PlannerError as exc:
-            await self._fallar(updater, f"planner: {exc}")
-            return
+        plan = await self._planificar(tarea, updater)
+        if plan is None:
+            return  # ya se marco failed (planner definitivo o reintentos agotados)
 
         await self._estado.registrar_padre(tarea, plan, fan_out_max, presupuesto)
         task_id = tarea["task_id"]
@@ -207,6 +217,44 @@ class CoordinadorA2A(AgentExecutor):
             "plan": plan, "enjambre": resumen,
             "resultado_integrado": integrado, "veredicto_final": veredicto_final,
         })
+
+    async def _planificar(self, tarea: dict, updater: TaskUpdater) -> dict | None:
+        """Planifica con reintento ante fallos TRANSITORIOS del proveedor (429/5xx/conexion).
+
+        El Planner llama al modelo via z.ai igual que el Ejecutor: un 429 (tope 5h) o una
+        conexion caida NO deben tirar la feature entera. A diferencia del Ejecutor —que tiene
+        un worker con cola— aqui la planificacion es INLINE, asi que el reintento es un bucle
+        acotado con backoff (o pausa hasta `resets_at` si es un 429 duro). Como `execute` esta
+        blindado con asyncio.shield, la pausa sobrevive a un cliente que se desconecta. Un fallo
+        DEFINITIVO (plan invalido, error de codigo) o agotar los reintentos marca la tarea
+        failed, como hoy. Devuelve el plan (con modelo_pref heredado) o None si ya fallo.
+        """
+        for intento in range(1, PLAN_TRANSITORIOS_MAX + 1):
+            try:
+                return heredar_modelo_pref(await self._planner.plan(tarea), tarea)
+            except PlannerError as exc:
+                if not exc.transitorio:
+                    await self._fallar(updater, f"planner: {exc}")
+                    return None
+                if intento >= PLAN_TRANSITORIOS_MAX:
+                    await self._fallar(
+                        updater, f"planner (transitorio, agotados {intento} reintentos): {exc}"
+                    )
+                    return None
+                espera = self._espera_de(exc.reanudar_epoch, intento)
+                print(
+                    f"[coordinador] planner TRANSITORIO ({exc}) → reintento {intento}, "
+                    f"pausa {espera:.0f}s",
+                    flush=True,
+                )
+                await self._sleep(espera)
+        return None  # inalcanzable (el bucle sale por return)
+
+    def _espera_de(self, reanudar_epoch: int | None, intento: int) -> float:
+        """Segundos a esperar: hasta `resets_at` si lo hay, si no backoff exponencial. Con techo."""
+        if reanudar_epoch:
+            return max(0.0, min(reanudar_epoch - self._reloj(), ESPERA_MAX_S))
+        return min(BACKOFF_BASE_S * (2 ** (intento - 1)), ESPERA_MAX_S)
 
     @staticmethod
     async def _entregar(updater: TaskUpdater, datos: dict) -> None:

@@ -22,7 +22,24 @@ from contrato import ContratoInvalido, validar_plan
 
 
 class PlannerError(RuntimeError):
-    """El Planner no pudo producir un plan válido; el mensaje trae el porqué."""
+    """El Planner no pudo producir un plan válido; el mensaje trae el porqué.
+
+    `transitorio` marca un fallo del PROVEEDOR (rate-limit 429/5xx/conexión caída) —
+    no un plan inválido ni un error de juicio. El Coordinador lo reintenta con backoff
+    (y pausa hasta `reanudar_epoch` si es un 429 duro) en vez de tirar la feature entera,
+    igual que hace el worker del Ejecutor. Por defecto False → todo error se comporta como
+    hoy salvo que quien lo levanta diga lo contrario.
+    """
+
+    def __init__(
+        self,
+        mensaje: str,
+        transitorio: bool = False,
+        reanudar_epoch: int | None = None,
+    ) -> None:
+        super().__init__(mensaje)
+        self.transitorio = transitorio
+        self.reanudar_epoch = reanudar_epoch
 
 
 class Planner(Protocol):

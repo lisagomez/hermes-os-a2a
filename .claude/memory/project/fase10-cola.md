@@ -104,8 +104,10 @@ z.ai) tumbó 5 tareas seguidas y un **"Connection closed mid-response"** mató o
 
 ## Abierto
 
-- El **Coordinador** (Planner del enjambre) llama a z.ai y tiene la misma exposición a un 429;
-  hoy no lo dispara ningún skill. Aplicarle `clasificar_transitorio` cuando se exponga.
+- ~~El Coordinador (Planner) tiene la misma exposición a un 429~~ → **HECHO 2026-07-25**: el
+  clasificador se movió a `trio-contrato/errores_proveedor.py` (compartido) y el Planner del
+  Coordinador lo usa con reintento INLINE (`executor.py::_planificar`, backoff/pausa hasta
+  `resets_at`, fusible `PLAN_TRANSITORIOS_MAX=6`). Deploy = rebuild del Coordinador.
 - Cosmético: `posicion` viaja como `1.0` (protobuf Struct convierte todo número a float).
 - Los gates dejan artefactos (`test-results/`) que se cuelan en el diff de la sub-tarea si el
   `.gitignore` del repo objetivo no los cubre. Vigilar en el primer enjambre real.

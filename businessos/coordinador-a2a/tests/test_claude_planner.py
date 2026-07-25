@@ -12,7 +12,13 @@ import json
 
 import pytest
 
-from claude_agent_sdk import ResultMessage
+from claude_agent_sdk import (
+    CLIConnectionError,
+    RateLimitEvent,
+    RateLimitInfo,
+    ResultMessage,
+)
+from claude_agent_sdk.types import AssistantMessage
 
 from claude_planner import ClaudePlanner, _extraer_json
 from planner import PlannerError, crear_planner
@@ -173,3 +179,83 @@ def test_transporte_roto_es_planner_error():
 
 def test_fabrica_claude_devuelve_claude_planner():
     assert isinstance(crear_planner("claude"), ClaudePlanner)
+
+
+# ---------- clasificacion de errores transitorios del proveedor (2026-07-25) ----------
+# Mismo criterio que el Ejecutor (errores_proveedor.clasificar_transitorio, compartido):
+# un 429/5xx/conexion caida del Planner es transitorio (lo reintenta el Coordinador),
+# un plan invalido / max_turns es definitivo (escala).
+
+
+def query_yield_luego_raise(mensajes, exc):
+    """Como el CLI real ante su propio error: emite mensajes y LUEGO sale con exit!=0."""
+    def _q(*, prompt, options=None):
+        async def gen():
+            for m in mensajes:
+                yield m
+            raise exc
+        return gen()
+    return _q
+
+
+def test_429_del_planner_es_transitorio():
+    rm = result_message(is_error=True, subtype="success", api_error_status=429, result="")
+    engine = ClaudePlanner(
+        query_fn=query_yield_luego_raise(
+            [rm], RuntimeError("Claude Code returned an error result: success")),
+        registro=RegistroEspia(),
+    )
+    with pytest.raises(PlannerError) as e:
+        plan_de(engine, tarea())
+    assert e.value.transitorio is True
+
+
+def test_rate_limit_rejected_trae_resets_at_para_pausar():
+    rate = RateLimitEvent(
+        rate_limit_info=RateLimitInfo(status="rejected", resets_at=1893456000),
+        uuid="u", session_id="s",
+    )
+    rm = result_message(is_error=True, subtype="success", api_error_status=429, result="")
+    with pytest.raises(PlannerError) as e:
+        plan_de(ClaudePlanner(query_fn=QueryFake([rate, rm]), registro=RegistroEspia()), tarea())
+    assert e.value.transitorio is True
+    assert e.value.reanudar_epoch == 1893456000
+
+
+def test_conexion_caida_es_transitorio():
+    engine = ClaudePlanner(
+        query_fn=query_yield_luego_raise([], CLIConnectionError("Connection closed mid-response")),
+        registro=RegistroEspia(),
+    )
+    with pytest.raises(PlannerError) as e:
+        plan_de(engine, tarea())
+    assert e.value.transitorio is True
+
+
+def test_error_del_stream_rate_limit_es_transitorio():
+    msg = AssistantMessage(content=[], model="claude-sonnet-5", usage={}, error="rate_limit")
+    engine = ClaudePlanner(
+        query_fn=query_yield_luego_raise([msg], RuntimeError("boom")), registro=RegistroEspia())
+    with pytest.raises(PlannerError) as e:
+        plan_de(engine, tarea())
+    assert e.value.transitorio is True
+
+
+def test_plan_invalido_NO_es_transitorio():
+    """Un DAG malo es culpa del modelo, no del proveedor: definitivo (escala, no reintenta)."""
+    ciclico = {"sub_tareas": [
+        {"task_id": "a", "objetivo": "a", "criterios_aceptacion": ["x"], "depende_de": ["b"]},
+        {"task_id": "b", "objetivo": "b", "criterios_aceptacion": ["x"], "depende_de": ["a"]},
+    ]}
+    rm = result_message(result=json.dumps(ciclico))
+    with pytest.raises(PlannerError) as e:
+        plan_de(ClaudePlanner(query_fn=QueryFake([rm]), registro=RegistroEspia()), tarea())
+    assert e.value.transitorio is False
+
+
+def test_corrida_en_error_normal_NO_es_transitorio():
+    rm = result_message(is_error=True, subtype="error_during_execution",
+                        result="TypeError: undefined")
+    with pytest.raises(PlannerError) as e:
+        plan_de(ClaudePlanner(query_fn=QueryFake([rm]), registro=RegistroEspia()), tarea())
+    assert e.value.transitorio is False

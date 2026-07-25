@@ -65,6 +65,30 @@ class PlannerFake:
         return {"sub_tareas": [], "orden": [], "avisos": []}
 
 
+class PlannerTransitorio:
+    """Trueca un PlannerError TRANSITORIO las primeras `fallos` veces, luego un plan válido."""
+
+    def __init__(self, fallos: int, reanudar_epoch=None) -> None:
+        self._restantes = fallos
+        self._reanudar = reanudar_epoch
+        self.llamadas = 0
+
+    async def plan(self, tarea) -> dict:
+        self.llamadas += 1
+        if self._restantes > 0:
+            self._restantes -= 1
+            raise PlannerError("rate_limit", transitorio=True, reanudar_epoch=self._reanudar)
+        return {"sub_tareas": [], "orden": [], "avisos": []}
+
+
+class SleepEspia:
+    def __init__(self) -> None:
+        self.esperas: list[float] = []
+
+    async def __call__(self, s: float) -> None:
+        self.esperas.append(s)
+
+
 def _veredicto(tid, aprobado=True):
     if aprobado:
         return {"task_id": tid, "veredicto": "aprobado",
@@ -165,8 +189,13 @@ def contexto_con(mensaje) -> RequestContext:
 
 
 def coordinador_con(planner=None, estado=None, ejecutor=None, presupuesto=None,
-                    supervisor=None, integrar=None):
+                    supervisor=None, integrar=None, sleep=None, reloj=None):
     estado = estado or EstadoEspia()
+    kw = {}
+    if sleep is not None:
+        kw["sleep"] = sleep
+    if reloj is not None:
+        kw["reloj"] = reloj
     coord = CoordinadorA2A(
         planner=planner or MockPlanner(),
         estado=estado,
@@ -174,6 +203,7 @@ def coordinador_con(planner=None, estado=None, ejecutor=None, presupuesto=None,
         presupuesto=presupuesto or PresupuestoFake(),
         supervisor=supervisor or SupervisorFinalFake(aprobado=True),
         integrar=integrar or IntegrarFake(),
+        **kw,
     )
     return coord, estado
 
@@ -369,3 +399,51 @@ def test_planner_que_truena_falla_con_razon():
     cola = ejecutar(coord, new_data_message(tarea_padre()))
     assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
     assert "planner: modelo caido" in razon_de_fallo(cola)
+
+
+# ---------- reintento del Planner ante fallos TRANSITORIOS del proveedor (2026-07-25) ----------
+
+def test_planner_transitorio_reintenta_y_luego_planifica():
+    """Un 429 del Planner NO tira la feature: reintenta con backoff y sigue al planificar bien."""
+    planner = PlannerTransitorio(fallos=2)
+    sleep = SleepEspia()
+    coord, _ = coordinador_con(planner=planner, sleep=sleep)
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED  # no fallo por el transitorio
+    assert planner.llamadas == 3            # 2 transitorios + 1 exito
+    assert sleep.esperas == [60.0, 120.0]   # backoff exponencial
+
+
+def test_planner_transitorio_con_resets_at_pausa_hasta_esa_hora():
+    planner = PlannerTransitorio(fallos=1, reanudar_epoch=1300)
+    sleep = SleepEspia()
+    coord, _ = coordinador_con(planner=planner, sleep=sleep, reloj=lambda: 1000.0)
+    ejecutar(coord, new_data_message(tarea_padre()))
+    assert sleep.esperas == [300.0]  # 1300 (resets_at) - 1000 (ahora)
+
+
+def test_planner_transitorio_agotado_escala():
+    """Fusible: tras PLAN_TRANSITORIOS_MAX transitorios seguidos, falla — nunca bucle infinito."""
+    from executor import PLAN_TRANSITORIOS_MAX
+    planner = PlannerTransitorio(fallos=PLAN_TRANSITORIOS_MAX)  # nunca llega a exito
+    sleep = SleepEspia()
+    coord, estado = coordinador_con(planner=planner, sleep=sleep)
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    assert "transitorio" in razon_de_fallo(cola)
+    assert planner.llamadas == PLAN_TRANSITORIOS_MAX          # no reintenta al infinito
+    assert len(sleep.esperas) == PLAN_TRANSITORIOS_MAX - 1    # duerme entre intentos, no tras el ultimo
+    assert estado.padres == []                                # sin plan no se registra padre
+
+
+def test_planner_definitivo_falla_sin_reintentar():
+    """Un plan invalido / error de codigo es DEFINITIVO: falla ya, sin backoff."""
+    sleep = SleepEspia()
+    coord, _ = coordinador_con(planner=PlannerFake(error=PlannerError("plan invalido")), sleep=sleep)
+    cola = ejecutar(coord, new_data_message(tarea_padre()))
+
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    assert "planner: plan invalido" in razon_de_fallo(cola)
+    assert sleep.esperas == []  # definitivo NO duerme ni reintenta
