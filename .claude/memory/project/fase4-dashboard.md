@@ -111,6 +111,31 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
 - Gotcha Next 16.2: `middleware` está deprecado a favor de `proxy` (solo warning;
   sigue funcionando y el build lo reporta como "Proxy (Middleware)").
 
+## Desplegado en Vercel (2026-07-25)
+
+- **URL de producción**: https://a2abot-mission-control.vercel.app — proyecto
+  `a2abot-mission-control` (`prj_v0hAmPpqqqEZsEOM5ErPHD1w6xNt`, scope
+  `lisagomezs-projects`), Root Directory `.`, **sin conexión a GitHub**: se
+  publica con `vercel deploy --prod` (mergear a master NO despliega).
+- **Allowlist inicial = solo la dueña** (`elisa.qualy@gmail.com`,
+  `lisagomez967@gmail.com`). Sumar compañeros = editar `PANEL_ALLOWED_EMAILS` en
+  Vercel **y redeployar** (las env se congelan por deployment).
+- **Supabase Auth** (proyecto compartido A2ABot): `site_url` = la URL del deploy,
+  `uri_allow_list` = ese dominio + `localhost:3000`. El
+  `rate_limit_email_sent` quedó en **2/hora** (no se puede subir sin SMTP propio;
+  la management API responde `401 Custom SMTP required`) → si el equipo se queja
+  de que no llega el enlace, ese es el motivo, y la salida es SMTP (Resend).
+- **Verificado en vivo**, no "build verde": 6/6 rutas 307→`/login` sin sesión;
+  con sesión mintada por `admin/generate_link` (revocada al terminar) las 6
+  renderizan datos reales; logs de Vercel sin 500s; grafo/gateways degradados
+  como se esperaba; `/_next/mcp` (que Next 16 expone por `experimental.mcpServer`)
+  queda **detrás del login** gracias al matcher del middleware.
+- **Bug de PWA encontrado por el smoke con navegador**: el SW no se registraba
+  nunca (`useEffect` + `window.load` que ya disparó). Corregido en
+  `src/lib/pwa/registrar-sw.ts` + `tests/pwa-register.spec.ts` (3 tests, probados
+  en rojo revirtiendo el fix). Post-fix: SW `activated` y caché `mc-static-v1`
+  solo con los 4 estáticos. Ver aprendizaje CLAUDE.md 2026-07-25.
+
 ## Residuales
 
 - ~~**Runtime**: build de imagen + `compose up a2abot` + cron de snapshot-pantheon~~ →
