@@ -189,7 +189,10 @@ businessos/
    2026-07-08. COMPLETA 2026-07-11: dogfood real APROBADO — Planner real GLM-5.2 planificó
    3 sub-tareas, enjambre paralelo aprobado al primer intento, integración limpia y 8 gates
    verdes en el todo; ledger por-tarea real y corte de presupuesto operando con datos
-   medidos (ver CLAUDE.md 2026-07-11 enjambre).
+   medidos (ver CLAUDE.md 2026-07-11 enjambre). Resiliencia (2026-07-25, PR #151): el Planner
+   del Coordinador también reintenta los fallos transitorios del proveedor (429/5xx/conexión)
+   con backoff/pausa en vez de tirar la feature; el criterio vive en un módulo compartido
+   (`trio-contrato/errores_proveedor.py`) que Ejecutor y Coordinador vendoran igual.
 9. [x] **Fase 9** — Departamento de Adquisición de Clientes agéntico (núcleo en dev
    2026-07-10): segundo departamento del trío (`departamento: "adquisicion"` en el contrato;
    Supervisor multi-departamento ruteando `reglas/*.toml`); gates comerciales binarios con la
