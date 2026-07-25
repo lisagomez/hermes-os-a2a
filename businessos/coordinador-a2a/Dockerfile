@@ -30,7 +30,7 @@ WORKDIR /app
 COPY coordinador-a2a/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY trio-contrato/contrato.py .
+COPY trio-contrato/contrato.py trio-contrato/errores_proveedor.py .
 # OJO: COPY EXPLICITO. Un modulo nuevo sin su linea aqui = ModuleNotFoundError y crash-loop
 # en runtime, que los tests de dev NO cazan (2026-07-10). `cola_espera.py` es de PRP-010.
 COPY coordinador-a2a/card.py coordinador-a2a/executor.py coordinador-a2a/planner.py \

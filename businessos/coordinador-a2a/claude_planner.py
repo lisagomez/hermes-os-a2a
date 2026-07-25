@@ -23,6 +23,8 @@ from typing import Any
 import httpx
 
 from contrato import ContratoInvalido, validar_plan
+# Criterio transitorio-vs-definitivo COMPARTIDO con el Ejecutor (trio-contrato).
+from errores_proveedor import clasificar_transitorio
 from planner import PlannerError
 
 MAX_TURNS_DEFAULT = 12
@@ -156,8 +158,24 @@ class ClaudePlanner:
         self._query = query_fn
         self._registro = registro or RegistroTokenUsage()
 
+    @staticmethod
+    def _planner_error(
+        mensaje: str,
+        result: Any,
+        rate_info: Any,
+        exc: BaseException | None,
+        errores_stream: list[str],
+    ) -> PlannerError:
+        """Envuelve el fallo clasificando si es transitorio (reintentar) o definitivo."""
+        transitorio, reanudar = clasificar_transitorio(result, rate_info, exc, errores_stream)
+        if transitorio:
+            espera = f" (reanuda ~{reanudar})" if reanudar else ""
+            print(f"[planner] fallo TRANSITORIO del proveedor{espera}: {mensaje}", flush=True)
+        return PlannerError(mensaje, transitorio=transitorio, reanudar_epoch=reanudar)
+
     async def plan(self, tarea: dict) -> dict:
-        from claude_agent_sdk import ClaudeAgentOptions, ResultMessage
+        from claude_agent_sdk import ClaudeAgentOptions, RateLimitEvent, ResultMessage
+        from claude_agent_sdk.types import AssistantMessage
 
         limites = tarea.get("limites", {})
         options = ClaudeAgentOptions(
@@ -169,22 +187,40 @@ class ClaudePlanner:
         )
 
         result = None
+        # Señales de fallo TRANSITORIO del proveedor, capturadas del stream (mismas
+        # que el Ejecutor): el ultimo estado de rate-limit (trae `resets_at`) y los
+        # `error` de los AssistantMessage.
+        rate_info: Any = None
+        errores_stream: list[str] = []
         try:
             async for mensaje in self._query(prompt=_prompt_de(tarea), options=options):
                 if isinstance(mensaje, ResultMessage):
                     result = mensaje
-        except Exception as exc:  # CLI ausente, transporte roto, etc.
-            raise PlannerError(f"claude-agent-sdk: {type(exc).__name__}: {exc}") from exc
+                elif isinstance(mensaje, RateLimitEvent):
+                    rate_info = mensaje.rate_limit_info
+                elif isinstance(mensaje, AssistantMessage) and getattr(mensaje, "error", None):
+                    errores_stream.append(str(mensaje.error))
+        except Exception as exc:  # CLI ausente, transporte roto, 429, conexion caida, etc.
+            raise self._planner_error(
+                f"claude-agent-sdk: {type(exc).__name__}: {exc}",
+                result, rate_info, exc, errores_stream,
+            ) from exc
 
         if result is None:
-            raise PlannerError("claude-agent-sdk: la corrida no entrego ResultMessage")
+            raise self._planner_error(
+                "claude-agent-sdk: la corrida no entrego ResultMessage",
+                None, rate_info, None, errores_stream,
+            )
 
         # El gasto se registra SIEMPRE (tambien en error), atribuido al padre.
         await self._registro.registrar(filas_token_usage(result, tarea.get("task_id")))
 
         if result.is_error:
             detalle = result.result or "; ".join(result.errors or []) or result.subtype
-            raise PlannerError(f"claude-agent-sdk: corrida en error: {str(detalle)[:300]}")
+            raise self._planner_error(
+                f"claude-agent-sdk: corrida en error: {str(detalle)[:300]}",
+                result, rate_info, None, errores_stream,
+            )
 
         crudo = _extraer_json(result.result or "")
         try:

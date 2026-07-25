@@ -98,9 +98,13 @@ El repo NO es el runtime (aprendizaje 2026-07-12). En el servidor:
   existen en 0.2.110), no contra un blog.
 - **Para desplegar**: rebuild del Ejecutor (es imagen, no script) — `docker compose up -d
   --build ejecutor-a2a` en el servidor tras mergear. No toca BD ni volúmenes.
-- **Pendiente relacionado** (fuera de este arreglo): el **Coordinador** (enjambre) llama al
-  Planner contra z.ai y tiene la misma exposición a un 429; hoy no lo dispara ningún skill.
-  Aplicarle el mismo `clasificar_transitorio` cuando se exponga.
+- **Coordinador blindado también (2026-07-25)**: el Planner del enjambre llama al modelo vía
+  z.ai igual que el Ejecutor, así que se le aplicó el MISMO criterio. El clasificador se movió a
+  un módulo compartido (`trio-contrato/errores_proveedor.py::clasificar_transitorio`) que ambos
+  servicios vendoran — una sola implementación, no dos que deriven ("arreglar lo compartido").
+  El reintento del Planner es INLINE (no hay cola de planificación): bucle acotado en
+  `coordinador-a2a/executor.py::_planificar` con backoff/pausa hasta `resets_at` y fusible
+  `PLAN_TRANSITORIOS_MAX=6`. 10 tests nuevos. Deploy = rebuild del Coordinador (imagen).
 
 ## Sabido y NO arreglado (mismo tipo, otro servicio)
 

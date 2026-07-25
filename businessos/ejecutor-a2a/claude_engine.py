@@ -26,25 +26,13 @@ from typing import Any
 import httpx
 
 from engine import EngineError
+# Criterio transitorio-vs-definitivo COMPARTIDO con el Coordinador (trio-contrato):
+# una sola implementacion para los dos servicios que hablan con el proveedor.
+from errores_proveedor import clasificar_transitorio
 
 MAX_TURNS_DEFAULT = 40
 VERTICAL_TRIO = "trio"
 TIMEOUT_S = 10.0
-
-# Errores del PROVEEDOR que son TRANSITORIOS: reintentar, no escalar (2026-07-24).
-# El SDK 0.2.110 los expone de forma ESTRUCTURAL — no hay que parsear el transcript:
-#   - ResultMessage.api_error_status = 429/5xx/529 cuando is_error=True y subtype="success"
-#     (el criptico "returned an error result: success" de la 1a corrida real).
-#   - AssistantMessage.error / ResultMessage.errors ∈ {rate_limit, server_error, ...}.
-#   - RateLimitEvent.rate_limit_info.status == "rejected" trae `resets_at` (Unix ts).
-#   - CLIConnectionError = transporte caido ("Connection closed mid-response").
-STATUS_TRANSITORIOS = frozenset({429, 500, 502, 503, 504, 529})
-# Marcadores de texto (fallback cuando no hay señal estructural). Conservador a
-# proposito: solo lo inequivocamente transitorio. Ante la duda → definitivo (escala).
-MARCAS_TRANSITORIAS = (
-    "rate_limit", "rate limit", "overloaded", "server_error",
-    "connection closed", "connection error", "connection reset",
-)
 
 PROMPT_SISTEMA = (
     "Eres el Ejecutor del trio de un departamento de software. Recibes UNA tarea "
@@ -185,49 +173,6 @@ def filas_token_usage(result: Any, modelo_pedido: str | None, task_id: str | Non
             "costo_usd": float(getattr(result, "total_cost_usd", None) or 0),
         })
     return filas
-
-
-def _texto_transitorio(*textos: Any) -> bool:
-    """True si algun texto contiene un marcador inequivoco de fallo transitorio."""
-    blob = " ".join(str(t) for t in textos if t).lower()
-    return any(m in blob for m in MARCAS_TRANSITORIAS)
-
-
-def clasificar_transitorio(
-    result: Any,
-    rate_info: Any,
-    exc: BaseException | None,
-    errores_stream: list[str] | None = None,
-) -> tuple[bool, int | None]:
-    """¿El fallo es del PROVEEDOR (transitorio) o DEFINITIVO? Devuelve (transitorio, reanudar_epoch).
-
-    Fail-safe: solo devuelve True con señal de ALTA confianza (estructural del SDK o
-    marcador de texto inequivoco). Cualquier otra cosa —error del codigo, max_turns,
-    billing/auth— cae a definitivo y escala como siempre. Nunca empeora el caso: solo
-    convierte en reintento lo que hoy se escala por error.
-    """
-    reanudar = None
-    if rate_info is not None and getattr(rate_info, "status", None) == "rejected":
-        # Rate-limit DURO de la cuenta: hasta `resets_at` no vale reintentar.
-        reanudar = getattr(rate_info, "resets_at", None) or getattr(
-            rate_info, "overage_resets_at", None
-        )
-        return True, reanudar
-
-    from claude_agent_sdk import CLIConnectionError
-
-    if isinstance(exc, CLIConnectionError):
-        return True, None
-
-    if result is not None and getattr(result, "api_error_status", None) in STATUS_TRANSITORIOS:
-        return True, reanudar
-
-    errores = list(errores_stream or [])
-    errores += list(getattr(result, "errors", None) or [])
-    if _texto_transitorio(getattr(result, "result", None), *errores, exc):
-        return True, reanudar
-
-    return False, None
 
 
 class ClaudeAgentEngine:
