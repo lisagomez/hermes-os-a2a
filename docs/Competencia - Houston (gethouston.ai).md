@@ -200,3 +200,52 @@ No hay landing sectorial dedicada más allá de esos ejemplos de finanzas/contab
 - Houston es **open source (MIT)** en su motor, vale la pena que alguien del equipo revise el
   repo si se quiere entender su arquitectura interna con más profundidad que lo que exponen
   públicamente en marketing.
+
+## 12. Conectores Composio (Houston) vs. patron host-job de Hermes, investigado 2026-07-24
+
+Mapeo del codigo real de este repo (no roadmap aspiracional) para comparar contra el modelo de
+Composio de Houston (catalogo gestionado de 1000+ herramientas con OAuth por conector, ver §4-5.1).
+
+**Hallazgo central: Hermes no tiene hoy ningun equivalente a Composio.** Grep exhaustivo de
+"MCP", "OAuth", "connector", "Gmail", "Calendar", "HubSpot", "Stripe" en `businessos/**` no
+encuentra ningun catalogo de conectores para el usuario final del negocio. Cada mencion de
+"conector" en el repo es sobre gateways de canal de mensajeria (Telegram/WhatsApp), no APIs de
+productividad de terceros.
+
+**Lo que Hermes usa en su lugar (patron host-job + snapshot, ya en produccion, no solo infra
+interna):**
+- Cobros: `businessos/polar-cobros.py` (el agente deja un JSON pendiente, el host-job con
+  `POLAR_ACCESS_TOKEN` crea el Checkout Session).
+- Persistencia: `businessos/ingest-facturas.py`, `businessos/ingest-token-usage.py`,
+  `businessos/evaluar-facturas.py`, `businessos/validar-contratos.py` (todos con
+  `SUPABASE_SERVICE_ROLE_KEY`, ninguno accesible al agente).
+- Confirmado explicito en `businessos/clientes/AGENTS.md`: "TU no tienes el service_role... no
+  escribes a Supabase tu", "TU no escribes a token_usage... no tienes el service_role".
+
+**MCP:** no implementado en runtime, solo mencionado en `businessos/ROADMAP.md` como capa
+aspiracional; el motor del Ejecutor (`ejecutor-a2a/claude_engine.py`, `fabric_engine.py`) no
+cablea servidores MCP. Lo que si esta implementado y verificado en codigo es **A2A real**: agent
+card en `/.well-known/agent-card.json` (SDK `a2a`, `coordinador-a2a/app.py`), no solo el nombre
+de marketing que reclama Houston sin spec publico.
+
+**Conectar Gmail/Calendar de un CLIENTE FINAL: no existe, es brecha explicita.** Lo unico
+parecido es `businessos/frontends/control-interno/integrations/calendar/agent-event.py`, pero es
+de una app interna distinta, con una cuenta Google FIJA por variable de entorno
+(`GOOGLE_CALENDAR_ACCOUNT`) para el propio operador, no un flujo OAuth multi-tenant donde cada
+cliente conecta su propia cuenta.
+
+**Dos filosofias de seguridad opuestas, no solo una diferencia de features:**
+- Houston: el agente autonomo trae su propio token OAuth y actua directo. Mas rapido de
+  construir, misma superficie de ataque (exfiltracion de token por prompt injection) que
+  Composio reconoce como riesgo en su propia documentacion.
+- Hermes: ningun agente toca una credencial real jamas (scrubbing de secretos del runtime por
+  diseno, gotcha 2026-06-30). Mas lento de extender (cada integracion nueva es un host-job a
+  mano, no "conectar de una lista de 1000"), pero es la decision correcta para un negocio que
+  maneja datos fiscales/contables/contractuales sensibles.
+
+**Implicacion de producto:** si el roadmap de Hermes llega a incluir que un cliente final
+conecte SU Gmail/HubSpot/Stripe (no solo que el equipo interno opere el negocio), hoy no hay
+nada construido para ese caso. Decision pendiente si se llega ahi: construir un "Composio
+propio" con el mismo cuidado de aislamiento (mas caro, mas seguro) vs. aceptar el patron
+agente-con-token-directo de Houston para ese caso puntual (mas rapido, contradice la doctrina
+de scrubbing ya establecida en este repo).
