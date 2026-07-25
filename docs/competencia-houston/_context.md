@@ -9,6 +9,7 @@
 | Archivo | Qué es |
 |---|---|
 | `Competencia - Houston (gethouston.ai).md` | Investigación cruzada (4 rondas de agentes en paralelo): modelo de precios/OAuth (corre sobre la suscripción ChatGPT/Claude del usuario, no revende tokens), catálogo de agentes, privacidad y conexión OAuth a Gmail/Calendar vía Composio, posicionamiento/tracción/comunidad, moat competitivo, y comparación de arquitectura de conectores (Composio) contra el patrón host-job real de Hermes. Todas las citas llevan URL de fuente primaria. |
+| `Auditoria de seguridad - Houston (gethouston.ai).md` | Auditoría TÉCNICA de código (distinta de la investigación de mercado de arriba): repo clonado y auditado por OPS el 2026-07-25 con 6 agentes de solo lectura. Veredicto SOSPECHOSO (no malicioso): 2 fallas ALTAS reales de código (traversal de rutas en comandos Tauri que puede encadenar a ejecución con un clic; tablas de Supabase con tokens OAuth/API keys de usuarios sin RLS/REVOKE) + hallazgos menores, con la lección concreta para nosotros en cada uno. Para cuando nos inspiremos en su arquitectura, saber qué NO repetir. |
 
 ## Por qué está en `docs/` y no en un PRP
 
