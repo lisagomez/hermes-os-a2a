@@ -92,8 +92,9 @@ línea CRM arrancó. En corto:
 - **Fases 8–10** ✅ — grafo regulatorio (permisos), departamento de
   **adquisición** (`ventas-a2a` + edge público) y **cola durable** del trío
   (encola en ~1s, worker serial, avisos a Slack). Resiliente a fallos
-  transitorios del proveedor (429/5xx/conexión): reintenta con backoff sin
-  gastar un intento, en vez de escalar.
+  transitorios del proveedor (429/5xx/conexión) — tanto el Ejecutor como el
+  Planner del enjambre reintentan con backoff en vez de escalar, con el criterio
+  en un módulo compartido.
 - **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
   chat de venta en vivo (`chat-web2`).
 - **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**

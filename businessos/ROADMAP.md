@@ -701,6 +701,19 @@ se encolan juntas pero el worker las ejecuta de una en una (concurrencia 1: 8 GB
 `fan_out_max` ya no compra velocidad, compra **orden**. El enjambre sigue valiendo por lo que
 de verdad aporta: descomponer en DAG, respetar dependencias, integrar y **re-gatear el todo**.
 
+**Resiliencia ante fallos del PROVEEDOR (2026-07-25, PRs #150/#151).** Un **429 rate-limit**
+(tope 5h de z.ai) o un **"Connection closed mid-response"** ya **no escalan** el trabajo como
+si hubiera fallado — se **reintentan**. El error se clasifica con la señal ESTRUCTURAL del
+`claude-agent-sdk` 0.2.110 (`ResultMessage.api_error_status` = 429/5xx/529, `RateLimitEvent.resets_at`,
+`CLIConnectionError`), sin parsear ningún transcript; fail-safe (solo lo inequívocamente
+transitorio reintenta; max_turns/billing/código escalan como antes). Cubre los **dos** servicios
+que hablan con el modelo: el **Ejecutor** reintenta en su worker (sin consumir intento, pausa que
+frena la cola entera, fusible 8) y el **Planner del Coordinador** reintenta INLINE
+(`executor.py::_planificar`, backoff/pausa hasta `resets_at`, fusible 6). El criterio vive en
+**un módulo compartido** `trio-contrato/errores_proveedor.py` — una sola implementación que ambos
+vendoran ("arreglar lo compartido"). Deploy = rebuild del Ejecutor y del Coordinador (imágenes).
+Detalle en `PENDIENTES-TRIO.md`.
+
 Detalle que costó sangre: el diff de cada sub-tarea se **relee de git**, nunca de la fila —
 `estado.py` lo recorta a 20 k para el jsonb y la integración hace `git apply`: un parche
 truncado corrompería el trabajo en silencio.

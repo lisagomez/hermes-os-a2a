@@ -1136,8 +1136,18 @@ npm run lint         # ESLint
   CUENTA; (3) **fusible** de 8 reintentos seguidos → escala, por si algo se clasificó mal. Capas
   `engine/claude_engine/pipeline/worker/cola`, 12 tests nuevos, verde en dev. Deploy = rebuild del
   Ejecutor (imagen). Detalle: `businessos/PENDIENTES-TRIO.md` + `.claude/memory/project/fase10-cola.md`.
-- **Aplicar en**: todo motor de agente contra un proveedor con rate-limit (Ejecutor, y el Planner
-  del Coordinador que tiene la misma exposición aún sin blindar), y todo host-job/cliente que trate
-  un error de red/límite como si fuera un fallo de la lógica de negocio.
+- **Seguimiento (mismo día, PR #151): el Coordinador también, y el criterio se COMPARTIÓ.** El
+  Planner del enjambre (`coordinador-a2a`) llama al modelo vía z.ai igual que el Ejecutor → misma
+  exposición a un 429. En vez de DUPLICAR el clasificador se MOVIÓ a
+  `trio-contrato/errores_proveedor.py`, el módulo que ambos servicios ya vendoran ("arreglar lo
+  compartido, no el caso aislado"): una sola implementación, no dos que deriven. El reintento del
+  Planner es INLINE (no hay cola de planificación): bucle acotado en `executor.py::_planificar` con
+  backoff/pausa hasta `resets_at` y fusible `PLAN_TRANSITORIOS_MAX=6`. El refactor del Ejecutor a
+  usar el módulo compartido NO cambió su comportamiento (75 tests siguen verdes). Deploy = rebuild
+  del Coordinador; el Ejecutor no cambia comportamiento.
+- **Aplicar en**: todo motor de agente contra un proveedor con rate-limit (Ejecutor y Planner del
+  Coordinador, YA blindados), y todo host-job/cliente que trate un error de red/límite como si fuera
+  un fallo de la lógica de negocio. Y cuando un SEGUNDO servicio necesite la misma lógica del
+  proveedor, muévela al módulo compartido (`trio-contrato/errores_proveedor.py`), no la dupliques.
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
