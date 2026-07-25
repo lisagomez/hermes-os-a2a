@@ -168,6 +168,30 @@ def test_motor_que_truena_escala(repo, tmp_path):
     assert supervisor.resultados_recibidos == []  # sin resultado no hay revision
 
 
+class MotorTransitorio:
+    """Motor que truena con un EngineError transitorio (proveedor caido)."""
+
+    def __init__(self, reanudar_epoch=None) -> None:
+        self._reanudar = reanudar_epoch
+
+    async def run(self, tarea, worktree):
+        from engine import EngineError
+        raise EngineError("claude-agent-sdk: rate_limit", transitorio=True,
+                          reanudar_epoch=self._reanudar)
+
+
+def test_motor_transitorio_NO_escala_y_propaga_reanudar(repo, tmp_path):
+    """Un 429/5xx del proveedor no es culpa de la tarea: escalar=False + transitorio, con la
+    hora de reanudacion propagada para que el worker pause la cola."""
+    p, _ = pipeline_con(repo, tmp_path, SupervisorFake(veredicto=VEREDICTO_APROBADO),
+                        engine=MotorTransitorio(reanudar_epoch=1893456000))
+    with pytest.raises(PipelineError) as e:
+        asyncio.run(p.procesar(tarea_valida("t-110")))
+    assert e.value.escalar is False
+    assert e.value.transitorio is True
+    assert e.value.reanudar_epoch == 1893456000
+
+
 def test_supervisor_caido_NO_escala_la_tarea(repo, tmp_path):
     """El Supervisor caido no es culpa de la tarea: se reintenta, no se escala a Elisa."""
     p, estado = pipeline_con(repo, tmp_path,

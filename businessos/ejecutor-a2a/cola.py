@@ -171,7 +171,8 @@ class ColaSupabase:
                 "updated_at": "now()",
             },
         )
-        if not r2.json():  # 0 filas => otro proceso se la llevo primero
+        filas_patch = r2.json()
+        if not filas_patch:  # 0 filas => otro proceso se la llevo primero
             return None
         payload = fila.get("payload")
         if not payload:
@@ -179,6 +180,11 @@ class ColaSupabase:
                 f"{fila['task_id']}: fila sin `payload` — no se puede ejecutar desde la fila "
                 "(¿encolada por una version vieja del Ejecutor?)"
             )
+        # El claim acaba de incrementar `intentos`. Se lo pasamos al worker para que, si el
+        # fallo es TRANSITORIO (proveedor caido), pueda devolver el contador y NO gastar un
+        # intento por algo que no es culpa de la tarea (2026-07-24). Clave privada (`_`):
+        # la ignora todo consumidor del payload (motor, pipeline, contrato).
+        payload["_intentos"] = filas_patch[0].get("intentos")
         return payload
 
     async def recuperar_huerfanas(self) -> list[str]:
