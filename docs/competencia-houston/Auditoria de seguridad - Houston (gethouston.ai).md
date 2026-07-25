@@ -45,6 +45,82 @@ alta, en la app de escritorio y en las migraciones de Supabase.
 - `.env.example`/`.env.development` con placeholders reales, `.gitignore` correcto para
   `.env.local`/`.env.*.local`, Dockerfiles con usuario no-root e imágenes pinneadas.
 
+## En simple, para cualquiera del equipo (sin jerga técnica)
+
+Houston tiene una base de código madura en casi todo, pero dejó dos puertas sin el candado
+correcto:
+
+1. **Guardan las claves de acceso de sus usuarios (a Anthropic, a Composio) en una tabla de
+   base de datos que no tiene el filtro de "quién puede leer qué".** En otras tablas parecidas
+   del mismo proyecto sí pusieron ese filtro; en esta no. Si el permiso general de la base de
+   datos sigue tan abierto como en otras partes del mismo repo (no lo confirmamos en vivo,
+   solo por el código), cualquier usuario registrado podría, en teoría, leer las claves de
+   OTRO usuario.
+2. **Su app de escritorio puede abrir un archivo sin comprobar bien la ruta.** Si un agente de
+   IA dentro de la app es manipulado (por ejemplo, por texto malicioso que lee de internet)
+   para que muestre una ruta con truco, y el usuario le hace clic, la app podría terminar
+   ejecutando un programa que no debía, sin que la app se dé cuenta.
+
+Ninguna de las dos es "hackeo" ni mala intención: son errores típicos de un producto que creció
+rápido y no cerró el círculo de "quién puede tocar esto". El resto de su código (cómo
+sandboxean la ejecución de código de un agente, cómo escanean secretos antes de publicar al
+store) está bien hecho, incluso mejor que el promedio.
+
+## Qué errores NO cometer nosotros (checklist)
+
+- [ ] Toda tabla que guarde credenciales/tokens de un usuario (propio o de una integración de
+  terceros) lleva RLS **y** `revoke` explícito de `anon`/`authenticated` desde el día en que se
+  crea la tabla, no como tarea pendiente. Mismo principio que ya tenemos documentado en
+  `[[revocar-execute-funciones-postgres]]` para funciones.
+- [ ] Cualquier comando que combine una carpeta base con una ruta que puede venir de texto
+  generado por el modelo (o de contenido externo que el modelo lea) valida que el resultado
+  siga DENTRO de esa carpeta, sobre la ruta ya resuelta (canonicalizada), antes de actuar.
+- [ ] Cualquier comando expuesto al frontend que termine ejecutando un binario tiene una lista
+  explícita de qué puede ejecutar, nunca "si el archivo existe, se ejecuta".
+- [ ] Si el proyecto ya tiene una función que escapa caracteres peligrosos (para AppleScript,
+  shell, etc.), usarla en TODOS los lugares que interpolen ese mismo tipo de dato, no solo en
+  el primero que se escribió.
+- [ ] Cualquier carpeta de estado de sesión o memoria de agente va al `.gitignore` explícito
+  desde que se crea, no "por convención se sabe que no se commitea".
+
+## Oportunidad de posicionamiento (para ventas/marketing, lente growth)
+
+Esto no es para atacar a Houston en público (no hay evidencia de mala fe, y publicar hallazgos
+de seguridad de un tercero sin darles tiempo de corregir es mala práctica de comunidad). Es
+inteligencia competitiva interna: dónde Hermes ya es objetivamente más fuerte y puede
+apoyarse en eso al vender, sobre todo a clientes corporativos/regulados (el segmento donde ya
+competimos con el grafo fiscal/legal).
+
+- **Aislamiento real de credenciales, no solo un claim.** Hermes usa el patrón host-job +
+  snapshot: el agente NUNCA toca una credencial real, un proceso de confianza del host la usa
+  y le entrega al agente solo el resultado (ver gotcha `2026-06-30` en `CLAUDE.md`). Houston
+  guarda las credenciales en una tabla que el agente/backend consulta directo. Para un
+  comprador corporativo que hace due diligence de proveedores, "el agente nunca ve tu
+  credencial" es un argumento de venta concreto y demostrable, no una frase de marketing.
+- **Un agente que nunca ejecuta binarios locales por su cuenta** es otra historia de venta
+  frente al miedo típico de un comprador corporativo a "agentes autónomos con acceso al
+  sistema". El vector de Houston (ruta manipulada → clic → ejecución) es exactamente ese
+  miedo materializado.
+- Si en una conversación comercial sale la comparación con Houston, la respuesta lista es:
+  "nuestros agentes corren en un patrón donde nunca tocan tus credenciales ni tu sistema de
+  archivos directo", sin necesidad de mencionar bugs específicos de un tercero.
+- **Tarea de higiene propia:** revisar si Hermes tiene alguna tabla equivalente a
+  `workspace_credentials` (cualquier tabla con tokens/API keys de integraciones de clientes)
+  y confirmar que ya tiene RLS + revoke aplicado. Si el patrón host-job + snapshot cubre el
+  100% de los casos, esto es una verificación rápida, no una tarea nueva.
+
+## Accionables concretos
+
+1. **[Ingeniería]** Antes de tomar cualquier patrón de código de Houston como inspiración
+   (sandbox, escaneo de secretos, estructura de skills), pasar por el checklist de arriba.
+2. **[Ingeniería]** Auditar las tablas propias con credenciales de terceros contra el mismo
+   criterio RLS/REVOKE (ver "Tarea de higiene propia" arriba).
+3. **[Ventas/Estrategia]** Tener lista la respuesta de posicionamiento de arriba para cuando
+   Houston salga en una conversación comercial.
+4. **[Comunidad, opcional]** Houston tiene proceso de reporte responsable en su `SECURITY.md`
+   (GitHub Security Advisories). Si el equipo quiere ser buena práctica de comunidad, reportar
+   los hallazgos 1-3 ahí es una opción, no una obligación; decisión de Johann.
+
 ## Decisión de Johann (OPS, 2026-07-25)
 
 El clon completo queda en cuarentena en OPS (`_Revisar seguridad/houston/`, marcado
