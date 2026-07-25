@@ -230,9 +230,12 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
   **https://a2abot-mission-control.vercel.app** (proyecto `a2abot-mission-control`,
   scope `lisagomezs-projects`, Root Directory `.`, 7 vars de entorno en target
   production). Supabase Auth configurado (site_url + `uri_allow_list` con el dominio
-  y `localhost:3000`). Allowlist inicial: **solo los correos de la dueña**
-  (`elisa.qualy@gmail.com`, `lisagomez967@gmail.com`) — sumar compañeros es editar
-  `PANEL_ALLOWED_EMAILS` y redeployar.
+  y `localhost:3000`). Allowlist: **los 5 del equipo** (los 2 correos de la
+  dueña + Victor, Luis y Johann, sumados el mismo 2026-07-25) — cambiarla es
+  editar `PANEL_ALLOWED_EMAILS` y **redeployar** (sin deploy nuevo manda la lista
+  vieja). Login real por magic link **verificado en vivo por la dueña** (evento
+  `Login` con `login_method: pkce` en los logs de auth) y los 3 enlaces del
+  equipo entregados.
   - **Verificación real, no "build verde"**: 6/6 rutas 307→`/login` sin sesión;
     con sesión (mintada por `admin/generate_link`, revocada al terminar) las 6
     renderizan **datos reales** (`datos: real`, gasto del mes, ledger por modelo con
