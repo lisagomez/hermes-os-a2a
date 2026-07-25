@@ -10,10 +10,10 @@
 > - 7 variables de entorno en target `production` (ver tabla §2).
 > - Supabase Auth: `site_url` = la URL del deploy y `uri_allow_list` =
 >   `https://a2abot-mission-control.vercel.app/**,http://localhost:3000/**`.
-> - `PANEL_ALLOWED_EMAILS` = **solo los correos de la dueña**
->   (`elisa.qualy@gmail.com,lisagomez967@gmail.com`). Para sumar compañeros:
->   editar la var en Vercel y **redeployar** (las env de runtime se congelan por
->   deployment).
+> - `PANEL_ALLOWED_EMAILS` = **los 5 del equipo** (los 2 correos de la dueña +
+>   Victor, Luis y Johann, sumados el 2026-07-25). Para cambiar la lista: editar
+>   la var en Vercel y **redeployar** (las env de runtime se congelan por
+>   deployment; sin deploy nuevo la lista vieja sigue mandando).
 >
 > **Redeploy** (desde la raíz, cuenta dueña):
 > `rm -f .env.local && npx vercel deploy --prod --yes`
@@ -43,13 +43,14 @@ Mismo proyecto que usa el negocio: **A2ABot** (`hsejpktzcqwkwkwholkw`). En
 En **Authentication → Providers → Email**: deja **Email OTP / Magic Link**
 habilitado (viene por defecto).
 
-> ⚠️ **Rate limit real del email integrado: `rate_limit_email_sent = 2` por hora
-> para TODO el proyecto** (no por usuario), y **no se puede subir**: la
+> ⚠️ **`rate_limit_email_sent = 2` y no se puede subir** sin SMTP propio: la
 > management API responde `401 "Custom SMTP required to configure ...
-> RATE_LIMIT_EMAIL_SENT"`. Con el equipo entrando por magic link esto se agota
-> rápido (el 3er correo de la hora simplemente no llega). Si molesta: configurar
-> SMTP propio (Resend) en Authentication → SMTP Settings y entonces sí subir el
-> límite.
+> RATE_LIMIT_EMAIL_SENT"`. **Ojo con interpretarlo**: el 2026-07-25 salieron 5
+> magic links en 36 min (11:42, 12:12 y tres a la vez a las 12:18) sin un solo
+> 429 → no es un tope duro de 2/hora por proyecto como parece. Trátalo como
+> límite blando: si alguien dice que su enlace no llega, es el primer
+> sospechoso, y la salida es SMTP propio (Resend) en Authentication → SMTP
+> Settings.
 
 > Nota shared-project: al entrar por primera vez, el trigger `handle_new_user`
 > crea la fila en `profiles` (comportamiento existente; la allowlist gobierna el

@@ -117,9 +117,11 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   `a2abot-mission-control` (`prj_v0hAmPpqqqEZsEOM5ErPHD1w6xNt`, scope
   `lisagomezs-projects`), Root Directory `.`, **sin conexión a GitHub**: se
   publica con `vercel deploy --prod` (mergear a master NO despliega).
-- **Allowlist inicial = solo la dueña** (`elisa.qualy@gmail.com`,
-  `lisagomez967@gmail.com`). Sumar compañeros = editar `PANEL_ALLOWED_EMAILS` en
-  Vercel **y redeployar** (las env se congelan por deployment).
+- **Allowlist = los 5 del equipo** (2 correos de la dueña + Victor, Luis y
+  Johann desde el 2026-07-25). Cambiarla = editar `PANEL_ALLOWED_EMAILS` en
+  Vercel **y redeployar**: las env se congelan por deployment. Login real por
+  magic link verificado en vivo por la dueña (`login_method: pkce` en los logs
+  de auth).
 - **Supabase Auth** (proyecto compartido A2ABot): `site_url` = la URL del deploy,
   `uri_allow_list` = ese dominio + `localhost:3000`. El
   `rate_limit_email_sent` quedó en **2/hora** (no se puede subir sin SMTP propio;
