@@ -19,12 +19,25 @@ from supervisor_cliente import SupervisorError
 
 
 class PipelineError(RuntimeError):
-    """La tarea no llego a veredicto. `.razon` explica por que; `.escalar` si toca escalar."""
+    """La tarea no llego a veredicto. `.razon` explica por que; `.escalar` si toca escalar.
 
-    def __init__(self, razon: str, escalar: bool = True) -> None:
+    `transitorio` marca un fallo del proveedor (rate-limit/5xx/conexion): el worker lo
+    reintenta sin consumir un intento (y pausa hasta `reanudar_epoch` si es un 429 duro),
+    en vez de escalarlo como si la tarea hubiera fallado.
+    """
+
+    def __init__(
+        self,
+        razon: str,
+        escalar: bool = True,
+        transitorio: bool = False,
+        reanudar_epoch: int | None = None,
+    ) -> None:
         super().__init__(razon)
         self.razon = razon
         self.escalar = escalar
+        self.transitorio = transitorio
+        self.reanudar_epoch = reanudar_epoch
 
 
 class Pipeline:
@@ -50,7 +63,15 @@ class Pipeline:
         try:
             salida_motor = await self._engine.run(tarea, worktree)
         except EngineError as exc:
-            raise PipelineError(f"motor: {exc}") from exc
+            # Un fallo TRANSITORIO del proveedor (429/5xx/conexion) no es culpa de la tarea:
+            # no se escala, se reintenta luego (mismo trato que el Supervisor caido).
+            transitorio = getattr(exc, "transitorio", False)
+            raise PipelineError(
+                f"motor: {exc}",
+                escalar=not transitorio,
+                transitorio=transitorio,
+                reanudar_epoch=getattr(exc, "reanudar_epoch", None),
+            ) from exc
 
         try:
             resultado = validar_resultado(

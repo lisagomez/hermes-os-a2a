@@ -173,7 +173,11 @@ businessos/
    gate humano en lo irreversible) + tabla `tareas`; interop e2e con reintento demostrado en
    dev con cero tokens. Runtime cerrado 2026-07-08 y dogfood con motor real APROBADO
    2026-07-11 (GLM-5.2 vía seam z.ai, 8 gates verdes). Residual: gates de modelo con runner.
-   White-label y RAG por ámbito: FUTURO, otro PRP.
+   Resiliencia (2026-07-25): un fallo TRANSITORIO del proveedor (429 rate-limit/5xx/conexión
+   caída) se reintenta con backoff/pausa sin consumir un intento —clasificado con la señal
+   estructural del SDK, no con el transcript—, en vez de escalarse como si la tarea hubiera
+   fallado; lo definitivo (max_turns, error de código) sigue escalando. White-label y RAG por
+   ámbito: FUTURO, otro PRP.
    Primer departamento: Desarrollo de Software (ver `businessos/departamentos/`).
 8. [x] **Fase 7** — Enjambre (swarm) de Ejecutores (núcleo completo 2026-07-04, PRP-007,
    PR #13): `coordinador-a2a` (servicio A2A hermano) descompone una feature grande en un DAG

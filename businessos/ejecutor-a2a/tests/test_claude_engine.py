@@ -12,10 +12,15 @@ from pathlib import Path
 
 import pytest
 
-from claude_agent_sdk import ResultMessage
+from claude_agent_sdk import (
+    CLIConnectionError,
+    RateLimitEvent,
+    RateLimitInfo,
+    ResultMessage,
+)
 from claude_agent_sdk.types import AssistantMessage
 
-from claude_engine import ClaudeAgentEngine, filas_token_usage
+from claude_engine import ClaudeAgentEngine, clasificar_transitorio, filas_token_usage
 from engine import EngineError, MockEngine, RouterEngine, crear_engine
 
 
@@ -280,3 +285,112 @@ def test_filas_token_usage_maneja_snake_case():
     rm = result_message(model_usage={"m1": {"input_tokens": 5, "output_tokens": 7, "cost_usd": 0.01}})
     [fila] = filas_token_usage(rm, None)
     assert (fila["tokens_in"], fila["tokens_out"], fila["costo_usd"]) == (5, 7, 0.01)
+
+
+# ---------- clasificacion de errores transitorios del proveedor (2026-07-24) ----------
+# El 429 de z.ai que tumbo 5 tareas: se escalaban en vez de reintentar. El SDK 0.2.110 lo
+# expone estructuralmente (api_error_status / RateLimitEvent / CLIConnectionError) → aqui se
+# verifica que el motor MARCA el fallo como transitorio, sin parsear ningun transcript.
+
+
+def query_yield_luego_raise(mensajes, exc):
+    """Como el CLI real ante su propio error: emite mensajes y LUEGO sale con exit!=0."""
+    def _q(*, prompt, options=None):
+        async def gen():
+            for m in mensajes:
+                yield m
+            raise exc
+        return gen()
+    return _q
+
+
+def test_429_estructural_es_transitorio_y_registra_gasto(tmp_path):
+    """api_error_status=429 con is_error=True y subtype='success' = el criptico 'error
+    result: success' de la 1a corrida. El motor lo marca transitorio (reintentar, no escalar)."""
+    registro = RegistroEspia()
+    rm = result_message(is_error=True, subtype="success", api_error_status=429,
+                        result="", model_usage={"glm-5.2": {"inputTokens": 10, "outputTokens": 5}})
+    engine = ClaudeAgentEngine(
+        query_fn=query_yield_luego_raise(
+            [rm], RuntimeError("Claude Code returned an error result: success")),
+        registro=registro,
+    )
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is True
+    assert registro.filas  # los tokens quemados se registran igual
+
+
+def test_rate_limit_rejected_trae_resets_at_para_pausar(tmp_path):
+    """Un RateLimitEvent 'rejected' trae `resets_at`: el motor lo propaga como reanudar_epoch
+    para que el worker pause la cola hasta esa hora en vez de estrellarla."""
+    rate = RateLimitEvent(
+        rate_limit_info=RateLimitInfo(status="rejected", resets_at=1893456000),
+        uuid="u", session_id="s",
+    )
+    rm = result_message(is_error=True, subtype="success", api_error_status=429, result="")
+    engine = ClaudeAgentEngine(query_fn=QueryFake([rate, rm]), registro=RegistroEspia())
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is True
+    assert e.value.reanudar_epoch == 1893456000
+
+
+def test_5xx_es_transitorio(tmp_path):
+    rm = result_message(is_error=True, subtype="success", api_error_status=529, result="")
+    engine = ClaudeAgentEngine(query_fn=QueryFake([rm]), registro=RegistroEspia())
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is True
+
+
+def test_conexion_caida_a_media_respuesta_es_transitorio(tmp_path):
+    """CLIConnectionError = transporte roto ('Connection closed mid-response'): transitorio."""
+    engine = ClaudeAgentEngine(
+        query_fn=query_yield_luego_raise([], CLIConnectionError("Connection closed mid-response")),
+        registro=RegistroEspia(),
+    )
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is True
+
+
+def test_error_del_stream_rate_limit_es_transitorio(tmp_path):
+    """AssistantMessage.error == 'rate_limit' (literal del SDK) sin ResultMessage: transitorio."""
+    msg = AssistantMessage(content=[], model="glm-5.2", usage={}, error="rate_limit")
+    engine = ClaudeAgentEngine(
+        query_fn=query_yield_luego_raise([msg], RuntimeError("boom")), registro=RegistroEspia())
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is True
+
+
+def test_max_turns_NO_es_transitorio(tmp_path):
+    """max_turns es un limite de la TAREA, no del proveedor: definitivo (escala como hoy)."""
+    rm = result_message(is_error=True, subtype="error_max_turns",
+                        model_usage={"glm-5.2": {"inputTokens": 1, "outputTokens": 1}})
+    engine = ClaudeAgentEngine(
+        query_fn=query_yield_luego_raise(
+            [rm], RuntimeError("Reached maximum number of turns (40)")),
+        registro=RegistroEspia(),
+    )
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is False
+
+
+def test_error_de_codigo_normal_NO_es_transitorio(tmp_path):
+    rm = result_message(is_error=True, subtype="error_during_execution",
+                        result="TypeError: undefined is not a function")
+    engine = ClaudeAgentEngine(query_fn=QueryFake([rm]), registro=RegistroEspia())
+    with pytest.raises(EngineError) as e:
+        correr(engine, tarea(), tmp_path)
+    assert e.value.transitorio is False
+
+
+def test_clasificador_billing_y_auth_son_definitivos():
+    """Fail-safe: solo lo inequivocamente transitorio reintenta; billing/auth escalan."""
+    rm_billing = result_message(is_error=True, api_error_status=402, result="billing_error")
+    assert clasificar_transitorio(rm_billing, None, None, []) == (False, None)
+    rm_auth = result_message(is_error=True, result="authentication_failed")
+    assert clasificar_transitorio(rm_auth, None, None, []) == (False, None)

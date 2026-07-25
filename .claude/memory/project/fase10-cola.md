@@ -73,8 +73,39 @@ de la cuenta). El `fetch` dentro del contenedor **fallaba en silencio** y el tr�
 días sobre un master de 11 commits atrás. Ahora: **cron del host cada 5 min**
 (`git -C ~/trio/hermes-os-a2a fetch origin --prune`) y el worker **loguea** el resultado.
 
+## Reintento de fallos TRANSITORIOS del proveedor (2026-07-25)
+
+El dogfood de la build-spec (2026-07-24) mostró la mina: un **429 rate-limit** (tope 5h de
+z.ai) tumbó 5 tareas seguidas y un **"Connection closed mid-response"** mató otra — todas
+**escaladas** como si la tarea hubiera fallado. Ahora se **reintentan**.
+
+- **Cero parseo de transcript.** El `claude-agent-sdk` 0.2.110 ya expone la señal de forma
+  ESTRUCTURAL (verificado introspeccionando el SDK instalado, no un blog):
+  `ResultMessage.api_error_status` = 429/5xx/529 cuando `is_error=True` y `subtype="success"`
+  (ese es el críptico *"error result: success"*), `AssistantMessage.error` ∈
+  {`rate_limit`,`server_error`,…}, `RateLimitEvent.rate_limit_info` con `status="rejected"` +
+  **`resets_at`** (Unix ts), y `CLIConnectionError` para el transporte caído.
+- **`clasificar_transitorio` es fail-safe**: solo lo inequívocamente transitorio reintenta;
+  max_turns / billing / auth / error de código → definitivo (escala como siempre). Nunca
+  empeora: solo convierte en reintento lo que hoy se escalaba por error.
+- **Un transitorio NO consume intento**: `cola.reclamar` devuelve el `intentos` que subió el
+  claim (`_intentos` en el payload) y el worker lo decrementa al re-encolar → un 429 no gasta
+  la cuota de reintentos de la tarea.
+- **Pausa = freno de cola**: el worker espera con backoff exponencial (60·2ⁿ, techo 1 h) o
+  hasta `resets_at`. Como es **serial**, esa espera **pausa la cola entera** — justo lo que se
+  quiere ante un límite de CUENTA (todas las tareas comparten el mismo tope de z.ai).
+- **Fusible** `TRANSITORIOS_MAX=8`: tras 8 reintentos transitorios seguidos escala igual, por
+  si algo se clasificó mal (evita bucle infinito; contador en proceso, se limpia al desenlace).
+- Capas: `engine.py` (EngineError con `transitorio`/`reanudar_epoch`) · `claude_engine.py`
+  (captura RateLimitEvent + clasificador) · `pipeline.py` (propaga `escalar=False`) ·
+  `worker.py::_reintentar_transitorio` · `cola.py::reclamar`. **12 tests nuevos, verde en dev.**
+- **Deploy**: rebuild del Ejecutor (imagen, no script) — `docker compose up -d --build
+  ejecutor-a2a`. No toca BD ni volúmenes.
+
 ## Abierto
 
+- El **Coordinador** (Planner del enjambre) llama a z.ai y tiene la misma exposición a un 429;
+  hoy no lo dispara ningún skill. Aplicarle `clasificar_transitorio` cuando se exponga.
 - Cosmético: `posicion` viaja como `1.0` (protobuf Struct convierte todo número a float).
 - Los gates dejan artefactos (`test-results/`) que se cuelan en el diff de la sub-tarea si el
   `.gitignore` del repo objetivo no los cubre. Vigilar en el primer enjambre real.

@@ -1111,4 +1111,33 @@ npm run lint         # ESLint
 - **Aplicar en**: todo deploy de una superficie con auth (Vercel u otra) y toda config de
   auth por management API. Detalle: `businessos/DEPLOY-mission-control.md` §3.
 
+### 2026-07-25: Un fallo del PROVEEDOR no es un fallo de la TAREA — clasificar antes de escalar
+- **Error**: el trío escalaba una tarea ante un **429 rate-limit** (tope 5h de z.ai) o un
+  **"Connection closed mid-response"** como si el trabajo hubiera fallado. En el dogfood de la
+  build-spec (2026-07-24) un 429 tumbó 5 tareas seguidas (las 4 últimas murieron al instante
+  con 0 tokens contra un límite ya agotado) y el bot reportaba lo contrario de la verdad
+  (*"probablemente el trío no está levantado"*) — hermano del pecado del timeout de 30 s del
+  2026-07-12: el sistema se culpaba mal a sí mismo.
+- **Hallazgo que evitó una solución frágil**: la memoria decía que el error real *solo* vivía
+  en el transcript del CLI (`~/.claude/projects/.../*.jsonl`, campo `error`). Al introspeccionar
+  el SDK instalado (`claude-agent-sdk` 0.2.110, doctrina "el instalado manda, no el blog")
+  resultó que la señal es **ESTRUCTURAL**: `ResultMessage.api_error_status` (429/5xx/529 cuando
+  `is_error=True` y `subtype="success"` = el críptico *"error result: success"*),
+  `AssistantMessage.error` ∈ {`rate_limit`,`server_error`,…}, `RateLimitEvent.rate_limit_info.resets_at`
+  (Unix ts del reset) y `CLIConnectionError`. **Cero parseo de transcript. Lección: antes de
+  construir un parser frágil sobre un shape adivinado, introspecciona el SDK — puede que ya te dé
+  el dato tipado.**
+- **Fix (patrón "transitorio vs definitivo", fail-safe)**: `clasificar_transitorio` marca
+  transitorio SOLO con señal de alta confianza; todo lo demás (max_turns, billing, auth, error de
+  código) → definitivo, escala como siempre (nunca empeora: solo convierte en reintento lo que se
+  escalaba por error). Un transitorio: (1) vuelve a la cola **sin consumir intento** (la cola
+  devuelve el `intentos` del claim); (2) el worker **pausa** con backoff exponencial o hasta
+  `resets_at` — y como es serial, la pausa **frena la cola entera**, correcto ante un límite de
+  CUENTA; (3) **fusible** de 8 reintentos seguidos → escala, por si algo se clasificó mal. Capas
+  `engine/claude_engine/pipeline/worker/cola`, 12 tests nuevos, verde en dev. Deploy = rebuild del
+  Ejecutor (imagen). Detalle: `businessos/PENDIENTES-TRIO.md` + `.claude/memory/project/fase10-cola.md`.
+- **Aplicar en**: todo motor de agente contra un proveedor con rate-limit (Ejecutor, y el Planner
+  del Coordinador que tiene la misma exposición aún sin blindar), y todo host-job/cliente que trate
+  un error de red/límite como si fuera un fallo de la lógica de negocio.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

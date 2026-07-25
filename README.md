@@ -91,7 +91,9 @@ línea CRM arrancó. En corto:
   aprobado con GLM-5.2 como motor.
 - **Fases 8–10** ✅ — grafo regulatorio (permisos), departamento de
   **adquisición** (`ventas-a2a` + edge público) y **cola durable** del trío
-  (encola en ~1s, worker serial, avisos a Slack).
+  (encola en ~1s, worker serial, avisos a Slack). Resiliente a fallos
+  transitorios del proveedor (429/5xx/conexión): reintenta con backoff sin
+  gastar un intento, en vez de escalar.
 - **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
   chat de venta en vivo (`chat-web2`).
 - **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**

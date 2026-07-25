@@ -51,9 +51,37 @@ class PipelineQueTruena:
 class EstadoEspia:
     def __init__(self) -> None:
         self.transiciones: list[tuple[str, str]] = []
+        self.detalles: list[tuple[str, str, dict]] = []  # con los campos, para asertar intentos
 
     async def transicionar(self, task_id: str, estado: str, **campos) -> None:
         self.transiciones.append((task_id, estado))
+        self.detalles.append((task_id, estado, campos))
+
+
+class ColaSiempre:
+    """Devuelve SIEMPRE la misma tarea al reclamar (para ejercer el bucle de reintentos)."""
+
+    def __init__(self, tarea: dict) -> None:
+        self._tarea = tarea
+        self.reclamos = 0
+
+    async def reclamar(self):
+        self.reclamos += 1
+        return dict(self._tarea)
+
+    async def recuperar_huerfanas(self):
+        return []
+
+    async def estado_cola(self):
+        return {"cola": [], "en_ejecucion": None}
+
+
+class SleepEspia:
+    def __init__(self) -> None:
+        self.esperas: list[float] = []
+
+    async def __call__(self, s: float) -> None:
+        self.esperas.append(s)
 
 
 class PresupuestoFake:
@@ -82,12 +110,18 @@ def tarea(task_id: str) -> dict:
     }
 
 
-def worker_con(cola, pipeline, estado=None, presupuesto=None, repo=None) -> Worker:
+def worker_con(cola, pipeline, estado=None, presupuesto=None, repo=None,
+               sleep=None, reloj=None) -> Worker:
+    kw = {}
+    if sleep is not None:
+        kw["sleep"] = sleep
+    if reloj is not None:
+        kw["reloj"] = reloj
     return Worker(
         cola=cola, pipeline=pipeline, estado=estado or EstadoEspia(),
         presupuesto=presupuesto or PresupuestoFake(),
         repo=repo or Path("/repo-que-no-existe"),  # refrescar_master degrada con gracia
-        pausa_s=0.001,
+        pausa_s=0.001, **kw,
     )
 
 
@@ -195,6 +229,66 @@ def test_fallo_de_INFRAESTRUCTURA_devuelve_la_tarea_a_la_cola():
 
     asyncio.run(escenario())
     assert estado.transiciones == [("t-1", "recibida")]  # vuelve a la fila, no se escala
+
+
+# ---------- fallo TRANSITORIO del proveedor (429/5xx/conexion), 2026-07-24 ----------
+
+def test_transitorio_vuelve_a_la_cola_SIN_consumir_intento_y_pausa():
+    """El 429 de z.ai: la tarea vuelve a `recibida`, NO se escala, el intento que gasto el
+    claim se DEVUELVE (intentos-1), y el worker espera con backoff antes de reintentar."""
+    cola, estado, sleep = ColaMemoria(), EstadoEspia(), SleepEspia()
+    roto = PipelineQueTruena(PipelineError("motor: rate_limit", escalar=False, transitorio=True))
+    worker = worker_con(cola, roto, estado=estado, sleep=sleep)
+
+    async def escenario():
+        t = tarea("t-1")
+        t["_intentos"] = 2  # el claim ya lo subio a 2
+        await cola.encolar(t)
+        await worker.un_ciclo()
+
+    asyncio.run(escenario())
+
+    assert estado.transiciones == [("t-1", "recibida")]  # vuelve a la fila, NO escala
+    [(_, _, campos)] = estado.detalles
+    assert campos["intentos"] == 1        # el intento se devuelve: no lo gasta el proveedor
+    assert "encolada_en" in campos        # va al final de la cola (FIFO justo)
+    assert sleep.esperas == [60.0]        # 1er reintento: backoff base
+
+
+def test_transitorio_con_resets_at_pausa_hasta_esa_hora():
+    """Un rate-limit duro trae `resets_at`: el worker pausa hasta esa hora (cuenta, no tarea)."""
+    cola, sleep = ColaMemoria(), SleepEspia()
+    roto = PipelineQueTruena(
+        PipelineError("motor: rate_limit", escalar=False, transitorio=True,
+                      reanudar_epoch=1300))
+    worker = worker_con(cola, roto, sleep=sleep, reloj=lambda: 1000.0)
+
+    async def escenario():
+        await cola.encolar(tarea("t-1"))
+        await worker.un_ciclo()
+
+    asyncio.run(escenario())
+    assert sleep.esperas == [300.0]  # 1300 (resets_at) - 1000 (ahora)
+
+
+def test_transitorio_repetido_acaba_escalando():
+    """Fusible: si algo se clasifico mal como transitorio, tras TRANSITORIOS_MAX seguidos
+    se escala igual — nunca un bucle infinito de reintentos."""
+    from worker import TRANSITORIOS_MAX
+
+    estado, sleep = EstadoEspia(), SleepEspia()
+    cola = ColaSiempre(tarea("t-1"))  # siempre hay tarea que reclamar
+    roto = PipelineQueTruena(PipelineError("motor: rate_limit", escalar=False, transitorio=True))
+    worker = worker_con(cola, roto, estado=estado, sleep=sleep)
+
+    async def escenario():
+        for _ in range(TRANSITORIOS_MAX + 1):
+            await worker.un_ciclo()
+
+    asyncio.run(escenario())
+
+    destinos = [e for (_, e) in estado.transiciones]
+    assert destinos == ["recibida"] * TRANSITORIOS_MAX + ["escalada"]
 
 
 # ---------- CAS ----------

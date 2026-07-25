@@ -72,6 +72,36 @@ El repo NO es el runtime (aprendizaje 2026-07-12). En el servidor:
 - Relanzar con el MISMO `task_id` y presupuesto realista (**$5**, no $1.50 — `next build`
   + una feature completa no caben en $1.50) y dejar que llegue a los gates.
 
+## ARREGLADO (2026-07-25): errores TRANSITORIOS del proveedor se reintentan, no escalan
+
+- **El problema** (dogfood de la build-spec sync-repo-runtime): un **429 rate-limit**
+  (límite de 5h de z.ai) tumbó 5 tareas seguidas de la cola (las 4 últimas murieron
+  al instante con 0 tokens contra un límite ya agotado), y un **"Connection closed
+  mid-response"** mató a sync01 a mitad del intento 2. El motor reportaba el críptico
+  `Claude Code returned an error result: success` y el worker **escalaba** — cuando un
+  backoff (o pausar la cola al ver un 429) habría salvado los intentos.
+- **El hallazgo clave**: NO hace falta parsear el transcript. El `claude-agent-sdk`
+  0.2.110 ya expone la señal de forma ESTRUCTURAL: `ResultMessage.api_error_status`
+  (429/5xx/529 cuando `is_error=True` y `subtype="success"` — ese es el críptico
+  "error result: success"), `AssistantMessage.error` ∈ {`rate_limit`,`server_error`,…},
+  `RateLimitEvent.rate_limit_info` con `status="rejected"` + **`resets_at`** (Unix ts),
+  y `CLIConnectionError` para el transporte caído.
+- **El arreglo (4 capas, cero parseo de transcript)**:
+  | # | Qué | Dónde | Test |
+  |---|-----|-------|------|
+  | 1 | `EngineError` lleva `transitorio` + `reanudar_epoch` | `ejecutor-a2a/engine.py` | — |
+  | 2 | Clasificador estructural (api_error_status/errors/RateLimitEvent/CLIConnectionError), fail-safe a definitivo | `ejecutor-a2a/claude_engine.py::clasificar_transitorio` | `test_429_estructural…`, `test_rate_limit_rejected_trae_resets_at…`, `test_max_turns_NO_es_transitorio` |
+  | 3 | `PipelineError` propaga transitorio → `escalar=False` | `ejecutor-a2a/pipeline.py` | `test_motor_transitorio_NO_escala_y_propaga_reanudar` |
+  | 4 | Worker: reintenta **sin consumir intento** (la cola devuelve `_intentos`), **pausa** con backoff exponencial o hasta `resets_at` (serial ⇒ pausa la cola entera), y **fusible** `TRANSITORIOS_MAX=8` → escala si algo se clasificó mal | `ejecutor-a2a/worker.py::_reintentar_transitorio` + `cola.py::reclamar` | `test_transitorio_vuelve_a_la_cola_SIN_consumir_intento_y_pausa`, `test_transitorio_con_resets_at_pausa…`, `test_transitorio_repetido_acaba_escalando` |
+- **Verificado en dev**: 75 tests verdes (63 base + 12 nuevos), cero tokens. La señal
+  estructural se validó contra el SDK instalado (`api_error_status`/`RateLimitInfo.resets_at`
+  existen en 0.2.110), no contra un blog.
+- **Para desplegar**: rebuild del Ejecutor (es imagen, no script) — `docker compose up -d
+  --build ejecutor-a2a` en el servidor tras mergear. No toca BD ni volúmenes.
+- **Pendiente relacionado** (fuera de este arreglo): el **Coordinador** (enjambre) llama al
+  Planner contra z.ai y tiene la misma exposición a un 429; hoy no lo dispara ningún skill.
+  Aplicarle el mismo `clasificar_transitorio` cuando se exponga.
+
 ## Sabido y NO arreglado (mismo tipo, otro servicio)
 
 - El **Coordinador** (Fase 7, enjambre) tiene la misma exposición que tenía el Ejecutor:

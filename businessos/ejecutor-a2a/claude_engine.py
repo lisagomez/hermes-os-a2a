@@ -31,6 +31,21 @@ MAX_TURNS_DEFAULT = 40
 VERTICAL_TRIO = "trio"
 TIMEOUT_S = 10.0
 
+# Errores del PROVEEDOR que son TRANSITORIOS: reintentar, no escalar (2026-07-24).
+# El SDK 0.2.110 los expone de forma ESTRUCTURAL — no hay que parsear el transcript:
+#   - ResultMessage.api_error_status = 429/5xx/529 cuando is_error=True y subtype="success"
+#     (el criptico "returned an error result: success" de la 1a corrida real).
+#   - AssistantMessage.error / ResultMessage.errors ∈ {rate_limit, server_error, ...}.
+#   - RateLimitEvent.rate_limit_info.status == "rejected" trae `resets_at` (Unix ts).
+#   - CLIConnectionError = transporte caido ("Connection closed mid-response").
+STATUS_TRANSITORIOS = frozenset({429, 500, 502, 503, 504, 529})
+# Marcadores de texto (fallback cuando no hay señal estructural). Conservador a
+# proposito: solo lo inequivocamente transitorio. Ante la duda → definitivo (escala).
+MARCAS_TRANSITORIAS = (
+    "rate_limit", "rate limit", "overloaded", "server_error",
+    "connection closed", "connection error", "connection reset",
+)
+
 PROMPT_SISTEMA = (
     "Eres el Ejecutor del trio de un departamento de software. Recibes UNA tarea "
     "con criterios de aceptacion y trabajas SOLO dentro del directorio actual (un "
@@ -172,6 +187,49 @@ def filas_token_usage(result: Any, modelo_pedido: str | None, task_id: str | Non
     return filas
 
 
+def _texto_transitorio(*textos: Any) -> bool:
+    """True si algun texto contiene un marcador inequivoco de fallo transitorio."""
+    blob = " ".join(str(t) for t in textos if t).lower()
+    return any(m in blob for m in MARCAS_TRANSITORIAS)
+
+
+def clasificar_transitorio(
+    result: Any,
+    rate_info: Any,
+    exc: BaseException | None,
+    errores_stream: list[str] | None = None,
+) -> tuple[bool, int | None]:
+    """¿El fallo es del PROVEEDOR (transitorio) o DEFINITIVO? Devuelve (transitorio, reanudar_epoch).
+
+    Fail-safe: solo devuelve True con señal de ALTA confianza (estructural del SDK o
+    marcador de texto inequivoco). Cualquier otra cosa —error del codigo, max_turns,
+    billing/auth— cae a definitivo y escala como siempre. Nunca empeora el caso: solo
+    convierte en reintento lo que hoy se escala por error.
+    """
+    reanudar = None
+    if rate_info is not None and getattr(rate_info, "status", None) == "rejected":
+        # Rate-limit DURO de la cuenta: hasta `resets_at` no vale reintentar.
+        reanudar = getattr(rate_info, "resets_at", None) or getattr(
+            rate_info, "overage_resets_at", None
+        )
+        return True, reanudar
+
+    from claude_agent_sdk import CLIConnectionError
+
+    if isinstance(exc, CLIConnectionError):
+        return True, None
+
+    if result is not None and getattr(result, "api_error_status", None) in STATUS_TRANSITORIOS:
+        return True, reanudar
+
+    errores = list(errores_stream or [])
+    errores += list(getattr(result, "errors", None) or [])
+    if _texto_transitorio(getattr(result, "result", None), *errores, exc):
+        return True, reanudar
+
+    return False, None
+
+
 class ClaudeAgentEngine:
     """Motor real. `query_fn` y `registro` inyectables: los tests NUNCA queman tokens."""
 
@@ -182,7 +240,8 @@ class ClaudeAgentEngine:
         self._registro = registro or RegistroTokenUsage()
 
     async def run(self, tarea: dict, worktree: Path) -> dict[str, Any]:
-        from claude_agent_sdk import ClaudeAgentOptions, ResultMessage
+        from claude_agent_sdk import ClaudeAgentOptions, RateLimitEvent, ResultMessage
+        from claude_agent_sdk.types import AssistantMessage
 
         limites = tarea.get("limites", {})
         options = ClaudeAgentOptions(
@@ -202,11 +261,20 @@ class ClaudeAgentEngine:
         # (1a corrida real, 2026-07-12: el motor abortado no registro NADA) este es el
         # unico rastro de los tokens quemados.
         parciales: dict[str, dict[str, int]] = {}
+        # Señales de fallo TRANSITORIO del proveedor, capturadas del stream (el CLI las
+        # emite como mensajes propios, no en el ResultMessage): el ultimo estado de
+        # rate-limit (trae `resets_at`) y los `error` de los AssistantMessage.
+        rate_info: Any = None
+        errores_stream: list[str] = []
         try:
             async for mensaje in self._query(prompt=_prompt_de(tarea), options=options):
                 if isinstance(mensaje, ResultMessage):
                     result = mensaje
+                elif isinstance(mensaje, RateLimitEvent):
+                    rate_info = mensaje.rate_limit_info
                 else:
+                    if isinstance(mensaje, AssistantMessage) and getattr(mensaje, "error", None):
+                        errores_stream.append(str(mensaje.error))
                     acumular_parcial(parciales, mensaje)
         except Exception as exc:  # CLI ausente, transporte roto, motor abortado, etc.
             # GOTCHA (2026-07-12): cuando el CLI aborta por sus propios limites (p.ej.
@@ -217,12 +285,20 @@ class ClaudeAgentEngine:
             # el dato bueno (paso: la corrida de 40 turnos se registro como "sin gasto").
             await self._registrar_gasto(result, parciales, options.model, task_id,
                                         motivo=f"{type(exc).__name__}: {exc}")
-            raise EngineError(f"claude-agent-sdk: {type(exc).__name__}: {exc}") from exc
+            raise self._engine_error(
+                f"claude-agent-sdk: {type(exc).__name__}: {exc}",
+                result, rate_info, exc, errores_stream,
+            ) from exc
 
         if result is None:
             await self._registrar_gasto(result, parciales, options.model, task_id,
                                         motivo="sin ResultMessage")
-            raise EngineError("claude-agent-sdk: la corrida no entrego ResultMessage")
+            # Sin ResultMessage puede ser una conexion caida a media respuesta (transitorio):
+            # el rate_info/errores del stream, si los hubo, mandan.
+            raise self._engine_error(
+                "claude-agent-sdk: la corrida no entrego ResultMessage",
+                None, rate_info, None, errores_stream,
+            )
 
         # El gasto se registra SIEMPRE (tambien en error): tokens quemados son reales.
         # task_id atribuye el gasto a la (sub-)tarea → corte exacto de presupuesto (Fase 7).
@@ -230,7 +306,10 @@ class ClaudeAgentEngine:
 
         if result.is_error:
             detalle = result.result or "; ".join(result.errors or []) or result.subtype
-            raise EngineError(f"claude-agent-sdk: corrida en error: {str(detalle)[:300]}")
+            raise self._engine_error(
+                f"claude-agent-sdk: corrida en error: {str(detalle)[:300]}",
+                result, rate_info, None, errores_stream,
+            )
 
         return {
             "artefactos": {
@@ -242,6 +321,21 @@ class ClaudeAgentEngine:
             },
             "notas": (result.result or "")[:2000],
         }
+
+    def _engine_error(
+        self,
+        mensaje: str,
+        result: Any,
+        rate_info: Any,
+        exc: BaseException | None,
+        errores_stream: list[str],
+    ) -> EngineError:
+        """Envuelve el fallo clasificando si es transitorio (reintentar) o definitivo."""
+        transitorio, reanudar = clasificar_transitorio(result, rate_info, exc, errores_stream)
+        if transitorio:
+            espera = f" (reanuda ~{reanudar})" if reanudar else ""
+            print(f"[motor] fallo TRANSITORIO del proveedor{espera}: {mensaje}", flush=True)
+        return EngineError(mensaje, transitorio=transitorio, reanudar_epoch=reanudar)
 
     async def _registrar_gasto(
         self,

@@ -17,7 +17,29 @@ from typing import Any, Protocol
 
 
 class EngineError(RuntimeError):
-    """El motor no pudo completar la tarea; el mensaje trae el porque."""
+    """El motor no pudo completar la tarea; el mensaje trae el porque.
+
+    `transitorio` distingue un fallo del PROVEEDOR (rate-limit 429, 5xx/529,
+    conexion caida a media respuesta) de uno DEFINITIVO (error del codigo,
+    max_turns, billing/auth). Un transitorio NO es culpa de la tarea: el worker
+    lo reintenta con backoff sin consumir un intento (2026-07-24: un 429 de z.ai
+    tumbo 5 tareas seguidas por escalarlas en vez de esperar). Por defecto False
+    → todo error se comporta como hoy salvo que quien lo levanta diga lo contrario.
+
+    `reanudar_epoch` es el Unix timestamp del `resets_at` que reporta el CLI en un
+    rate-limit rechazado: hasta esa hora no vale la pena reintentar (el limite es
+    de la cuenta, no de la tarea) → el worker pausa la cola hasta entonces.
+    """
+
+    def __init__(
+        self,
+        mensaje: str,
+        transitorio: bool = False,
+        reanudar_epoch: int | None = None,
+    ) -> None:
+        super().__init__(mensaje)
+        self.transitorio = transitorio
+        self.reanudar_epoch = reanudar_epoch
 
 
 class Engine(Protocol):
