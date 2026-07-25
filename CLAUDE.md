@@ -1069,4 +1069,46 @@ npm run lint         # ESLint
   quiera exponer fuera de localhost. Detalle: `businessos/DEPLOY-mission-control.md` +
   `.claude/memory/project/fase4-dashboard.md`.
 
+### 2026-07-25: Un PWA "listo" puede no registrar NUNCA el service worker (y cómo se caza)
+- **Error**: Mission Control se desplegó a Vercel con manifest, `sw.js` e iconos sirviendo
+  200 y el `PWARegister` montado en el layout… y el SW **jamás se registraba**:
+  `PWARegister` se suscribía a `window.addEventListener('load', …)` **dentro de un
+  `useEffect`**, que en la mayoría de cargas corre DESPUÉS de que `load` ya disparó → el
+  callback nunca se ejecuta. Síntoma en producción: `navigator.serviceWorker
+  .getRegistration()` = `undefined` y `caches.keys()` vacío, **sin un solo error en
+  consola ni en logs** (otra vez el fallo invisible: el `catch` del register es silencioso
+  y nadie lo llama). Ningún check de HTTP lo detecta — `/sw.js` responde 200 igual.
+- **Fix**: si `document.readyState === 'complete'`, registrar de inmediato; si no,
+  suscribirse a `load`. Lógica extraída a `src/lib/pwa/registrar-sw.ts` (pura, sin DOM)
+  para poder testearla bajo el runner de Playwright **sin navegador** — el gate `tests`
+  corre sin chromium. Control obligatorio: se revirtió el fix y el test se puso **rojo**.
+- **Regla de verificación**: un PWA solo está verificado con navegador real —
+  `getRegistration()` activo + `caches.keys()` conteniendo **solo estáticos** (si aparece
+  una navegación/HTML en la caché de un panel con datos sensibles, es un bug de seguridad,
+  no de rendimiento). Servir el manifest y el sw.js es condición necesaria, nunca suficiente.
+- **Aplicar en**: todo PWA de la fábrica y, en general, todo `useEffect` que se suscriba a
+  un evento del ciclo de vida de la página (`load`, `DOMContentLoaded`): comprobar primero
+  el estado, porque el evento ya pasó.
+
+### 2026-07-25: Verificar un deploy con auth SIN el buzón — mintar la sesión por admin API
+- **Aprendizaje**: al exponer una superficie con login, el smoke de "307 → /login" solo
+  prueba el candado; la mitad que importa (¿renderiza datos reales con `service_role`?)
+  queda sin verificar y ahí es donde vive el drift (aprendizaje 2026-07-23). Sin acceso al
+  correo: `admin/generate_link` (no envía email) → `/auth/v1/verify` sin seguir redirects
+  → tokens del fragmento → armar la cookie `sb-<ref>-auth-token` = `base64-`+b64(JSON de
+  sesión) → pegarle a todas las rutas → **revocar con `logout?scope=local`** al terminar.
+  Así se verificaron las 6 vistas con datos reales (incl. `/_next/mcp` detrás del login).
+  Lo que ese camino NO prueba es el PKCE del enlace real: eso se comprueba viendo que
+  `POST /auth/otp` devuelva la cookie `…-auth-token-code-verifier` (sin ella, el clic en
+  el correo acaba en `/login?error=auth`).
+- **Gotchas del día**: (1) el token de la CLI de Vercel expira pero **se auto-refresca** al
+  correr cualquier comando (`vercel whoami`) — un 403 pegándole a la API a mano NO es
+  "hay que volver a loguearse"; (2) `vercel link` **sí** crea el `.env.local` que mata las
+  lambdas (mina de 2026-07-17 confirmada: borrarlo entre `link` y `deploy`); (3) el
+  rate-limit de correos de Supabase (`rate_limit_email_sent`, **2/hora por proyecto**) no
+  se puede subir sin SMTP propio: la management API responde `401 Custom SMTP required`
+  (y un PATCH que mezcle campos permitidos con ese muere entero → patchear por separado).
+- **Aplicar en**: todo deploy de una superficie con auth (Vercel u otra) y toda config de
+  auth por management API. Detalle: `businessos/DEPLOY-mission-control.md` §3.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

@@ -226,6 +226,25 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
   - **Dos 500 preexistentes cazados y corregidos** al verificar el deploy: enum Zod
     vs `vertical='trio'` en `/ai-spend`, y agregado inline PostgREST (PGRST123) en
     `/grafo` → vista `v_facturas_resumen`. Ver aprendizaje CLAUDE.md 2026-07-23.
+- [x] **DESPLEGADO en Vercel (2026-07-25)**: producción en
+  **https://a2abot-mission-control.vercel.app** (proyecto `a2abot-mission-control`,
+  scope `lisagomezs-projects`, Root Directory `.`, 7 vars de entorno en target
+  production). Supabase Auth configurado (site_url + `uri_allow_list` con el dominio
+  y `localhost:3000`). Allowlist inicial: **solo los correos de la dueña**
+  (`elisa.qualy@gmail.com`, `lisagomez967@gmail.com`) — sumar compañeros es editar
+  `PANEL_ALLOWED_EMAILS` y redeployar.
+  - **Verificación real, no "build verde"**: 6/6 rutas 307→`/login` sin sesión;
+    con sesión (mintada por `admin/generate_link`, revocada al terminar) las 6
+    renderizan **datos reales** (`datos: real`, gasto del mes, ledger por modelo con
+    `trio`); grafo y gateways degradan a "caído" como se esperaba desde Vercel;
+    logs de Vercel sin un solo 500; el PKCE `code-verifier` sí se persiste en la
+    respuesta del OTP; `/_next/mcp` queda **detrás del login**.
+  - **Bug de PWA cazado en producción y corregido**: el service worker **nunca se
+    registraba** (se suscribía a `window.load` desde un `useEffect`, que corre
+    después de que el evento ya disparó) → `getRegistration()` undefined y caché
+    vacía. Fix + 3 tests de regresión (`tests/pwa-register.spec.ts`); re-verificado
+    en vivo: SW `activated`, caché `mc-static-v1` solo con los 4 estáticos (ni una
+    navegación). Ver aprendizaje CLAUDE.md 2026-07-25.
 
 ## FASE 5 — Interoperabilidad A2A ✅ COMPLETA en runtime (smoke 2026-07-08); capa económica FUTURA
 

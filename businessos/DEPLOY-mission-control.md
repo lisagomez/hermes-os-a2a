@@ -1,9 +1,22 @@
 # Deploy de Mission Control (a2abot) a Vercel
 
-> **Estado: LISTO PARA DESPLEGAR** (2026-07-24). Auth (magic link + allowlist),
-> PWA instalable y build verde. El push a Vercel lo hace la dueña (elección
-> "solo déjalo listo"). El app vive en la **RAÍZ del repo** (`saas-factory-app`),
-> NO en `frontends/`.
+> **Estado: DESPLEGADO** (2026-07-25) → **https://a2abot-mission-control.vercel.app**
+> Proyecto Vercel `a2abot-mission-control` (scope `lisagomezs-projects`, Root
+> Directory `.`). Auth (magic link + allowlist), PWA instalable y las 6 vistas
+> verificadas en producción con datos reales. El app vive en la **RAÍZ del repo**
+> (`saas-factory-app`), NO en `frontends/`.
+>
+> **Estado vivo (lo que ya está aplicado, no hay que repetirlo):**
+> - 7 variables de entorno en target `production` (ver tabla §2).
+> - Supabase Auth: `site_url` = la URL del deploy y `uri_allow_list` =
+>   `https://a2abot-mission-control.vercel.app/**,http://localhost:3000/**`.
+> - `PANEL_ALLOWED_EMAILS` = **solo los correos de la dueña**
+>   (`elisa.qualy@gmail.com,lisagomez967@gmail.com`). Para sumar compañeros:
+>   editar la var en Vercel y **redeployar** (las env de runtime se congelan por
+>   deployment).
+>
+> **Redeploy** (desde la raíz, cuenta dueña):
+> `rm -f .env.local && npx vercel deploy --prod --yes`
 
 ## 0. Qué cambió (por qué era obligatorio antes de exponerlo)
 
@@ -28,8 +41,15 @@ Mismo proyecto que usa el negocio: **A2ABot** (`hsejpktzcqwkwkwholkw`). En
   (y `http://localhost:3000/auth/callback` si pruebas en local).
 
 En **Authentication → Providers → Email**: deja **Email OTP / Magic Link**
-habilitado (viene por defecto). El email de Supabase basta para un equipo chico
-(rate-limit ~3-4/hora; suficiente).
+habilitado (viene por defecto).
+
+> ⚠️ **Rate limit real del email integrado: `rate_limit_email_sent = 2` por hora
+> para TODO el proyecto** (no por usuario), y **no se puede subir**: la
+> management API responde `401 "Custom SMTP required to configure ...
+> RATE_LIMIT_EMAIL_SENT"`. Con el equipo entrando por magic link esto se agota
+> rápido (el 3er correo de la hora simplemente no llega). Si molesta: configurar
+> SMTP propio (Resend) en Authentication → SMTP Settings y entonces sí subir el
+> límite.
 
 > Nota shared-project: al entrar por primera vez, el trigger `handle_new_user`
 > crea la fila en `profiles` (comportamiento existente; la allowlist gobierna el
@@ -64,13 +84,19 @@ habilitado (viene por defecto). El email de Supabase basta para un equipo chico
 ```bash
 # Desde la RAÍZ del repo, con la cuenta dueña autenticada:
 npx vercel link            # elegir/crear el proyecto (Root Directory ".")
-npx vercel deploy --prod   # build + deploy
-# Borra el .env.local que 'vercel link' pueda crear (mataría las lambdas):
-rm -f .env.local           # (ya está en .vercelignore, pero por si acaso)
+rm -f .env.local           # ⚠️ 'vercel link' SÍ lo crea (con VERCEL_OIDC_TOKEN)
+                           #    y mataría TODAS las lambdas con EnvFileReadError
+npx vercel deploy --prod --yes   # build + deploy
 ```
 
 Verificar tras el deploy: `npx vercel ls`. Vercel **no está conectado a GitHub**
 para este proyecto → mergear a master **no** despliega; publicar es `vercel deploy`.
+
+> **Auth de la CLI**: el token guardado en `~/.local/share/com.vercel.cli/auth.json`
+> expira (~90 días) pero la CLI lo **auto-refresca** con su `refreshToken` en el
+> primer comando (`vercel whoami`). Un `401/403` pegándole a `api.vercel.com` a
+> mano con ese token **no significa** que haya que volver a hacer login: corre
+> primero un comando de la CLI y vuelve a leer el archivo.
 
 ## 3. Smoke post-deploy (obligatorio)
 
@@ -92,6 +118,41 @@ Recordatorio de drift (aprendizaje 2026-07-23): haz smoke de **las 6 rutas**
 (`/dashboard /ai-spend /grafo /desarrollo /crm` + `/`), no solo una: `/grafo`
 (evaluaciones) y el health de gateways en `/dashboard` saldrán degradados en
 Vercel (servicios internos inalcanzables) — es esperado, no un bug.
+
+### Smoke AUTENTICADO sin depender del buzón (lo que se usó el 2026-07-25)
+
+Comprobar solo los 307 deja sin verificar la mitad que importa (que el panel
+renderice datos reales con `service_role`). Para entrar sin leer el correo:
+
+1. `POST {SUPABASE_URL}/auth/v1/admin/generate_link` con la `service_role`
+   (`{"type":"magiclink","email":"<allowlisted>","redirect_to":"<SITE>/auth/callback"}`)
+   — **no envía correo**, devuelve `hashed_token`.
+2. `GET {SUPABASE_URL}/auth/v1/verify?token=<hashed_token>&type=magiclink&redirect_to=…`
+   sin seguir redirects → el `Location` trae `#access_token=…&refresh_token=…`.
+3. Armar la cookie de `@supabase/ssr`: `sb-<ref>-auth-token` =
+   `base64-` + base64 del JSON de sesión (`access_token`, `refresh_token`,
+   `expires_at`, `expires_in`, `token_type`, `user`). Cabe en un chunk (~3 KB);
+   si pasara de 3180 chars habría que partirla en `.0`/`.1`.
+4. Pegarle a las 6 rutas con esa cookie → 200 + `datos: real`.
+5. **Revocar al terminar**: `POST {SUPABASE_URL}/auth/v1/logout?scope=local` con
+   ese `access_token` (borra solo esa sesión, no la de la dueña).
+
+Ojo: este camino NO ejercita el PKCE del magic link real (el `?code=` exige el
+`code-verifier` que el navegador guardó al pedir el enlace). Eso se verifica
+aparte comprobando que `POST /auth/otp` responde con la cookie
+`sb-<ref>-auth-token-code-verifier` — si esa cookie no viaja, el login real
+termina en `/login?error=auth`.
+
+### PWA (no basta con que `/sw.js` dé 200)
+
+Que el manifest y el `sw.js` se sirvan **no** significa que el service worker
+esté registrado. Verificar con navegador de verdad:
+`navigator.serviceWorker.getRegistration()` debe existir y estar `activated`, y
+`caches.keys()` debe contener `mc-static-v1` **solo con estáticos** (iconos +
+manifest): si aparece una navegación/HTML ahí, el SW está cacheando páginas
+sensibles y hay que arreglarlo antes que nada. Script de referencia: el smoke de
+Playwright del 2026-07-25 (patrón de `frontends/`: `node smoke.mjs` con import
+absoluto al playwright del repo).
 
 ## 4. Deploys de colaboradores (Vercel Hobby)
 
