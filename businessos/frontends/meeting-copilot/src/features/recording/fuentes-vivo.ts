@@ -45,10 +45,6 @@ function constructorReconocimiento(): (new () => Reconocimiento) | null {
   return (w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null) as (new () => Reconocimiento) | null
 }
 
-export function webSpeechDisponible(): boolean {
-  return constructorReconocimiento() !== null
-}
-
 export function crearFuenteMicrofono(
   onSegmento: (s: Segmento) => void,
   /** Resuelve el hablante de la frase [desdeS, hastaS]: diarización automática

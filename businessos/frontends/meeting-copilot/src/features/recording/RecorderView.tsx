@@ -12,7 +12,8 @@ import { Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { PROVIDER_STT } from '@/shared/lib/config'
 import { nuevoId } from '@/shared/lib/format'
 import { nombresSesion, useLiveStore } from './live-store'
-import { crearFuenteDemo, crearFuenteMicrofono, webSpeechDisponible, type FuenteVivo } from './fuentes-vivo'
+import { crearFuenteDemo, crearFuenteMicrofono, type FuenteVivo } from './fuentes-vivo'
+import { useCapacidades } from './capacidades'
 import { DiarizadorVivo } from './diarizacion'
 import { PrompterPanel } from './PrompterPanel'
 import { reunionVivoStub } from './prompter'
@@ -93,8 +94,8 @@ export function RecorderView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- limpieza al desmontar
   }, [])
 
-  const soportado = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices
-  const micVivoDisponible = typeof window !== 'undefined' && webSpeechDisponible()
+  // Medidas tras montar, nunca durante el render: ver `capacidades.ts`.
+  const { grabacion: soportado, micVivo: micVivoDisponible } = useCapacidades()
   const grabandoOPausa = estado === 'grabando' || estado === 'pausado'
   const nombres = nombresSesion({ asesorNombre, leadNombre })
   const contextoCompleto = asesorNombre.trim().length > 0 && leadNombre.trim().length > 0
