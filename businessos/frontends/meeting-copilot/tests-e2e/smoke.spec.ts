@@ -72,6 +72,33 @@ test('grabación en-app: grabar → detener → enviar a la cola de transcripci�
   await expect(page.getByTestId('job-completado')).toBeVisible({ timeout: 15_000 })
 })
 
+test('modo asesor: Prompter embebido en Grabación con fuente demo', async ({ page }) => {
+  await page.goto('/grabacion')
+  // Activar modo asesor → aparece el Prompter (aún sin grabar: pregunta de apertura).
+  await page.getByTestId('toggle-asesor').click()
+  await expect(page.getByTestId('prompter')).toBeVisible()
+  await expect(page.getByTestId('prompter-sugerencia')).toContainText('complica')
+  // Fuente demo + grabar → llegan señales y la cobertura avanza.
+  await page.getByTestId('fuente-vivo').selectOption('demo')
+  await page.getByTestId('grabar').click()
+  await expect(page.getByTestId('prompter-senales')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('prompter-cobertura')).toBeVisible()
+  // Interacciones: otra pregunta y marcar tema cubierto.
+  const pregunta = await page.getByTestId('prompter-sugerencia').textContent()
+  await page.getByTestId('otra-pregunta').click()
+  await expect(page.getByTestId('prompter-sugerencia')).not.toHaveText(pregunta ?? '')
+  // Detener → guardar sesión analizada → insights de la sesión.
+  await page.getByTestId('detener').click()
+  await expect(page.getByTestId('grabacion-lista')).toBeVisible()
+  await page.getByTestId('guardar-sesion').click()
+  await expect(page.getByTestId('score-total')).toBeVisible()
+  // Apagar el modo asesor deja la grabación normal.
+  await page.goto('/grabacion')
+  await page.getByTestId('toggle-asesor').click()
+  await expect(page.getByTestId('prompter')).toHaveCount(0)
+  await expect(page.getByTestId('grabar')).toBeVisible()
+})
+
 test('nueva conversación: pegar transcripción produce insights', async ({ page }) => {
   await page.goto('/reuniones/nueva')
   await page.getByTestId('tab-texto').click()

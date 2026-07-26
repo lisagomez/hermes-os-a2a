@@ -419,6 +419,52 @@ arrancar):
 
 El contrato de salida es el mismo para los 4 — conectar el real jamás toca UI ni análisis.
 
+## 13.1 Grabación + modo asesor (Prompter embebido)
+
+**Qué es:** Prompter NO es una sección nueva — es una capacidad avanzada de Grabación
+(`/grabacion`): un panel embebido que guía al entrevistador en vivo. Restricción de diseño:
+misma vista, mínima fricción, lectura rápida durante una entrevista real.
+
+**Selector "Modo asesor":** switch visible en el flujo de grabación (no en settings), con
+estado claro (activo/apagado), operable antes de grabar y también durante la sesión
+(encenderlo a media grabación arranca la guía al vuelo). La preferencia persiste
+(localStorage).
+
+**Paridad con Guided Meeting — mismo motor, cero duplicación:** el Prompter llama
+`evaluarCoach` + `extraerInsights` (el motor de Guided Meeting) a través de la capa pura
+`features/recording/prompter.ts::estadoPrompter`, que solo añade la adaptación al contexto
+en vivo: overrides manuales del asesor y rotación de preguntas. Un test fija la paridad:
+sin overrides, el estado del Prompter es EXACTAMENTE el del coach de Guided Meeting.
+Diferencia = presentación (compacta, embebida) y contexto, no dos sistemas.
+
+**Fuentes de señales en vivo** (`features/recording/fuentes-vivo.ts`, arquitectura lista
+para streaming real — cualquier fuente emite `Segmento`):
+- `microfono`: **Web Speech API** del navegador (transcripción en vivo REAL, es-MX; requiere
+  conexión). Sin diarización → el asesor atribuye con el switch **¿Quién habla? (Cliente/Yo)**;
+  participantes stub `Yo (interno)` / `Cliente (cliente)`.
+- `demo`: reproduce la conversación demo (etiquetada como demo) — permite probar el modo
+  asesor sin micrófono/red y alimenta el smoke.
+
+**Capacidades cuando el modo asesor está activo:** salud de la entrevista (score/dimensiones
+cubiertas), cobertura del playbook con etiqueta "crítica", siguiente mejor pregunta con
+justificación y acciones (La usé / Otra pregunta / Tema cubierto), alerta prominente del
+coach, feed de señales (pains, presupuesto, objeciones, competidores, stakeholders, próximos
+pasos…) con pin, ocultar/mostrar guía, y enlace al Guided Meeting completo.
+
+**Modelo de datos de la sesión** (`features/recording/live-store.ts`):
+- Persistente: `asesorActivo`, `fuente` (preferencias).
+- Temporal por sesión: `segmentos` vivos, `temasCubiertosManual` (override de PRESENTACIÓN —
+  el motor sigue puro), `preguntasDescartadas`, `senalesFijadas`, `hablanteActual`, `errorVivo`.
+- Al terminar: **nada se pierde** — "Guardar sesión analizada" convierte los segmentos vivos
+  en `Reunion` + `Transcripcion` normales (motor `en-vivo (web-speech|demo)`) y todo el flujo
+  post-reunión (insights, score, resumen, follow-up) se recalcula determinísticamente de esos
+  mismos segmentos. "Enviar a transcripción" sigue mandando el audio a la cola normal.
+
+**Estados:** antes de grabar (asesor on) → cobertura en faltante + pregunta de apertura
+("la guía arranca con la grabación"); grabando sin señales aún → mensaje orientador; asesor
+off → grabación normal sin guía; error de transcripción en vivo (permiso/red/no soportado) →
+visible con alternativa (fuente demo); sesión terminada → acciones de guardado explicadas.
+
 ## 14. Theming system
 
 - **Mecanismo** (probado en control-interno): `ThemeProvider` tri-estado
