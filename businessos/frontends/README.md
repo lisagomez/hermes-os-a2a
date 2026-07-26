@@ -1,6 +1,6 @@
-# Frontends del Business OS — tres superficies
+# Frontends del Business OS — cuatro superficies
 
-El Business OS se opera desde **tres frontends distintos**, uno por tipo de usuario y
+El Business OS se opera desde **cuatro frontends distintos**, uno por tipo de usuario y
 canal. Todos son *espejo* del sistema agéntico (la UI muestra y entiende; el agente opera);
 comparten el backend (Hermes / trío A2A / grafo / ERP) pero se **aíslan** entre sí ("aislar,
 no fundir"). Mapean a la estrategia de superficies del maestro (Slack interno · Web propia del
@@ -11,6 +11,7 @@ cliente · A2A).
 | `design-system/` | **Design system A2A Factory** | las superficies de cliente | tokens CSS + componentes TSX (`@a2a/design-system`) | ✅ fundado (vendored del ZIP de la dueña, 2026-07-16; ver `design-system/README.md`) |
 | `control-interno/` | **Control interno** | el equipo (operar el Business OS) | Next.js + Supabase + Tauri (Titaniumorphism) | ✅ integrado (vendored de `daniel-carreon/business-os-new`; ver `control-interno/VENDORED-FROM.md`) |
 | `cliente-web2/` | **Cliente web2** | clientes finales, web tradicional | Next.js 16 + Supabase + Tailwind v4 + `@a2a/design-system` | ✅ integrado (landing bilingüe + cotizador + leads + chat; deploy Vercel — ver `DEPLOY-web2.md`) |
+| `meeting-copilot/` | **Meeting Copilot** | agentes de ventas/discovery/CS (marca blanca) | Next.js 16 + Tailwind v4, mock-first (seams STT/LLM/Supabase) | ✅ MVP (transcripción→insights→score→guided→manager; ver `meeting-copilot/README.md` y `SPEC.md`) |
 | `cliente-a2a-web3/` | **Cliente A2A-card web3** | clientes vía A2A card / web3 | web3 + A2A card (identidad de agente) | 🎨 diseño + scaffold (demo de la Tarjeta A2A; app en scaffold) |
 
 ## Rol de cada superficie
@@ -20,6 +21,10 @@ cliente · A2A).
   maestro pone junto a Slack para el equipo.
 - **Cliente web2** — el producto de cara al cliente final por web tradicional (marca blanca,
   aislamiento por tenant). El canal "Web propia" del maestro.
+- **Meeting Copilot** — copiloto comercial de reuniones (línea marca blanca): convierte
+  audio/transcripción en insights con evidencia, score de discovery explicable, guided
+  meeting y salidas listas para CRM. Corre 100% local con motor determinista; los seams
+  (STT real, LLM, Supabase) están diseñados en su `SPEC.md`.
 - **Cliente A2A-card web3** — la superficie web3 donde el cliente interactúa vía **A2A card**
   (la tarjeta de agente del protocolo agente-a-agente) — el puente hacia el pago/identidad
   agéntica (Circle/USDC, contratos, verificación) que el roadmap contempla como capa futura.
