@@ -7,6 +7,7 @@ import { ETIQUETA_DIMENSION, UMBRAL_INAUDIBLE } from '@/features/domain/types'
 import { useAppStore } from '@/features/domain/store'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { evaluarCoach } from './coach'
+import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
 import { Card, Chip } from '@/shared/components/ui'
 import { fmtTiempo } from '@/shared/lib/format'
 
@@ -42,6 +43,15 @@ export function GuidedMeeting({ reunion, transcripcion }: { reunion: Reunion; tr
   const estado = useMemo(() => evaluarCoach(reunion, transcripcion, playbook, cursor), [reunion, transcripcion, playbook, cursor])
   const visibles = transcripcion.segmentos.slice(0, cursor)
   const alerta = estado.alertas[0] ?? null
+
+  // Motor llm (mismo hook que el Prompter de Grabación — paridad real):
+  const sugerenciaIA = usePreguntaIA({
+    hueco: estado.sugerencia,
+    segmentos: visibles,
+    tipoReunion: reunion.tipoReunion,
+    leadNombre: reunion.participantes.find((p) => p.lado === 'cliente')?.nombre ?? null,
+    preguntasPrevias: [],
+  })
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
@@ -126,9 +136,18 @@ export function GuidedMeeting({ reunion, transcripcion }: { reunion: Reunion; tr
             <div className="flex items-start gap-2" data-testid="sugerencia-coach">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
-                <p className="mt-0.5 text-[13px] font-medium text-ink">“{estado.sugerencia.preguntaSugerida}”</p>
-                <p className="mt-1 text-[12px] text-ink-secondary">{estado.sugerencia.justificacion}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
+                  {sugerenciaIA.fuente === 'ia' && <Chip tono="accent">IA</Chip>}
+                  {sugerenciaIA.cargando && <Chip tono="info">redactando…</Chip>}
+                  {sugerenciaIA.error && (
+                    <Chip tono="warning">
+                      <span title={sugerenciaIA.error}>IA no disponible — banco</span>
+                    </Chip>
+                  )}
+                </div>
+                <p className="mt-0.5 text-[13px] font-medium text-ink">“{sugerenciaIA.pregunta}”</p>
+                <p className="mt-1 text-[12px] text-ink-secondary">{sugerenciaIA.justificacion}</p>
               </div>
             </div>
           </Card>

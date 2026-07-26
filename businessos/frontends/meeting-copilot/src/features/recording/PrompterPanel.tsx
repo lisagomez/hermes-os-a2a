@@ -15,7 +15,8 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { estadoPrompter } from './prompter'
-import { useLiveStore } from './live-store'
+import { nombresSesion, useLiveStore } from './live-store'
+import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
 import { Card, Chip, ProgressBar, tonoScore } from '@/shared/components/ui'
 import { ETIQUETA_CATEGORIA, ETIQUETA_DIMENSION, type Playbook, type Reunion } from '@/features/domain/types'
 import { fmtTiempo } from '@/shared/lib/format'
@@ -40,6 +41,18 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
     () => estadoPrompter(reunion, segmentos, playbook, { temasCubiertosManual, preguntasDescartadas }),
     [reunion, segmentos, playbook, temasCubiertosManual, preguntasDescartadas]
   )
+
+  // Motor llm: la IA redacta la pregunta del hueco vigente con el contexto vivo.
+  const asesorNombre = useLiveStore((s) => s.asesorNombre)
+  const leadNombre = useLiveStore((s) => s.leadNombre)
+  const nombreCliente = nombresSesion({ asesorNombre, leadNombre }).cliente
+  const sugerenciaIA = usePreguntaIA({
+    hueco: estado.sugerencia,
+    segmentos,
+    tipoReunion: reunion.tipoReunion,
+    leadNombre: nombreCliente !== 'Cliente' ? nombreCliente : null,
+    preguntasPrevias: preguntasDescartadas,
+  })
 
   if (!guiaVisible) {
     return (
@@ -96,11 +109,22 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
           <div className="flex items-start gap-2" data-testid="prompter-sugerencia">
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
-              <p className="mt-0.5 text-[13px] font-medium leading-snug text-ink">“{estado.sugerencia.preguntaSugerida}”</p>
-              <p className="mt-1 text-[11px] text-ink-secondary">{estado.sugerencia.justificacion}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
+                {sugerenciaIA.fuente === 'ia' && <Chip tono="accent">IA</Chip>}
+                {sugerenciaIA.cargando && <Chip tono="info">redactando…</Chip>}
+                {sugerenciaIA.error && (
+                  <Chip tono="warning">
+                    <span title={sugerenciaIA.error}>IA no disponible — banco</span>
+                  </Chip>
+                )}
+              </div>
+              <p className="mt-0.5 text-[13px] font-medium leading-snug text-ink">“{sugerenciaIA.pregunta}”</p>
+              <p className="mt-1 text-[11px] text-ink-secondary">{sugerenciaIA.justificacion}</p>
               <p className="mt-0.5 text-[10px] text-ink-muted">
-                Del banco del playbook, elegida por lo que la conversación aún no cubre
+                {sugerenciaIA.fuente === 'ia'
+                  ? 'Redactada por IA con el contexto de la conversación; la dimensión la decide el motor determinista'
+                  : 'Del banco del playbook, elegida por lo que la conversación aún no cubre'}
                 {segmentos.length > 0 ? ` (${segmentos.length} frases analizadas)` : ''}.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">

@@ -43,6 +43,7 @@ if (FUENTE_DATOS === 'real') {
   throw new Error('NEXT_PUBLIC_COPILOT_DATA=real está reservado a la integración Supabase (post-MVP).')
 }
 
-if (MOTOR_AGENTE === 'llm') {
-  throw new Error('NEXT_PUBLIC_AGENT_ENGINE=llm es un seam post-MVP: los contratos están listos, el motor no.')
-}
+// MOTOR_AGENTE='llm': la IA redacta la siguiente mejor pregunta con el contexto
+// de la conversación (vía /api/asesor/pregunta, OPENROUTER_API_KEY server-side).
+// El score/cobertura siguen siendo deterministas; sin clave o sin red, el
+// Prompter cae al banco del playbook con aviso visible — nunca rompe el flujo.

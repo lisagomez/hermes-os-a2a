@@ -320,7 +320,20 @@ salida (un escritor por dato); toda excepción se reporta en UI.
 - **Reglas:** si >20% inaudible → el análisis se marca "confianza reducida" en todas las vistas.
 - **Activación:** al completar un job. **No debe:** corregir texto adivinando.
 
-### 9.8 Prompts internos sugeridos (para el motor `llm` futuro)
+### 9.8 Motor `llm` — CONECTADO para la siguiente mejor pregunta
+
+`NEXT_PUBLIC_AGENT_ENGINE=llm` activa la redacción con IA de la siguiente mejor pregunta
+(Prompter de Grabación y Guided Meeting, MISMO hook `usePreguntaIA`). División deliberada:
+el motor determinista decide QUÉ dimensión falta (explicable y testeado); la IA solo REDACTA
+la pregunta enganchada al contexto (últimas 24 frases), sin repetir las ya sugeridas.
+Ruta server-side `/api/asesor/pregunta` (OPENROUTER_API_KEY solo en servidor; modelo
+`ASESOR_LLM_MODEL`, default gemini-2.5-flash-lite; timeout 9 s; máx 220 tokens; caché por
+dimensión+banco+ventana de 5 frases; debounce 700 ms). La UI declara la fuente (chip IA /
+banco / redactando… / "IA no disponible — banco" con el error en tooltip): sin clave o sin
+red el flujo JAMÁS se rompe. Prompt en `features/agents/prompt-pregunta.ts` (puro, con tests
+de parseo defensivo: respuesta sin JSON válido → banco, nunca se adivina).
+
+### Prompts internos sugeridos (para extender el motor `llm` al resto de agentes)
 
 Plantilla común (system): *"Eres {agente} de un copiloto comercial. Trabajas SOLO con la
 transcripción provista. Toda afirmación cita segmento [mm:ss]. Si un dato no está en la
