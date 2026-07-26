@@ -1166,4 +1166,23 @@ npm run lint         # ESLint
   reales, y toda app Next nueva dentro del monorepo. Ver
   `.claude/memory/project/frontend-meeting-copilot.md` y el PRP `prp-meeting-copilot.md`.
 
+### 2026-07-26: Un server local lanzado desde una sesión de Claude muere con la sesión — systemd --user es el fix
+- **Error**: el dev server de meeting-copilot (`localhost:3000`) "se volvía a caer" una y otra
+  vez: incluso lanzado con `setsid nohup … &` moría al cerrarse la sesión de Claude Code que lo
+  lanzó (el sandbox/cgroup de la sesión mata a sus descendientes al terminar). Señal en el log:
+  termina en `[?25h` sin ningún error — apagado por señal, no crash de la app. No era OOM ni bug
+  del código, y el smoke "arrancó y responde 200" no lo caza porque muere DESPUÉS, al cerrar la
+  sesión. Hermano del gotcha 2026-07-16 (server con `&` zombie): la vida del proceso no puede
+  depender del shell ni de la sesión.
+- **Fix**: unidad systemd de usuario (WSL2 la soporta: `systemctl --user is-system-running` →
+  `running`): `~/.config/systemd/user/meeting-copilot-dev.service` con `Restart=always`,
+  `ExecStart=/home/gsore/.local/bin/npm run dev` (path absoluto: systemd no hereda el PATH de
+  nvm/.local) y log en `~/.local/state/meeting-copilot-dev.log`; `systemctl --user daemon-reload
+  && systemctl --user enable --now meeting-copilot-dev`. Verificado matando el proceso a
+  propósito: systemd lo revivió en segundos y volvió a 200. Gestión:
+  `systemctl --user {status,restart,stop} meeting-copilot-dev`.
+- **Aplicar en**: todo server/túnel local que deba sobrevivir a la sesión que lo lanzó (dev
+  servers de frontends, mission control local). Si "se cayó localhost" y el log acaba limpio en
+  `[?25h`, es esto — no perseguir bugs de la app.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
