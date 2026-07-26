@@ -65,6 +65,13 @@ GATE_ESTADOS = ("paso", "fallo", "no_ejecutable")
 
 INTENTOS_MAX_DEFAULT = 3
 
+# Clasificación en el ORIGEN (ERP-MAESTRO §1.7 / módulo act, 2026-07-26):
+# "la clasificación contable y la evidencia de I+D nacen en el ORIGEN del
+# encargo, no se reconstruyen después". `operacion` es el default honesto:
+# una tarea sin clasificación explícita NO fabrica activos.
+EJES_DEI = ("investigacion", "desarrollo", "operacion")
+CLASIFICACION_DEFAULT = {"eje_dei": "operacion", "vendible": False}
+
 # task_id se usa como nombre de directorio del worktree: solo caracteres seguros.
 _TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
@@ -131,6 +138,26 @@ def validar_tarea(d: Any) -> dict:
         _es_lista_de_str(observaciones) or observaciones == [],
         "observaciones: lista de strings (hallazgos del rechazo previo, en reintentos)",
     )
+    # Clasificación en el ORIGEN (módulo act del ERP). Opcional y retrocompatible:
+    # sin el bloque, la tarea es 'operacion' no vendible (no fabrica activos).
+    clasificacion = d.get("clasificacion", {})
+    _exigir(isinstance(clasificacion, dict), "clasificacion debe ser objeto")
+    eje_dei = clasificacion.get("eje_dei", CLASIFICACION_DEFAULT["eje_dei"])
+    _exigir(
+        eje_dei in EJES_DEI,
+        f"clasificacion.eje_dei desconocido: {eje_dei!r} (investigacion|desarrollo|operacion)",
+    )
+    vendible = clasificacion.get("vendible", CLASIFICACION_DEFAULT["vendible"])
+    _exigir(
+        isinstance(vendible, bool),
+        "clasificacion.vendible: booleano (true = al aprobarse se cosecha como activo digital)",
+    )
+    _exigir(
+        not (vendible and eje_dei == "operacion"),
+        "clasificacion contradictoria: vendible=true exige eje_dei "
+        "investigacion|desarrollo — 'operacion' no fabrica activos "
+        "(ERP-MAESTRO §1.7: el activo hereda su eje del origen)",
+    )
     return {
         "task_id": task_id,
         "departamento": departamento,
@@ -139,6 +166,7 @@ def validar_tarea(d: Any) -> dict:
         "criterios_aceptacion": list(criterios),
         "limites": limites,
         "observaciones": list(observaciones),
+        "clasificacion": {"eje_dei": eje_dei, "vendible": vendible},
     }
 
 

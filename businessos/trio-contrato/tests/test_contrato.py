@@ -229,3 +229,37 @@ def test_tarea_contratos_inteligentes_valida():
 def test_resultado_contratos_inteligentes_valido():
     r = validar_resultado({**RESULTADO_OK, "departamento": "contratos_inteligentes"})
     assert r["departamento"] == "contratos_inteligentes"
+
+
+# ---------- clasificacion en el ORIGEN (modulo act del ERP, 2026-07-26) ----------
+
+def test_tarea_sin_clasificacion_recibe_default_operacion_no_vendible():
+    t = validar_tarea(TAREA_OK)
+    assert t["clasificacion"] == {"eje_dei": "operacion", "vendible": False}
+
+
+def test_tarea_con_clasificacion_valida_la_conserva():
+    t = validar_tarea({**TAREA_OK, "clasificacion": {"eje_dei": "desarrollo", "vendible": True}})
+    assert t["clasificacion"] == {"eje_dei": "desarrollo", "vendible": True}
+
+
+def test_vendible_con_eje_operacion_es_contradiccion():
+    with pytest.raises(ContratoInvalido, match="no fabrica activos"):
+        validar_tarea({**TAREA_OK, "clasificacion": {"eje_dei": "operacion", "vendible": True}})
+
+
+def test_vendible_sin_eje_explicito_es_contradiccion():
+    # vendible=true sin eje cae al default 'operacion' -> misma contradiccion:
+    # quien declara vendible DEBE declarar el eje (la clasificacion nace completa).
+    with pytest.raises(ContratoInvalido, match="no fabrica activos"):
+        validar_tarea({**TAREA_OK, "clasificacion": {"vendible": True}})
+
+
+def test_eje_dei_desconocido_es_invalido():
+    with pytest.raises(ContratoInvalido, match="eje_dei desconocido"):
+        validar_tarea({**TAREA_OK, "clasificacion": {"eje_dei": "capex"}})
+
+
+def test_vendible_no_booleano_es_invalido():
+    with pytest.raises(ContratoInvalido, match="vendible: booleano"):
+        validar_tarea({**TAREA_OK, "clasificacion": {"eje_dei": "desarrollo", "vendible": "si"}})

@@ -55,6 +55,7 @@ class Cola(Protocol):
 
 def _fila_de(tarea: dict) -> dict:
     """La fila que representa a la tarea en la cola. `payload` es la verdad ejecutable."""
+    clasif = tarea.get("clasificacion", {})
     return {
         "task_id": tarea["task_id"],
         "departamento": tarea["departamento"],
@@ -64,6 +65,11 @@ def _fila_de(tarea: dict) -> dict:
         "payload": tarea,  # <- lo que el worker ejecutara (limites, observaciones, todo)
         "estado": ESTADO_COLA,
         "intentos_max": tarea["limites"]["intentos_max"],
+        # Denormalizados para el cosechador de activos (modulo act del ERP):
+        # el filtro `estado=aprobada & vendible` va por indice, no leyendo payloads.
+        # Mismo escritor que el resto de la fila (un escritor por fila).
+        "eje_dei": clasif.get("eje_dei", "operacion"),
+        "vendible": clasif.get("vendible", False),
         "encolada_en": "now()",  # un reintento re-encolado va al FINAL (FIFO justo)
         "updated_at": "now()",
     }

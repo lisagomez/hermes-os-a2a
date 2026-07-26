@@ -1199,6 +1199,47 @@ npm run lint         # ESLint
   el CSS compilado emite los tokens — todo pasó, pero había que verlo pasar).
 - **Aplicar en**: toda sesión con agentes paralelos sobre el working tree (los agentes no son
   worktrees aislados salvo que se pida `isolation: worktree`) y todo reporte de gates de un
-  agente que terminó anormalmente.
+  agente que terminó anormalmente. (La otra sesión documentó el mismo incidente desde su
+  lado — ver "Dos sesiones de Claude sobre el MISMO working tree" abajo: `git worktree` es
+  el fix estructural; el stash-dance de arriba es el rescate cuando ya pasó.)
+
+### 2026-07-26: El ERP se ACTIVÓ — esquema erp vivo, módulo act, y el puente correcto (cli_fin, no PAT)
+- **Contexto**: por decisión de la dueña, las migraciones ERP (001-005, incl. la nueva
+  005_activos del módulo act) se aplicaron al Supabase compartido. Gotchas que costaron
+  iteraciones: (1) **el host del pooler lo dicta la API** (`GET /config/database/pooler` →
+  `aws-1-us-east-2`; adivinar `aws-0` da "tenant/user not found" que parece problema de
+  credencial); (2) **`postgres` no puede `SET ROLE` a roles nuevos sin MEMBRESÍA** — el
+  management API necesita `grant rol_x to postgres` (estado de cluster, no vive en ningún
+  .sql: documentarlo o la recreación de la BD lo pierde). Y un check que "pasa" por
+  `permission denied to set role` NO probó lo que creías: re-verificar por el motivo
+  correcto (`permission denied for table`).
+- **El puente de escritura correcto**: para que un host-job escriba en `erp` NO se sube el
+  PAT de management al servidor (blast radius de toda la org) NI se usa service_role
+  (BYPASSRLS anula la seguridad): se crea el login `cli_fin` con `GRANT rol_exe_fin` (el
+  patrón que 004_seguridad.sql ya diseñaba) y cada escritura va en una transacción
+  `set local role + set local app.cliente_id` — ejercita grants y RLS reales en cada
+  operación. psql del sistema (`postgresql-client`) es la única dependencia.
+- **Orden de migraciones con RLS por bucle**: tras crear tablas nuevas (005) hay que
+  RE-CORRER 004 (la RLS se aplica iterando pg_tables; los default privileges cubren
+  grants pero NO políticas) y re-correr los revokes append-only de 005 (004 re-grantea).
+  El env canónico de host-jobs es `~/repo/businessos/.env` (el que sourcea el crontab),
+  NO `~/businessos/.env` — verificar con `crontab -l` antes de escribir vars.
+- **Aplicar en**: todo lo que toque el esquema erp, cualquier rol/login nuevo de Postgres
+  en Supabase, y toda migración que añada tablas. Ver `.claude/memory/project/erp-modulo-act.md`.
+
+### 2026-07-26: Dos sesiones de Claude sobre el MISMO working tree se pisan — usar git worktree
+- **Error**: dos sesiones en paralelo (una en `feat/erp-modulo-act`, otra en la rama de
+  design) compartían `/home/gsore/code/a2aboths`. Los `git checkout` cruzados de la otra
+  sesión revirtieron el working tree DOS VECES debajo de esta (ediciones sin commitear
+  desaparecen del árbol al cambiar de rama; los system-reminders muestran "archivos
+  modificados" que en realidad son la rama ajena). El diagnóstico está en `git reflog`:
+  entradas `checkout: moving from X to Y` que tú no hiciste.
+- **Fix**: al detectar trabajo paralelo, `git worktree add <dir> <mi-rama>` y seguir TODO
+  el trabajo propio ahí (los worktrees comparten .git pero cada uno tiene su checkout).
+  Mover también los archivos untracked propios al worktree — en el árbol compartido un
+  `git add -A` ajeno se los lleva. Committear temprano y a menudo: lo commiteado es
+  inmune al pisoteo; lo sin commitear es lo único en riesgo.
+- **Aplicar en**: toda sesión larga cuando haya señales de otra sesión activa (commits
+  que aparecen solos, archivos que "cambian" sin tocarlos, ramas que se mueven).
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
