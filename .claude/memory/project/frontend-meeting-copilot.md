@@ -39,3 +39,17 @@ en next.config. `eslint-config-next@16` es flat nativo (sin FlatCompat, gotcha y
 **Roadmap corto:** STT real (gate de la dueña en transcripcion-a2a), motor LLM por el seam,
 Supabase (tabla `reuniones` + ancla `reunion_id`), Zoom/Meet/Teams, envío de follow-ups vía
 `aprobaciones_salientes`, exponer el Analyzer como servicio A2A hermano.
+
+**Investigación del cliente → grafo regulatorio (decisión de la dueña, 2026-07-26).** Antes de la
+entrevista va una feature nueva de **investigación del cliente** (aún sin PRP propio). Su salida es
+el **disparador** de la integración del grafo en la entrevista guiada
+(`.claude/PRPs/prp-grafo-entrevista-guiada.md`, PR #156): **si la investigación arroja información
+que apunte a una vertical regulada, se abre la Fase 0 de ese PRP; si no, no se abre.** Efecto de
+diseño: la vertical a sembrar **emerge del pipeline real** en vez de elegirse de un catálogo — el
+criterio "cliente real" de la Fase 0 queda satisfecho por construcción.
+Dos fronteras que NO se pueden cruzar al construir esa feature: (1) **la investigación no consulta
+el grafo** — detecta *señales* de dominio regulado (giro, permisos, sector) y el grafo entra
+después, con el campo de operación ya capturado; si la investigación llamara al grafo con texto que
+ella misma infirió, rompe el invariante (a) del PRP (inferencia disfrazada de dato). (2) **Señal ≠
+dato**: lo que produce es una hipótesis que un humano confirma; `PerfilRegulatorio` sigue siendo un
+campo capturado, no derivado.

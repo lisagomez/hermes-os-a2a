@@ -292,7 +292,29 @@ futuro este conocimiento se cablea a un bot de Telegram/Slack, **eso es otro PRP
 > Solo FASES. Las subtareas se generan al entrar a cada fase (bucle agéntico).
 
 - **Fase 0 — Go/no-go de vertical (SIN código).** Elegir la primera vertical regulada a sembrar (o
-  concluir que no hay). **Criterio de elección, los 4 en verde o no se arranca**:
+  concluir que no hay).
+
+  > **Disparador decidido por la dueña (2026-07-26): el go/no-go NO se contesta a mano ni por
+  > corazonada — lo alimenta una feature previa de INVESTIGACIÓN DEL CLIENTE.** Esa feature corre
+  > *antes* de la entrevista (aún sin PRP propio: es trabajo aparte, ver más abajo) y su salida es
+  > el insumo de esta fase: **si la investigación arroja información que apunte a una vertical
+  > regulada, se abre esta Fase 0; si no, no se abre.** Consecuencia de diseño: la vertical no se
+  > elige por catálogo, **emerge del pipeline real** — que es exactamente lo que exige el criterio
+  > (1) de abajo, ahora satisfecho por construcción en vez de por juicio.
+  >
+  > Consecuencias que hay que respetar cuando esa feature exista:
+  > - **La investigación no consulta el grafo.** Detecta *señales* de dominio regulado
+  >   (giro, permisos mencionados, sector); el grafo solo entra después, con el campo de operación
+  >   ya capturado y validado por una persona. Si la investigación llamara al grafo con texto que
+  >   ella misma infirió, se rompe el **invariante (a)** — sería inferencia disfrazada de dato.
+  > - **Señal ≠ dato.** Lo que la investigación produce es una *hipótesis* de vertical, que un
+  >   humano confirma. El `PerfilRegulatorio` de la Fase A sigue siendo un campo capturado, no
+  >   derivado automáticamente.
+  > - **Esta feature no está en el alcance de este PRP** y necesita el suyo. Aquí solo queda
+  >   registrada la dependencia: sin ella, la Fase 0 se contesta a mano (camino degradado, válido
+  >   para arrancar con las 2 categorías ya sembradas).
+
+  **Criterio de elección, los 4 en verde o no se arranca**:
   (1) *cliente real*: existe al menos un lead/deal vivo o pipeline nombrado en esa vertical —
   no un mercado hipotético; (2) *densidad regulatoria*: la operación tiene requisitos previos
   (permiso, registro, póliza, autorización) que **condicionan la compra**, no solo buenas prácticas;
@@ -302,8 +324,11 @@ futuro este conocimiento se cablea a un bot de Telegram/Slack, **eso es otro PRP
   (≤ ~2 categorías y ~6 reglas).
   Candidatos por default: `DRONES_DELIVERY` y `AGENTES_SEGUROS` **ya sembrados** (permiten construir
   y probar todo el camino con cero costo de seed).
-  **Gate**: documento de decisión con los 4 criterios respondidos y aprobado por la dueña.
-  Si ninguno pasa → el PRP se cierra aquí (resultado válido, no fracaso).
+  **Gate**: documento de decisión con los 4 criterios respondidos y aprobado por la dueña,
+  **citando de dónde salió la señal de vertical** (investigación del cliente cuando exista; juicio
+  humano explícito mientras no). Si ninguno pasa → el PRP se cierra aquí (resultado válido, no
+  fracaso). Si la señal vino de la investigación, el documento nombra **el deal concreto** que la
+  originó — la vertical se justifica con un cliente, nunca con un mercado.
 
 - **Fase A — Contrato y seams.** `PerfilRegulatorio` en `Reunion`, `fuente?` en `RiesgoDeal`,
   seam `NEXT_PUBLIC_REGULATORIO` (+ `GRAFO_URL` server-side), captura del campo en
