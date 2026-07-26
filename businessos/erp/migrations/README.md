@@ -1,8 +1,9 @@
-# ERP Agéntico · Migraciones ERP-0 (fundación)
+# ERP Agéntico · Migraciones ERP-0 (fundación) + módulo act (ERP-4B)
 
-Modelo de datos + seguridad estructural de la cadena mínima `ped → fac → cfd → cob (+ inv)`.
-Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) — **v12** (Parte IV, ERP-0).
-**18 tablas** en el esquema `erp` (13 núcleo + 4 retail + 1 folios).
+Modelo de datos + seguridad estructural de la cadena mínima `ped → fac → cfd → cob (+ inv)`
+y del módulo `act` (activos digitales, ERP-4B).
+Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) (Parte IV, ERP-0; §4B para act).
+**22 tablas** en el esquema `erp` (13 núcleo + 4 retail + 1 folios + 4 act).
 
 > **v4 (estrategia D+I)** y **v5 (auditoría)** SÍ tocaron ERP-0 (migración 001):
 > - `sis_encargo` gana `eje_dei` (investigacion|desarrollo|operacion, nace en el origen) y
@@ -24,9 +25,26 @@ Spec completa: [`../ERP-MAESTRO.md`](../ERP-MAESTRO.md) — **v12** (Parte IV, E
 
 ## Estado
 
-- **Escritas y VALIDADAS** en un Postgres 16 efímero (staging aislado, contenedor desechable).
-- **NO aplicadas** a ninguna BD durable todavía (decisión: dejar solo las migraciones).
-  Cuando se decida el destino, aplicar en orden 001→004, snapshot antes, STAGING primero.
+- **APLICADAS a producción el 2026-07-26** (decisión de la dueña): Supabase compartido
+  A2ABot (`hsejpktzcqwkwkwholkw`), esquema `erp`, vía management API. Orden aplicado:
+  `001 → 002 → 003 → 004 → 005 → 004 (re-corrida: RLS de act_*) → 005 (re-corrida:
+  revokes append-only)`. Pre-vuelo verificado antes de correr: esquema `erp`
+  inexistente, roles inexistentes, cero colisiones de funciones en `public` —
+  aplicación puramente aditiva; rollback documentado = `drop schema erp cascade` +
+  drop de los 3 roles.
+- Gate de cierre verificado contra producción (2026-07-26): 22 tablas con RLS
+  FORCE; `rol_swm` rechazado por permiso de TABLA; `siguiente_folio('ACT')` →
+  `ACT-0001`; 0 filas sin `app.cliente_id`; DELETE denegado; escritura válida bajo
+  `rol_exe_fin` + baja por `estado='baja'` (nunca delete).
+- **Puente interino (hasta el CLI de ERP-1, D-03):** las escrituras van por
+  management API envueltas en `begin; set local role rol_exe_fin; set local
+  app.cliente_id='<tenant>'; …; commit;` — ejercitan grants+RLS reales. Para que
+  el `SET ROLE` funcione se otorgó **membresía**: `grant rol_exe_fin, rol_swm,
+  rol_admin to postgres;` (estado de cluster, no vive en ningún .sql — si se
+  recrea la BD hay que re-otorgarla). El tenant de la casa es
+  `ERP_CLIENTE_CASA=2de8835a-439c-461a-990c-a2b95d29f3a4` (D-08).
+- Antes de la aplicación estuvieron **validadas** en Postgres 16 efímero; esa
+  receta sigue siendo el paso previo obligatorio para toda migración nueva.
 
 Todo vive en un esquema **`erp` aislado** de `public` (donde las verticales Hermes usan
 `service_role`). Aquí el modelo es el opuesto: RLS con políticas por `cliente_id` + roles
@@ -40,6 +58,7 @@ dedicados; los CLIs/agentes **jamás** usan `service_role` (tiene BYPASSRLS y an
 | 002 | `002_pack_retail.sql` | Pack retail: inv_articulo/precio, ped_pedido/partida. El pack referencia al núcleo, nunca al revés. |
 | 003 | `003_folios.sql` | Folios humanos por tenant (PED/FAC/CFD/COB/REP) con `erp.siguiente_folio()` atómico (anti-carrera). |
 | 004 | `004_seguridad.sql` | Roles `rol_exe_fin`/`rol_swm`/`rol_admin` + RLS `FORCE` con política por `cliente_id` en toda tabla. Re-correr si un pack añade tablas. |
+| 005 | `005_activos.sql` | Módulo `act` (ERP-4B): act_activo (dos ejes §1.7 + defensibilidad propuesta/ratificada + campos contables), act_version (append-only), act_proteccion (expediente defendibles), act_costo (append-only, fuente obligatoria, trigger que mantiene costo_acumulado). Re-correr su sección de revokes tras cada re-corrida de 004. |
 
 ## Cómo validar (staging efímero, cero costo)
 
@@ -47,9 +66,9 @@ dedicados; los CLIs/agentes **jamás** usan `service_role` (tiene BYPASSRLS y an
 cd businessos
 docker run -d --name erp0-validate -e POSTGRES_PASSWORD=pw postgres:16-alpine
 docker exec erp0-validate bash -c 'until pg_isready -U postgres -q; do sleep 1; done'
-for f in 001_nucleo 002_pack_retail 003_folios 004_seguridad; do
+for f in 001_nucleo 002_pack_retail 003_folios 004_seguridad 005_activos 004_seguridad 005_activos; do
   docker exec -i erp0-validate psql -U postgres -v ON_ERROR_STOP=1 < erp/migrations/$f.sql
-done
+done   # las re-corridas de 004/005 son parte del orden real (RLS + revokes) y prueban idempotencia
 # pruebas de cierre (a/b/c/d) — ver el script usado en la sesión de construcción
 docker rm -f erp0-validate
 ```
