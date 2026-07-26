@@ -1021,6 +1021,25 @@ panel, niveles medidos) en `crm/propuesta-crm-marca-blanca.md`.
 
 ---
 
+## Línea Meeting Copilot (marca blanca) — MVP construido (2026-07-25)
+
+Cuarta superficie de `businessos/frontends/`: **meeting-copilot**, copiloto comercial de
+reuniones para agentes de ventas/discovery/CS (mezcla de meeting copilot + discovery
+workspace + Mission Control de agentes). Audio/transcripción → transcripción diarizada →
+insights con evidencia citada → score de discovery explicable (8 dimensiones, patrón de
+gates) → guided meeting con coach → resumen/follow-up/CRM notes/riesgos → vista manager.
+Shell propio (sidebar + command bar + launcher de 15 herramientas + theming
+system/light/dark). 100% mock-first (motor determinista, cero tokens) con seams listos:
+STT (`transcriptor` faster-whisper / `transcripcion-a2a` :4800 / groq), motor LLM y
+Supabase (contratos espejo de `transcripciones`/`tareas_reunion`/`leads` → migración
+aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
+`.claude/PRPs/prp-meeting-copilot.md` · memoria:
+`.claude/memory/project/frontend-meeting-copilot.md`.
+- [x] MVP navegable con datos demo + 20 tests del motor + smoke Playwright.
+- [x] SOUL de negocio: sección "Enfoque de ventas (vendedor profesional estratégico)".
+- [ ] Post-merge: sync del SOUL al volumen de Hetzner + restart (documentar ≠ aplicar).
+- [ ] Gates de la dueña: STT real, motor LLM, Supabase prod, integración Zoom/Meet.
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de
