@@ -63,6 +63,25 @@ def heredar_modelo_pref(plan: dict, tarea: dict) -> dict:
     return {**plan, "sub_tareas": subs}
 
 
+def heredar_clasificacion(plan: dict, tarea: dict) -> dict:
+    """Las sub-tareas sin `clasificacion` propia heredan la del padre.
+
+    Gemela de `heredar_modelo_pref` y por el mismo motivo: la clasificación
+    (eje_dei + vendible, módulo act del ERP) se decide en la feature PADRE y el
+    Planner no la emite — sin herencia explícita, cada sub-tarea caería al
+    default 'operacion, no vendible' y la cosecha de activos perdería el gasto
+    de las hijas. Una sub-tarea con clasificación propia se respeta.
+    """
+    clasif = tarea.get("clasificacion")
+    if not clasif:
+        return plan
+    subs = [
+        s if s.get("clasificacion") else {**s, "clasificacion": dict(clasif)}
+        for s in plan["sub_tareas"]
+    ]
+    return {**plan, "sub_tareas": subs}
+
+
 def limites_enjambre(tarea: dict) -> tuple[int, float | None]:
     """Extrae y valida `fan_out_max` (>=1) y `presupuesto_usd` (>=0, opcional).
 
@@ -231,7 +250,9 @@ class CoordinadorA2A(AgentExecutor):
         """
         for intento in range(1, PLAN_TRANSITORIOS_MAX + 1):
             try:
-                return heredar_modelo_pref(await self._planner.plan(tarea), tarea)
+                return heredar_clasificacion(
+                    heredar_modelo_pref(await self._planner.plan(tarea), tarea), tarea
+                )
             except PlannerError as exc:
                 if not exc.transitorio:
                     await self._fallar(updater, f"planner: {exc}")

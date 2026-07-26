@@ -22,7 +22,7 @@ from a2a.types import (
 )
 
 from contrato import ContratoInvalido
-from executor import CoordinadorA2A, heredar_modelo_pref, limites_enjambre
+from executor import CoordinadorA2A, heredar_clasificacion, heredar_modelo_pref, limites_enjambre
 from integracion import IntegracionError
 from planner import MockPlanner, PlannerError
 from supervisor_cliente import SupervisorError
@@ -447,3 +447,20 @@ def test_planner_definitivo_falla_sin_reintentar():
     assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
     assert "planner: plan invalido" in razon_de_fallo(cola)
     assert sleep.esperas == []  # definitivo NO duerme ni reintenta
+
+
+# ---------- herencia de clasificacion (modulo act, 2026-07-26) ----------
+
+def test_heredar_clasificacion_solo_donde_falta():
+    plan = {"sub_tareas": [
+        {"task_id": "a", "limites": {"intentos_max": 3}},
+        {"task_id": "b", "limites": {"intentos_max": 3},
+         "clasificacion": {"eje_dei": "investigacion", "vendible": False}},
+    ], "orden": ["a", "b"], "avisos": []}
+    padre = {"clasificacion": {"eje_dei": "desarrollo", "vendible": True}}
+    con = heredar_clasificacion(plan, padre)
+    assert con["sub_tareas"][0]["clasificacion"] == {"eje_dei": "desarrollo", "vendible": True}
+    # la propia gana (misma regla que modelo_pref)
+    assert con["sub_tareas"][1]["clasificacion"]["eje_dei"] == "investigacion"
+    # sin clasificacion en el padre, el plan queda intacto
+    assert heredar_clasificacion(plan, {}) is plan

@@ -42,7 +42,8 @@ Construye este JSON (el contrato exige TODOS estos campos):
     "flujo de login probado en browser",
     "RLS habilitado en tablas nuevas"
   ],
-  "limites": {"intentos_max": 3, "max_turns": 120, "presupuesto_usd": 5}
+  "limites": {"intentos_max": 3, "max_turns": 120, "presupuesto_usd": 5},
+  "clasificacion": {"eje_dei": "desarrollo", "vendible": true}
 }
 ```
 
@@ -50,6 +51,18 @@ Construye este JSON (el contrato exige TODOS estos campos):
   (se usa como directorio del worktree). Formato sugerido: `<proyecto>-<año>-<consecutivo>`.
 - `criterios_aceptacion`: SIEMPRE explícitos y verificables — tú entregas el QUÉ
   medible; nunca mandes una tarea sin criterios.
+- `clasificacion` (módulo act del ERP — la clasificación nace EN EL ORIGEN, no se
+  reconstruye después):
+  - `vendible: true` = al aprobarse, la feature se cosecha como ACTIVO DIGITAL en el
+    inventario del ERP con su costo real. Es vendible lo que un cliente podría comprar
+    o licenciar: features de producto, componentes white-label, packs, integraciones
+    reutilizables. NO es vendible un fix interno, un ajuste de config o mantenimiento.
+  - `eje_dei`: cómo nace — `desarrollo` (beneficio económico identificable; lo normal
+    en features vendibles), `investigacion` (spike/exploración sin beneficio aún → va
+    a GASTO por NIF C-8), `operacion` (default; trabajo operativo, no fabrica activos).
+  - Regla dura del contrato: `vendible=true` con `eje_dei=operacion` se RECHAZA.
+    Si declaras vendible, declara el eje. Si dudas del eje: ¿tiene beneficio económico
+    identificable HOY? → `desarrollo`; ¿es exploración? → `investigacion`.
 
 ### ⚠️ SIEMPRE incluye un criterio de test (o la tarea nace rechazada)
 
