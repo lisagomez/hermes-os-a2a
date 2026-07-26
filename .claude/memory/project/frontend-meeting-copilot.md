@@ -1,6 +1,12 @@
 # Meeting Copilot — copiloto comercial de reuniones (frontends/meeting-copilot)
 
-**Estado (2026-07-26):** MVP COMPLETO en PR #154 (`feat/meeting-copilot-mvp`), verificado:
+**Estado (2026-07-26):** MVP COMPLETO en PR #154 (`feat/meeting-copilot-mvp`) y
+**DESPLEGADO en Vercel** — https://meeting-copilot-pi.vercel.app (proyecto `meeting-copilot`,
+cuenta dueña, motor LLM ACTIVO con `OPENROUTER_API_KEY` + `NEXT_PUBLIC_AGENT_ENGINE=llm` en
+producción; smoke completo de las 14 rutas + API con respuesta real del modelo). Runbook:
+`businessos/frontends/DEPLOY-meeting-copilot.md` — la app es self-contained (sin
+design-system `file:`), upload root = el dir de la app; sin auth por ahora (solo mocks, cero
+datos de negocio — re-evaluar al conectar Supabase). Verificado en dev:
 42 unit tests + smoke Playwright 12/12 + typecheck/lint/build. Spec en
 `businessos/frontends/meeting-copilot/SPEC.md`; aprendizajes en el PRP `prp-meeting-copilot.md`.
 Incluye post-MVP por dogfood real de Victor: sección Grabación (MediaRecorder + bitácora con

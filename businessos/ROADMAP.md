@@ -1042,6 +1042,10 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   evidencia validada por contrato (OpenRouter server-side; sin clave degrada a reglas).
 - [x] Grabación en-app + modo asesor (Prompter, mismo motor que Guided Meeting) +
   transcripción en vivo (Web Speech) + diarización heurística por voz + bitácora.
+- [x] Deploy en Vercel (2026-07-26): https://meeting-copilot-pi.vercel.app — proyecto
+  `meeting-copilot`, cuenta dueña, motor LLM activo en producción; smoke de las 14 rutas +
+  API con respuesta real. Runbook: `businessos/frontends/DEPLOY-meeting-copilot.md`.
+  Sin auth (solo mocks, cero datos de negocio); auth obligatoria antes de conectar Supabase.
 - [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod,
   integración Zoom/Meet, diarización ML (pyannote).
 
