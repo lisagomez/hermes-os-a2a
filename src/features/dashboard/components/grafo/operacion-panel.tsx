@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { Cobro, Contrato, FacturaResumen } from '../../types'
 import { NeutralBadge } from './badges'
 
@@ -12,7 +13,7 @@ const TONO_FACTURA: Record<FacturaResumen['deducibilidad_estado'], 'good' | 'war
 
 export function FacturasPanel({ facturas }: { facturas: FacturaResumen[] }) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+    <Card as="section">
       <h2 className="text-sm font-medium text-slate-400">Facturas por deducibilidad</h2>
       <ul className="mt-3 space-y-2">
         {facturas.length === 0 && <li className="text-sm text-slate-500">Sin facturas.</li>}
@@ -23,7 +24,7 @@ export function FacturasPanel({ facturas }: { facturas: FacturaResumen[] }) {
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   )
 }
 
@@ -38,7 +39,7 @@ const TONO_CONTRATO: Record<Contrato['estado'], 'good' | 'warning' | 'critical' 
 
 export function ContratosPanel({ contratos }: { contratos: Contrato[] }) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+    <Card as="section">
       <h2 className="text-sm font-medium text-slate-400">Contratos</h2>
       <ul className="mt-3 space-y-2">
         {contratos.length === 0 && <li className="text-sm text-slate-500">Sin contratos.</li>}
@@ -52,7 +53,7 @@ export function ContratosPanel({ contratos }: { contratos: Contrato[] }) {
         ))}
       </ul>
       <p className="mt-3 text-xs text-slate-600">Aprobar y firmar es exclusivamente humano.</p>
-    </section>
+    </Card>
   )
 }
 
@@ -67,7 +68,7 @@ const TONO_COBRO: Record<Cobro['estado'], 'good' | 'warning' | 'critical' | unde
 
 export function CobrosPanel({ cobros }: { cobros: Cobro[] }) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+    <Card as="section">
       <h2 className="text-sm font-medium text-slate-400">Cobros (Polar)</h2>
       <ul className="mt-3 space-y-2">
         {cobros.length === 0 && <li className="text-sm text-slate-500">Sin cobros.</li>}
@@ -83,6 +84,6 @@ export function CobrosPanel({ cobros }: { cobros: Cobro[] }) {
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   )
 }

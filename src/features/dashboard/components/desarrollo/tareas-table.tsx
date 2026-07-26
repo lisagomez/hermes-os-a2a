@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { Tarea } from '../../types'
 import { EstadoTareaBadge } from './estado-tarea-badge'
 
@@ -9,17 +10,17 @@ import { EstadoTareaBadge } from './estado-tarea-badge'
 export function TareasTable({ tareas }: { tareas: Tarea[] }) {
   if (tareas.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900 p-10 text-center">
+      <Card className="p-10 text-center">
         <p className="text-sm font-medium text-slate-300">Sin tareas todavía</p>
         <p className="mt-1 text-xs text-slate-500">
           Cuando el Coordinador o el host despachen una tarea al trío, aparecerá aquí.
         </p>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900">
+    <Card className="overflow-x-auto p-0">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -50,6 +51,6 @@ export function TareasTable({ tareas }: { tareas: Tarea[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </Card>
   )
 }

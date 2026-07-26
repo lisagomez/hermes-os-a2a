@@ -3,6 +3,7 @@ import { DailySeries } from '@/features/dashboard/components/ai-spend/daily-seri
 import { ModelTable } from '@/features/dashboard/components/ai-spend/model-table'
 import { VerticalBars } from '@/features/dashboard/components/ai-spend/vertical-bars'
 import { getDataSource } from '@/features/dashboard/services'
+import { Card } from '@/shared/components/card'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,20 +23,20 @@ export default async function AiSpendPage() {
       <BudgetMeter totalUsd={total} mes={spend.mes} />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+        <Card as="section">
           <h2 className="mb-4 text-sm font-medium text-slate-400">Costo diario (USD)</h2>
           <DailySeries datos={spend.serieDiaria} />
-        </section>
-        <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+        </Card>
+        <Card as="section">
           <h2 className="mb-4 text-sm font-medium text-slate-400">Gasto por vertical</h2>
           <VerticalBars filas={spend.porVertical} />
-        </section>
+        </Card>
       </div>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+      <Card as="section">
         <h2 className="mb-4 text-sm font-medium text-slate-400">Desglose por modelo</h2>
         <ModelTable filas={spend.porModelo} />
-      </section>
+      </Card>
     </div>
   )
 }

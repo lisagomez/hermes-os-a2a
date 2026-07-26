@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { EtapaEmbudo } from '../../types'
 import { CHROME, STATUS } from '../ai-spend/colors'
 
@@ -23,12 +24,12 @@ export function EmbudoCanvas({
 }) {
   if (embudo.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900 p-10 text-center">
+      <Card className="p-10 text-center">
         <p className="text-sm font-medium text-slate-300">Sin etapas de embudo</p>
         <p className="mt-1 text-xs text-slate-500">
           Cuando existan leads en la tabla, el embudo aparecerá aquí.
         </p>
-      </div>
+      </Card>
     )
   }
 
@@ -36,7 +37,7 @@ export function EmbudoCanvas({
   const total = embudo.reduce((s, e) => s + e.cuenta, 0)
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+    <Card>
       <div className="space-y-1.5">
         {embudo.map((e, i) => {
           const ancho = ANCHO_MAX - paso * i
@@ -67,6 +68,6 @@ export function EmbudoCanvas({
           perdidos: <span className="font-bold tabular-nums">{perdidos}</span>
         </span>
       </div>
-    </div>
+    </Card>
   )
 }

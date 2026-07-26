@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { Evaluacion } from '../../types'
 import { EstadoBadge } from './badges'
 
@@ -8,7 +9,7 @@ import { EstadoBadge } from './badges'
 export function EvaluacionCard({ evaluacion }: { evaluacion: Evaluacion }) {
   const c = evaluacion.contexto
   return (
-    <article className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+    <Card as="article">
       <header className="flex flex-wrap items-center gap-3">
         <EstadoBadge estado={evaluacion.estado} />
         <span className="text-xs text-slate-400">
@@ -65,6 +66,6 @@ export function EvaluacionCard({ evaluacion }: { evaluacion: Evaluacion }) {
       <footer className="mt-4 border-t border-slate-800 pt-3 text-xs italic text-slate-500">
         {evaluacion.disclaimer}
       </footer>
-    </article>
+    </Card>
   )
 }

@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { LeadResumen } from '../../types'
 import { ETAPAS_MOVIBLES } from '../../types'
 import { EstadoLeadBadge } from './estado-lead-badge'
@@ -18,17 +19,17 @@ export function LeadsTable({
 }) {
   if (leads.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900 p-10 text-center">
+      <Card className="p-10 text-center">
         <p className="text-sm font-medium text-slate-300">Sin leads todavía</p>
         <p className="mt-1 text-xs text-slate-500">
           Cuando ventas-a2a, la web o un alta manual capturen un lead, aparecerá aquí.
         </p>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900">
+    <Card className="overflow-x-auto p-0">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -81,6 +82,6 @@ export function LeadsTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </Card>
   )
 }
