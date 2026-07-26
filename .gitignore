@@ -85,3 +85,8 @@ __pycache__/
 # (ignorado, para reuniones/transcripts u otros no compartibles). Patron anclado a la
 # raiz para no tapar los docs/ rastreados de subproyectos (p.ej. control-interno/docs/).
 /docs/_privado/
+
+# Caches de node en subproyectos (frontends/*, businessos/*): el patron de la
+# linea 2 esta anclado a la raiz y no los cubre. Un results.json de vitest se
+# colo asi en el PR #154.
+node_modules/
