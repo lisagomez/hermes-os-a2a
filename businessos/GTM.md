@@ -69,6 +69,11 @@ precios finales, no firma, no envía correos. La firma es exclusivamente humana.
 | **Seguros de carga MX** | Oportunidad *validada como viable*, con gate de discovery obligatorio | Largo — **30 días de entrevistas antes** de comprometer desarrollo |
 | ERP logística · OCR · metabuscador vuelos | Blueprints/propuestas escritas | Variable, sin priorizar |
 
+> Inventario completo de lo que respalda estas ofertas —23 activos digitales propios
+> (A2A-NNN) con clase, estado y esquema de costeo (construcción/operación/réplica/
+> reposición, fuentes declaradas)— en `businessos/activos/CATALOGO.md` + ledger
+> `activos.jsonl` (2026-07-26).
+
 ---
 
 ## 5. Secuencia en 3 olas *(propuesta)*
