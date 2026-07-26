@@ -46,8 +46,9 @@ create table if not exists public.facturas (
   subtotal    numeric(12,2) not null default 0 check (subtotal  >= 0),
   impuestos   numeric(12,2) not null default 0 check (impuestos >= 0),
   total       numeric(12,2) not null default 0 check (total     >= 0),
-  -- Deducibilidad: la determina el servicio 'grafo' (Fase futura). Hasta
-  -- entonces queda 'pendiente'. NO la decide la vertical clientes por su cuenta.
+  -- Deducibilidad: la determina el servicio 'grafo' a traves del host-job
+  -- evaluar-facturas.py; nace 'pendiente' y NO la decide la vertical clientes
+  -- por su cuenta (un solo escritor por columna).
   deducibilidad_estado  text not null default 'pendiente'
     check (deducibilidad_estado in ('pendiente','deducible','no_deducible','dudoso')),
   -- veredicto + razon por concepto que devuelve grafo, p. ej.
@@ -59,7 +60,7 @@ create table if not exists public.facturas (
 );
 
 comment on table public.facturas is
-  'Facturas extraidas de imagen/PDF por la vertical clientes. En Fase 0 la deducibilidad queda pendiente hasta que exista el servicio grafo.';
+  'Facturas extraidas de imagen/PDF por la vertical clientes. deducibilidad_estado nace pendiente y lo dictamina el grafo via el host-job evaluar-facturas.py (un solo escritor por columna).';
 
 create index if not exists facturas_cliente_idx   on public.facturas (cliente);
 create index if not exists facturas_fecha_idx     on public.facturas (fecha);

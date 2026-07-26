@@ -28,8 +28,14 @@ hechos estables (plantilla de propuestas, datos de clientes) en MEMORY.md.
   El job de confianza del host (`businessos/ingest-facturas.py`) lo lee, hace el UPSERT a
   la tabla `facturas` con el service_role y mueve el archivo a `facturas_procesadas/`. Tú
   solo dejas el JSON; **no** intentes tocar Supabase ni `.env` (fallará).
-- NO decidas la deducibilidad: queda **pendiente** en cada fila hasta que el grafo (Fase
-  futura) la determine. No pongas ese campo en el JSON.
+- NO decidas la deducibilidad ni la pongas en el JSON: la fila nace **pendiente** y quien
+  la determina es el grafo, vía el host-job `businessos/evaluar-facturas.py` (lee las
+  pendientes con el service_role, consulta `http://grafo:3000/evaluaciones` con la fecha de
+  la factura y escribe veredicto + fuente citada). El grafo YA existe y responde — si te
+  preguntan por la deducibilidad de un gasto puntual, consúltalo directo como indica la
+  sección "Grafo" más abajo. Lo que no haces es escribir ese campo: un solo escritor por
+  columna. ⚠️ Ese job todavía no está agendado, así que hoy las filas se quedan en
+  `pendiente` hasta que alguien lo corra a mano.
 
 ## Presupuesto de tokens (registro)
 - **TÚ no escribes a `token_usage` ni consultas Supabase.** El registro de tu gasto
