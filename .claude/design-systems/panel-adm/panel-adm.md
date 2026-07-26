@@ -173,8 +173,10 @@ tonos), `ScoreChip`/`tonoScore`, `Card`, `SectionHeader`, `EmptyState`, `Stat`,
 ## 6. Deuda priorizada = plan de set-up
 
 > **Primera tanda EJECUTADA el 2026-07-26** (commits `84a23d6` MC + `219a41f`
-> copilot en `docs/design-panel-adm-setup`, gates verdes verificados). Los ítems
-> tachados ya están resueltos; lo abierto es la segunda tanda.
+> copilot, PR #161). **Segunda tanda EJECUTADA el mismo día** (commits `46ff58e`
+> MC + `ea56bef` copilot, rama `fix/design-panel-adm-tanda2`). Los ítems tachados
+> están resueltos; lo único abierto es el opcional §MC-9 (next/font — decisión de
+> la dueña).
 
 ### Mission Control (el grueso: pasar de "cero tokens" al canon)
 
@@ -182,24 +184,28 @@ tonos), `ScoreChip`/`tonoScore`, `Card`, `SectionHeader`, `EmptyState`, `Stat`,
    vars + `theme.extend.colors` en `tailwind.config.ts`.~~ ✅ 2026-07-26 — mismos
    valores, look intacto; ojo: las clases `var()` no soportan modificador de
    opacidad (`bg-surface/60`), para eso siguen las escalas Tailwind.
-2. **Promover `colors.ts` a `src/shared/constants/`** (hoy en `components/ai-spend/`
-   con 8 imports cruzados `'../ai-spend/colors'`) y eliminar los 4 redeclarados de
-   `#3987e5` (`estado-tarea-badge.tsx:15`, `estado-lead-badge.tsx:7`,
-   `embudo-canvas.tsx:13`, `conversaciones-panel.tsx:12`) + hex sueltos
-   (`daily-series.tsx:67`, `badges.tsx:29`).
+2. ~~**Promover `colors.ts` a `src/shared/constants/`** y eliminar redeclarados +
+   hex sueltos.~~ ✅ 2026-07-26 t2 — `git mv` (historia intacta); todos importan
+   `SERIE_COLOR`/`CHROME`; nuevo `CHROME.surface` para el stroke del chart.
 3. ~~**Extraer `Card`** (el literal aparecía 12+ veces) y unificar padding.~~
    ✅ 2026-07-26 — `src/shared/components/card.tsx`, pura y server-safe; cede el
    `p-6` si el `className` trae padding propio.
-4. **Unificar headings de sección** (hoy 4 tratamientos para el mismo nivel).
+4. ~~**Unificar headings de sección**.~~ ✅ 2026-07-26 t2 — `SectionTitle`
+   (`text-sm font-medium text-ink-secondary`) + `MicroLabel` (`text-xs uppercase
+   tracking-wide text-ink-muted`) en `src/shared/components/section-title.tsx`;
+   el h2 de entidad de vertical-card queda aparte (es título de entidad).
 5. ~~**Decidir shadcn**: limpiarlo o completarlo.~~ ✅ 2026-07-26 — `components.json`
    fósil BORRADO (nada lo referenciaba; un `npx shadcn add` rompía el build).
 6. ~~**Estados de carga/error**.~~ ✅ 2026-07-26 — `loading.tsx` + `error.tsx`
    compartidos a nivel `(main)` (skeleton con tokens; error client en español con
    "Reintentar").
-7. `/crm` al nav principal (hoy solo alcanzable por subnav de adquisición o URL).
-8. Arreglar alpha por concatenación (`${color}1a` en `embudo-canvas.tsx:53`).
-9. Opcional consciente: `next/font` (p. ej. Inter) para consistencia cross-OS en
-   tablas densas — decisión de la dueña, no un default.
+7. ~~`/crm` al nav principal.~~ ✅ 2026-07-26 t2 — en `vistas`; el subnav de
+   adquisición se conserva (contexto de departamento, no duplicidad).
+8. ~~Arreglar alpha por concatenación.~~ ✅ 2026-07-26 t2 — `conAlpha(hex, a)` en
+   `shared/constants/colors.ts` valida el hex y devuelve `rgba()`; con input
+   no-hex devuelve el color sin alpha (antes producía CSS inválido en silencio).
+9. **ABIERTO (opcional consciente)**: `next/font` (p. ej. Inter) para consistencia
+   cross-OS en tablas densas — decisión de la dueña, no un default.
 
 ### Meeting Copilot (afinar un sistema ya sano)
 
@@ -208,24 +214,28 @@ tonos), `ScoreChip`/`tonoScore`, `Card`, `SectionHeader`, `EmptyState`, `Stat`,
    el segmento revelado).
 2. ~~Usar `--surface-raised` en popover/CommandBar/modal.~~ ✅ 2026-07-26 —
    CommandBar + LauncherPopover (elevación real en dark; en light no cambia nada).
-3. Tokens de radio (`--radius-s/m`) en vez de `0.5rem`/`0.625rem` sueltos + los
-   `rounded-*` ad hoc.
+3. ~~Tokens de radio (`--radius-s/m`).~~ ✅ 2026-07-26 t2 — en `:root` + `@theme`;
+   `.card`/`.btn-*`/`.input`/`.nav-item` usan `var(--radius-*)`. **Gotcha pagado**:
+   `rounded-s` colisiona con la utilidad LÓGICA de lado "start" de Tailwind v4
+   (`border-start-*-radius`) → override en `@layer utilities` al final de
+   globals.css; verificar SIEMPRE en el CSS compilado.
 4. ~~`tonoScore()` como única fuente.~~ ✅ 2026-07-26 — HomeView y ManagerView
    importan de `ui.tsx` (incluido el `detalle` "sano/coaching" que repetía el 70).
-5. Construir `Button`, `Table`, `PillToggle`, `Dialog`, `Callout` en `shared/ui`
-   (§4) y migrar las duplicaciones. — **PARCIAL 2026-07-26**: `Button` (el hack
-   `!px-2` sobraba: `.btn-*` vive en `@layer components` y las utilidades cascadan
-   después), `Table` (3 tablas migradas; empty-rows quedan crudas a propósito) y
-   `Dialog` (CommandBar montado encima sin tocar su teclado; LauncherPopover NO —
-   es popover anclado, no modal) ✅. Faltan `PillToggle` y `Callout`.
-6. Alinear SPEC §14 con los nombres reales (`--line`/`--ink*`, no
-   `--border`/`--text-*`) o viceversa; documentar `--font-mono`.
-7. Declarar `tailwindcss` en package.json (hoy transitivo) y mover
-   `@tailwindcss/postcss` a devDependencies; `turbopack.root` con `__dirname` en
-   vez de `process.cwd()`.
-8. UX: "La usé" y "Otra pregunta" hoy ejecutan la MISMA acción
-   (`PrompterPanel.tsx:131-146`) — separar semántica.
-9. Anchos de columna derecha: unificar en `22rem` (hoy 22/21/20 según vista).
+5. ~~Construir `Button`, `Table`, `PillToggle`, `Dialog`, `Callout` en `shared/ui`
+   y migrar las duplicaciones.~~ ✅ COMPLETO 2026-07-26 (t1: Button/Table/Dialog;
+   t2: PillToggle con variantes `segmentado`/`suelto` y Callout `card`/`inline` —
+   4 toggles y ~10 avisos migrados). `MeetingHeader` queda como Tabs (border-b-2,
+   patrón distinto a propósito); chips/tiles tonales NO son callouts.
+6. ~~Alinear SPEC §14 con los nombres reales; documentar `--font-mono`.~~
+   ✅ 2026-07-26 t2 — SPEC §14 usa `--line`/`--ink*`/`--radius-*`; `--font-mono`
+   es token real documentado (los `[mm:ss]` son marca).
+7. ~~Declarar `tailwindcss`; `@tailwindcss/postcss` a devDependencies;
+   `turbopack.root` determinista.~~ ✅ 2026-07-26 t2 — `__dirname` en next.config.
+8. ~~UX: "La usé" ≠ "Otra pregunta".~~ ✅ 2026-07-26 t2 — "La usé" registra
+   constancia en `live-store` (`preguntasUsadas` con dimensión/timestamp/segundo,
+   contador visible en Estado, 5 tests con control real); "Otra pregunta" solo rota.
+9. ~~Anchos de columna derecha a `22rem`.~~ ✅ 2026-07-26 t2 — Recorder y Home
+   alineados con Insights/Workspace/Guided.
 
 ---
 
