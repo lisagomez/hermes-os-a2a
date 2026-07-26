@@ -16,7 +16,7 @@ export function Topbar() {
         type="button"
         onClick={() => setCommandBar(true)}
         data-testid="abrir-command-bar"
-        className="flex w-full max-w-md items-center gap-2 rounded-lg border border-line bg-background px-3 py-1.5 text-left text-[13px] text-ink-muted transition-colors hover:border-accent"
+        className="flex w-full max-w-md items-center gap-2 rounded-s border border-line bg-background px-3 py-1.5 text-left text-[13px] text-ink-muted transition-colors hover:border-accent"
       >
         <Search className="h-3.5 w-3.5" />
         <span className="flex-1 truncate">Buscar reuniones, herramientas o acciones…</span>
@@ -34,7 +34,7 @@ export function Topbar() {
           onClick={() => setLauncher(!launcherAbierto)}
           title="Herramientas"
           data-testid="abrir-launcher"
-          className="rounded-lg border border-line bg-surface p-2 text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink"
+          className="rounded-s border border-line bg-surface p-2 text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink"
         >
           <LayoutGrid className="h-4 w-4" />
         </button>

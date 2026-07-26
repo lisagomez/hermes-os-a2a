@@ -17,7 +17,7 @@ import {
 import { estadoPrompter } from './prompter'
 import { nombresSesion, useLiveStore } from './live-store'
 import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
-import { Button, Card, Chip, ProgressBar, tonoScore } from '@/shared/components/ui'
+import { Button, Callout, Card, Chip, ProgressBar, tonoScore } from '@/shared/components/ui'
 import { ETIQUETA_CATEGORIA, ETIQUETA_DIMENSION, type Playbook, type Reunion } from '@/features/domain/types'
 import { fmtTiempo } from '@/shared/lib/format'
 
@@ -29,11 +29,13 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
     segmentos,
     temasCubiertosManual,
     preguntasDescartadas,
+    preguntasUsadas,
     senalesFijadas,
     guiaVisible,
     setGuiaVisible,
     marcarTema,
     descartarPregunta,
+    registrarPreguntaUsada,
     toggleFijarSenal,
   } = useLiveStore()
 
@@ -89,23 +91,24 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
         <ProgressBar valor={estado.total} tono={tonoScore(estado.total)} />
         <p className="mt-1 text-[11px] text-ink-muted">
           {estado.cubiertas}/{estado.dimensiones.length} dimensiones cubiertas
+          {preguntasUsadas.length > 0 && ` · ${preguntasUsadas.length} pregunta(s) usadas`}
           {segmentos.length === 0 && ' · la guía se actualiza conforme avanza la conversación'}
         </p>
       </Card>
 
       {/* Alerta del coach (una prominente, como en Guided Meeting) */}
       {alerta && (
-        <Card className="border-warning bg-warning-muted p-2.5">
+        <Callout tono="warning" className="p-2.5">
           <div className="flex items-start gap-2" data-testid="prompter-alerta">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
             <p className="text-[12px] text-ink">{alerta.mensaje}</p>
           </div>
-        </Card>
+        </Callout>
       )}
 
       {/* Siguiente mejor pregunta */}
       {estado.sugerencia ? (
-        <Card className="border-accent bg-accent-muted p-3" >
+        <Callout tono="accent" className="p-3">
           <div className="flex items-start gap-2" data-testid="prompter-sugerencia">
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
             <div className="min-w-0 flex-1">
@@ -128,7 +131,13 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
                 {segmentos.length > 0 ? ` (${segmentos.length} frases analizadas)` : ''}.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <Button tamano="sm" onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)} data-testid="pregunta-usada">
+                {/* "La usé" deja constancia (pregunta + timestamp) en la bitácora de la
+                    sesión y avanza; "Otra pregunta" SOLO descarta y rota al banco. */}
+                <Button
+                  tamano="sm"
+                  onClick={() => registrarPreguntaUsada(estado.sugerencia!.preguntaSugerida, estado.sugerencia!.dimension)}
+                  data-testid="pregunta-usada"
+                >
                   <Check className="h-3 w-3" /> La usé
                 </Button>
                 <Button tamano="sm" onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)} data-testid="otra-pregunta">
@@ -140,7 +149,7 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
               </div>
             </div>
           </div>
-        </Card>
+        </Callout>
       ) : (
         <Card className="p-3">
           <p className="text-[12px] text-ink-secondary">
@@ -207,7 +216,7 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
         ) : (
           <ul className="space-y-1.5" data-testid="prompter-senales">
             {senalesOrdenadas.map((s) => (
-              <li key={s.id} className="flex items-start gap-1.5 rounded-lg bg-surface-muted px-2 py-1.5">
+              <li key={s.id} className="flex items-start gap-1.5 rounded-s bg-surface-muted px-2 py-1.5">
                 <button
                   type="button"
                   onClick={() => toggleFijarSenal(s.id)}

@@ -8,7 +8,7 @@ import { useAppStore } from '@/features/domain/store'
 import { AUDIO_DEMO, contenidoDesdeSegmentos } from '@/features/domain/fixtures'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import type { Reunion, Transcripcion } from '@/features/domain/types'
-import { Card, Chip, SectionHeader } from '@/shared/components/ui'
+import { Callout, Card, Chip, PillToggle, SectionHeader } from '@/shared/components/ui'
 import { PROVIDER_STT } from '@/shared/lib/config'
 import { nuevoId } from '@/shared/lib/format'
 import { nombresSesion, useLiveStore } from './live-store'
@@ -350,7 +350,7 @@ export function RecorderView() {
         {estado === 'pausado' && <Chip tono="warning">en pausa</Chip>}
 
         {asesorActivo && fuente === 'microfono' && grabandoOPausa && atribucion === 'manual' && (
-          <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5" data-testid="switch-hablante">
+          <div className="flex items-center gap-2 rounded-s border border-line bg-surface px-3 py-1.5" data-testid="switch-hablante">
             <span className="text-[11px] font-medium text-ink-muted">¿Quién habla?</span>
             {([
               ['Cliente', nombres.cliente],
@@ -375,10 +375,10 @@ export function RecorderView() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-lg bg-danger-muted px-3 py-2" data-testid="error-grabacion">
+        <Callout tono="danger" variante="inline" className="flex items-start gap-2" data-testid="error-grabacion">
           <MicOff className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
           <p className="text-[12px] text-danger">{error}</p>
-        </div>
+        </Callout>
       )}
 
       {estado === 'listo' && audioUrl && (
@@ -523,27 +523,19 @@ export function RecorderView() {
               <div className="sm:col-span-3" data-testid="selector-atribucion">
                 <span className="text-[12px] font-medium text-ink-secondary">Identificación de interlocutores</span>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <div className="flex items-center rounded-lg border border-line bg-surface p-0.5">
-                    {([
-                      ['auto', 'Automática por voz'],
-                      ['manual', 'Manual (switch)'],
-                    ] as const).map(([clave, etiqueta]) => (
-                      <button
-                        key={clave}
-                        type="button"
-                        onClick={() => {
-                          setAtribucion(clave)
-                          if (clave === 'auto' && grabandoOPausa) arrancarDiarizador()
-                        }}
-                        data-testid={`atribucion-${clave}`}
-                        className={`rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors ${
-                          atribucion === clave ? 'bg-accent-muted text-accent' : 'text-ink-secondary hover:text-ink'
-                        }`}
-                      >
-                        {etiqueta}
-                      </button>
-                    ))}
-                  </div>
+                  <PillToggle
+                    etiqueta="Identificación de interlocutores"
+                    valor={atribucion}
+                    onCambio={(clave) => {
+                      setAtribucion(clave)
+                      if (clave === 'auto' && grabandoOPausa) arrancarDiarizador()
+                    }}
+                    claseBoton="px-2.5 py-1 text-[12px] font-medium"
+                    opciones={[
+                      { id: 'auto' as const, contenido: 'Automática por voz', testid: 'atribucion-auto' },
+                      { id: 'manual' as const, contenido: 'Manual (switch)', testid: 'atribucion-manual' },
+                    ]}
+                  />
                   <p className="text-[11px] text-ink-muted">
                     {atribucion === 'auto'
                       ? 'Heurística por tono de voz (beta): abre TÚ la conversación para calibrar tu voz; corrige cualquier frase tocando el nombre. Voces muy parecidas pueden confundirse.'
@@ -557,13 +549,13 @@ export function RecorderView() {
       </Card>
 
       {!soportado ? (
-        <Card className="border-danger bg-danger-muted p-4">
+        <Callout tono="danger" className="p-4">
           <p className="text-[13px] text-danger">
             Este navegador no soporta MediaRecorder — la grabación en-app necesita un navegador moderno (Chrome, Edge, Firefox).
           </p>
-        </Card>
+        </Callout>
       ) : asesorActivo ? (
-        <div className="grid gap-4 lg:grid-cols-[1fr_21rem]">
+        <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
           {columnaCentral}
           <PrompterPanel reunion={reunionVivo} playbook={playbook} grabando={grabandoOPausa} />
         </div>

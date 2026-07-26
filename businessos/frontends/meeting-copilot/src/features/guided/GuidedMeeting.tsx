@@ -8,7 +8,7 @@ import { useAppStore } from '@/features/domain/store'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { evaluarCoach } from './coach'
 import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
-import { Card, Chip } from '@/shared/components/ui'
+import { Callout, Card, Chip } from '@/shared/components/ui'
 import { fmtTiempo } from '@/shared/lib/format'
 
 const INTERVALO_MS = 1400
@@ -117,40 +117,35 @@ export function GuidedMeeting({ reunion, transcripcion }: { reunion: Reunion; tr
 
       <div className="space-y-4">
         {alerta && (
-          <Card className="border-warning bg-warning-muted p-3" >
-            <div className="flex items-start gap-2" data-testid="alerta-coach">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-              <div>
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-warning">{alerta.tipo.replaceAll('_', ' ')}</p>
-                <p className="mt-0.5 text-[13px] text-ink">{alerta.mensaje}</p>
-                {estado.alertas.length > 1 && (
-                  <p className="mt-1 text-[11px] text-ink-muted">+{estado.alertas.length - 1} alerta(s) más en espera</p>
-                )}
-              </div>
-            </div>
-          </Card>
+          <Callout
+            tono="warning"
+            icono={AlertTriangle}
+            titulo={alerta.tipo.replaceAll('_', ' ')}
+            className="p-3"
+            data-testid="alerta-coach"
+          >
+            <p className="mt-0.5 text-[13px] text-ink">{alerta.mensaje}</p>
+            {estado.alertas.length > 1 && (
+              <p className="mt-1 text-[11px] text-ink-muted">+{estado.alertas.length - 1} alerta(s) más en espera</p>
+            )}
+          </Callout>
         )}
 
         {estado.sugerencia && (
-          <Card className="border-accent bg-accent-muted p-3">
-            <div className="flex items-start gap-2" data-testid="sugerencia-coach">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-[12px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
-                  {sugerenciaIA.fuente === 'ia' && <Chip tono="accent">IA</Chip>}
-                  {sugerenciaIA.cargando && <Chip tono="info">redactando…</Chip>}
-                  {sugerenciaIA.error && (
-                    <Chip tono="warning">
-                      <span title={sugerenciaIA.error}>IA no disponible — banco</span>
-                    </Chip>
-                  )}
-                </div>
-                <p className="mt-0.5 text-[13px] font-medium text-ink">“{sugerenciaIA.pregunta}”</p>
-                <p className="mt-1 text-[12px] text-ink-secondary">{sugerenciaIA.justificacion}</p>
-              </div>
+          <Callout tono="accent" icono={Lightbulb} className="p-3" data-testid="sugerencia-coach">
+            <div className="flex items-center gap-1.5">
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
+              {sugerenciaIA.fuente === 'ia' && <Chip tono="accent">IA</Chip>}
+              {sugerenciaIA.cargando && <Chip tono="info">redactando…</Chip>}
+              {sugerenciaIA.error && (
+                <Chip tono="warning">
+                  <span title={sugerenciaIA.error}>IA no disponible — banco</span>
+                </Chip>
+              )}
             </div>
-          </Card>
+            <p className="mt-0.5 text-[13px] font-medium text-ink">“{sugerenciaIA.pregunta}”</p>
+            <p className="mt-1 text-[12px] text-ink-secondary">{sugerenciaIA.justificacion}</p>
+          </Callout>
         )}
 
         <Card className="p-4">

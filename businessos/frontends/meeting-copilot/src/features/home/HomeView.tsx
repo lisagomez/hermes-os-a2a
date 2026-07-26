@@ -83,7 +83,7 @@ export function HomeView() {
         <Stat etiqueta="Deals con riesgo alto" valor={String(conRiesgoAlto.length)} tono={conRiesgoAlto.length > 0 ? 'danger' : 'success'} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card>
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <h2 className="text-[13px] font-semibold text-ink">Reuniones recientes</h2>
@@ -128,7 +128,7 @@ export function HomeView() {
               <ul className="space-y-2" data-testid="home-recomendaciones">
                 {recomendaciones.map((r) => (
                   <li key={r.texto}>
-                    <Link href={r.href} className="block rounded-lg bg-surface-muted px-2.5 py-2 text-[12px] text-ink hover:bg-accent-muted">
+                    <Link href={r.href} className="block rounded-s bg-surface-muted px-2.5 py-2 text-[12px] text-ink hover:bg-accent-muted">
                       {r.texto}
                     </Link>
                   </li>
@@ -141,7 +141,7 @@ export function HomeView() {
             <h2 className="mb-2 text-[13px] font-semibold text-ink">Agentes</h2>
             <div className="grid grid-cols-2 gap-2">
               {AGENTES.map(({ nombre, Icono, href }) => (
-                <Link key={nombre} href={href} className="flex flex-col items-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-3 text-center hover:border-accent">
+                <Link key={nombre} href={href} className="flex flex-col items-center gap-1.5 rounded-s border border-line bg-surface px-2 py-3 text-center hover:border-accent">
                   <Icono className="h-4 w-4 text-accent" />
                   <span className="text-[11px] font-medium text-ink">{nombre}</span>
                 </Link>

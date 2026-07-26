@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { AudioLines, Ear } from 'lucide-react'
 import { useLiveStore } from './live-store'
-import { Card, Chip } from '@/shared/components/ui'
+import { Callout, Card, Chip } from '@/shared/components/ui'
 import { fmtTiempo } from '@/shared/lib/format'
 
 /** Bloque "Transcripción en curso": refleja los segmentos parciales de la
@@ -96,9 +96,11 @@ export function TranscripcionEnCurso({
       )}
 
       {errorVivo && (
-        <p className="mt-2 rounded-lg bg-danger-muted px-3 py-2 text-[12px] text-danger">
-          {errorVivo} La grabación de audio continúa; puedes cambiar a la fuente demo o reintentar reanudando.
-        </p>
+        <Callout tono="danger" variante="inline" className="mt-2">
+          <p className="text-[12px] text-danger">
+            {errorVivo} La grabación de audio continúa; puedes cambiar a la fuente demo o reintentar reanudando.
+          </p>
+        </Callout>
       )}
     </Card>
   )

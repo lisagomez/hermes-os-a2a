@@ -8,7 +8,7 @@ import { useAppStore } from '@/features/domain/store'
 import type { Participante, Reunion, Segmento, TipoReunion, Transcripcion } from '@/features/domain/types'
 import { ETIQUETA_TIPO_REUNION } from '@/features/domain/types'
 import { contenidoDesdeSegmentos } from '@/features/domain/fixtures'
-import { Card, Chip, SectionHeader } from '@/shared/components/ui'
+import { Callout, Card, Chip, PillToggle, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 
 type Tab = 'audio' | 'texto' | 'virtual'
@@ -96,21 +96,22 @@ export function NuevaConversacion() {
     <div className="mx-auto max-w-2xl space-y-4">
       <SectionHeader titulo="Nueva conversación" descripcion="Tres caminos de entrada; los tres terminan en el mismo pipeline de análisis." />
 
-      <div className="flex gap-2">
-        {TABS.map(({ id, etiqueta, Icono }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            data-testid={`tab-${id}`}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors ${
-              tab === id ? 'border-accent bg-accent-muted text-accent' : 'border-line bg-surface text-ink-secondary hover:text-ink'
-            }`}
-          >
-            <Icono className="h-3.5 w-3.5" /> {etiqueta}
-          </button>
-        ))}
-      </div>
+      <PillToggle
+        variante="suelto"
+        etiqueta="Camino de entrada"
+        valor={tab}
+        onCambio={setTab}
+        claseBoton="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium"
+        opciones={TABS.map(({ id, etiqueta, Icono }) => ({
+          id,
+          testid: `tab-${id}`,
+          contenido: (
+            <>
+              <Icono className="h-3.5 w-3.5" /> {etiqueta}
+            </>
+          ),
+        }))}
+      />
 
       {tab === 'audio' && (
         <Card className="space-y-3 p-5 text-center">
@@ -172,7 +173,11 @@ export function NuevaConversacion() {
               data-testid="input-transcripcion"
             />
           </label>
-          {error && <p className="rounded-lg bg-danger-muted px-3 py-2 text-[12px] text-danger" data-testid="error-nueva">{error}</p>}
+          {error && (
+            <Callout tono="danger" variante="inline" data-testid="error-nueva">
+              <p className="text-[12px] text-danger">{error}</p>
+            </Callout>
+          )}
           <button type="button" className="btn-primary" onClick={crearDesdeTexto} data-testid="crear-conversacion">
             Analizar conversación
           </button>

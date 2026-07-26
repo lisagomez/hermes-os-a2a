@@ -152,7 +152,7 @@ export function InsightsPanel({ reunion, analisis }: { reunion: Reunion; analisi
           ) : (
             <ul className="space-y-3">
               {score.huecos.map((h) => (
-                <li key={h.dimension} className="rounded-lg bg-surface-muted p-2.5" data-testid={`hueco-${h.dimension}`}>
+                <li key={h.dimension} className="rounded-s bg-surface-muted p-2.5" data-testid={`hueco-${h.dimension}`}>
                   <p className="text-[12px] font-medium text-ink">{ETIQUETA_DIMENSION[h.dimension]}</p>
                   <p className="mt-0.5 text-[12px] text-ink-secondary">{h.motivo}</p>
                   <p className="mt-1.5 text-[12px] font-medium text-accent">Pregunta sugerida: “{h.preguntaSugerida}”</p>

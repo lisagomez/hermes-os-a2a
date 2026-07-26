@@ -45,7 +45,7 @@ export function Sidebar() {
       }`}
     >
       <div className="flex items-center gap-2 px-3 py-4">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-ink">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-s bg-accent text-accent-ink">
           <Radar className="h-4 w-4" />
         </span>
         {!sidebarColapsado && (

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AlertCircle, CheckCircle2, Compass, FileAudio, Loader2, Mic, RotateCcw, ScanSearch, Upload } from 'lucide-react'
 import { useTranscripcionStore } from './store'
 import { useAppStore } from '@/features/domain/store'
-import { Card, Chip, EmptyState, ProgressBar, SectionHeader } from '@/shared/components/ui'
+import { Callout, Card, Chip, EmptyState, ProgressBar, SectionHeader } from '@/shared/components/ui'
 import { PROVIDER_STT } from '@/shared/lib/config'
 import { fmtTiempo } from '@/shared/lib/format'
 import type { TrabajoTranscripcion } from '@/features/domain/types'
@@ -44,14 +44,14 @@ function FilaJob({ job }: { job: TrabajoTranscripcion }) {
           {job.estado === 'procesando' && <ProgressBar valor={job.progreso} tono="info" />}
 
           {job.estado === 'fallido' && job.error && (
-            <div className="flex items-start justify-between gap-3 rounded-lg bg-danger-muted px-3 py-2">
+            <Callout tono="danger" variante="inline" className="flex items-start justify-between gap-3">
               <p className="text-[12px] text-danger">{job.error}</p>
               {job.intentos < 3 && (
                 <button type="button" onClick={() => reintentar(job.id)} className="btn-secondary shrink-0" data-testid="reintentar-job">
                   <RotateCcw className="h-3 w-3" /> Reintentar
                 </button>
               )}
-            </div>
+            </Callout>
           )}
 
           {job.estado === 'completado' && job.reunionId && transcripcion && (

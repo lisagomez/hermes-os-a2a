@@ -91,7 +91,7 @@ export function WorkspacePanel({
           <p className="text-[12px] text-ink-muted">
             Draft para editar y enviar desde tu correo — el copiloto no envía nada (el envío real pasará por aprobación humana).
           </p>
-          <div className="mt-2 rounded-lg bg-surface-muted p-3">
+          <div className="mt-2 rounded-s bg-surface-muted p-3">
             <p className="text-[13px] font-semibold text-ink">Asunto: {followUp.asunto}</p>
             <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-ink" data-testid="followup-cuerpo">{followUp.cuerpo}</p>
           </div>
@@ -109,7 +109,7 @@ export function WorkspacePanel({
             <Chip tono="accent">etapa sugerida: {crm.etapaSugerida}</Chip>
             <span className="text-[12px] text-ink-secondary">{crm.justificacionEtapa}</span>
           </div>
-          <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-surface-muted p-3 font-sans text-[13px] leading-relaxed text-ink" data-testid="crm-notas">
+          <pre className="overflow-x-auto whitespace-pre-wrap rounded-s bg-surface-muted p-3 font-sans text-[13px] leading-relaxed text-ink" data-testid="crm-notas">
             {crm.notas}
           </pre>
         </Card>
@@ -128,7 +128,7 @@ export function WorkspacePanel({
           ) : (
             <ul className="space-y-2.5">
               {analisis.riesgos.map((r) => (
-                <li key={r.tipo} className="rounded-lg bg-surface-muted p-2.5" data-testid={`riesgo-${r.tipo}`}>
+                <li key={r.tipo} className="rounded-s bg-surface-muted p-2.5" data-testid={`riesgo-${r.tipo}`}>
                   <div className="flex items-center gap-2">
                     <Chip tono={r.severidad === 'alta' ? 'danger' : r.severidad === 'media' ? 'warning' : 'neutral'}>{r.severidad}</Chip>
                     <span className="text-[12px] font-medium text-ink">{r.tipo.replaceAll('_', ' ')}</span>
@@ -148,7 +148,7 @@ export function WorkspacePanel({
           </div>
           <ul className="space-y-2">
             {analisis.stakeholders.map((s) => (
-              <li key={s.nombre} className="flex items-center justify-between gap-2 rounded-lg bg-surface-muted px-2.5 py-2">
+              <li key={s.nombre} className="flex items-center justify-between gap-2 rounded-s bg-surface-muted px-2.5 py-2">
                 <div>
                   <p className="text-[13px] font-medium text-ink">{s.nombre}</p>
                   <p className="text-[11px] text-ink-muted">{s.rol}</p>

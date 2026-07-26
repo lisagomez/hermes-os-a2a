@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { BookOpenCheck } from 'lucide-react'
 import { useAppStore } from '@/features/domain/store'
 import { ETIQUETA_DIMENSION, ETIQUETA_TIPO_REUNION, type Playbook } from '@/features/domain/types'
-import { Card, Chip, SectionHeader } from '@/shared/components/ui'
+import { Card, Chip, PillToggle, SectionHeader } from '@/shared/components/ui'
 
 function EditorPlaybook({ playbook }: { playbook: Playbook }) {
   const actualizar = useAppStore((s) => s.actualizarPlaybook)
@@ -32,7 +32,7 @@ function EditorPlaybook({ playbook }: { playbook: Playbook }) {
           <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Dimensiones y pesos</h3>
           <ul className="space-y-1.5">
             {playbook.dimensiones.map((d) => (
-              <li key={d.dimension} className="flex items-center gap-2 rounded-lg bg-surface-muted px-2.5 py-1.5">
+              <li key={d.dimension} className="flex items-center gap-2 rounded-s bg-surface-muted px-2.5 py-1.5">
                 <span className="flex-1 text-[13px] text-ink">{ETIQUETA_DIMENSION[d.dimension]}</span>
                 {d.critica && <Chip tono="accent">crítica</Chip>}
                 <input
@@ -79,20 +79,14 @@ export function PlaybooksView() {
         titulo="Playbooks & Templates"
         descripcion="El playbook define qué dimensiones pesan, cuáles son críticas y qué pregunta el coach. El score y el Guided Meeting los leen en vivo."
       />
-      <div className="flex flex-wrap gap-2">
-        {playbooks.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setActivo(p.id)}
-            className={`rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors ${
-              seleccionado?.id === p.id ? 'border-accent bg-accent-muted text-accent' : 'border-line bg-surface text-ink-secondary hover:text-ink'
-            }`}
-          >
-            {p.nombre}
-          </button>
-        ))}
-      </div>
+      <PillToggle
+        variante="suelto"
+        etiqueta="Playbook activo"
+        valor={seleccionado?.id ?? ''}
+        onCambio={setActivo}
+        claseBoton="px-3 py-1.5 text-[13px] font-medium"
+        opciones={playbooks.map((p) => ({ id: p.id, contenido: p.nombre }))}
+      />
       {seleccionado && <EditorPlaybook playbook={seleccionado} />}
 
       <Card className="p-4" id="templates">

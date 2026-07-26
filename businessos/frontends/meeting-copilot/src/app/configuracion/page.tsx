@@ -29,15 +29,15 @@ export default function Page() {
           en vez de degradar en silencio.
         </p>
         <ul className="space-y-2 text-[13px]">
-          <li className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
+          <li className="flex items-center justify-between rounded-s bg-surface-muted px-3 py-2">
             <span className="text-ink">Fuente de datos <code className="ml-1 text-[11px] text-ink-muted">NEXT_PUBLIC_COPILOT_DATA</code></span>
             <Chip tono="info">{FUENTE_DATOS}</Chip>
           </li>
-          <li className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
+          <li className="flex items-center justify-between rounded-s bg-surface-muted px-3 py-2">
             <span className="text-ink">Provider de transcripción <code className="ml-1 text-[11px] text-ink-muted">NEXT_PUBLIC_TRANSCRIPTION_PROVIDER</code></span>
             <Chip tono="info">{PROVIDER_STT}</Chip>
           </li>
-          <li className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
+          <li className="flex items-center justify-between rounded-s bg-surface-muted px-3 py-2">
             <span className="text-ink">Motor de agentes <code className="ml-1 text-[11px] text-ink-muted">NEXT_PUBLIC_AGENT_ENGINE</code></span>
             <Chip tono="info">{MOTOR_AGENTE}</Chip>
           </li>

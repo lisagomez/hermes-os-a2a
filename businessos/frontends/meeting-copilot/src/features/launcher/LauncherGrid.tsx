@@ -30,7 +30,7 @@ function TarjetaHerramienta({ h, compacta = false }: { h: Herramienta; compacta?
       data-testid={`herramienta-${h.slug}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-muted text-accent">
+        <span className="flex h-8 w-8 items-center justify-center rounded-s bg-accent-muted text-accent">
           <Icono className="h-4 w-4" />
         </span>
         <button

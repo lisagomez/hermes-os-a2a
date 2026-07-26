@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { AlertTriangle, Search } from 'lucide-react'
 import type { Reunion, Transcripcion } from '@/features/domain/types'
 import { UMBRAL_INAUDIBLE } from '@/features/domain/types'
-import { Card, Chip } from '@/shared/components/ui'
+import { Callout, Card, Chip } from '@/shared/components/ui'
 import { fmtTiempo } from '@/shared/lib/format'
 
 const COLORES_HABLANTE = ['text-accent', 'text-info', 'text-success', 'text-warning']
@@ -48,11 +48,11 @@ export function TranscriptViewer({ reunion, transcripcion }: { reunion: Reunion;
       </div>
 
       {inaudibles / transcripcion.segmentos.length > 0.2 && (
-        <Card className="border-warning bg-warning-muted p-3">
+        <Callout tono="warning" className="p-3">
           <p className="text-[12px] text-warning">
             Más del 20% de la transcripción es inaudible: el análisis se marca con confianza reducida (Transcript QA).
           </p>
-        </Card>
+        </Callout>
       )}
 
       <Card className="divide-y divide-line-subtle" >
