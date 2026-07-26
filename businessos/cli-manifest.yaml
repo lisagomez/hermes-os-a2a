@@ -22,6 +22,7 @@ phases:
     label: "Infraestructura y canales"
     clis:
       - name: "https://docs.hetzner.cloud/cloud.spec.json"
+        slug: hcloud          # el CLI publicado se llama como el oficial (hcloud), no "hetzner"
         source: spec
         why: "Gestionar el servidor Hetzner (crear/resize/snapshot, firewalls, SSH keys, redes) desde los agentes. Reemplaza a digitalocean tras mover el runtime a Hetzner (ver FASE0-hetzner.md)."
         verticales: [negocio]
