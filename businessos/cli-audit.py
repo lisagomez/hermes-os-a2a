@@ -57,13 +57,23 @@ COST_BY_SOURCE = {
 }
 
 
+# Subdominios genericos de documentacion: no identifican a la API. Sin esto,
+# "docs.hetzner.cloud" -> "docs" y "developers.circle.com" -> "developers", que
+# no casan con NADA impreso => falsos "FALTA" permanentes (hetzner llevaba asi
+# desde el 2026-07-04, impreso y reportado como faltante en cada corrida).
+SUBDOMINIOS_GENERICOS = {"docs", "doc", "api", "developer", "developers", "dev"}
+TLDS = {"www", "com", "sh", "io", "org", "dev", "net", "cloud", "ai", "co"}
+
+
 def slug(name: str) -> str:
     """Nombre del CLI tal como lo guardaria Printing Press (catalog = literal; URL = host)."""
     if "://" not in name:
         return name.lower()
     host = re.sub(r"^https?://", "", name).split("/")[0]
-    parts = [p for p in host.split(".") if p not in ("www", "com", "sh", "io", "org", "dev", "net")]
-    return (parts[0] if parts else host).lower()
+    host = host.split(":")[0]  # descarta el puerto: "grafo:3000" -> "grafo"
+    partes = [p for p in host.split(".") if p not in TLDS]
+    significativas = [p for p in partes if p not in SUBDOMINIOS_GENERICOS] or partes
+    return (significativas[0] if significativas else host).lower()
 
 
 def current_phase() -> tuple[int, str]:
@@ -92,19 +102,72 @@ def find_library() -> Path | None:
 
 
 def scan_library(library: Path) -> dict[str, dict]:
-    """{slug: {grade}} leido de la libreria de binarios (solo donde se imprime)."""
+    """{slug: {grade, medicion, verdict}} leido de la libreria de binarios.
+
+    `medicion` dice DE DONDE salio el grado, y es la pieza que evita el fallo
+    silencioso: Printing Press 4.27 NO deja `scorecard.json` al publicar (el
+    grado del skill /printing-press-score se queda en la conversacion), asi que
+    sin esto el grado sale None, la comparacion contra `min_grade` nunca se
+    evalua y el auditor reporta "0 desactualizados" cuando lo cierto es "no se".
+    Mismo error que motivo `fuente_impresos`, un nivel mas abajo:
+    no medido != aprobado. Se cae a `dogfood-results.json` (verdict PASS/FAIL),
+    que si viaja con el CLI publicado, y si no hay nada se DICE.
+    """
     found: dict[str, dict] = {}
     for entry in library.iterdir():
         if not entry.is_dir():
             continue
-        grade = None
+        grade, medicion, verdict = None, "no_disponible", None
         for sc in (entry / "scorecard.json", entry / "scorecard.md"):
             if sc.exists():
                 m = re.search(r"\b([A-F][+-]?)\b", sc.read_text(encoding="utf-8")[:2000])
-                grade = m.group(1) if m else None
+                grade, medicion = (m.group(1) if m else None), "scorecard"
                 break
-        found[entry.name.lower()] = {"grade": grade}
+        dogfood = entry / "dogfood-results.json"
+        if dogfood.exists():
+            try:
+                verdict = json.loads(dogfood.read_text(encoding="utf-8")).get("verdict")
+                if medicion == "no_disponible" and verdict:
+                    medicion = "dogfood"
+            except (json.JSONDecodeError, OSError):
+                pass
+        found[entry.name.lower()] = {"grade": grade, "medicion": medicion, "verdict": verdict}
     return found
+
+
+def leer_indice() -> dict[str, dict]:
+    if not INDEX.exists():
+        return {}
+    try:
+        return {k.lower(): v for k, v in (json.loads(
+            INDEX.read_text(encoding="utf-8")).get("impresos") or {}).items()}
+    except json.JSONDecodeError:
+        return {}
+
+
+def heredar_grados(impresos: dict[str, dict], previo: dict[str, dict]) -> dict[str, dict]:
+    """Completa con el indice el grado que la libreria no puede medir.
+
+    Lo medido ahora manda; lo no medible se hereda marcado como tal y NUNCA se
+    degrada a null en silencio. Se aplica en las DOS rutas (--emit-index y la
+    auditoria normal): sin esto, la maquina que si tiene la libreria reporta
+    "sin grado" para CLIs que el indice ya tiene medidos — la libreria publicada
+    no conserva el scorecard.
+    """
+    for sl, datos in impresos.items():
+        # Se elige el candidato que TENGA grado, no el primero que exista: un
+        # dict con grade=None es truthy y un `or` encadenado nunca llegaria al
+        # alias (el dir 'telegram-bot' hereda del slug historico 'telegram').
+        candidatos = [previo.get(sl), previo.get(sl.replace("-bot", ""))]
+        anterior = next((c for c in candidatos if c and c.get("grade")), {})
+        if datos.get("grade") is None and anterior.get("grade"):
+            datos.update({
+                "grade": anterior["grade"],
+                "score": anterior.get("score"),
+                "medicion": "heredado_del_indice",
+                "nota": anterior.get("nota"),
+            })
+    return impresos
 
 
 def printed_clis(library: Path | None) -> tuple[dict[str, dict], str]:
@@ -113,12 +176,20 @@ def printed_clis(library: Path | None) -> tuple[dict[str, dict], str]:
     de las dos degrada a vacio — y el snapshot lo DICE (fuente='ninguna'), para
     que nadie confunda "no se" con "no hay nada impreso"."""
     if library:
-        return scan_library(library), "libreria"
-    if INDEX.exists():
-        data = json.loads(INDEX.read_text(encoding="utf-8"))
-        clis = {k.lower(): v for k, v in (data.get("impresos") or {}).items()}
+        return heredar_grados(scan_library(library), leer_indice()), "libreria"
+    clis = leer_indice()
+    if clis:
         return clis, "indice"
     return {}, "ninguna"
+
+
+def slug_de_entrada(cli: dict) -> str:
+    """Slug del CLI: `slug:` explicito del manifiesto, o derivado del nombre.
+
+    El override existe porque el nombre publicado no siempre se deduce de la URL:
+    el CLI de Hetzner se llama `hcloud` (como su CLI oficial), no `hetzner`.
+    """
+    return str(cli.get("slug") or slug(cli["name"])).lower()
 
 
 def match_printed(sl: str, printed: dict[str, dict]) -> dict | None:
@@ -180,13 +251,22 @@ def main() -> None:
             print("ERROR: --emit-index requiere la libreria (~/printing-press/library "
                   "o CLI_PRESS_LIBRARY). Esta maquina no la tiene.", file=sys.stderr)
             sys.exit(1)
+        # FUSIONAR, no pisar: la libreria publicada no conserva el grado del
+        # scorecard, asi que un --emit-index ingenuo BORRA grados que ya se
+        # habian medido (paso el 2026-07-26: A/87, A/83, A/87 -> null). Lo
+        # medido ahora manda; lo que no se puede medir se hereda del indice
+        # anterior marcado como tal, y jamas se degrada a null en silencio.
+        impresos = heredar_grados(scan_library(library), leer_indice())
         idx = {
             "_nota": ("Generado con `cli-audit.py --emit-index` desde la libreria real. "
                       "Lo lee el auditor en maquinas SIN libreria (el servidor). "
-                      "Regenerar y commitear tras imprimir/mejorar cualquier CLI."),
+                      "Regenerar y commitear tras imprimir/mejorar cualquier CLI. "
+                      "`medicion` dice de donde sale el grado: scorecard | dogfood | "
+                      "heredado_del_indice | no_disponible — nunca confundir no medido "
+                      "con aprobado."),
             "generado": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ"),
             "library_path": str(library),
-            "impresos": scan_library(library),
+            "impresos": impresos,
         }
         INDEX.write_text(json.dumps(idx, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Indice -> {INDEX} ({len(idx['impresos'])} CLIs)")
@@ -194,7 +274,7 @@ def main() -> None:
 
     printed, fuente_impresos = printed_clis(library)
 
-    faltantes, desactualizados, no_due_aun = [], [], []
+    faltantes, desactualizados, no_due_aun, sin_grado = [], [], [], []
     due_keys: list[str] = []
 
     for key, phase in phases.items():
@@ -203,7 +283,7 @@ def main() -> None:
             if cli.get("deprecated"):
                 continue  # superseded (p. ej. digitalocean -> hcloud): no se audita ni cuenta
             name = cli["name"]
-            sl = slug(name)
+            sl = slug_de_entrada(cli)
             entry = {
                 "name": name, "fase": key, "source": cli.get("source"),
                 "verticales": cli.get("verticales", []), "why": cli.get("why", ""),
@@ -223,12 +303,22 @@ def main() -> None:
                     desactualizados.append({**entry, "grado": grade,
                                             "motivo": f"grado {grade} < minimo {min_grade}",
                                             "comando": f"/printing-press-amend {name}"})
+                elif not grade:
+                    # Impreso pero SIN grado medible: no se puede afirmar que
+                    # cumple el minimo. Se reporta aparte para no contarlo como
+                    # aprobado (doctrina: no medido != aprobado).
+                    sin_grado.append({**entry, "medicion": pr.get("medicion", "no_disponible"),
+                                      "verdict_dogfood": pr.get("verdict"),
+                                      "comando": f"/printing-press-score {name}"})
 
-    mapped = {slug(c["name"]) for p in phases.values() for c in p.get("clis", [])}
+    mapped = {slug_de_entrada(c) for p in phases.values() for c in p.get("clis", [])}
     apis_sin_entrada = [s for s in compose_services()
                         if s not in INTERNAL_SERVICES and slug(s) not in mapped]
 
-    cmd_phases = sorted(set(due_keys))
+    # Solo las fases que REALMENTE tienen algo que imprimir: `due_keys` junta
+    # todas las fases vencidas, asi que sugeria re-imprimir fases ya completas
+    # (y con --emit las corria de verdad, gastando tokens en nada).
+    cmd_phases = sorted({f["fase"] for f in faltantes})
     comando_sugerido = (
         " ; ".join(f"./print-phase.sh {k} --emit" for k in cmd_phases)
         if faltantes else "nada pendiente para la fase actual"
@@ -245,6 +335,7 @@ def main() -> None:
         "impresos": sorted(printed.keys()),
         "faltantes": faltantes,
         "desactualizados": desactualizados,
+        "sin_grado": sin_grado,
         "apis_sin_entrada": apis_sin_entrada,
         "no_due_aun": no_due_aun,
         "comando_sugerido": comando_sugerido,
