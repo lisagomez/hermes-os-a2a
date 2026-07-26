@@ -172,23 +172,30 @@ tonos), `ScoreChip`/`tonoScore`, `Card`, `SectionHeader`, `EmptyState`, `Stat`,
 
 ## 6. Deuda priorizada = plan de set-up
 
+> **Primera tanda EJECUTADA el 2026-07-26** (commits `84a23d6` MC + `219a41f`
+> copilot en `docs/design-panel-adm-setup`, gates verdes verificados). Los ítems
+> tachados ya están resueltos; lo abierto es la segunda tanda.
+
 ### Mission Control (el grueso: pasar de "cero tokens" al canon)
 
-1. **Fundar los tokens**: llevar la skin `mission` (§3) a `globals.css` como CSS
-   vars + `theme.extend.colors` en `tailwind.config.ts` (hoy VACÍO). No cambia el
-   look: son los mismos valores.
+1. ~~**Fundar los tokens**: llevar la skin `mission` (§3) a `globals.css` como CSS
+   vars + `theme.extend.colors` en `tailwind.config.ts`.~~ ✅ 2026-07-26 — mismos
+   valores, look intacto; ojo: las clases `var()` no soportan modificador de
+   opacidad (`bg-surface/60`), para eso siguen las escalas Tailwind.
 2. **Promover `colors.ts` a `src/shared/constants/`** (hoy en `components/ai-spend/`
    con 8 imports cruzados `'../ai-spend/colors'`) y eliminar los 4 redeclarados de
    `#3987e5` (`estado-tarea-badge.tsx:15`, `estado-lead-badge.tsx:7`,
    `embudo-canvas.tsx:13`, `conversaciones-panel.tsx:12`) + hex sueltos
    (`daily-series.tsx:67`, `badges.tsx:29`).
-3. **Extraer `Card`** (el literal `rounded-lg border border-slate-800 bg-slate-900
-   p-5|6` aparece 12+ veces) y unificar padding.
+3. ~~**Extraer `Card`** (el literal aparecía 12+ veces) y unificar padding.~~
+   ✅ 2026-07-26 — `src/shared/components/card.tsx`, pura y server-safe; cede el
+   `p-6` si el `className` trae padding propio.
 4. **Unificar headings de sección** (hoy 4 tratamientos para el mismo nivel).
-5. **Decidir shadcn**: limpiarlo (borrar `components.json` fósil) — recomendado — o
-   completarlo. Hoy un `npx shadcn add` rompe el build.
-6. **Estados de carga/error**: `loading.tsx` + `error.tsx` por ruta (5 páginas
-   `force-dynamic` con fan-out a PostgREST+grafo+gateways y cero feedback).
+5. ~~**Decidir shadcn**: limpiarlo o completarlo.~~ ✅ 2026-07-26 — `components.json`
+   fósil BORRADO (nada lo referenciaba; un `npx shadcn add` rompía el build).
+6. ~~**Estados de carga/error**.~~ ✅ 2026-07-26 — `loading.tsx` + `error.tsx`
+   compartidos a nivel `(main)` (skeleton con tokens; error client en español con
+   "Reintentar").
 7. `/crm` al nav principal (hoy solo alcanzable por subnav de adquisición o URL).
 8. Arreglar alpha por concatenación (`${color}1a` en `embudo-canvas.tsx:53`).
 9. Opcional consciente: `next/font` (p. ej. Inter) para consistencia cross-OS en
@@ -196,16 +203,21 @@ tonos), `ScoreChip`/`tonoScore`, `Card`, `SectionHeader`, `EmptyState`, `Stat`,
 
 ### Meeting Copilot (afinar un sistema ya sano)
 
-1. Crear `@keyframes` de `animate-pulse-once` (hoy clase inexistente → el destaque
-   del segmento revelado NO ocurre) — `GuidedMeeting.tsx:103`.
-2. Usar `--surface-raised` en popover/CommandBar/modal (definido y sin un solo uso;
-   en dark no hay elevación por color).
+1. ~~Crear `@keyframes` de `animate-pulse-once`.~~ ✅ 2026-07-26 — flash
+   `--accent-muted`→transparente 1.2s; sin tocar TSX (las keys estables re-montan
+   el segmento revelado).
+2. ~~Usar `--surface-raised` en popover/CommandBar/modal.~~ ✅ 2026-07-26 —
+   CommandBar + LauncherPopover (elevación real en dark; en light no cambia nada).
 3. Tokens de radio (`--radius-s/m`) en vez de `0.5rem`/`0.625rem` sueltos + los
    `rounded-*` ad hoc.
-4. `tonoScore()` como única fuente (hoy umbrales 70/50 triplicados en
-   `HomeView.tsx:79` y `ManagerView.tsx:71`).
+4. ~~`tonoScore()` como única fuente.~~ ✅ 2026-07-26 — HomeView y ManagerView
+   importan de `ui.tsx` (incluido el `detalle` "sano/coaching" que repetía el 70).
 5. Construir `Button`, `Table`, `PillToggle`, `Dialog`, `Callout` en `shared/ui`
-   (§4) y migrar las duplicaciones.
+   (§4) y migrar las duplicaciones. — **PARCIAL 2026-07-26**: `Button` (el hack
+   `!px-2` sobraba: `.btn-*` vive en `@layer components` y las utilidades cascadan
+   después), `Table` (3 tablas migradas; empty-rows quedan crudas a propósito) y
+   `Dialog` (CommandBar montado encima sin tocar su teclado; LauncherPopover NO —
+   es popover anclado, no modal) ✅. Faltan `PillToggle` y `Callout`.
 6. Alinear SPEC §14 con los nombres reales (`--line`/`--ink*`, no
    `--border`/`--text-*`) o viceversa; documentar `--font-mono`.
 7. Declarar `tailwindcss` en package.json (hoy transitivo) y mover
