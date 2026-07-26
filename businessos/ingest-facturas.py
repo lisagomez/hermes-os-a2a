@@ -10,7 +10,8 @@ Supabase. Patrón host-job (espejo invertido de `ingest-token-usage.py`):
 
 El agente escribe cada factura ya extraída y confirmada en:
     /opt/data/workspace/facturas_pending/<lo-que-sea>.json
-con la forma (deducibilidad la decide el grafo en Fase futura, aquí queda 'pendiente'):
+con la forma (la deducibilidad la dictamina el grafo vía `evaluar-facturas.py`; aquí nace
+'pendiente' porque este job no la decide — un solo escritor por columna):
     {
       "cliente": "ACME S.A.",
       "folio": "A-1024",
@@ -80,7 +81,8 @@ def valid(f):
         "subtotal": round(sub, 2),
         "impuestos": round(imp, 2),
         "total": round(tot, 2),
-        # deducibilidad_estado se deja en el DEFAULT 'pendiente' (lo decide el grafo, Fase futura).
+        # deducibilidad_estado se deja en el DEFAULT 'pendiente': lo dictamina el grafo
+        # a través de `evaluar-facturas.py`, no este job (un solo escritor por columna).
     }
     # Chequeo suave de cuadre: avisa, no bloquea (el humano/grafo revisa después).
     warn = "" if abs(sub + imp - tot) < 0.01 else f"  [ojo: subtotal+impuestos != total]"
