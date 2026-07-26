@@ -4,7 +4,7 @@ import { ConversacionesPanel } from '../src/features/dashboard/components/crm/co
 import { EstadoLeadBadge } from '../src/features/dashboard/components/crm/estado-lead-badge'
 import { LeadsTable } from '../src/features/dashboard/components/crm/leads-table'
 import { DepartamentoSubnavView } from '../src/features/dashboard/components/nav/departamento-subnav'
-import { STATUS } from '../src/features/dashboard/components/ai-spend/colors'
+import { STATUS, conAlpha } from '../src/shared/constants/colors'
 import {
   ETAPAS_EMBUDO,
   ETAPAS_MOVIBLES,
@@ -72,6 +72,25 @@ test('las bandas del embudo se angostan (silueta) y las vacías van en gris', ()
   for (let i = 1; i < anchos.length; i++) {
     expect(anchos[i]).toBeLessThan(anchos[i - 1])
   }
+})
+
+test('las bandas activas llevan fondo rgba (conAlpha), no hex concatenado', () => {
+  const { styles } = render(EmbudoCanvas({ embudo: EMBUDO_FIXTURE, perdidos: 0 }))
+  const fondos = styles.map((s) => s.backgroundColor).filter(Boolean)
+  // nuevo (azul de serie #3987e5) y ganado (STATUS.good #0ca30c) al 10%
+  expect(fondos).toContain('rgba(57, 135, 229, 0.1)')
+  expect(fondos).toContain('rgba(12, 163, 12, 0.1)')
+  // ningún fondo con el patrón viejo `${color}1a`
+  for (const f of fondos) {
+    expect(String(f)).not.toMatch(/^#[0-9a-f]{8}$/i)
+  }
+})
+
+test('conAlpha valida el hex: 6 dígitos → rgba; otra cosa → el color tal cual', () => {
+  expect(conAlpha('#3987e5', 0.1)).toBe('rgba(57, 135, 229, 0.1)')
+  expect(conAlpha('#FFFFFF', 1)).toBe('rgba(255, 255, 255, 1)')
+  expect(conAlpha('transparent', 0.5)).toBe('transparent')
+  expect(conAlpha('#fff', 0.5)).toBe('#fff') // hex corto: sin alpha, sin romper
 })
 
 test('una etapa desconocida venida de la BD también se pinta (no se pierde)', () => {

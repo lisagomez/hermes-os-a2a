@@ -1,6 +1,6 @@
 import { Card } from '@/shared/components/card'
 import type { EtapaEmbudo } from '../../types'
-import { CHROME, STATUS } from '../ai-spend/colors'
+import { CHROME, SERIE_COLOR, STATUS, conAlpha } from '@/shared/constants/colors'
 
 /**
  * Canvas del embudo de cliente: una banda centrada por etapa, cada vez más
@@ -11,7 +11,6 @@ import { CHROME, STATUS } from '../ai-spend/colors'
  * cliente): renderiza igual en SSR y en los tests sin navegador.
  */
 
-const AZUL = '#3987e5'
 const ANCHO_MAX = 100 // % de la primera etapa
 const ANCHO_MIN = 38 // % de la última (silueta, no proporción de datos)
 
@@ -42,7 +41,7 @@ export function EmbudoCanvas({
         {embudo.map((e, i) => {
           const ancho = ANCHO_MAX - paso * i
           const activo = e.cuenta > 0
-          const color = e.etapa === 'ganado' && activo ? STATUS.good : activo ? AZUL : CHROME.muted
+          const color = e.etapa === 'ganado' && activo ? STATUS.good : activo ? SERIE_COLOR : CHROME.muted
           return (
             <div
               key={e.etapa}
@@ -51,7 +50,7 @@ export function EmbudoCanvas({
                 width: `${ancho}%`,
                 borderColor: color,
                 color,
-                backgroundColor: activo ? `${color}1a` : 'transparent',
+                backgroundColor: activo ? conAlpha(color, 0.1) : 'transparent',
               }}
             >
               <span className="text-sm capitalize">{e.etapa.replace(/_/g, ' ')}</span>

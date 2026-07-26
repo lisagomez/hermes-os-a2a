@@ -1,4 +1,4 @@
-import { CHROME, STATUS } from '../ai-spend/colors'
+import { CHROME, SERIE_COLOR, STATUS } from '@/shared/constants/colors'
 import type { EstadoTarea } from '../../types'
 
 /**
@@ -8,16 +8,14 @@ import type { EstadoTarea } from '../../types'
  * Paleta (criterio /desarrollo):
  *  - aprobada    = verde   (STATUS.good)
  *  - rechazada   = rojo    (STATUS.critical)
- *  - en_ejecucion= azul    (slot 1 de colors.ts, #3987e5)
+ *  - en_ejecucion= azul    (SERIE_COLOR, slot 1 de colors.ts)
  *  - escalada    = ámbar   (STATUS.warning)
  *  - resto       = gris    (CHROME.muted)
  */
-const AZUL = '#3987e5'
-
 const ESTADO_TAREA: Record<EstadoTarea, { color: string; icono: string }> = {
   aprobada: { color: STATUS.good, icono: '✓' },
   rechazada: { color: STATUS.critical, icono: '✕' },
-  en_ejecucion: { color: AZUL, icono: '●' },
+  en_ejecucion: { color: SERIE_COLOR, icono: '●' },
   escalada: { color: STATUS.warning, icono: '▲' },
   recibida: { color: CHROME.muted, icono: '○' },
   en_revision: { color: CHROME.muted, icono: '◌' },

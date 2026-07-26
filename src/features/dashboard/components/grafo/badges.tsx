@@ -1,5 +1,5 @@
 import type { EstadoGrafo } from '../../types'
-import { STATUS } from '../ai-spend/colors'
+import { CHROME, STATUS } from '@/shared/constants/colors'
 
 /**
  * Badges de estado (grafo y operación). Estado nunca es color solo:
@@ -26,7 +26,7 @@ export function EstadoBadge({ estado }: { estado: EstadoGrafo }) {
 }
 
 export function NeutralBadge({ texto, tono }: { texto: string; tono?: 'good' | 'warning' | 'critical' }) {
-  const color = tono ? STATUS[tono] : '#94a3b8'
+  const color = tono ? STATUS[tono] : CHROME.muted
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold"

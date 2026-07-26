@@ -1,6 +1,7 @@
 import { Card } from '@/shared/components/card'
+import { MicroLabel } from '@/shared/components/section-title'
 import type { VerticalPantheon } from '../../types'
-import { STATUS } from '../ai-spend/colors'
+import { STATUS } from '@/shared/constants/colors'
 import { NeutralBadge } from '../grafo/badges'
 
 const GATEWAY_TONO = {
@@ -55,9 +56,7 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
       </dl>
 
       <div className="mt-4">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          Skills ({v.skills.length})
-        </h3>
+        <MicroLabel>Skills ({v.skills.length})</MicroLabel>
         {v.skills.length === 0 ? (
           <p className="mt-1 text-xs text-slate-600">sin skills instalados</p>
         ) : (

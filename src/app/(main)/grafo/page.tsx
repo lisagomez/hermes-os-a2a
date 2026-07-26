@@ -6,6 +6,7 @@ import {
 } from '@/features/dashboard/components/grafo/operacion-panel'
 import { SaludPanel } from '@/features/dashboard/components/grafo/salud-panel'
 import { getDataSource } from '@/features/dashboard/services'
+import { SectionTitle } from '@/shared/components/section-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,9 +31,9 @@ export default async function GrafoPage() {
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-medium text-slate-400">
+        <SectionTitle className="mb-3">
           Evaluaciones recientes ({vista.evaluaciones.length})
-        </h2>
+        </SectionTitle>
         {vista.evaluaciones.length === 0 ? (
           <p className="text-sm text-slate-500">Sin evaluaciones persistidas todavía.</p>
         ) : (

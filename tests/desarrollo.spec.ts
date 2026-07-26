@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import type { Tarea } from '../src/features/dashboard/types'
 import { EstadoTareaBadge } from '../src/features/dashboard/components/desarrollo/estado-tarea-badge'
 import { TareasTable } from '../src/features/dashboard/components/desarrollo/tareas-table'
-import { CHROME, STATUS } from '../src/features/dashboard/components/ai-spend/colors'
+import { CHROME, STATUS } from '../src/shared/constants/colors'
 
 /**
  * Tests del gate `tests` para /desarrollo.
