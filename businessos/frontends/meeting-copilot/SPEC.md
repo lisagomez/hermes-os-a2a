@@ -320,7 +320,18 @@ salida (un escritor por dato); toda excepción se reporta en UI.
 - **Reglas:** si >20% inaudible → el análisis se marca "confianza reducida" en todas las vistas.
 - **Activación:** al completar un job. **No debe:** corregir texto adivinando.
 
-### 9.8 Motor `llm` — CONECTADO para la siguiente mejor pregunta
+### 9.8 Motor `llm` — CONECTADO (siguiente mejor pregunta + Discovery Analyst)
+
+**Discovery Analyst IA** (`/api/asesor/insights`): con `AGENT_ENGINE=llm`, al abrir
+Insights/Resumen de una reunión la IA analiza la transcripción REAL una vez (caché por
+transcripción): extrae insights de las 14 categorías y evalúa las 8 dimensiones. Contrato
+duro (`prompt-insights.ts::validarAnalisisIA`): todo hallazgo referencia el `segmentoIdx`
+que lo respalda; evidencia inválida → hallazgo DESCARTADO; dimensión no-faltante sin
+respaldo → degradada a faltante — **la IA propone, el contrato verifica**. La fusión
+(`insights/ia.ts::fusionarAnalisis`) deja mandar a la IA en dimensiones/insights pero
+conserva los pesos del playbook, la aritmética del score, los riesgos y el mapa de
+stakeholders del motor determinista. Estado siempre visible (chips análisis IA /
+analizando… / IA no disponible — reglas, con hallazgos descartados declarados).
 
 `NEXT_PUBLIC_AGENT_ENGINE=llm` activa la redacción con IA de la siguiente mejor pregunta
 (Prompter de Grabación y Guided Meeting, MISMO hook `usePreguntaIA`). División deliberada:

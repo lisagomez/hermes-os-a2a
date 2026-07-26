@@ -98,6 +98,25 @@ deploy al volumen es paso operativo explícito post-merge.
 - **Fase I — Validación final**: build + typecheck + lint + smoke Playwright (flujo completo,
   3 temas, launcher, estados vacíos, responsive básico). Evidencia en el PR.
 
+## 🧠 Aprendizajes (Self-Annealing, cierre 2026-07-26)
+
+- **Monorepo + Turbopack**: sin `turbopack.root`/`outputFileTracingRoot`, Next 16 infiere la
+  raíz del workspace en el repo y arrastra el `src/middleware.ts` de la app raíz. Fijar ambos.
+- **El léxico determinista no aguanta conversación real libre** — sirve para fixtures y para
+  decidir QUÉ dimensión falta, no para extraer hallazgos de habla natural. El patrón que
+  funcionó: motor rules decide estructura (explicable), la IA redacta/extrae, y un VALIDADOR
+  descarta todo hallazgo sin evidencia verificable (la IA propone, el contrato verifica).
+- **En vivo, "mitad de la reunión" no existe**: el total crece con el cursor; toda alerta
+  proporcional al total necesita un umbral absoluto (≥12 frases) en contexto live.
+- **El mock jamás debe pisar datos reales**: si la sesión ya capturó transcripción en vivo,
+  la cola la usa tal cual (bug cazado por el usuario en dogfood real, no por los tests).
+- **Playwright sin sudo en WSL**: `apt-get download` + `dpkg-deb -x` + `LD_LIBRARY_PATH`.
+- **eslint-config-next@16 es flat nativo** (sin FlatCompat) — mismo gotcha que la app raíz.
+- **Selectores de test con componentes repetidos** (ThemeToggle en topbar y settings):
+  anclar al contenedor (`page.locator('header')`), no al testid global.
+- **Dogfood inmediato del usuario > smoke**: 3 de los 5 fixes post-MVP salieron de capturas
+  de sesiones reales (alerta prematura, mock pisando transcripción, léxico corto).
+
 ## Gotchas conocidos (heredados del repo)
 
 - Tailwind v4: tokens vía `@theme inline`, no config JS (patrón control-interno).

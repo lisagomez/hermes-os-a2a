@@ -67,7 +67,7 @@ degradación silenciosa). Todo por variables de entorno:
 | `NEXT_PUBLIC_COPILOT_DATA` | `mock` | `mock` \| `real` | `real` reservado a Supabase (post-MVP): tablas espejo de `transcripciones`/`tareas_reunion`/`leads` del repo |
 | `NEXT_PUBLIC_TRANSCRIPTION_PROVIDER` | `mock` | `mock` \| `transcriptor-local` \| `transcripcion-a2a` \| `groq-whisper` | Motor de STT detrás de la interfaz única (`src/features/transcription/providers.ts`) |
 | `NEXT_PUBLIC_TRANSCRIPTOR_URL` | `http://localhost:5000` | URL | Flask de [`altaventasllc-source/transcriptor`](https://github.com/altaventasllc-source/transcriptor) (faster-whisper) para el provider `transcriptor-local` |
-| `NEXT_PUBLIC_AGENT_ENGINE` | `rules` | `rules` \| `llm` | Con `llm`, la IA **redacta la siguiente mejor pregunta** con el contexto de la conversación (Prompter y Guided Meeting); el score/cobertura siguen deterministas. Requiere `OPENROUTER_API_KEY` (server-side) en `.env.local`; modelo por `ASESOR_LLM_MODEL` (default `google/gemini-2.5-flash-lite`). Sin clave o sin red → fallback visible al banco del playbook |
+| `NEXT_PUBLIC_AGENT_ENGINE` | `rules` | `rules` \| `llm` | Con `llm`: (a) la IA **redacta la siguiente mejor pregunta** con el contexto vivo (Prompter y Guided Meeting) y (b) el **Discovery Analyst IA** analiza la transcripción real (insights + dimensiones, cada hallazgo citando su segmento; evidencia inválida se descarta). Requiere `OPENROUTER_API_KEY` (server-side) en `.env.local`; modelo por `ASESOR_LLM_MODEL` (default `google/gemini-2.5-flash-lite`). Sin clave o sin red → fallback visible al motor de reglas |
 
 ### Providers de transcripción
 

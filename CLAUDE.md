@@ -1150,4 +1150,20 @@ npm run lint         # ESLint
   un fallo de la lógica de negocio. Y cuando un SEGUNDO servicio necesite la misma lógica del
   proveedor, muévela al módulo compartido (`trio-contrato/errores_proveedor.py`), no la dupliques.
 
+### 2026-07-26: Meeting Copilot (frontends/meeting-copilot) — patrón "la IA propone, el contrato verifica"
+- **Aprendizaje**: para análisis LLM sobre transcripciones reales, el diseño que funcionó fue
+  motor determinista para la ESTRUCTURA (qué dimensión falta, pesos, score — explicable y
+  testeado) + IA para redactar/extraer + un VALIDADOR que exige que cada hallazgo cite el
+  segmento que lo respalda y DESCARTA lo no verificable (hermano del grafo: sin fuente no hay
+  afirmación). Gotchas pagados: (1) en monorepo, Turbopack infiere la raíz del workspace en el
+  repo y arrastra `src/middleware.ts` de la app raíz → fijar `turbopack.root` +
+  `outputFileTracingRoot`; (2) un provider mock JAMÁS debe pisar datos reales ya capturados
+  (la cola de transcripción sustituía la transcripción en vivo por la demo — lo cazó el
+  dogfood del usuario, no los tests); (3) en contexto EN VIVO no existe "mitad de la reunión"
+  (el total crece con el cursor): alertas proporcionales necesitan umbral absoluto;
+  (4) Playwright en WSL sin sudo: `apt-get download` + `dpkg-deb -x` + `LD_LIBRARY_PATH`.
+- **Aplicar en**: todo análisis LLM con pretensión de evidencia, todo mock frente a datos
+  reales, y toda app Next nueva dentro del monorepo. Ver
+  `.claude/memory/project/frontend-meeting-copilot.md` y el PRP `prp-meeting-copilot.md`.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

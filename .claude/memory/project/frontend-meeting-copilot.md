@@ -1,7 +1,15 @@
 # Meeting Copilot — copiloto comercial de reuniones (frontends/meeting-copilot)
 
-**Estado (2026-07-25):** MVP construido en rama `feat/meeting-copilot-mvp` (Fases A–I del
-PRP `prp-meeting-copilot.md`). Spec en `businessos/frontends/meeting-copilot/SPEC.md`.
+**Estado (2026-07-26):** MVP COMPLETO en PR #154 (`feat/meeting-copilot-mvp`), verificado:
+42 unit tests + smoke Playwright 12/12 + typecheck/lint/build. Spec en
+`businessos/frontends/meeting-copilot/SPEC.md`; aprendizajes en el PRP `prp-meeting-copilot.md`.
+Incluye post-MVP por dogfood real de Victor: sección Grabación (MediaRecorder + bitácora con
+descargar/compartir + campos asesor/lead), modo asesor (Prompter embebido, mismo motor que
+Guided Meeting), transcripción en vivo (Web Speech es-MX), diarización heurística por tono
+con corrección de un clic, y MOTOR LLM CONECTADO (OpenRouter server-side): la IA redacta la
+siguiente mejor pregunta Y el Discovery Analyst analiza la transcripción real con evidencia
+validada por contrato (hallazgo sin respaldo → descartado). Falta solo OPENROUTER_API_KEY
+en .env.local para activar la parte IA (todo degrada visible a reglas sin ella).
 
 **Qué es:** cuarta superficie de `businessos/frontends/` — meeting copilot para agentes de
 ventas/discovery/CS: audio o transcripción → transcripción diarizada → insights con evidencia

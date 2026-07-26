@@ -1038,7 +1038,12 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
 - [x] MVP navegable con datos demo + 20 tests del motor + smoke Playwright.
 - [x] SOUL de negocio: sección "Enfoque de ventas (vendedor profesional estratégico)".
 - [ ] Post-merge: sync del SOUL al volumen de Hetzner + restart (documentar ≠ aplicar).
-- [ ] Gates de la dueña: STT real, motor LLM, Supabase prod, integración Zoom/Meet.
+- [x] Motor LLM conectado (2026-07-26): next-best-question + Discovery Analyst con
+  evidencia validada por contrato (OpenRouter server-side; sin clave degrada a reglas).
+- [x] Grabación en-app + modo asesor (Prompter, mismo motor que Guided Meeting) +
+  transcripción en vivo (Web Speech) + diarización heurística por voz + bitácora.
+- [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod,
+  integración Zoom/Meet, diarización ML (pyannote).
 
 ## Descartados (con motivo)
 
