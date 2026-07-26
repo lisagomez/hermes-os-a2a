@@ -89,6 +89,17 @@ body {
   color: var(--ink);
 }
 
+/* Flash one-shot del segmento recién revelado (Guided Meeting).
+   Usa --accent-muted, así que funciona igual en light y dark. */
+@keyframes pulse-once {
+  from { background-color: var(--accent-muted); }
+  to { background-color: transparent; }
+}
+
+.animate-pulse-once {
+  animation: pulse-once 1.2s ease-out 1;
+}
+
 @layer components {
   .card {
     background: var(--surface);

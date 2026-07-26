@@ -17,7 +17,7 @@ import {
 import { estadoPrompter } from './prompter'
 import { nombresSesion, useLiveStore } from './live-store'
 import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
-import { Card, Chip, ProgressBar, tonoScore } from '@/shared/components/ui'
+import { Button, Card, Chip, ProgressBar, tonoScore } from '@/shared/components/ui'
 import { ETIQUETA_CATEGORIA, ETIQUETA_DIMENSION, type Playbook, type Reunion } from '@/features/domain/types'
 import { fmtTiempo } from '@/shared/lib/format'
 
@@ -128,30 +128,15 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
                 {segmentos.length > 0 ? ` (${segmentos.length} frases analizadas)` : ''}.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  className="btn-secondary !px-2 !py-1 text-[11px]"
-                  onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)}
-                  data-testid="pregunta-usada"
-                >
+                <Button tamano="sm" onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)} data-testid="pregunta-usada">
                   <Check className="h-3 w-3" /> La usé
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary !px-2 !py-1 text-[11px]"
-                  onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)}
-                  data-testid="otra-pregunta"
-                >
+                </Button>
+                <Button tamano="sm" onClick={() => descartarPregunta(estado.sugerencia!.preguntaSugerida)} data-testid="otra-pregunta">
                   <RefreshCw className="h-3 w-3" /> Otra pregunta
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary !px-2 !py-1 text-[11px]"
-                  onClick={() => marcarTema(estado.sugerencia!.dimension)}
-                  data-testid="marcar-cubierto"
-                >
+                </Button>
+                <Button tamano="sm" onClick={() => marcarTema(estado.sugerencia!.dimension)} data-testid="marcar-cubierto">
                   Tema cubierto
-                </button>
+                </Button>
               </div>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { useAppStore } from '@/features/domain/store'
 import { analizarReunion } from '@/features/insights/engine'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { ETIQUETA_DIMENSION, ETIQUETA_TIPO_REUNION, type DimensionId } from '@/features/domain/types'
-import { Card, Chip, EmptyState, ScoreChip, SectionHeader, Stat } from '@/shared/components/ui'
+import { Card, Chip, EmptyState, ScoreChip, SectionHeader, Stat, Table, TBody, TCell, TH, THead, TRow, tonoScore } from '@/shared/components/ui'
 import { fmtFecha } from '@/shared/lib/format'
 import { ORDEN_PRIORIDAD } from '@/features/playbooks/defaults'
 
@@ -68,50 +68,48 @@ export function ManagerView() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat etiqueta="Llamadas analizadas" valor={String(filas.length)} />
-        <Stat etiqueta="Score promedio del equipo" valor={`${promedioEquipo}/100`} tono={promedioEquipo >= 70 ? 'success' : promedioEquipo >= 50 ? 'warning' : 'danger'} detalle={promedioEquipo >= 70 ? 'sano' : 'hay coaching pendiente'} />
+        <Stat etiqueta="Score promedio del equipo" valor={`${promedioEquipo}/100`} tono={tonoScore(promedioEquipo)} detalle={tonoScore(promedioEquipo) === 'success' ? 'sano' : 'hay coaching pendiente'} />
         <Stat etiqueta="Objeciones registradas" valor={String(objecionesFrecuentes.length)} />
         <Stat etiqueta="Huecos más repetidos" valor={preguntasFaltantes[0] ? ETIQUETA_DIMENSION[preguntasFaltantes[0].dimension] : '—'} detalle={preguntasFaltantes[0] ? `${preguntasFaltantes[0].veces} llamada(s)` : undefined} />
       </div>
 
       <Card>
-        <table className="w-full text-left" data-testid="tabla-scorecards">
-          <thead>
-            <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-muted">
-              <th className="px-4 py-2.5 font-medium">Reunión</th>
-              <th className="px-4 py-2.5 font-medium">Asesor</th>
-              <th className="px-4 py-2.5 font-medium">Tipo</th>
-              <th className="px-4 py-2.5 font-medium">Score</th>
-              <th className="hidden px-4 py-2.5 font-medium md:table-cell">Adherencia al playbook</th>
-              <th className="px-4 py-2.5 font-medium">Huecos</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line-subtle">
+        <Table data-testid="tabla-scorecards">
+          <THead>
+            <TH>Reunión</TH>
+            <TH>Asesor</TH>
+            <TH>Tipo</TH>
+            <TH>Score</TH>
+            <TH className="hidden md:table-cell">Adherencia al playbook</TH>
+            <TH>Huecos</TH>
+          </THead>
+          <TBody>
             {filas.map(({ reunion, analisis }) => {
               const cubiertas = analisis.score.dimensiones.filter((d) => d.estado === 'cubierta').length
               return (
-                <tr key={reunion.id} className="text-[13px] hover:bg-surface-muted">
-                  <td className="px-4 py-2.5">
+                <TRow key={reunion.id}>
+                  <TCell>
                     <Link href={`/reuniones/${reunion.id}/resumen`} className="font-medium text-ink hover:text-accent">
                       {reunion.titulo}
                     </Link>
                     <p className="text-[11px] text-ink-muted">
                       {reunion.cuenta} · {fmtFecha(reunion.fecha)}
                     </p>
-                  </td>
-                  <td className="px-4 py-2.5 text-ink">{reunion.asesor}</td>
-                  <td className="px-4 py-2.5"><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></td>
-                  <td className="px-4 py-2.5"><ScoreChip total={analisis.score.total} /></td>
-                  <td className="hidden px-4 py-2.5 text-ink-secondary md:table-cell">
+                  </TCell>
+                  <TCell className="text-ink">{reunion.asesor}</TCell>
+                  <TCell><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></TCell>
+                  <TCell><ScoreChip total={analisis.score.total} /></TCell>
+                  <TCell className="hidden text-ink-secondary md:table-cell">
                     {cubiertas}/{analisis.score.dimensiones.length} dimensiones cubiertas
-                  </td>
-                  <td className="px-4 py-2.5 text-ink-secondary">
+                  </TCell>
+                  <TCell className="text-ink-secondary">
                     {analisis.score.huecos.length === 0 ? '—' : analisis.score.huecos.map((h) => ETIQUETA_DIMENSION[h.dimension]).join(', ')}
-                  </td>
-                </tr>
+                  </TCell>
+                </TRow>
               )
             })}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2" id="analytics">

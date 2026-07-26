@@ -7,7 +7,7 @@ import { useAppStore } from '@/features/domain/store'
 import { analizarReunion } from '@/features/insights/engine'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { ETIQUETA_DIMENSION, ETIQUETA_TIPO_REUNION } from '@/features/domain/types'
-import { Card, Chip, ScoreChip, Stat } from '@/shared/components/ui'
+import { Card, Chip, ScoreChip, Stat, Table, TBody, TCell, TRow, tonoScore } from '@/shared/components/ui'
 import { fmtFecha } from '@/shared/lib/format'
 
 export function HomeView() {
@@ -76,7 +76,7 @@ export function HomeView() {
         <Stat
           etiqueta="Score promedio"
           valor={filas.length > 0 ? `${scorePromedio}/100` : '—'}
-          tono={scorePromedio >= 70 ? 'success' : scorePromedio >= 50 ? 'warning' : 'danger'}
+          tono={tonoScore(scorePromedio)}
           detalle={huecoFrecuente ? `hueco más común: ${huecoFrecuente}` : undefined}
         />
         <Stat etiqueta="Acciones pendientes" valor={String(accionesPendientes.length)} tono={accionesPendientes.length > 0 ? 'warning' : 'success'} />
@@ -91,19 +91,19 @@ export function HomeView() {
               Ver todas <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <table className="w-full text-left" data-testid="home-reuniones">
-            <tbody className="divide-y divide-line-subtle">
+          <Table data-testid="home-reuniones">
+            <TBody>
               {filas.slice(0, 5).map(({ reunion, analisis }) => (
-                <tr key={reunion.id} className="text-[13px] hover:bg-surface-muted">
-                  <td className="px-4 py-2.5">
+                <TRow key={reunion.id}>
+                  <TCell>
                     <Link href={`/reuniones/${reunion.id}/resumen`} className="font-medium text-ink hover:text-accent">
                       {reunion.titulo}
                     </Link>
                     <p className="text-[11px] text-ink-muted">{reunion.cuenta} · {fmtFecha(reunion.fecha)}</p>
-                  </td>
-                  <td className="hidden px-4 py-2.5 sm:table-cell"><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></td>
-                  <td className="px-4 py-2.5 text-right"><ScoreChip total={analisis.score.total} /></td>
-                </tr>
+                  </TCell>
+                  <TCell className="hidden sm:table-cell"><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></TCell>
+                  <TCell className="text-right"><ScoreChip total={analisis.score.total} /></TCell>
+                </TRow>
               ))}
               {filas.length === 0 && (
                 <tr>
@@ -112,8 +112,8 @@ export function HomeView() {
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </Card>
 
         <div className="space-y-4">

@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from 'lucide-react'
 import { Inbox } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, type ComponentProps, type ReactNode } from 'react'
 
 type Tono = 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info'
 
@@ -80,6 +80,99 @@ export function Stat({ etiqueta, valor, detalle, tono = 'neutral' }: { etiqueta:
       <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{etiqueta}</p>
       <p className="mt-1 text-xl font-semibold text-ink">{valor}</p>
       {detalle ? <p className={`mt-0.5 text-[12px] ${tono === 'neutral' ? 'text-ink-secondary' : TONOS[tono].split(' ')[1]}`}>{detalle}</p> : null}
+    </div>
+  )
+}
+
+type BotonVariante = 'primary' | 'secondary' | 'ghost'
+type BotonTamano = 'md' | 'sm'
+
+const VARIANTE_BOTON: Record<BotonVariante, string> = {
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  ghost: 'inline-flex items-center gap-1.5 rounded-lg font-medium text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink',
+}
+
+export function Button({
+  variante = 'secondary',
+  tamano = 'md',
+  className = '',
+  type = 'button',
+  ...rest
+}: { variante?: BotonVariante; tamano?: BotonTamano } & ComponentProps<'button'>) {
+  const tamanoCls =
+    tamano === 'sm' ? 'px-2 py-1 text-[11px]' : variante === 'ghost' ? 'px-3 py-1.5 text-[13px]' : ''
+  return <button type={type} className={`${VARIANTE_BOTON[variante]} ${tamanoCls} ${className}`.trim()} {...rest} />
+}
+
+export function Table({ className = '', ...rest }: ComponentProps<'table'>) {
+  return <table className={`w-full text-left ${className}`.trim()} {...rest} />
+}
+
+export function THead({ children }: { children: ReactNode }) {
+  return (
+    <thead>
+      <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-muted">{children}</tr>
+    </thead>
+  )
+}
+
+export function TH({ className = '', ...rest }: ComponentProps<'th'>) {
+  return <th className={`px-4 py-2.5 font-medium ${className}`.trim()} {...rest} />
+}
+
+export function TBody({ children }: { children: ReactNode }) {
+  return <tbody className="divide-y divide-line-subtle">{children}</tbody>
+}
+
+export function TRow({ className = '', ...rest }: ComponentProps<'tr'>) {
+  return <tr className={`text-[13px] hover:bg-surface-muted ${className}`.trim()} {...rest} />
+}
+
+export function TCell({ className = '', ...rest }: ComponentProps<'td'>) {
+  return <td className={`px-4 py-2.5 ${className}`.trim()} {...rest} />
+}
+
+export function Dialog({
+  abierto,
+  onCerrar,
+  etiqueta,
+  posicion = 'centro',
+  className = '',
+  children,
+  ...rest
+}: {
+  abierto: boolean
+  onCerrar: () => void
+  etiqueta: string
+  posicion?: 'centro' | 'alta'
+  children: ReactNode
+} & Omit<ComponentProps<'div'>, 'children' | 'role'>) {
+  useEffect(() => {
+    if (!abierto) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCerrar()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [abierto, onCerrar])
+
+  if (!abierto) return null
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex justify-center bg-black/40 ${posicion === 'alta' ? 'items-start pt-24' : 'items-center p-6'}`}
+      onClick={onCerrar}
+      {...rest}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={etiqueta}
+        className={`card w-full max-w-xl overflow-hidden bg-surface-raised shadow-[var(--shadow-2)] ${className}`.trim()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
   )
 }
