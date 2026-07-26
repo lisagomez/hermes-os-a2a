@@ -9,10 +9,14 @@ import { nuevoId } from '@/shared/lib/format'
 
 const MAX_INTENTOS = 3
 
+// Binarios por job (fuera del estado: un Blob no es serializable/persistible).
+// El provider mock lo ignora; los reales (transcriptor-local, a2a) lo suben.
+const blobsPorJob = new Map<string, Blob>()
+
 interface TranscripcionState {
   jobs: TrabajoTranscripcion[]
   procesando: boolean
-  agregarArchivos: (archivos: { filename: string }[]) => void
+  agregarArchivos: (archivos: { filename: string; blob?: Blob }[]) => void
   agregarDemo: () => void
   reintentar: (jobId: string) => void
   _drenar: () => Promise<void>
@@ -47,7 +51,12 @@ export const useTranscripcionStore = create<TranscripcionState>()((set, get) => 
   procesando: false,
 
   agregarArchivos: (archivos) => {
-    set((s) => ({ jobs: [...s.jobs, ...archivos.map((a) => nuevoJob(a.filename))] }))
+    const nuevos = archivos.map((a) => {
+      const job = nuevoJob(a.filename)
+      if (a.blob) blobsPorJob.set(job.id, a.blob)
+      return job
+    })
+    set((s) => ({ jobs: [...s.jobs, ...nuevos] }))
     void get()._drenar()
   },
 
@@ -82,8 +91,9 @@ export const useTranscripcionStore = create<TranscripcionState>()((set, get) => 
         actualizar(pendiente.id, { estado: 'procesando', progreso: 0, intentos: pendiente.intentos + 1 })
         try {
           const provider = crearProvider()
-          const resultado = await provider.transcribir({ filename: pendiente.filename }, (pct) =>
-            actualizar(pendiente.id, { progreso: pct })
+          const resultado = await provider.transcribir(
+            { filename: pendiente.filename, blob: blobsPorJob.get(pendiente.id) },
+            (pct) => actualizar(pendiente.id, { progreso: pct })
           )
           // La salida normalizada crea reunión + transcripción en el store central.
           const base = AUDIO_DEMO.reunionBase

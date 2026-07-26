@@ -60,6 +60,18 @@ test('guided meeting: la llamada superficial dispara alertas del coach', async (
   await expect(page.getByTestId('sugerencia-coach')).toBeVisible()
 })
 
+test('grabación en-app: grabar → detener → enviar a la cola de transcripción', async ({ page }) => {
+  await page.goto('/grabacion')
+  await page.getByTestId('grabar').click()
+  await expect(page.getByText('grabando')).toBeVisible()
+  await page.waitForTimeout(1500)
+  await page.getByTestId('detener').click()
+  await expect(page.getByTestId('grabacion-lista')).toBeVisible()
+  await page.getByTestId('enviar-transcripcion').click()
+  await expect(page).toHaveURL(/herramientas\/transcripcion/)
+  await expect(page.getByTestId('job-completado')).toBeVisible({ timeout: 15_000 })
+})
+
 test('nueva conversación: pegar transcripción produce insights', async ({ page }) => {
   await page.goto('/reuniones/nueva')
   await page.getByTestId('tab-texto').click()

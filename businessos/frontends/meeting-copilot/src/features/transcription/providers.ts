@@ -10,11 +10,17 @@ export interface ResultadoTranscripcion {
   segmentos: Segmento[]
 }
 
+export interface ArchivoAudioEntrada {
+  filename: string
+  /** Binario real (upload o grabación en-app). El mock no lo necesita; los providers reales sí. */
+  blob?: Blob
+}
+
 export interface ProviderTranscripcion {
   nombre: ProviderSTT
   /** Diarización real por participante (mock: sí; whisper puro: no). */
   diarizacion: boolean
-  transcribir(archivo: { filename: string }, onProgreso: (pct: number) => void): Promise<ResultadoTranscripcion>
+  transcribir(archivo: ArchivoAudioEntrada, onProgreso: (pct: number) => void): Promise<ResultadoTranscripcion>
 }
 
 // ─── mock (MVP): determinista, progreso realista, cero red ──────────────────
@@ -81,9 +87,8 @@ const providerTranscriptorLocal: ProviderTranscripcion = {
       method: 'POST',
       body: (() => {
         const fd = new FormData()
-        const f = archivo as { filename: string; blob?: Blob }
-        if (!f.blob) throw new Error('transcriptor-local requiere el archivo binario (blob).')
-        fd.append('files', f.blob, f.filename)
+        if (!archivo.blob) throw new Error('transcriptor-local requiere el archivo binario (blob).')
+        fd.append('files', archivo.blob, archivo.filename)
         return fd
       })(),
     })

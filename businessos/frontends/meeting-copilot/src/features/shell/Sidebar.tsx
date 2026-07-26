@@ -11,6 +11,7 @@ import {
   Home,
   LayoutGrid,
   MessagesSquare,
+  Mic,
   Radar,
   Settings,
 } from 'lucide-react'
@@ -19,6 +20,7 @@ import { useUiStore } from '@/shared/stores/ui-store'
 const NAV = [
   { href: '/', etiqueta: 'Inicio', Icono: Home, exacto: true },
   { href: '/reuniones', etiqueta: 'Reuniones', Icono: CalendarDays, exacto: false },
+  { href: '/grabacion', etiqueta: 'Grabación', Icono: Mic, exacto: true },
   { href: '/reuniones?vista=conversaciones', etiqueta: 'Conversaciones', Icono: MessagesSquare, exacto: true },
   { href: '/herramientas', etiqueta: 'Herramientas', Icono: LayoutGrid, exacto: true },
   { href: '/playbooks', etiqueta: 'Playbooks', Icono: BookOpenCheck, exacto: false },

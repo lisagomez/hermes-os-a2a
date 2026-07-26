@@ -100,6 +100,7 @@ raíz, apagado en MVP), guided meeting con audio en vivo.
 | 9 | `/manager` | Manager / Scorecards | Scorecard por llamada, comparativo entre reuniones, preguntas faltantes recurrentes, patrones de objeciones, adherencia al playbook por agente |
 | 10 | `/playbooks` | Playbooks & Templates | Playbooks por tipo de reunión (dimensiones, pesos, banco de preguntas), templates de salida |
 | 11 | `/herramientas` | Launcher (página) | Grid completo: búsqueda, Fijadas / Recientes / Todas |
+| 12 | `/grabacion` | Grabación en-app | Grabadora con micrófono del navegador (MediaRecorder): grabar/pausar/detener, cronómetro, playback, renombrar, descargar y enviar a la cola de Voice Transcription (el binario viaja al provider); permiso denegado = error visible |
 
 Todas las pantallas definen su **estado vacío** con criterio (qué hacer a continuación, nunca
 un hueco gris) y su estado de error visible.
@@ -379,6 +380,7 @@ una línea, chip de categoría, badge de estado, estrella para fijar. Catálogo 
 |---|---|---|---|
 | Transcripts | captura | active | /reuniones?vista=transcripciones |
 | Voice Transcription | captura | active | /herramientas/transcripcion |
+| Grabación | captura | active | /grabacion |
 | Meetings | captura | active | /reuniones |
 | Conversations | captura | active | /reuniones?vista=conversaciones |
 | Discovery Analyzer | analisis | active | /reuniones/[última]/insights |

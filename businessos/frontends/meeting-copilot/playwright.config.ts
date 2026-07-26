@@ -7,6 +7,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4321',
     viewport: { width: 1280, height: 800 },
+    permissions: ['microphone'],
+    launchOptions: {
+      args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    },
   },
   webServer: {
     command: 'npm run build && npx next start -p 4321',

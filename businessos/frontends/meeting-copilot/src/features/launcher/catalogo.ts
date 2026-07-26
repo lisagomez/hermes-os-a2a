@@ -4,7 +4,8 @@ import type { Herramienta } from '@/features/domain/types'
 // Las rutas con [ultima] se resuelven en runtime a la última reunión analizada.
 export const CATALOGO_HERRAMIENTAS: Herramienta[] = [
   { slug: 'transcripts', nombre: 'Transcripts', descripcion: 'Todas las transcripciones con su confianza y speakers', categoria: 'captura', icono: 'FileText', estado: 'active', ruta: '/reuniones?vista=transcripciones' },
-  { slug: 'voice-transcription', nombre: 'Voice Transcription', descripcion: 'Sube audio y conviértelo en transcripción diarizada', categoria: 'captura', icono: 'Mic', estado: 'active', ruta: '/herramientas/transcripcion' },
+  { slug: 'voice-transcription', nombre: 'Voice Transcription', descripcion: 'Sube audio y conviértelo en transcripción diarizada', categoria: 'captura', icono: 'AudioLines', estado: 'active', ruta: '/herramientas/transcripcion' },
+  { slug: 'grabacion', nombre: 'Grabación', descripcion: 'Graba la reunión desde la app con tu micrófono', categoria: 'captura', icono: 'Mic', estado: 'active', ruta: '/grabacion' },
   { slug: 'meetings', nombre: 'Meetings', descripcion: 'Pipeline de reuniones y su estado de análisis', categoria: 'captura', icono: 'CalendarDays', estado: 'active', ruta: '/reuniones' },
   { slug: 'conversations', nombre: 'Conversations', descripcion: 'Historial de conversaciones por cuenta', categoria: 'captura', icono: 'MessagesSquare', estado: 'active', ruta: '/reuniones?vista=conversaciones' },
   { slug: 'discovery-analyzer', nombre: 'Discovery Analyzer', descripcion: 'Insights estructurados con evidencia citada', categoria: 'analisis', icono: 'ScanSearch', estado: 'active', ruta: '/reuniones/[ultima]/insights' },
