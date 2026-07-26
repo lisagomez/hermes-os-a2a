@@ -1185,6 +1185,24 @@ npm run lint         # ESLint
   servers de frontends, mission control local). Si "se cayó localhost" y el log acaba limpio en
   `[?25h`, es esto — no perseguir bugs de la app.
 
+### 2026-07-26: Agentes en background + checkout de rama = trabajo huérfano (y un "verde" sin verificar)
+- **Error(es)**: (1) mientras dos agentes en background editaban el working tree COMPARTIDO
+  (deuda de diseño panel-adm, rama `docs/design-panel-adm-setup`), la rama activa cambió a
+  `feat/erp-modulo-act` — los cambios sin commitear de los agentes viajaron con el checkout y
+  quedaron encima de una rama ajena: commitear ahí habría mezclado diseño con ERP. (2) Uno de
+  los agentes murió por límite de sesión de la API reportando "all gates green" JUSTO antes de
+  su verificación final — un verde declarado por un agente muerto no es un verde.
+- **Fix**: (1) `git stash push -u` → checkout de la rama correcta → `stash pop` → commit →
+  push → **restaurar la rama en la que estaba el usuario**; antes de commitear tras agentes en
+  background, SIEMPRE `git branch --show-current`. (2) Si un agente muere a media verificación,
+  re-correr TODOS sus gates uno mismo (aquí: typecheck+lint+build+25 tests y el sanity de que
+  el CSS compilado emite los tokens — todo pasó, pero había que verlo pasar).
+- **Aplicar en**: toda sesión con agentes paralelos sobre el working tree (los agentes no son
+  worktrees aislados salvo que se pida `isolation: worktree`) y todo reporte de gates de un
+  agente que terminó anormalmente. (La otra sesión documentó el mismo incidente desde su
+  lado — ver "Dos sesiones de Claude sobre el MISMO working tree" abajo: `git worktree` es
+  el fix estructural; el stash-dance de arriba es el rescate cuando ya pasó.)
+
 ### 2026-07-26: El ERP se ACTIVÓ — esquema erp vivo, módulo act, y el puente correcto (cli_fin, no PAT)
 - **Contexto**: por decisión de la dueña, las migraciones ERP (001-005, incl. la nueva
   005_activos del módulo act) se aplicaron al Supabase compartido. Gotchas que costaron

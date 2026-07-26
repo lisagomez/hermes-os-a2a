@@ -23,6 +23,7 @@ design-systems/
 | [Neobrutalism](./neobrutalism/) | Bordes duros, sombras sólidas, colores vibrantes | ✅ Completo |
 | [Bento Grid](./bento-grid/) | Layout modular estilo Apple/bento box | ✅ Completo |
 | [Gradient Mesh](./gradient-mesh/) | Fondos fluidos estilo Stripe/Linear/Vercel | ✅ Completo |
+| [Panel Adm](./panel-adm/) | Set-up design de las superficies admin internas (Mission Control + Meeting Copilot): tokens semánticos canónicos, 2 skins, inventario de componentes y deuda priorizada. Invocable con `/design-panel-adm` | ✅ Completo |
 
 ## Cómo Usar
 

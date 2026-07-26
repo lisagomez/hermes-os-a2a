@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { SaludConocimiento } from '../../types'
 import { NeutralBadge } from './badges'
 
@@ -9,12 +10,12 @@ import { NeutralBadge } from './badges'
 export function SaludPanel({ salud }: { salud: SaludConocimiento | null }) {
   if (!salud) {
     return (
-      <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+      <Card as="section">
         <h2 className="text-sm font-medium text-slate-400">Salud del conocimiento</h2>
         <p className="mt-3 text-sm text-slate-500">
           Grafo inalcanzable — sin datos de vigencias. (En dev es lo esperado si no hay mock.)
         </p>
-      </section>
+      </Card>
     )
   }
 
@@ -32,7 +33,7 @@ export function SaludPanel({ salud }: { salud: SaludConocimiento | null }) {
         : 'conocimiento vigente'
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+    <Card as="section">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-slate-400">Salud del conocimiento</h2>
         <NeutralBadge texto={texto} tono={tono} />
@@ -61,6 +62,6 @@ export function SaludPanel({ salud }: { salud: SaludConocimiento | null }) {
       {salud.advertencia && (
         <p className="mt-2 text-xs text-amber-400">{salud.advertencia}</p>
       )}
-    </section>
+    </Card>
   )
 }

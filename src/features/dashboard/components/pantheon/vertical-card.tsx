@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { VerticalPantheon } from '../../types'
 import { STATUS } from '../ai-spend/colors'
 import { NeutralBadge } from '../grafo/badges'
@@ -16,7 +17,7 @@ const DESCRIPCION: Record<VerticalPantheon['vertical'], string> = {
 
 export function VerticalCard({ v }: { v: VerticalPantheon }) {
   return (
-    <article className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+    <Card as="article">
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold capitalize">{v.vertical}</h2>
@@ -82,6 +83,6 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
           <span style={{ color: STATUS.warning }}> · health no consultado</span>
         )}
       </footer>
-    </article>
+    </Card>
   )
 }

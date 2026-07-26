@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import type { ConversacionResumen } from '../../types'
 import { CHROME, STATUS } from '../ai-spend/colors'
 
@@ -21,7 +22,7 @@ export function ConversacionesPanel({
 }) {
   if (conversaciones.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+      <Card>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           Conversaciones CRM
         </h2>
@@ -30,7 +31,7 @@ export function ConversacionesPanel({
           Aparecerán cuando un tenant real conecte su canal (Telegram / WhatsApp)
           a crm-canales.
         </p>
-      </div>
+      </Card>
     )
   }
 
@@ -40,7 +41,7 @@ export function ConversacionesPanel({
   }
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+    <Card>
       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
         Conversaciones CRM
       </h2>
@@ -63,6 +64,6 @@ export function ConversacionesPanel({
           .map((c) => `${c.estado} ${c.nivel}: ${c.cuenta}`)
           .join(' · ')}
       </p>
-    </div>
+    </Card>
   )
 }

@@ -8,7 +8,7 @@ import { useAppStore } from '@/features/domain/store'
 import { analizarReunion } from '@/features/insights/engine'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { ETIQUETA_ESTADO_REUNION, ETIQUETA_TIPO_REUNION } from '@/features/domain/types'
-import { Card, Chip, EmptyState, ScoreChip, SectionHeader } from '@/shared/components/ui'
+import { Card, Chip, EmptyState, ScoreChip, SectionHeader, Table, TBody, TCell, TH, THead, TRow } from '@/shared/components/ui'
 import { fmtDuracion, fmtFecha } from '@/shared/lib/format'
 
 const VISTAS: Record<string, { titulo: string; descripcion: string }> = {
@@ -125,43 +125,41 @@ export function MeetingsList() {
         </div>
       ) : (
         <Card>
-          <table className="w-full text-left" data-testid="tabla-reuniones">
-            <thead>
-              <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-muted">
-                <th className="px-4 py-2.5 font-medium">Reunión</th>
-                <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Tipo</th>
-                <th className="hidden px-4 py-2.5 font-medium md:table-cell">
-                  {vista === 'transcripciones' ? 'Motor / confianza' : 'Duración'}
-                </th>
-                <th className="px-4 py-2.5 font-medium">Estado</th>
-                <th className="px-4 py-2.5 font-medium">Score</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line-subtle">
+          <Table data-testid="tabla-reuniones">
+            <THead>
+              <TH>Reunión</TH>
+              <TH className="hidden sm:table-cell">Tipo</TH>
+              <TH className="hidden md:table-cell">
+                {vista === 'transcripciones' ? 'Motor / confianza' : 'Duración'}
+              </TH>
+              <TH>Estado</TH>
+              <TH>Score</TH>
+            </THead>
+            <TBody>
               {filas.map(({ reunion, transcripcion, analisis }) => (
-                <tr key={reunion.id} className="text-[13px] hover:bg-surface-muted">
-                  <td className="px-4 py-2.5">
+                <TRow key={reunion.id}>
+                  <TCell>
                     <Link href={`/reuniones/${reunion.id}/transcripcion`} className="font-medium text-ink hover:text-accent" data-testid="link-reunion">
                       {reunion.titulo}
                     </Link>
                     <p className="text-[11px] text-ink-muted">
                       {reunion.cuenta} · {fmtFecha(reunion.fecha)} · {reunion.asesor}
                     </p>
-                  </td>
-                  <td className="hidden px-4 py-2.5 sm:table-cell"><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></td>
-                  <td className="hidden px-4 py-2.5 text-ink-secondary md:table-cell">
+                  </TCell>
+                  <TCell className="hidden sm:table-cell"><Chip>{ETIQUETA_TIPO_REUNION[reunion.tipoReunion]}</Chip></TCell>
+                  <TCell className="hidden text-ink-secondary md:table-cell">
                     {vista === 'transcripciones'
                       ? transcripcion
                         ? `${transcripcion.motor} · ${transcripcion.confianzaGlobal}`
                         : 'sin transcripción'
                       : fmtDuracion(reunion.duracionS)}
-                  </td>
-                  <td className="px-4 py-2.5"><Chip tono={reunion.estado === 'analizada' ? 'success' : 'neutral'}>{ETIQUETA_ESTADO_REUNION[reunion.estado]}</Chip></td>
-                  <td className="px-4 py-2.5">{analisis ? <ScoreChip total={analisis.score.total} /> : <span className="text-ink-muted">—</span>}</td>
-                </tr>
+                  </TCell>
+                  <TCell><Chip tono={reunion.estado === 'analizada' ? 'success' : 'neutral'}>{ETIQUETA_ESTADO_REUNION[reunion.estado]}</Chip></TCell>
+                  <TCell>{analisis ? <ScoreChip total={analisis.score.total} /> : <span className="text-ink-muted">—</span>}</TCell>
+                </TRow>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </Card>
       )}
     </div>

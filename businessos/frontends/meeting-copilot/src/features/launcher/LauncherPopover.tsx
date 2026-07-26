@@ -13,7 +13,7 @@ export function LauncherPopover() {
   return (
     <div className="fixed inset-0 z-40" onClick={() => setLauncher(false)} data-testid="launcher-popover">
       <div
-        className="card absolute right-4 top-14 flex max-h-[75vh] w-[26rem] flex-col overflow-hidden shadow-[var(--shadow-2)]"
+        className="card absolute right-4 top-14 flex max-h-[75vh] w-[26rem] flex-col overflow-hidden bg-surface-raised shadow-[var(--shadow-2)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-2.5">

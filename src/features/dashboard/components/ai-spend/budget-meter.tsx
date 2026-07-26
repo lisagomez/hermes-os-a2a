@@ -1,3 +1,4 @@
+import { Card } from '@/shared/components/card'
 import { PRESUPUESTO_MENSUAL_USD, UMBRAL_ALERTA } from '../../types'
 import { STATUS } from './colors'
 
@@ -15,7 +16,7 @@ export function BudgetMeter({ totalUsd, mes }: { totalUsd: number; mes: string }
         : { color: STATUS.good, icono: '✓', texto: 'dentro de presupuesto' }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+    <Card as="section">
       <h2 className="text-sm font-medium text-slate-400">Gasto del mes ({mes})</h2>
       <p className="mt-2 text-4xl font-bold">
         ${totalUsd.toFixed(2)}
@@ -39,6 +40,6 @@ export function BudgetMeter({ totalUsd, mes }: { totalUsd: number; mes: string }
         <span aria-hidden>{estado.icono}</span>
         {estado.texto} · {(pct * 100).toFixed(1)}%
       </p>
-    </section>
+    </Card>
   )
 }
