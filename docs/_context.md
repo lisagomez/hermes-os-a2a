@@ -34,4 +34,5 @@ está en `.gitignore` y no viaja al repo. Todo lo demás en `docs/` sí se compa
 |---|---|---|
 | `juego-y-oficina-de-agentes/` | Charla + investigación | Ensayo (de un colaborador externo) sobre teoría de juegos aplicada a la oficina de agentes, su contraste verificado contra fuente primaria, y utilidades de producto (patrones de HUD que reflejan estado real). Ver su `_context.md`. |
 | `Validación de oportunidad SaaS agent-to-agent para seguros de mercancía en México.md` | Investigación | Validación de mercado (seguros de carga MX) para la oportunidad A2A. Candidato a reubicarse en su carpeta-tema feature-first. |
+| `competencia-houston/` | Investigación (competencia) | Análisis competitivo de Houston (gethouston.ai): precios/OAuth, catálogo de agentes, moat, y comparación de conectores (Composio) contra el patrón host-job de Hermes. Ver su `_context.md`. |
 | `Efecto de creacion (construcción) de cursos platzi.md` | Idea / bookmark | Nota suelta (enlace). Pendiente de desarrollar o descartar. |
