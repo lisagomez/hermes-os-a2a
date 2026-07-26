@@ -99,6 +99,10 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
               <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Siguiente mejor pregunta</p>
               <p className="mt-0.5 text-[13px] font-medium leading-snug text-ink">“{estado.sugerencia.preguntaSugerida}”</p>
               <p className="mt-1 text-[11px] text-ink-secondary">{estado.sugerencia.justificacion}</p>
+              <p className="mt-0.5 text-[10px] text-ink-muted">
+                Del banco del playbook, elegida por lo que la conversación aún no cubre
+                {segmentos.length > 0 ? ` (${segmentos.length} frases analizadas)` : ''}.
+              </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <button
                   type="button"
@@ -136,38 +140,50 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
         </Card>
       )}
 
-      {/* Cobertura del playbook */}
+      {/* Cobertura del playbook — estado EXPLÍCITO por dimensión */}
       <Card className="p-3">
-        <p className="mb-1.5 text-[12px] font-semibold text-ink">Playbook · {playbook.nombre}</p>
-        <ul className="space-y-1" data-testid="prompter-cobertura">
-          {estado.dimensiones.map((d) => (
-            <li key={d.dimension} className="flex items-center gap-1.5">
-              {d.estado === 'cubierta' ? (
-                <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" />
-              ) : d.estado === 'parcial' ? (
-                <CircleDashed className="h-3.5 w-3.5 shrink-0 text-warning" />
-              ) : (
-                <CircleHelp className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
-              )}
-              <span className="flex-1 truncate text-[12px] text-ink" title={d.explicacion}>
-                {ETIQUETA_DIMENSION[d.dimension]}
-              </span>
-              {playbook.dimensiones.find((p) => p.dimension === d.dimension)?.critica && d.estado === 'faltante' && (
-                <Chip tono="warning">crítica</Chip>
-              )}
-              {d.estado !== 'cubierta' && (
-                <button
-                  type="button"
-                  onClick={() => marcarTema(d.dimension)}
-                  className="rounded px-1 text-[10px] text-ink-muted hover:text-accent"
-                  title="Marcar como cubierta (override manual; el análisis final recalcula desde la conversación)"
-                >
-                  ✓
-                </button>
-              )}
-            </li>
-          ))}
+        <div className="mb-1.5 flex items-center justify-between">
+          <p className="text-[12px] font-semibold text-ink">Playbook · {playbook.nombre}</p>
+          <span className="text-[11px] text-ink-muted">
+            {estado.cubiertas}/{estado.dimensiones.length}
+          </span>
+        </div>
+        <ul className="space-y-1.5" data-testid="prompter-cobertura">
+          {estado.dimensiones.map((d) => {
+            const critica = playbook.dimensiones.find((p) => p.dimension === d.dimension)?.critica ?? false
+            return (
+              <li key={d.dimension} className="flex items-center gap-1.5" title={d.explicacion}>
+                {d.estado === 'cubierta' ? (
+                  <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" />
+                ) : d.estado === 'parcial' ? (
+                  <CircleDashed className="h-3.5 w-3.5 shrink-0 text-warning" />
+                ) : (
+                  <CircleHelp className={`h-3.5 w-3.5 shrink-0 ${critica ? 'text-danger' : 'text-ink-muted'}`} />
+                )}
+                <span className="flex-1 truncate text-[12px] text-ink">
+                  {ETIQUETA_DIMENSION[d.dimension]}
+                  {critica && <span className="ml-1 text-[10px] font-semibold text-danger" title="Dimensión crítica del playbook">•</span>}
+                </span>
+                <Chip tono={d.estado === 'cubierta' ? 'success' : d.estado === 'parcial' ? 'warning' : critica ? 'danger' : 'neutral'}>
+                  {d.estado}
+                </Chip>
+                {d.estado !== 'cubierta' && (
+                  <button
+                    type="button"
+                    onClick={() => marcarTema(d.dimension)}
+                    className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-muted hover:border-accent hover:text-accent"
+                    title="Marcar como cubierta (override manual; el análisis final recalcula desde la conversación)"
+                  >
+                    ✓ cubrir
+                  </button>
+                )}
+              </li>
+            )
+          })}
         </ul>
+        <p className="mt-2 border-t border-line-subtle pt-1.5 text-[10px] leading-snug text-ink-muted">
+          El estado se recalcula con cada frase transcrita: pasa el cursor sobre una dimensión para ver el porqué.
+        </p>
       </Card>
 
       {/* Señales detectadas en vivo */}

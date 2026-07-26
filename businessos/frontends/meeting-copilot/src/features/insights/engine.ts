@@ -48,7 +48,7 @@ const NUMEROS =
 // ─── Léxicos (es-MX) ────────────────────────────────────────────────────────
 
 const LEX = {
-  pain: /(perdemos|se nos cae|se nos caen|se nos complica|nos duele|batallamos|retrabajo|cuello de botella|cotizamos lento|tardamos|a mano|desorden|nos falla|caido|reconciliar)/,
+  pain: /(perdemos|se nos cae|se nos caen|se nos complica|nos duele|batallamos|retrabajo|cuello de botella|cotizamos lento|tardamos|a mano|desorden|nos falla|caido|reconciliar|(el|este|ese|un) problema|tenemos problemas?|cada (quien|uno) (lo hace|tiene) (a su|una) manera|no tenemos (un )?(registro|control))/,
   causa: /(porque|ya que|cada vez que|debido a)/,
   impacto: /(nos cuesta|cuesta como|nos pega|nos afecta|penalizacion|horas en)/,
   urgenciaPlazo: /(antes de (que\s+)?\w+|para (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)|este (mes|trimestre|ano)|temporada alta|cuanto antes|proxima semana|fin de mes)/,
@@ -187,7 +187,9 @@ function evaluarDimension(dimension: DimensionId, ctx: Ctx): EvalDimension {
   switch (dimension) {
     case 'problema': {
       const conCausa = cliente.filter((f) => LEX.pain.test(f.t) && LEX.causa.test(f.t))
-      const simples = cliente.filter((f) => LEX.pain.test(f.t))
+      // Una necesidad explícita ("necesitamos X") implica un problema a medio
+      // descubrir: cuenta como parcial (falta explorar causa e historia).
+      const simples = cliente.filter((f) => LEX.pain.test(f.t) || LEX.necesidadExplicita.test(f.t))
       if (conCausa.length > 0)
         return {
           estado: 'cubierta',

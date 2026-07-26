@@ -88,9 +88,17 @@ export function estadoPrompter(
     }
   }
 
-  const alertas = (base?.alertas ?? []).filter(
-    (a) => !(a.tipo === 'dimension_critica_pendiente' && opciones.temasCubiertosManual.some((d) => a.mensaje.includes(d.replaceAll('_', ' '))))
-  )
+  // En vivo el "total" de la reunión crece con cada frase: la condición "va
+  // media reunión" del coach de replay sería SIEMPRE cierta. La alerta de
+  // dimensión crítica solo aplica con conversación suficiente (~12 frases).
+  const MIN_SEGMENTOS_ALERTA_CRITICA = 12
+  const alertas = (base?.alertas ?? []).filter((a) => {
+    if (a.tipo === 'dimension_critica_pendiente') {
+      if (segmentos.length < MIN_SEGMENTOS_ALERTA_CRITICA) return false
+      if (opciones.temasCubiertosManual.some((d) => a.mensaje.includes(d.replaceAll('_', ' ')))) return false
+    }
+    return true
+  })
 
   const senales = segmentos.length === 0 ? [] : extraerInsights(reunion, transcripcion)
 
