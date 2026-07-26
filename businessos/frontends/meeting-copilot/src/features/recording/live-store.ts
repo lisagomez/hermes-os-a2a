@@ -17,6 +17,10 @@ interface LiveState {
   asesorActivo: boolean
   fuente: FuenteVivoId
   hablanteActual: 'Cliente' | 'Yo'
+  /** Contexto de la entrevista (modo asesor). El nombre del asesor persiste
+   *  (suele ser la misma persona); el del lead es por sesión. */
+  asesorNombre: string
+  leadNombre: string
   guiaVisible: boolean
   segmentos: Segmento[]
   temasCubiertosManual: DimensionId[]
@@ -27,6 +31,8 @@ interface LiveState {
   setAsesor: (v: boolean) => void
   setFuente: (f: FuenteVivoId) => void
   setHablante: (h: 'Cliente' | 'Yo') => void
+  setAsesorNombre: (n: string) => void
+  setLeadNombre: (n: string) => void
   setGuiaVisible: (v: boolean) => void
   agregarSegmento: (s: Segmento) => void
   marcarTema: (d: DimensionId) => void
@@ -36,12 +42,19 @@ interface LiveState {
   resetSesion: () => void
 }
 
+/** Nombres efectivos de los hablantes de la sesión en vivo. */
+export function nombresSesion(s: Pick<LiveState, 'asesorNombre' | 'leadNombre'>): { interno: string; cliente: string } {
+  return { interno: s.asesorNombre.trim() || 'Yo', cliente: s.leadNombre.trim() || 'Cliente' }
+}
+
 export const useLiveStore = create<LiveState>()(
   persist(
     (set) => ({
       asesorActivo: false,
       fuente: 'microfono',
       hablanteActual: 'Cliente',
+      asesorNombre: '',
+      leadNombre: '',
       guiaVisible: true,
       segmentos: [],
       temasCubiertosManual: [],
@@ -52,6 +65,8 @@ export const useLiveStore = create<LiveState>()(
       setAsesor: (v) => set({ asesorActivo: v }),
       setFuente: (f) => set({ fuente: f }),
       setHablante: (h) => set({ hablanteActual: h }),
+      setAsesorNombre: (n) => set({ asesorNombre: n }),
+      setLeadNombre: (n) => set({ leadNombre: n }),
       setGuiaVisible: (v) => set({ guiaVisible: v }),
       agregarSegmento: (s) => set((st) => ({ segmentos: [...st.segmentos, s] })),
       marcarTema: (d) =>
@@ -72,7 +87,7 @@ export const useLiveStore = create<LiveState>()(
     }),
     {
       name: 'meeting-copilot-asesor',
-      partialize: (s) => ({ asesorActivo: s.asesorActivo, fuente: s.fuente }),
+      partialize: (s) => ({ asesorActivo: s.asesorActivo, fuente: s.fuente, asesorNombre: s.asesorNombre }),
     }
   )
 )

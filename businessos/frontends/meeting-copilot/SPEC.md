@@ -465,6 +465,31 @@ pasos…) con pin, ocultar/mostrar guía, y enlace al Guided Meeting completo.
 off → grabación normal sin guía; error de transcripción en vivo (permiso/red/no soportado) →
 visible con alternativa (fuente demo); sesión terminada → acciones de guardado explicadas.
 
+**Contexto de la sesión (campos del modo asesor):** al activar el modo asesor, el card del
+selector expone **Nombre del asesor** y **Nombre del lead entrevistado** (no en settings:
+configuración contextual de la entrevista). Se capturan antes de grabar (se bloquean durante
+la sesión porque fijan la atribución de hablantes); el nombre del asesor persiste como
+preferencia, el del lead es por sesión. Alimentan: hablantes de la transcripción en vivo
+(switch ¿Quién habla? muestra los nombres reales), participantes/título/cuenta de la reunión
+guardada, la bitácora, y por tanto todo el flujo posterior (insights/summary/follow-up).
+Estado visible: "contexto completo" vs "sin nombres — la sesión usará Yo/Cliente".
+
+**Transcripción en curso (bloque central, bajo la grabadora):** refleja los segmentos
+parciales en vivo con timestamps y hablante, marcado "parcial · en vivo", con estados:
+no disponible (asesor off, con el porqué), esperando voz, escuchando/transcribiendo,
+en pausa, interrumpida (error con alternativa). Contrato para streaming real: cualquier
+`FuenteVivo` que emita `Segmento` lo alimenta sin cambios.
+
+**Bitácora de grabaciones (panel secundario, al final de la vista):** registro por
+grabación con título, fecha/hora, duración, estado (`lista` / `en_transcripcion` /
+`sesion_guardada`), origen (grabación / con asesor), asesor y lead. Acciones SIEMPRE
+visibles: **Descargar** y **Compartir** (Web Share con archivo si el navegador lo permite;
+fallback: enlace/resumen al portapapeles) + "Ver transcripción" cuando hay reunión ligada.
+Persistencia honesta: la metadata persiste (localStorage, últimos 30); el binario vive en la
+memoria de la sesión del navegador — tras recargar, Descargar se deshabilita con explicación
+(el enlace a la transcripción sigue). Durante una sesión activa la bitácora se atenúa para
+no competir con el flujo de grabación.
+
 ## 14. Theming system
 
 - **Mecanismo** (probado en control-interno): `ThemeProvider` tri-estado

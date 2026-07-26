@@ -105,18 +105,23 @@ export function estadoPrompter(
 }
 
 /** Participantes stub para captura en vivo sin diarización real: el asesor
- *  atribuye con el switch ¿Quién habla? (Yo/Cliente). */
-export function reunionVivoStub(id: string, titulo: string): Reunion {
+ *  atribuye con el switch ¿Quién habla?. Los nombres capturados en el modo
+ *  asesor (asesor / lead) se vuelven los hablantes reales de la sesión. */
+export function reunionVivoStub(
+  id: string,
+  titulo: string,
+  nombres: { interno: string; cliente: string } = { interno: 'Yo', cliente: 'Cliente' }
+): Reunion {
   return {
     id,
     titulo,
-    cuenta: 'Sesión en vivo',
+    cuenta: nombres.cliente === 'Cliente' ? 'Sesión en vivo' : nombres.cliente,
     tipoReunion: 'discovery',
     participantes: [
-      { nombre: 'Yo', rol: 'Asesor', lado: 'interno' },
-      { nombre: 'Cliente', rol: 'Cliente', lado: 'cliente' },
+      { nombre: nombres.interno, rol: 'Asesor', lado: 'interno' },
+      { nombre: nombres.cliente, rol: 'Lead', lado: 'cliente' },
     ],
-    asesor: 'Yo',
+    asesor: nombres.interno,
     fecha: new Date(0).toISOString(), // se fija al guardar la sesión
     duracionS: null,
     origen: 'audio',

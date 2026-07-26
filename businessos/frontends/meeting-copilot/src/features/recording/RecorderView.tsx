@@ -11,10 +11,13 @@ import type { Reunion, Transcripcion } from '@/features/domain/types'
 import { Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { PROVIDER_STT } from '@/shared/lib/config'
 import { nuevoId } from '@/shared/lib/format'
-import { useLiveStore } from './live-store'
+import { nombresSesion, useLiveStore } from './live-store'
 import { crearFuenteDemo, crearFuenteMicrofono, webSpeechDisponible, type FuenteVivo } from './fuentes-vivo'
 import { PrompterPanel } from './PrompterPanel'
 import { reunionVivoStub } from './prompter'
+import { TranscripcionEnCurso } from './TranscripcionEnCurso'
+import { Bitacora } from './Bitacora'
+import { useBitacoraStore } from './bitacora-store'
 
 type EstadoGrabacion = 'inactivo' | 'grabando' | 'pausado' | 'listo'
 
@@ -33,15 +36,19 @@ export function RecorderView() {
   const agregarArchivos = useTranscripcionStore((s) => s.agregarArchivos)
   const agregarReunion = useAppStore((s) => s.agregarReunion)
   const playbooks = useAppStore((s) => s.playbooks)
+  const bitacora = useBitacoraStore()
   const {
     asesorActivo,
     fuente,
     hablanteActual,
+    asesorNombre,
+    leadNombre,
     segmentos,
-    errorVivo,
     setAsesor,
     setFuente,
     setHablante,
+    setAsesorNombre,
+    setLeadNombre,
     agregarSegmento,
     setErrorVivo,
     resetSesion,
@@ -57,10 +64,19 @@ export function RecorderView() {
   const chunksRef = useRef<Blob[]>([])
   const blobRef = useRef<Blob | null>(null)
   const fuenteRef = useRef<FuenteVivo | null>(null)
+  const segundosRef = useRef(0)
+  const registroRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (estado !== 'grabando') return
-    const id = setInterval(() => setSegundos((s) => s + 1), 1000)
+    const id = setInterval(
+      () =>
+        setSegundos((s) => {
+          segundosRef.current = s + 1
+          return s + 1
+        }),
+      1000
+    )
     return () => clearInterval(id)
   }, [estado])
 
@@ -75,13 +91,15 @@ export function RecorderView() {
   const soportado = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices
   const micVivoDisponible = typeof window !== 'undefined' && webSpeechDisponible()
   const grabandoOPausa = estado === 'grabando' || estado === 'pausado'
+  const nombres = nombresSesion({ asesorNombre, leadNombre })
+  const contextoCompleto = asesorNombre.trim().length > 0 && leadNombre.trim().length > 0
 
   const reunionVivo: Reunion = useMemo(
     () =>
       fuente === 'demo'
         ? { ...AUDIO_DEMO.reunionBase, id: 'sesion-demo', titulo: 'Sesión demo en vivo', estado: 'capturada' }
-        : reunionVivoStub('sesion-vivo', 'Sesión en vivo'),
-    [fuente]
+        : reunionVivoStub('sesion-vivo', 'Sesión en vivo', nombres),
+    [fuente, nombres.interno, nombres.cliente] // eslint-disable-line react-hooks/exhaustive-deps
   )
   const playbook = playbookPorTipo('discovery', playbooks)
 
@@ -90,7 +108,15 @@ export function RecorderView() {
     const f =
       fuente === 'demo'
         ? crearFuenteDemo(agregarSegmento)
-        : crearFuenteMicrofono(agregarSegmento, () => useLiveStore.getState().hablanteActual, setErrorVivo)
+        : crearFuenteMicrofono(
+            agregarSegmento,
+            () => {
+              const st = useLiveStore.getState()
+              const n = nombresSesion(st)
+              return st.hablanteActual === 'Yo' ? n.interno : n.cliente
+            },
+            setErrorVivo
+          )
     fuenteRef.current = f
     f.iniciar()
   }
@@ -102,6 +128,7 @@ export function RecorderView() {
       const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined
       const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
       chunksRef.current = []
+      const nombreArchivo = nombreDefault()
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
@@ -111,11 +138,31 @@ export function RecorderView() {
         setAudioUrl(URL.createObjectURL(blob))
         setEstado('listo')
         stream.getTracks().forEach((t) => t.stop())
+        // Registrar en la bitácora (metadata persistente; el binario en memoria).
+        const st = useLiveStore.getState()
+        const id = nuevoId('rec')
+        registroRef.current = id
+        bitacora.agregar(
+          {
+            id,
+            titulo: nombreArchivo,
+            fechaISO: new Date().toISOString(),
+            duracionS: segundosRef.current,
+            estado: 'lista',
+            origen: st.asesorActivo ? 'sesion_asesor' : 'grabacion',
+            asesorNombre: st.asesorActivo && st.asesorNombre.trim() ? st.asesorNombre.trim() : null,
+            leadNombre: st.asesorActivo && st.leadNombre.trim() ? st.leadNombre.trim() : null,
+            reunionId: null,
+            mime: recorder.mimeType || 'audio/webm',
+          },
+          blob
+        )
       }
       recorderRef.current = recorder
       recorder.start(1000)
       setSegundos(0)
-      setNombre(nombreDefault())
+      segundosRef.current = 0
+      setNombre(nombreArchivo)
       resetSesion()
       if (asesorActivo) arrancarFuente()
       setEstado('grabando')
@@ -151,25 +198,32 @@ export function RecorderView() {
     resetSesion()
     setAudioUrl(null)
     setSegundos(0)
+    segundosRef.current = 0
     setEstado('inactivo')
   }
   const enviar = () => {
     if (!blobRef.current) return
     const filename = nombre.trim() || nombreDefault()
     agregarArchivos([{ filename, blob: blobRef.current }])
+    if (registroRef.current) bitacora.actualizar(registroRef.current, { titulo: filename, estado: 'en_transcripcion' })
     router.push('/herramientas/transcripcion')
   }
 
   // El valor capturado por el Prompter no se pierde: los segmentos vivos se
-  // vuelven una reunión normal y TODO el flujo posterior (insights, resumen,
-  // follow-up) se recalcula determinísticamente de ellos.
+  // vuelven una reunión normal y el flujo posterior recalcula de ellos.
   const guardarSesionAnalizada = () => {
     const reunionId = nuevoId('r')
     const prom = segmentos.reduce((a, s) => a + s.confianza, 0) / segmentos.length
+    const titulo =
+      fuente === 'demo'
+        ? 'Sesión demo con asesor'
+        : leadNombre.trim()
+          ? `Discovery en vivo — ${leadNombre.trim()}`
+          : `Sesión en vivo — ${new Date().toLocaleDateString('es-MX')}`
     const reunion: Reunion = {
       ...reunionVivo,
       id: reunionId,
-      titulo: fuente === 'demo' ? 'Sesión demo con asesor' : `Sesión en vivo — ${new Date().toLocaleDateString('es-MX')}`,
+      titulo,
       fecha: new Date().toISOString(),
       duracionS: segmentos.length > 0 ? Math.round(segmentos[segmentos.length - 1].finS) : null,
       estado: 'analizada',
@@ -183,13 +237,13 @@ export function RecorderView() {
       segmentos,
     }
     agregarReunion(reunion, transcripcion)
+    if (registroRef.current) bitacora.actualizar(registroRef.current, { estado: 'sesion_guardada', reunionId, titulo })
     router.push(`/reuniones/${reunionId}/insights`)
   }
 
   const toggleAsesor = () => {
     const nuevo = !asesorActivo
     setAsesor(nuevo)
-    // También durante la sesión: encenderlo arranca la guía al vuelo.
     if (grabandoOPausa) {
       if (nuevo && !fuenteRef.current) arrancarFuente()
       if (!nuevo) {
@@ -245,20 +299,22 @@ export function RecorderView() {
         {estado === 'grabando' && <Chip tono="danger">grabando</Chip>}
         {estado === 'pausado' && <Chip tono="warning">en pausa</Chip>}
 
-        {/* Atribución de hablante para la transcripción en vivo (sin diarización) */}
         {asesorActivo && fuente === 'microfono' && grabandoOPausa && (
           <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5" data-testid="switch-hablante">
             <span className="text-[11px] font-medium text-ink-muted">¿Quién habla?</span>
-            {(['Cliente', 'Yo'] as const).map((h) => (
+            {([
+              ['Cliente', nombres.cliente],
+              ['Yo', nombres.interno],
+            ] as const).map(([clave, etiqueta]) => (
               <button
-                key={h}
+                key={clave}
                 type="button"
-                onClick={() => setHablante(h)}
+                onClick={() => setHablante(clave)}
                 className={`rounded px-2 py-0.5 text-[12px] font-medium ${
-                  hablanteActual === h ? 'bg-accent-muted text-accent' : 'text-ink-secondary hover:text-ink'
+                  hablanteActual === clave ? 'bg-accent-muted text-accent' : 'text-ink-secondary hover:text-ink'
                 }`}
               >
-                {h}
+                {etiqueta}
               </button>
             ))}
           </div>
@@ -269,12 +325,6 @@ export function RecorderView() {
         <div className="flex items-start gap-2 rounded-lg bg-danger-muted px-3 py-2" data-testid="error-grabacion">
           <MicOff className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
           <p className="text-[12px] text-danger">{error}</p>
-        </div>
-      )}
-      {errorVivo && (
-        <div className="flex items-start gap-2 rounded-lg bg-warning-muted px-3 py-2" data-testid="error-vivo">
-          <MicOff className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-          <p className="text-[12px] text-warning">{errorVivo}</p>
         </div>
       )}
 
@@ -291,7 +341,12 @@ export function RecorderView() {
                 <ScanSearch className="h-3.5 w-3.5" /> Guardar sesión analizada ({segmentos.length} segmentos)
               </button>
             )}
-            <button type="button" className={asesorActivo && segmentos.length >= 3 ? 'btn-secondary' : 'btn-primary'} onClick={enviar} data-testid="enviar-transcripcion">
+            <button
+              type="button"
+              className={asesorActivo && segmentos.length >= 3 ? 'btn-secondary' : 'btn-primary'}
+              onClick={enviar}
+              data-testid="enviar-transcripcion"
+            >
               <Send className="h-3.5 w-3.5" /> Enviar a transcripción
             </button>
             <a href={audioUrl} download={nombre || nombreDefault()} className="btn-secondary">
@@ -304,12 +359,19 @@ export function RecorderView() {
           {asesorActivo && segmentos.length >= 3 && (
             <p className="text-[11px] text-ink-muted">
               “Guardar sesión analizada” usa la transcripción capturada en vivo (insights al instante). “Enviar a
-              transcripción” procesa el audio por la cola normal.
+              transcripción” procesa el audio por la cola normal. La grabación ya quedó en la bitácora.
             </p>
           )}
         </div>
       )}
     </Card>
+  )
+
+  const columnaCentral = (
+    <div className="space-y-4">
+      {grabadora}
+      <TranscripcionEnCurso grabando={estado === 'grabando'} pausado={estado === 'pausado'} />
+    </div>
   )
 
   return (
@@ -319,50 +381,88 @@ export function RecorderView() {
         descripcion="Graba la reunión desde la app; con el modo asesor encendido, la guía en vivo te acompaña sin sacarte del flujo."
       />
 
-      {/* Selector del modo asesor — parte del flujo, no un setting escondido */}
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-3">
-        <div className="flex items-center gap-2.5">
-          <Sparkles className={`h-4 w-4 ${asesorActivo ? 'text-accent' : 'text-ink-muted'}`} />
-          <div>
-            <p className="text-[13px] font-semibold text-ink">Modo asesor</p>
-            <p className="text-[11px] text-ink-secondary">
-              Guía de la reunión en vivo: playbook, siguiente pregunta, gaps y señales — el mismo motor de Guided Meeting.
-            </p>
+      {/* Modo asesor: configuración contextual de la sesión */}
+      <Card className="space-y-3 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className={`h-4 w-4 ${asesorActivo ? 'text-accent' : 'text-ink-muted'}`} />
+            <div>
+              <p className="text-[13px] font-semibold text-ink">Modo asesor</p>
+              <p className="text-[11px] text-ink-secondary">
+                Guía de la reunión en vivo: playbook, siguiente pregunta, gaps y señales — el mismo motor de Guided Meeting.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {asesorActivo && (
+              <select
+                value={fuente}
+                onChange={(e) => setFuente(e.target.value as 'microfono' | 'demo')}
+                disabled={grabandoOPausa}
+                className="input w-auto"
+                aria-label="Fuente de señales en vivo"
+                data-testid="fuente-vivo"
+              >
+                <option value="microfono" disabled={!micVivoDisponible}>
+                  Micrófono (transcripción en vivo{micVivoDisponible ? '' : ' — no soportada aquí'})
+                </option>
+                <option value="demo">Señales demo (conversación de ejemplo)</option>
+              </select>
+            )}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={asesorActivo}
+              onClick={toggleAsesor}
+              data-testid="toggle-asesor"
+              className={`relative h-6 w-11 rounded-full transition-colors ${asesorActivo ? 'bg-accent' : 'bg-surface-muted border border-line'}`}
+              title={asesorActivo ? 'Desactivar modo asesor' : 'Activar modo asesor'}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface shadow transition-transform ${
+                  asesorActivo ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+            <Chip tono={asesorActivo ? 'accent' : 'neutral'}>{asesorActivo ? 'activo' : 'apagado'}</Chip>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {asesorActivo && (
-            <select
-              value={fuente}
-              onChange={(e) => setFuente(e.target.value as 'microfono' | 'demo')}
-              disabled={grabandoOPausa}
-              className="input w-auto"
-              aria-label="Fuente de señales en vivo"
-              data-testid="fuente-vivo"
-            >
-              <option value="microfono" disabled={!micVivoDisponible}>
-                Micrófono (transcripción en vivo{micVivoDisponible ? '' : ' — no soportada aquí'})
-              </option>
-              <option value="demo">Señales demo (conversación de ejemplo)</option>
-            </select>
-          )}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={asesorActivo}
-            onClick={toggleAsesor}
-            data-testid="toggle-asesor"
-            className={`relative h-6 w-11 rounded-full transition-colors ${asesorActivo ? 'bg-accent' : 'bg-surface-muted border border-line'}`}
-            title={asesorActivo ? 'Desactivar modo asesor' : 'Activar modo asesor'}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface shadow transition-transform ${
-                asesorActivo ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
-          <Chip tono={asesorActivo ? 'accent' : 'neutral'}>{asesorActivo ? 'activo' : 'apagado'}</Chip>
-        </div>
+
+        {/* Contexto de la entrevista: solo con el modo asesor activo */}
+        {asesorActivo && (
+          <div className="grid gap-3 border-t border-line-subtle pt-3 sm:grid-cols-[1fr_1fr_auto]" data-testid="contexto-sesion">
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Nombre del asesor
+              <input
+                value={asesorNombre}
+                onChange={(e) => setAsesorNombre(e.target.value)}
+                disabled={grabandoOPausa}
+                placeholder="p. ej. Valeria"
+                className="input mt-1"
+                title={grabandoOPausa ? 'Se fija al iniciar la grabación (atribuye los hablantes de la transcripción)' : undefined}
+                data-testid="input-asesor-nombre"
+              />
+            </label>
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Nombre del lead entrevistado
+              <input
+                value={leadNombre}
+                onChange={(e) => setLeadNombre(e.target.value)}
+                disabled={grabandoOPausa}
+                placeholder="p. ej. Marco (TransLogika)"
+                className="input mt-1"
+                data-testid="input-lead-nombre"
+              />
+            </label>
+            <div className="flex items-end pb-1">
+              {contextoCompleto ? (
+                <Chip tono="success">contexto completo</Chip>
+              ) : (
+                <Chip tono="warning">sin nombres — la sesión usará “Yo / Cliente”</Chip>
+              )}
+            </div>
+          </div>
+        )}
       </Card>
 
       {!soportado ? (
@@ -373,12 +473,14 @@ export function RecorderView() {
         </Card>
       ) : asesorActivo ? (
         <div className="grid gap-4 lg:grid-cols-[1fr_21rem]">
-          <div className="space-y-4">{grabadora}</div>
+          {columnaCentral}
           <PrompterPanel reunion={reunionVivo} playbook={playbook} grabando={grabandoOPausa} />
         </div>
       ) : (
-        grabadora
+        columnaCentral
       )}
+
+      <Bitacora sesionActiva={grabandoOPausa} />
 
       <Card className="p-4">
         <p className="text-[12px] text-ink-secondary">

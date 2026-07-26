@@ -74,26 +74,41 @@ test('grabación en-app: grabar → detener → enviar a la cola de transcripci�
 
 test('modo asesor: Prompter embebido en Grabación con fuente demo', async ({ page }) => {
   await page.goto('/grabacion')
-  // Activar modo asesor → aparece el Prompter (aún sin grabar: pregunta de apertura).
+  // Sin asesor: la transcripción en curso explica cómo activarse.
+  await expect(page.getByTestId('vivo-no-disponible')).toBeVisible()
+  // Activar modo asesor → Prompter + campos de contexto (asesor / lead).
   await page.getByTestId('toggle-asesor').click()
   await expect(page.getByTestId('prompter')).toBeVisible()
   await expect(page.getByTestId('prompter-sugerencia')).toContainText('complica')
-  // Fuente demo + grabar → llegan señales y la cobertura avanza.
+  await expect(page.getByTestId('contexto-sesion')).toBeVisible()
+  await page.getByTestId('input-asesor-nombre').fill('Valeria')
+  await page.getByTestId('input-lead-nombre').fill('Marco')
+  await expect(page.getByText('contexto completo')).toBeVisible()
+  // Fuente demo + grabar → transcripción en curso y señales avanzan.
   await page.getByTestId('fuente-vivo').selectOption('demo')
   await page.getByTestId('grabar').click()
+  await expect(page.getByTestId('vivo-segmentos')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('prompter-senales')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('prompter-cobertura')).toBeVisible()
-  // Interacciones: otra pregunta y marcar tema cubierto.
+  // Interacciones: otra pregunta.
   const pregunta = await page.getByTestId('prompter-sugerencia').textContent()
   await page.getByTestId('otra-pregunta').click()
   await expect(page.getByTestId('prompter-sugerencia')).not.toHaveText(pregunta ?? '')
-  // Detener → guardar sesión analizada → insights de la sesión.
+  // Detener → registro en bitácora con Descargar/Compartir + metadata de la sesión.
   await page.getByTestId('detener').click()
   await expect(page.getByTestId('grabacion-lista')).toBeVisible()
+  const registro = page.getByTestId('bitacora-registro').first()
+  await expect(registro).toContainText('asesor: Valeria')
+  await expect(registro).toContainText('lead: Marco')
+  await expect(registro.getByTestId('bitacora-descargar')).toBeEnabled()
+  await expect(registro.getByTestId('bitacora-compartir')).toBeVisible()
+  // Guardar sesión analizada → insights de la sesión.
   await page.getByTestId('guardar-sesion').click()
   await expect(page.getByTestId('score-total')).toBeVisible()
-  // Apagar el modo asesor deja la grabación normal.
+  // La bitácora liga la reunión guardada.
   await page.goto('/grabacion')
+  await expect(page.getByTestId('bitacora-registro').first()).toContainText('sesión analizada')
+  // Apagar el modo asesor deja la grabación normal.
   await page.getByTestId('toggle-asesor').click()
   await expect(page.getByTestId('prompter')).toHaveCount(0)
   await expect(page.getByTestId('grabar')).toBeVisible()
