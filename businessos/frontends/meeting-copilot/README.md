@@ -46,6 +46,17 @@ npm run build       # build de producción
 npm run smoke       # Playwright: flujo completo + temas + launcher (levanta su propio server)
 ```
 
+Gotcha WSL sin sudo: si Chromium falla con `libnspr4.so: cannot open shared object file`,
+no hace falta root — descarga y extrae las libs localmente:
+
+```bash
+mkdir -p /tmp/pw-libs && cd /tmp/pw-libs
+apt-get download libnspr4 libnss3 libasound2t64
+for d in *.deb; do dpkg-deb -x "$d" extract/; done
+export LD_LIBRARY_PATH=/tmp/pw-libs/extract/usr/lib/x86_64-linux-gnu
+npm run smoke
+```
+
 ## Seams (integraciones pluggables)
 
 Regla del proyecto: un valor desconocido en un seam **detiene la app** al arrancar (nunca

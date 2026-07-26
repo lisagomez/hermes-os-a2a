@@ -155,16 +155,18 @@ test('command bar: ⌘K busca y navega', async ({ page }) => {
 })
 
 test('temas: system / light / dark aplican en toda la shell', async ({ page }) => {
+  // El toggle vive en la topbar (y también en /configuracion): se ancla al header.
   await page.goto('/configuracion')
-  await page.getByTestId('theme-dark').click()
+  const toggle = (modo: string) => page.locator('header').getByTestId(`theme-${modo}`)
+  await toggle('dark').click()
   await expect(page.locator('html')).toHaveClass(/dark/)
-  await page.getByTestId('theme-light').click()
+  await toggle('light').click()
   await expect(page.locator('html')).not.toHaveClass(/dark/)
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  await page.getByTestId('theme-system').click()
+  await toggle('system').click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', /light|dark/)
   // Persistencia + anti-flash: recargar conserva el modo elegido.
-  await page.getByTestId('theme-dark').click()
+  await toggle('dark').click()
   await page.reload()
   await expect(page.locator('html')).toHaveClass(/dark/)
 })
