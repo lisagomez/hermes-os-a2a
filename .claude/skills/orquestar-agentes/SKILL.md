@@ -1,6 +1,6 @@
 ---
 name: orquestar-agentes
-description: Modelo de trabajo para REPARTIR un build complejo entre varios agentes (orquestador Opus 4.8 → ejecutor de riesgo Opus 4.8, o subagente Fable 5 para lo verdaderamente dificil → ejecutores baratos Sonnet 5/Haiku 4.5; techo de esfuerzo xhigh para modelos frontera, nunca max), con verificacion antes de integrar y debate adversarial antes de decisiones irreversibles. Es una skill de COMPORTAMIENTO del orquestador, no de un dominio. Usar cuando el usuario diga: orquesta esto, reparte el trabajo, usa los agentes, coordina subagentes, monta el plan multiagente, esto es un build grande/delicado, quien hace que, esto a Opus o a Sonnet, debate esta decision, verifica antes de integrar, paraleliza esto, divide en subtareas. Triggers: orquestar, orquestacion, subagentes, multiagente, reparte, paraleliza, fan-out, debate adversarial, blast radius, quien lo hace, Opus o Sonnet, verifica antes de integrar, plan por fases. NO USAR para: tareas simples (hazlas inline — ver el Filtro maestro), crear o editar skills (skill-creator), memoria persistente del proyecto (memory-manager), meta-memoria cross-proyecto (factory-brain). Es DISTINTO de esas: aqui se decide COMO descomponer y delegar trabajo entre modelos.
+description: Modelo de trabajo para REPARTIR un build complejo entre varios agentes (orquestador = el modelo del loop, hoy Opus 5 → ejecutor de riesgo Opus 5, con Fable 5 solo para lo dificil ABIERTO de diseño/razonamiento → ejecutores baratos Sonnet 5/Haiku 4.5; techo de esfuerzo xhigh para modelos frontera, nunca max), con verificacion antes de integrar y debate adversarial antes de decisiones irreversibles. Es una skill de COMPORTAMIENTO del orquestador, no de un dominio. Usar cuando el usuario diga: orquesta esto, reparte el trabajo, usa los agentes, coordina subagentes, monta el plan multiagente, esto es un build grande/delicado, quien hace que, esto a Opus o a Sonnet, debate esta decision, verifica antes de integrar, paraleliza esto, divide en subtareas. Triggers: orquestar, orquestacion, subagentes, multiagente, reparte, paraleliza, fan-out, debate adversarial, blast radius, quien lo hace, Opus o Sonnet, verifica antes de integrar, plan por fases. NO USAR para: tareas simples (hazlas inline — ver el Filtro maestro), crear o editar skills (skill-creator), memoria persistente del proyecto (memory-manager), meta-memoria cross-proyecto (factory-brain). Es DISTINTO de esas: aqui se decide COMO descomponer y delegar trabajo entre modelos.
 ---
 
 # Orquestar agentes — modelo de trabajo para builds complejos
@@ -8,6 +8,12 @@ description: Modelo de trabajo para REPARTIR un build complejo entre varios agen
 > Patron: **orquestador (L0) → ejecutor de riesgo (L1) → ejecutores mecanicos (L2)**, con verificacion
 > antes de integrar y debate adversarial antes de cerrar decisiones irreversibles.
 > Esta skill se **cita bajo demanda**: el agente la lee con Read y la aplica al build en curso.
+>
+> **Variante Fable:** cuando el modelo del loop principal es Fable (no Opus), lee ADEMÁS de esta el DELTA
+> `.claude/skills/orquestar-agentes-fable/SKILL.md`. Desde 2026-07-26 ya NO duplica las §0–§8
+> (esa copia se desincronizó y era el bug): esta skill sigue siendo la doctrina completa, y el delta solo
+> cambia quién dirige (Fable L0), quién ataca (Opus 5 como sub-director adversarial fijo), que el debate
+> pasa a ser política por defecto, y el techo de esfuerzo.
 
 ---
 
@@ -30,8 +36,8 @@ menor que el coste del error que evita (o que el contexto que ahorra)?** Si no, 
 
 | Nivel | Quién | Para qué |
 |---|---|---|
-| **L0 · Orquestador** (Opus 4.8, este loop) | Dueño del PLAN GLOBAL por fases y de la **decisión final**. No ejecuta lo delicado: lo delega, lo verifica y lo integra. Mantiene y **persiste** el mapa de contexto. |
-| **L1 · Ejecutor de riesgo** (Opus 4.8 `high→xhigh`; lo verdaderamente difícil → subagente Fable 5 `low→med`, mejor score/$ por tarea — §6) | Lógica delicada, migraciones/RLS, integraciones, algoritmos portados, **contratos entre módulos**, cualquier cosa difícil de revertir. |
+| **L0 · Orquestador** (el modelo de ESTE loop; por defecto Opus 5, que releva a Opus 4.8 desde 2026-07-24) | Dueño del PLAN GLOBAL por fases y de la **decisión final**. No ejecuta lo delicado: lo delega, lo verifica y lo integra. Mantiene y **persiste** el mapa de contexto. |
+| **L1 · Ejecutor de riesgo** (**Opus 5** `high→xhigh`, incluido lo verdaderamente difícil **en código**: es #1 en código *mergeable*, FrontierCode 53.4% vs 46.3% de Fable [I] 2026-07-25. Fable 5 `low→med` queda para lo difícil **ABIERTO**: diseño sin dirección dada, razonamiento sin camino trazado — §6) | Lógica delicada, migraciones/RLS, integraciones, algoritmos portados, **contratos entre módulos**, cualquier cosa difícil de revertir. |
 | **L2 · Ejecutores mecánicos** (Sonnet 5; Haiku 4.5 solo para lo determinista sin juicio) | UI Tailwind cableando contratos ya definidos, scaffolding, traducciones, lecturas/escaneos, refactors de una sola carpeta. |
 
 ---
@@ -41,7 +47,7 @@ menor que el coste del error que evita (o que el contexto que ahorra)?** Si no, 
 Un agente **no mide bien su propia confianza** (sesgo de competencia → subdelega lo delicado). Enruta por
 el **radio de impacto** del cambio, que sí es observable (blast radius contenido).
 
-**CRITERIOS-DELICADOS** (si cumple **≥1** → sube de nivel: Opus 4.8 `high` para riesgo estándar, o subagente Fable 5 `low→med` si es de los verdaderamente difíciles — tabla abajo):
+**CRITERIOS-DELICADOS** (si cumple **≥1** → sube de nivel: Opus 5 `high` para riesgo estándar, `xhigh` si además es difícil; Fable 5 solo si la dificultad es ABIERTA, no de código — tabla abajo):
 - difícil de revertir
 - toca **contratos entre módulos** o el **esquema de datos**
 - seguridad / RLS / migración
@@ -63,11 +69,11 @@ verificable automáticamente (build/tsc/test) · error barato de revertir.
 | git push, renombrar, formatear, extraer texto | Haiku 4.5 `low` | Determinista, sin juicio; el más rápido y barato ($1/$5 MTok) |
 | UI cableando contratos definidos, scaffolding, traducciones | Sonnet 5 `low→med` | Bien especificado y verificable; sweet spot score/$ |
 | Lectura pesada → destilado (repo, docs, screenshots) | Sonnet 5 `med` | En input manda el precio por token: $3/M vs $10/M de Fable |
-| L1 estándar: migración/RLS verificable, integración acotada | Opus 4.8 `high` | Frontera score/$ del riesgo estándar (~30% @ ~$4/tarea) |
-| L1 difícil: algoritmo portado, side cases, contrato multi-módulo | Fable 5 `low→med` (subagente) | Domina por tarea: 41% @ ~$6 vs 34% @ ~$7 de Opus/Sonnet `xhigh` |
-| Lo más difícil (clase Diamond: diseño delicado, bug imposible) | Fable 5 `high→xhigh` | En las tareas más duras, Fable ≥`med` dobla al mejor Opus |
+| L1 estándar: migración/RLS verificable, integración acotada | Opus 5 `high` | Flagship de cuota desde 2026-07-24, mismo precio que 4.8 ($5/$25) |
+| L1 difícil EN CÓDIGO: algoritmo portado, side cases, contrato multi-módulo, refactor grande | Opus 5 `xhigh` | #1 en código *mergeable*: FrontierCode 53.4% vs 46.3% de Fable, 38.8% de Sonnet [I] |
+| Lo difícil y ABIERTO: elegir la dirección de diseño, pieza insignia de escritura, razonamiento sin camino trazado | Fable 5 `low→xhigh` (subagente) | Lidera todas las tablas medidas de escritura y empata arriba en razonamiento; el "feel" no viaja por brief |
 | Plan / arquitectura / síntesis final | L0 | El error de plan es el más caro del build; nunca Haiku ni `low` |
-| Debate adversarial | Opus 4.8 `high→xhigh` | Diversidad de modelo frente al que propone |
+| Debate adversarial | Sonnet 5 / Haiku 4.5 con lente escrito; Opus 5 `high→xhigh` solo si el plan es caro de revertir. NUNCA Fable | La diversidad se compra barata: el lente pesa mas que el modelo (recuadro "quien ataca" en §7) |
 
 > Antes de rutear a un modelo, aplica el **Eje 0** (§6): si el paso es SCRIPT puro (determinista, corre
 > como comando), no se rutea a ningún modelo — cero costo LLM.
@@ -165,6 +171,25 @@ Auto-check: al arrancar, declara tu modelo; si es más débil que el recomendado
   `git diff --stat` + el diff acotado a los archivos del scope. Es **efímero** (no se guarda como artefacto) y
   es la **excepción deliberada** a "destila, no vuelques" (§3): evidencia primaria que **nunca se resume con
   IA** — un diff resumido ya no es evidencia.
+- **El error SILENCIOSO: lo que ninguna de las viñetas de arriba caza (2026-07-26).** Todo lo anterior verifica
+  el ARTEFACTO y asume que un error FALLA. Existe una clase entera que no falla: el build pasa, los tests están
+  verdes, la UI se ve bien, el diff es correcto, y aun así el resultado está mal. Los casos recurrentes: una
+  suite verde sobre un cambio aplicado a medias; un test verde cuyo fixture no toca el artefacto real ("panel
+  verde, territorio vacío"); una extracción que devuelve 16 ítems de una lista de 77 y se presenta como
+  completa; y afirmar el significado de un dato ajeno (respuesta de una API, artefacto que no se abrió) sin
+  verificarlo. **Ninguno habría fallado una verificación de "¿esto funciona?".**
+- **Consecuencia práctica de ruteo: el QA genérico al final es el peor precio-calidad**, porque verifica justo
+  lo que ya pasaba. Lo que paga es un verificador BARATO y ACOTADO, con **la pregunta escrita**, puesto donde el
+  error sería silencioso:
+  | Momento | La pregunta exacta que se le da | Modelo |
+  |---|---|---|
+  | Tras una EXTRACCIÓN de una lista/corpus | *"La fuente tiene N ítems. ¿Cuántos salieron y cuáles faltan? ¿El reporte declara ese número o lo esconde?"* | Haiku 4.5 |
+  | Al AFIRMAR qué es o qué significa algo ajeno (dato de una API, artefacto que no abriste) | *"Verifica esta afirmación contra la fuente y devuelve la evidencia. Si no puedes, dilo."* | Haiku 4.5 |
+  | Antes de OCULTAR, filtrar o resumir un dato de cara al usuario | *"¿Este dato es insumo de una decisión que el usuario sí toma?"* | Haiku 4.5 |
+  | Al cerrar una superficie de UI | Lente ortogonal + estado COMPUTADO (`getComputedStyle`/screenshot, nunca solo `classList`) | Sonnet 5 (necesita juicio sobre capturas) |
+- **Regla de dedo para no caer en ceremonia:** el verificador vale cuando el error sería SILENCIOSO. Si el error
+  haría fallar algo, ya lo caza correr el código, y pagar un agente para eso es gasto muerto. Y lo que lo hace
+  útil NO es que exista, sino que su **lente sea ORTOGONAL** a la del que construyó.
 - **Si falla:** vuelve al ejecutor **con el error concreto**. **Máx. 2 reintentos** por subtarea; al 3.º el
   orquestador la asume con esfuerzo alto o **escala al usuario** describiendo el bloqueo. (Sin tope = bucle que quema tokens.)
 - **Idempotencia:** cada subtarea debe poder re-ejecutarse sobre su propio resultado parcial sin duplicar
@@ -187,15 +212,18 @@ No confundir "pensar más" con "cambiar de herramienta". Son palancas distintas:
   - **La escalera NO es monótona, y "modelo barato a esfuerzo alto" NO es más barato por tarea.** Datos
     (FrontierCode v1 + Artificial Analysis, 2026-07-01): `max` rinde igual o **peor** que `xhigh` (Fable 5:
     44.7% vs 46.3% · Opus 4.8: 31.3% vs 34.3%) costando 40-60% más — por eso el techo de los modelos
-    frontera es `xhigh` (§7). Y por TAREA, Fable 5 `med` (41.1% @ ~$6) **domina** a Opus 4.8 `xhigh`
+    frontera es `xhigh` (§7). **Ese dato es de Opus 4.8 y sigue siendo cierto; lo que cambió es la
+    conclusión para CÓDIGO: con Opus 5 (53.4% en código mergeable vs 46.3% de Fable) el difícil de código
+    ya no va a Fable, va a Opus 5.** Y por TAREA, Fable 5 `med` (41.1% @ ~$6) **dominaba** a Opus 4.8 `xhigh`
     (34.3% @ ~$6.5) y a Sonnet 5 `xhigh` (34.0% @ ~$7): en tareas difíciles densas en razonamiento, bajar
     el esfuerzo del modelo frontera gana a subir el esfuerzo del barato. **Excepción — trabajo pesado en
     input** (leer repos, muchos archivos): ahí manda el precio por token (Sonnet 5 $3/M vs Fable $10/M) y
     la ruta sigue siendo Sonnet 5/Haiku 4.5 + destilado (§3).
   - **Modelo (piso por defecto):** Sonnet 5 para el trabajo de campo (investigar, destilar, escribir, scripts,
-    escanear UIs), subiendo su **esfuerzo** por complejidad. **Opus 4.8 `high`** para riesgo estándar;
+    escanear UIs), subiendo su **esfuerzo** por complejidad. **Opus 5 `high→xhigh`** para riesgo estándar y
+    para lo difícil en CÓDIGO;
     **Fable 5 `low→med`** para lo verdaderamente difícil (tabla de §2). Contexto: 1M es ESTÁNDAR en
-    Sonnet 5, Opus 4.8 y Fable 5 (Haiku 4.5: 200K); para contexto gigante con tarea simple gana Sonnet 5
+    Sonnet 5, Opus (4.8 y 5) y Fable 5 (Haiku 4.5: 200K); para contexto gigante con tarea simple gana Sonnet 5
     (entrada más barata, $3/M vs $5/M). No sobre-limites a un solo modelo: **un mal resultado cuesta más
     que los tokens extra.**
 - **Eje B — herramienta**: `un agente → panel → Workflow`.
@@ -239,8 +267,7 @@ solo y rápido, debatir lo trivial **paraliza** — reserva esto para lo que de 
 
 **Protocolo (blindado contra complacencia y confirmación):**
 1. Al adversario se le da **la decisión** y la **orden de destruirla** (red team) — **NO** se le da tu
-   rationale a favor (lo racionalizaría). Modelo: Opus 4.8, esfuerzo `high→xhigh` según lo que esté en
-   juego (nunca `max`).
+   rationale a favor (lo racionalizaría). **Qué modelo: ver el recuadro "quién ataca" abajo.**
 2. Devuelve: **vectores de ataque** concretos / side cases · **alternativas** con tradeoffs · **fallo más
    probable** · **veredicto**.
 3. El orquestador **responde a CADA objeción por escrito**: `refutada` / `aceptada` / `mitigada`.
@@ -248,10 +275,34 @@ solo y rápido, debatir lo trivial **paraliza** — reserva esto para lo que de 
 4. **Una sola ronda**, salvo que el debate revele algo nuevo de peso.
 5. El orquestador **reconcilia, decide y deja constancia del porqué** (qué adoptó, qué descartó y por qué).
 
+> ### Quién ataca: la diversidad se compra BARATA (2026-07-26)
+>
+> El valor del atacante **no viene de su potencia bruta**, viene de tres cosas estructurales que son
+> gratis: no recibe tu rationale (no puede racionalizarlo), es read-only (no puede "arreglar" lo que
+> audita, por eso su veredicto sirve), y lleva **una pregunta escrita** en vez de un "revisa esto".
+> Entre atacantes, la ganancia por MODELO es marginal y la ganancia por LENTE es grande. Por eso el
+> gasto va en escribir la pregunta, no en el modelo que la responde.
+>
+> | Situación | Atacante | Por qué |
+> |---|---|---|
+> | Plan barato de revertir (el caso común) | **Sonnet 5 + Haiku 4.5**, dos lentes distintos | Diversidad real de modelo por una fracción del costo |
+> | Plan caro de revertir (esquema, contratos públicos, arquitectura) | **Opus 5** `high→xhigh` | Aquí sí paga la capacidad; nunca `max` |
+> | El director es Fable | **Opus 5** | Ver la variante `orquestar-agentes-fable` |
+> | **Fable como atacante** | **NUNCA** | Pagas ~2x por paridad de razonamiento, con TTFT ~128s, el doble de error en salida estructurada, y clasificadores que lo reemplazan en silencio (puede que ni sea Fable el que atacó) |
+> | El mismo modelo contra sí mismo | Solo si el plan es barato de revertir | Mismos puntos ciegos; la independencia viene del lente, no del peso |
+>
+> **Restricción operativa que decide esto:** desde una sesión de Claude Code solo se puede rutear un
+> subagente a `opus` / `sonnet` / `haiku` / `fable`, y `opus` resuelve al Opus vigente (hoy Opus 5).
+> **Opus 4.8 NO es seleccionable como subagente** aunque siga existiendo por API: no lo cites como
+> escape hatch.
+
 > **Techo de esfuerzo (cost cap):** en esta fábrica, **ni Opus ni Fable escalan a `max`** — su techo es
 > `xhigh`, tanto en el debate como ejecutando riesgo L1 (§1). No es solo costo: en el benchmark `max` rinde
-> **igual o peor** que `xhigh` (Opus 4.8: 31.3% vs 34.3% · Fable 5: 44.7% vs 46.3%) costando 40-60% más.
-> Pagar más por menos no es una opción.
+> **igual o peor** que `xhigh`. Dato de la generación anterior, conservado con su etiqueta (Opus 4.8:
+> 31.3% vs 34.3% · Fable 5: 44.7% vs 46.3%), costando 40-60% más. **Reconfirmado con Opus 5** (API oficial
+> de Artificial Analysis, [I] 2026-07-25): su `high` ya saca el mejor GPQA de toda la escalera (93.7%,
+> empatado con `xhigh`) a 10.1s de TTFT, mientras `max` tarda 28.7s y en GPQA **baja** a 93.2%. Pagar más
+> por menos no es una opción.
 
 ---
 
@@ -299,18 +350,18 @@ tool para paralelo. Un `.md` como canal en tiempo real es mito; como memoria de 
 
 ---
 
-## 9. Cómo se invoca / referencia (en esta fábrica)
+## 9. Cómo se invoca / referencia (en este repo)
 
-- **Desde `saas-factory/`** (raíz de la app): se auto-descubre como skill nativa por su `description` cuando
+- **Desde la raíz del repo**: se auto-descubre como skill nativa por su `description` cuando
   lanzas Claude desde ahí (igual que las demás skills de la fábrica).
 - **Desde la raíz del repo o un proyecto hijo:** di al agente *"lee y aplica
-  `saas-factory/.claude/skills/orquestar-agentes/SKILL.md`"*. La carga con **Read** y la sigue.
+  `.claude/skills/orquestar-agentes/SKILL.md`"*. La carga con **Read** y la sigue.
 - **En subagentes:** como arrancan en frío (§3), si quieres que un subagente aplique este modelo, **pégale las
   §0–§5 en el brief** o dile que lea este archivo por su ruta; no asumas que lo conoce.
 
-> **Origen:** adaptado del modelo de orquestación de OPS (`C:\OPS\.claude\skills\orquestar-agentes\SKILL.md`).
+> **Origen:** adaptado del modelo de orquestación de OPS (repo de origen; ruta local, no versionada aquí).
 > Las §0–§8 son model-agnósticas y portables; aquí se ajustó solo la sección de invocación a la fábrica.
 > **Ajuste 2026-07-01:** techo de esfuerzo `xhigh` (nunca `max`) para modelos frontera, generaciones fijadas
 > (Sonnet 5 / Opus 4.8 / Haiku 4.5 / Fable 5), ruteo por frontera de Pareto (L1 difícil → subagente Fable 5
 > `low→med`) y tabla de ruteo canónica en §2 — datos: FrontierCode v1 + Artificial Analysis.
-> Registro completo de decisiones con los datos: `saas-factory/.claude/skills/orquestar-agentes-fable/README.md`.
+> Registro completo de decisiones con los datos: `.claude/skills/orquestar-agentes-fable/README.md`.

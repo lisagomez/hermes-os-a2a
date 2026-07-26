@@ -264,11 +264,104 @@ los 6 kickoffs de OLA 5 del plan de limpieza de identidad de OPS (con tabla-resu
 
 ## 4. Como re-evaluar (para versiones futuras)
 
-1. Fuente de precios e indices: API de Artificial Analysis (key en `C:\OPS\.env.ops`; usarla en RUNTIME
-   con un script que jamas imprima el valor, solo prefijos. Regla `seguridad-secretos` de OPS).
+1. Fuente de precios e indices: API de Artificial Analysis (la key vive en el archivo de variables de
+   entorno de la maquina que corre el analisis; usarla en RUNTIME con un script que jamas imprima el
+   valor, solo prefijos).
 2. La metrica que manda es COSTO POR TAREA a un score dado, NO el precio por token. Un modelo caro por
    token puede ser el mas barato por tarea (caso Fable med vs Opus/Sonnet xhigh).
 3. La escalera de esfuerzo NO se asume monotona: medir cada punto (caso `max` peor que `xhigh`).
-4. Si aparece un modelo o esfuerzo nuevo: recalcular la frontera de Pareto, actualizar la tabla de la
-   seccion 2 y la guia de la seccion 6 en AMBAS skills (mantener las secciones 0-8 identicas entre si),
-   y registrar la decision aqui con sus datos.
+4. **DEROGADO el 2026-07-26 (ver D12): ya NO se mantienen "las secciones 0-8 identicas entre si".** Esa
+   regla exigia sincronizar a mano dos copias de ~450 lineas y fallo en la practica. Regla vigente: la
+   doctrina vive UNA sola vez, en `orquestar-agentes` (la madre); `orquestar-agentes-fable` es un DELTA
+   que solo contiene lo que cambia cuando dirige Fable y apunta a la madre para el resto. Si aparece un
+   modelo o esfuerzo nuevo: recalcular la frontera de Pareto y actualizar la seccion 2 y la 6 **en la
+   madre**; tocar el delta solo si cambia quien dirige, quien ataca, el gatillo del debate o el techo de
+   esfuerzo. Registrar la decision aqui con sus datos.
+
+---
+
+## 5. D12: actualizacion a Opus 5 y la variante como DELTA (2026-07-26)
+
+Contexto: **Opus 5 salio el 2026-07-24** y relevo a Opus 4.8 como flagship (4.8 sigue disponible, no esta
+deprecado). Estas skills se escribieron el 2026-07-01 contra la generacion anterior y quedaron desfasadas.
+Cinco cambios, todos con evidencia:
+
+1. **Ruteo por modelo.** La clase DIAMANTE se parte en dos, que es lo que de verdad cambio: lo dificil
+   **en CODIGO** (la direccion ya esta dada: algoritmo portado, migracion fea, refactor grande) va a
+   **Opus 5**, que es #1 en codigo *mergeable* (FrontierCode, benchmark publico de Cognition: 53.4% vs
+   46.3% de Fable 5 y 38.8% de Sonnet 5; leaderboard vigente verificado 2026-07-25); lo dificil
+   **ABIERTO** (elegir la direccion de diseño, la pieza de escritura insignia, razonar sin camino
+   trazado) sigue en **Fable 5**, que lidera todas las tablas medidas de escritura y empata arriba en
+   razonamiento (AA Index 60 vs 61; GPQA 92.6 vs 93.7).
+2. **El ATACANTE del debate se elige por LENTE, no por potencia.** Su valor viene de tres cosas que son
+   gratis: no recibe el rationale del proponente, es read-only, y lleva una **pregunta escrita**.
+   Default: Sonnet 5 + Haiku 4.5. Opus 5 solo si el plan es caro de revertir. **Fable NUNCA ataca**
+   (~2x de costo por paridad de razonamiento, TTFT de ~128s, el doble de error en salida estructurada
+   justo cuando el retorno del ataque ES estructurado, y clasificadores que lo reemplazan en silencio
+   por otro modelo, asi que ni sabes si atacó Fable).
+3. **La clase de error SILENCIOSO** (seccion 5 de la madre): el error que NO hace fallar nada. Build
+   verde, tests verdes, UI bien, diff correcto, y el resultado igual esta mal. Casos recurrentes: suite
+   verde sobre un cambio aplicado a medias; test verde cuyo fixture no toca el artefacto real;
+   extraccion parcial presentada como completa; afirmar el significado de un dato ajeno sin verificarlo.
+   Trae los **4 momentos** donde poner un verificador barato con la pregunta ya escrita, y la regla de
+   dedo para no caer en ceremonia (si el error haria fallar algo, ya lo caza correr el codigo: pagar un
+   agente ahi es gasto muerto).
+4. **Techo `xhigh`, nunca `max`:** sin cambio, y reconfirmado con dato fresco de Opus 5 (su `high` ya
+   saca el mejor GPQA de toda su escalera, 93.7%, mientras `max` tarda 2.8x mas y baja a 93.2%).
+5. **Prompting: Opus 5 invirtio el default de Opus 4.8.** 4.8 **sub-usaba** subagentes y habia que
+   empujarlo a bifurcar; Opus 5 **SOBRE-delega y SOBRE-verifica** por su cuenta (guia oficial de
+   Anthropic), asi que el empujon del brief va en la direccion CONTRARIA: *"no agregues un paso de
+   verificacion extra ni lances subagentes; resuelvelo inline"* cuando la tarea no los necesita. Ademas
+   thinking viene ON por defecto (en 4.8 era un parametro aparte) y es el modelo mas verboso medido, asi
+   que exigir formato estructurado en el retorno contiene su verbosidad.
+
+**Cambio estructural que acompaña:** la variante dejo de ser una COPIA de la madre y paso a ser un
+**DELTA**. Las dos copiaban las secciones 0-8 enteras y se desincronizaron: la variante se quedo citando
+a Opus 4.8 como tope y le falto contenido nuevo que la madre si tenia. Sincronizar a mano dos copias de
+~450 lineas no es un mecanismo. Ahora la variante abre declarando que **no es autosuficiente**, contiene
+solo lo suyo (roles, gatillo, protocolo, economia del director, techo) y mapea el resto a la madre.
+
+Los benchmarks de Opus 4.8 se **CONSERVAN etiquetados** en todo el texto: el dato "Fable `med` dominaba a
+Opus 4.8 `xhigh`" sigue siendo cierto; lo que cambio es la conclusion, porque cambio cual es el frontera
+para codigo. Se actualizo el ROL vigente, no las cifras historicas.
+
+**Restriccion operativa descubierta al aplicarlo:** desde una sesion de Claude Code un subagente solo se
+puede rutear a `opus` / `sonnet` / `haiku` / `fable`, y `opus` resuelve al Opus vigente. **Opus 4.8 no es
+seleccionable como subagente** aunque siga existiendo por API. Por eso no se cita 4.8 como escape hatch
+en ninguna parte: seria un consejo que el agente no puede ejecutar.
+
+---
+
+## 6. Contador de costo de iteracion (que costo llegar a esta doctrina)
+
+> Se agrega el 2026-07-26: el costo de iterar hasta tener estas skills debe quedar descrito, no solo el
+> resultado. Sin esto, quien las lee ve una doctrina que parece obvia, no ve las sesiones que costo
+> llegar a ella, y no sabe cuanto vale defenderla antes de reescribirla por intuicion.
+> **Regla que nace con el contador:** cada iteracion futura AGREGA su fila; lo que no se midio se marca
+> como no medido, no se estima.
+
+Medido con `git log` sobre las skills y agentes de orquestacion del repo de origen:
+
+| Metrica | Valor |
+|---|---|
+| Commits que tocaron la doctrina | **30** |
+| Ventana | 2026-06-19 → 2026-07-26 (**38 dias**) |
+| Sesiones distintas que la tocaron | **14** |
+| Rondas de investigacion con fuentes primarias | **3** (FrontierCode + Artificial Analysis el 2026-07-01; ruteo de escritura el 2026-07-14; relevo de Opus 5 el 2026-07-25) |
+| Reescrituras estructurales | **2** |
+
+De la sesion del 2026-07-26, la primera con medicion fina:
+
+| Concepto | Valor |
+|---|---|
+| Verificadores read-only lanzados | 3 (2 Haiku de coherencia, 1 Sonnet de lector externo) |
+| Tokens de subagente medidos | **274.498** |
+| Defectos reales que cazaron | 4; dos de ellos introducidos por el propio director en el mismo turno |
+| Objeciones respondidas por escrito | 6 (4 aceptadas, 2 refutadas) |
+
+NO medido y no estimado: los tokens del loop principal de cada sesion (no se registraron en su momento).
+
+**Lectura:** el trabajo caro no fue escribir la doctrina, fue **corregirla contra evidencia**. De los 30
+commits, 6 corrigen algo que ya estaba escrito y se creia bueno: una cifra marcada como no trazable que
+resulto ser real, una fecha de regimen mal hardcodeada, una colision entre sesiones concurrentes, dos
+generaciones de modelo desactualizadas, y una copia duplicada que se desincronizo en 25 dias.
