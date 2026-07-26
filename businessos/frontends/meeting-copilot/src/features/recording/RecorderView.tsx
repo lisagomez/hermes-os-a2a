@@ -235,7 +235,25 @@ export function RecorderView() {
   const enviar = () => {
     if (!blobRef.current) return
     const filename = nombre.trim() || nombreDefault()
-    agregarArchivos([{ filename, blob: blobRef.current }])
+    // Si el modo asesor YA capturó la transcripción en vivo, viaja con el job:
+    // la cola la usa tal cual (jamás la sustituye por la demo del mock).
+    const sesion =
+      asesorActivo && segmentos.length >= 3
+        ? {
+            segmentos,
+            motor: fuente === 'demo' ? 'en-vivo (demo)' : 'en-vivo (web-speech)',
+            reunionBase: {
+              ...reunionVivo,
+              titulo:
+                fuente === 'demo'
+                  ? 'Sesión demo con asesor'
+                  : leadNombre.trim()
+                    ? `Discovery en vivo — ${leadNombre.trim()}`
+                    : `Transcripción — ${filename}`,
+            },
+          }
+        : undefined
+    agregarArchivos([{ filename, blob: blobRef.current, sesion, registroBitacoraId: registroRef.current ?? undefined }])
     if (registroRef.current) bitacora.actualizar(registroRef.current, { titulo: filename, estado: 'en_transcripcion' })
     router.push('/herramientas/transcripcion')
   }
@@ -392,8 +410,8 @@ export function RecorderView() {
           </div>
           {asesorActivo && segmentos.length >= 3 && (
             <p className="text-[11px] text-ink-muted">
-              “Guardar sesión analizada” usa la transcripción capturada en vivo (insights al instante). “Enviar a
-              transcripción” procesa el audio por la cola normal. La grabación ya quedó en la bitácora.
+              Ambos caminos usan TU transcripción capturada en vivo ({segmentos.length} segmentos): “Guardar sesión” la
+              analiza al instante; “Enviar a transcripción” la pasa por la cola. La grabación ya quedó en la bitácora.
             </p>
           )}
         </div>
@@ -560,8 +578,9 @@ export function RecorderView() {
           {PROVIDER_STT === 'mock' && (
             <>
               {' '}
-              Con el provider mock la grabación recorre TODO el pipeline (cola, progreso, análisis) pero la transcripción
-              resultante es la demo — el audio real se transcribirá al conectar un provider real (faster-whisper /
+              Con el <span className="font-medium">modo asesor</span> encendido, tu transcripción se captura EN VIVO y es
+              la que se analiza (por cualquiera de los dos caminos). Sin modo asesor, el provider mock produce la
+              transcripción demo — el audio crudo se transcribirá al conectar un provider real (faster-whisper /
               transcripcion-a2a), que ya recibe el binario de esta grabadora.
             </>
           )}

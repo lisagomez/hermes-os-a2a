@@ -1,10 +1,11 @@
 'use client'
 
 import { create } from 'zustand'
-import type { Reunion, TrabajoTranscripcion, Transcripcion } from '@/features/domain/types'
+import type { Reunion, Segmento, TrabajoTranscripcion, Transcripcion } from '@/features/domain/types'
 import { AUDIO_DEMO, contenidoDesdeSegmentos } from '@/features/domain/fixtures'
 import { crearProvider } from './providers'
 import { useAppStore } from '@/features/domain/store'
+import { useBitacoraStore } from '@/features/recording/bitacora-store'
 import { nuevoId } from '@/shared/lib/format'
 
 const MAX_INTENTOS = 3
@@ -13,10 +14,28 @@ const MAX_INTENTOS = 3
 // El provider mock lo ignora; los reales (transcriptor-local, a2a) lo suben.
 const blobsPorJob = new Map<string, Blob>()
 
+/** Sesión en vivo asociada a un job: si la grabación YA capturó su
+ *  transcripción (modo asesor), la cola la usa TAL CUAL — jamás la sustituye
+ *  por la demo del provider mock. */
+export interface SesionVivoJob {
+  segmentos: Segmento[]
+  motor: string // 'en-vivo (web-speech)' | 'en-vivo (demo)'
+  reunionBase: Reunion // participantes/título/cuenta reales de la sesión
+}
+const sesionesPorJob = new Map<string, SesionVivoJob>()
+const registrosBitacoraPorJob = new Map<string, string>()
+
+export interface ArchivoEntrada {
+  filename: string
+  blob?: Blob
+  sesion?: SesionVivoJob
+  registroBitacoraId?: string
+}
+
 interface TranscripcionState {
   jobs: TrabajoTranscripcion[]
   procesando: boolean
-  agregarArchivos: (archivos: { filename: string; blob?: Blob }[]) => void
+  agregarArchivos: (archivos: ArchivoEntrada[]) => void
   agregarDemo: () => void
   reintentar: (jobId: string) => void
   _drenar: () => Promise<void>
@@ -54,6 +73,11 @@ export const useTranscripcionStore = create<TranscripcionState>()((set, get) => 
     const nuevos = archivos.map((a) => {
       const job = nuevoJob(a.filename)
       if (a.blob) blobsPorJob.set(job.id, a.blob)
+      if (a.sesion) {
+        sesionesPorJob.set(job.id, a.sesion)
+        job.motor = a.sesion.motor
+      }
+      if (a.registroBitacoraId) registrosBitacoraPorJob.set(job.id, a.registroBitacoraId)
       return job
     })
     set((s) => ({ jobs: [...s.jobs, ...nuevos] }))
@@ -90,19 +114,23 @@ export const useTranscripcionStore = create<TranscripcionState>()((set, get) => 
         if (!pendiente) break
         actualizar(pendiente.id, { estado: 'procesando', progreso: 0, intentos: pendiente.intentos + 1 })
         try {
-          const provider = crearProvider()
-          const resultado = await provider.transcribir(
-            { filename: pendiente.filename, blob: blobsPorJob.get(pendiente.id) },
-            (pct) => actualizar(pendiente.id, { progreso: pct })
-          )
+          // Con sesión en vivo, la transcripción REAL ya existe: se usa tal
+          // cual y el provider no corre (el mock jamás pisa datos reales).
+          const sesion = sesionesPorJob.get(pendiente.id)
+          const resultado = sesion
+            ? { motor: sesion.motor, segmentos: sesion.segmentos }
+            : await crearProvider().transcribir(
+                { filename: pendiente.filename, blob: blobsPorJob.get(pendiente.id) },
+                (pct) => actualizar(pendiente.id, { progreso: pct })
+              )
           // La salida normalizada crea reunión + transcripción en el store central.
-          const base = AUDIO_DEMO.reunionBase
+          const base = sesion?.reunionBase ?? AUDIO_DEMO.reunionBase
           const reunionId = nuevoId('r')
           const prom = resultado.segmentos.reduce((a, s) => a + s.confianza, 0) / resultado.segmentos.length
           const reunion: Reunion = {
             ...base,
             id: reunionId,
-            titulo: `Transcripción — ${pendiente.filename}`,
+            titulo: sesion ? base.titulo : `Transcripción — ${pendiente.filename}`,
             fecha: new Date().toISOString(),
             duracionS: resultado.segmentos.length > 0 ? Math.round(resultado.segmentos[resultado.segmentos.length - 1].finS) : null,
             origen: 'audio',
@@ -118,6 +146,9 @@ export const useTranscripcionStore = create<TranscripcionState>()((set, get) => 
           }
           useAppStore.getState().agregarReunion(reunion, transcripcion)
           actualizar(pendiente.id, { estado: 'completado', progreso: 100, reunionId })
+          // Liga la reunión resultante al registro de la bitácora.
+          const registroId = registrosBitacoraPorJob.get(pendiente.id)
+          if (registroId) useBitacoraStore.getState().actualizar(registroId, { reunionId, estado: 'sesion_guardada' })
         } catch (e) {
           // Fallo VISIBLE: el error queda en el job y se pinta en UI (nunca silencioso).
           actualizar(pendiente.id, { estado: 'fallido', error: e instanceof Error ? e.message : String(e) })
