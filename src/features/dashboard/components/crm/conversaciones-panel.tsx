@@ -1,6 +1,7 @@
 import { Card } from '@/shared/components/card'
+import { SectionTitle } from '@/shared/components/section-title'
 import type { ConversacionResumen } from '../../types'
-import { CHROME, STATUS } from '../ai-spend/colors'
+import { CHROME, SERIE_COLOR, STATUS } from '@/shared/constants/colors'
 
 /**
  * Resumen de conversaciones del CRM conversacional (crm-canales + sup-crm):
@@ -10,7 +11,7 @@ import { CHROME, STATUS } from '../ai-spend/colors'
  */
 
 const COLOR_ESTADO: Record<string, string> = {
-  abierta: '#3987e5',
+  abierta: SERIE_COLOR,
   escalada: STATUS.warning,
   cerrada: CHROME.muted,
 }
@@ -23,9 +24,7 @@ export function ConversacionesPanel({
   if (conversaciones.length === 0) {
     return (
       <Card>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Conversaciones CRM
-        </h2>
+        <SectionTitle>Conversaciones CRM</SectionTitle>
         <p className="mt-3 text-sm text-slate-300">Sin conversaciones todavía.</p>
         <p className="mt-1 text-xs text-slate-500">
           Aparecerán cuando un tenant real conecte su canal (Telegram / WhatsApp)
@@ -42,9 +41,7 @@ export function ConversacionesPanel({
 
   return (
     <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-        Conversaciones CRM
-      </h2>
+      <SectionTitle>Conversaciones CRM</SectionTitle>
       <ul className="mt-3 space-y-2">
         {[...porEstado.entries()].map(([estado, cuenta]) => {
           const color = COLOR_ESTADO[estado] ?? CHROME.muted

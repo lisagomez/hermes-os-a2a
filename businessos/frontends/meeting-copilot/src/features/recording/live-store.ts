@@ -13,6 +13,16 @@ import { persist } from 'zustand/middleware'
 import type { DimensionId, Segmento } from '@/features/domain/types'
 import type { FuenteVivoId } from './fuentes-vivo'
 
+/** Constancia de una pregunta que el asesor SÍ usó (bitácora de la sesión). */
+export interface PreguntaUsada {
+  pregunta: string
+  dimension: DimensionId
+  /** Momento (reloj) en que el asesor la marcó como usada. */
+  timestampISO: string
+  /** Segundo de la conversación (fin del último segmento capturado), si hay audio. */
+  enSegundoS: number | null
+}
+
 interface LiveState {
   asesorActivo: boolean
   fuente: FuenteVivoId
@@ -28,6 +38,8 @@ interface LiveState {
   segmentos: Segmento[]
   temasCubiertosManual: DimensionId[]
   preguntasDescartadas: string[]
+  /** Bitácora de sesión: preguntas que el asesor marcó "La usé", con timestamp. */
+  preguntasUsadas: PreguntaUsada[]
   senalesFijadas: string[]
   errorVivo: string | null
 
@@ -42,6 +54,9 @@ interface LiveState {
   agregarSegmento: (s: Segmento) => void
   marcarTema: (d: DimensionId) => void
   descartarPregunta: (q: string) => void
+  /** "La usé": registra la pregunta en la bitácora de sesión Y avanza la rotación
+   *  (a diferencia de descartarPregunta, que solo pide otra sin dejar constancia). */
+  registrarPreguntaUsada: (q: string, dimension: DimensionId) => void
   toggleFijarSenal: (id: string) => void
   setErrorVivo: (m: string | null) => void
   resetSesion: () => void
@@ -65,6 +80,7 @@ export const useLiveStore = create<LiveState>()(
       segmentos: [],
       temasCubiertosManual: [],
       preguntasDescartadas: [],
+      preguntasUsadas: [],
       senalesFijadas: [],
       errorVivo: null,
 
@@ -88,13 +104,37 @@ export const useLiveStore = create<LiveState>()(
         set((st) => ({
           preguntasDescartadas: st.preguntasDescartadas.includes(q) ? st.preguntasDescartadas : [...st.preguntasDescartadas, q],
         })),
+      registrarPreguntaUsada: (q, dimension) =>
+        set((st) => ({
+          preguntasUsadas: st.preguntasUsadas.some((p) => p.pregunta === q)
+            ? st.preguntasUsadas
+            : [
+                ...st.preguntasUsadas,
+                {
+                  pregunta: q,
+                  dimension,
+                  timestampISO: new Date().toISOString(),
+                  enSegundoS: st.segmentos.length > 0 ? Math.round(st.segmentos[st.segmentos.length - 1].finS) : null,
+                },
+              ],
+          // Usarla también la saca de la rotación: el prompter avanza a la siguiente.
+          preguntasDescartadas: st.preguntasDescartadas.includes(q) ? st.preguntasDescartadas : [...st.preguntasDescartadas, q],
+        })),
       toggleFijarSenal: (id) =>
         set((st) => ({
           senalesFijadas: st.senalesFijadas.includes(id) ? st.senalesFijadas.filter((x) => x !== id) : [...st.senalesFijadas, id],
         })),
       setErrorVivo: (m) => set({ errorVivo: m }),
       resetSesion: () =>
-        set({ segmentos: [], temasCubiertosManual: [], preguntasDescartadas: [], senalesFijadas: [], errorVivo: null, hablanteActual: 'Cliente' }),
+        set({
+          segmentos: [],
+          temasCubiertosManual: [],
+          preguntasDescartadas: [],
+          preguntasUsadas: [],
+          senalesFijadas: [],
+          errorVivo: null,
+          hablanteActual: 'Cliente',
+        }),
     }),
     {
       name: 'meeting-copilot-asesor',

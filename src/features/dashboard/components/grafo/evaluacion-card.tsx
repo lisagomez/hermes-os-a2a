@@ -1,4 +1,5 @@
 import { Card } from '@/shared/components/card'
+import { MicroLabel } from '@/shared/components/section-title'
 import type { Evaluacion } from '../../types'
 import { EstadoBadge } from './badges'
 
@@ -54,7 +55,7 @@ export function EvaluacionCard({ evaluacion }: { evaluacion: Evaluacion }) {
 
       {evaluacion.checklist.length > 0 && (
         <div className="mt-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Checklist</h3>
+          <MicroLabel>Checklist</MicroLabel>
           <ul className="mt-1 grid gap-x-6 gap-y-0.5 text-xs text-slate-400 sm:grid-cols-2">
             {evaluacion.checklist.map((item) => (
               <li key={item}>☐ {item}</li>

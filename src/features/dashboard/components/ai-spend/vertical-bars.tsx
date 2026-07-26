@@ -1,5 +1,5 @@
 import type { PresupuestoMes } from '../../types'
-import { CHROME, VERTICAL_COLOR } from './colors'
+import { CHROME, VERTICAL_COLOR } from '@/shared/constants/colors'
 
 /**
  * Gasto por vertical: barras horizontales delgadas, color fijo por entidad

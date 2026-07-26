@@ -1,6 +1,7 @@
 import { Card } from '@/shared/components/card'
+import { SectionTitle } from '@/shared/components/section-title'
 import { PRESUPUESTO_MENSUAL_USD, UMBRAL_ALERTA } from '../../types'
-import { STATUS } from './colors'
+import { STATUS } from '@/shared/constants/colors'
 
 /**
  * Stat tile + medidor del presupuesto mensual. El estado nunca es color solo:
@@ -17,7 +18,7 @@ export function BudgetMeter({ totalUsd, mes }: { totalUsd: number; mes: string }
 
   return (
     <Card as="section">
-      <h2 className="text-sm font-medium text-slate-400">Gasto del mes ({mes})</h2>
+      <SectionTitle>Gasto del mes ({mes})</SectionTitle>
       <p className="mt-2 text-4xl font-bold">
         ${totalUsd.toFixed(2)}
         <span className="ml-2 text-base font-normal text-slate-400">

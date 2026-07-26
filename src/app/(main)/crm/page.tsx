@@ -2,6 +2,7 @@ import { ConversacionesPanel } from '@/features/dashboard/components/crm/convers
 import { EmbudoCanvas } from '@/features/dashboard/components/crm/embudo-canvas'
 import { LeadsTable } from '@/features/dashboard/components/crm/leads-table'
 import { getDataSource } from '@/features/dashboard/services'
+import { SectionTitle } from '@/shared/components/section-title'
 import { moverLeadEtapa } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ export default async function CrmPage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Leads</h2>
+        <SectionTitle>Leads</SectionTitle>
         <p className="mt-1 mb-3 text-sm text-slate-400">
           Últimos 50. Mover un lead de etapa actualiza el embudo (única acción
           de escritura del panel).

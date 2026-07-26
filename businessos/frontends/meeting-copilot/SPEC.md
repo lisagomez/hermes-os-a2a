@@ -531,10 +531,15 @@ no competir con el flujo de grabación.
   que lee localStorage antes del primer paint; toggle en topbar (Monitor/Sol/Luna) + atajo.
 - **Tokens** (CSS vars en `:root` = light, override completo en `.dark`, mapeados a utilidades
   con `@theme inline` de Tailwind v4): `--background`, `--surface`, `--surface-raised`,
-  `--border-subtle`, `--border`, `--text-primary/secondary/muted`, `--accent` (azul ejecutivo
-  sobrio), `--accent-muted`, `--success/warning/danger/info` (+ variantes `-muted` para chips),
-  `--score-alto/medio/bajo`, sombras `--shadow-1/2`, `--radius-sm/md/lg`, tipografía operativa
-  (Inter/system) con escala compacta para tablas densas.
+  `--surface-muted`, `--line`, `--line-subtle`, `--ink`, `--ink-secondary`, `--ink-muted`,
+  `--accent` (azul ejecutivo sobrio), `--accent-hover`, `--accent-muted`, `--accent-ink`,
+  `--success/warning/danger/info` (+ variantes `-muted` para chips y callouts; el score no
+  tiene tokens propios — usa estos tonos vía `tonoScore()`: `>=70` success, `>=50` warning,
+  resto danger), sombras `--shadow-1/2`, radios `--radius-s` (0.5rem — botones, inputs, nav;
+  utilidad `rounded-s`) y `--radius-m` (0.625rem — cards; `rounded-m`), tipografía operativa
+  `--font-sans` (Inter vía `next/font`, escala compacta para tablas densas) y `--font-mono`
+  (`ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`) — token de marca de los
+  timestamps `[mm:ss]` en transcripciones, señales y crono.
 - **Light** (default): ejecutivo estilo Apollo — superficies blancas/gris cálido, chips suaves,
   densidad útil. **Dark:** neutro elevado (grises azulados), sin neón ni violeta gaming.
   Paleta propia — NO se usa el `@a2a/design-system` (dark-only, gamificado). Extensible a

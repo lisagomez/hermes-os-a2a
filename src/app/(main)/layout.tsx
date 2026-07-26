@@ -10,6 +10,9 @@ const vistas = [
   { href: '/ai-spend', label: 'AI Spend' },
   { href: '/grafo', label: 'Grafo' },
   { href: '/desarrollo', label: 'Desarrollo' },
+  // Acceso directo; el subnav de adquisición (Tareas | CRM) sigue dando el
+  // contexto de departamento y el cruce a Tareas — no es duplicidad de barra.
+  { href: '/crm', label: 'CRM' },
 ]
 
 export default async function MainLayout({

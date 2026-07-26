@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { GastoDiario } from '../../types'
-import { CHROME, SERIE_COLOR } from './colors'
+import { CHROME, SERIE_COLOR } from '@/shared/constants/colors'
 
 const W = 560
 const H = 180
@@ -64,7 +64,7 @@ export function DailySeries({ datos }: { datos: GastoDiario[] }) {
             cy={y(d.costo_usd)}
             r={hover === i ? 5 : 3}
             fill={SERIE_COLOR}
-            stroke="#0f172a"
+            stroke={CHROME.surface}
             strokeWidth={2}
           />
         ))}

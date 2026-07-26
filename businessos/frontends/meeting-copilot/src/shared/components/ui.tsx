@@ -90,7 +90,7 @@ type BotonTamano = 'md' | 'sm'
 const VARIANTE_BOTON: Record<BotonVariante, string> = {
   primary: 'btn-primary',
   secondary: 'btn-secondary',
-  ghost: 'inline-flex items-center gap-1.5 rounded-lg font-medium text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink',
+  ghost: 'inline-flex items-center gap-1.5 rounded-s font-medium text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink',
 }
 
 export function Button({
@@ -173,6 +173,130 @@ export function Dialog({
       >
         {children}
       </div>
+    </div>
+  )
+}
+
+/** Grupo de opciones excluyentes (pills). Dos presentaciones:
+ *  - `segmentado`: contenedor con borde + p-0.5 y pills internas (patrón ThemeToggle
+ *    / selector de atribución de RecorderView).
+ *  - `suelto`: pills independientes con borde propio y gap (patrón tabs de
+ *    NuevaConversacion / selector de PlaybooksView).
+ *  El look por sitio se conserva vía `claseBoton` (padding/tipografía) y
+ *  `claseInactiva` (tinta del estado inactivo). */
+export function PillToggle<T extends string>({
+  opciones,
+  valor,
+  onCambio,
+  etiqueta,
+  variante = 'segmentado',
+  claseBoton = '',
+  claseInactiva = 'text-ink-secondary hover:text-ink',
+  className = '',
+}: {
+  opciones: { id: T; contenido: ReactNode; title?: string; testid?: string }[]
+  valor: T
+  onCambio: (id: T) => void
+  /** aria-label del grupo. */
+  etiqueta: string
+  variante?: 'segmentado' | 'suelto'
+  claseBoton?: string
+  claseInactiva?: string
+  className?: string
+}) {
+  const contenedor =
+    variante === 'segmentado' ? 'flex items-center rounded-s border border-line bg-surface p-0.5' : 'flex flex-wrap gap-2'
+  return (
+    <div className={`${contenedor} ${className}`.trim()} role="group" aria-label={etiqueta}>
+      {opciones.map((o) => {
+        const activa = valor === o.id
+        const clase =
+          variante === 'segmentado'
+            ? `rounded-md transition-colors ${activa ? 'bg-accent-muted text-accent' : claseInactiva}`
+            : `rounded-s border transition-colors ${activa ? 'border-accent bg-accent-muted text-accent' : `border-line bg-surface ${claseInactiva}`}`
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onCambio(o.id)}
+            title={o.title}
+            aria-pressed={activa}
+            data-testid={o.testid}
+            className={`${clase} ${claseBoton}`.trim()}
+          >
+            {o.contenido}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+type TonoCallout = Exclude<Tono, 'neutral'>
+
+const CARD_CALLOUT: Record<TonoCallout, string> = {
+  accent: 'border-accent bg-accent-muted',
+  success: 'border-success bg-success-muted',
+  warning: 'border-warning bg-warning-muted',
+  danger: 'border-danger bg-danger-muted',
+  info: 'border-info bg-info-muted',
+}
+
+const FONDO_CALLOUT: Record<TonoCallout, string> = {
+  accent: 'bg-accent-muted',
+  success: 'bg-success-muted',
+  warning: 'bg-warning-muted',
+  danger: 'bg-danger-muted',
+  info: 'bg-info-muted',
+}
+
+const TINTA_CALLOUT: Record<TonoCallout, string> = {
+  accent: 'text-accent',
+  success: 'text-success',
+  warning: 'text-warning',
+  danger: 'text-danger',
+  info: 'text-info',
+}
+
+/** Card tonal para avisos con contexto (alertas del coach, errores con acción).
+ *  - `card` (default): card con borde y fondo del tono.
+ *  - `inline`: bloque plano `bg-{tono}-muted` sin borde ni sombra (errores inline).
+ *  `titulo`/`icono` son atajos para el layout icono + eyebrow; composiciones más
+ *  ricas (chips en el título, testids internos) van directo en `children`. */
+export function Callout({
+  tono,
+  titulo,
+  icono: Icono,
+  variante = 'card',
+  className = '',
+  children,
+  ...rest
+}: {
+  tono: TonoCallout
+  titulo?: string
+  icono?: LucideIcon
+  variante?: 'card' | 'inline'
+  children: ReactNode
+} & Omit<ComponentProps<'div'>, 'children'>) {
+  const cuerpo =
+    Icono || titulo ? (
+      <div className="flex items-start gap-2">
+        {Icono ? <Icono className={`mt-0.5 h-4 w-4 shrink-0 ${TINTA_CALLOUT[tono]}`} /> : null}
+        <div className="min-w-0 flex-1">
+          {titulo ? (
+            <p className={`text-[12px] font-semibold uppercase tracking-wide ${TINTA_CALLOUT[tono]}`}>{titulo}</p>
+          ) : null}
+          {children}
+        </div>
+      </div>
+    ) : (
+      children
+    )
+  const base =
+    variante === 'inline' ? `rounded-s px-3 py-2 ${FONDO_CALLOUT[tono]}` : `card ${CARD_CALLOUT[tono]}`
+  return (
+    <div className={`${base} ${className}`.trim()} {...rest}>
+      {cuerpo}
     </div>
   )
 }

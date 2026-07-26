@@ -52,7 +52,7 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Dataviz — el color sigue a la ENTIDAD, nunca al rank.
-     Origen: src/features/dashboard/components/ai-spend/colors.ts */
+     Origen: src/shared/constants/colors.ts */
   --viz-personal: #3987e5;
   --viz-negocio: #199e70;
   --viz-clientes: #c98500;

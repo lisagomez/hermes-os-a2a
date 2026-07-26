@@ -1,14 +1,12 @@
-import { CHROME, STATUS } from '../ai-spend/colors'
+import { SERIE_COLOR, STATUS } from '@/shared/constants/colors'
 
 /**
  * Badge de etapa de lead: ganado=verde, perdido=rojo, resto=azul de serie
  * (etapas vivas del embudo). Puro y determinista, igual que EstadoTareaBadge.
  */
-const AZUL = '#3987e5'
-
 export function EstadoLeadBadge({ etapa }: { etapa: string }) {
   const color =
-    etapa === 'ganado' ? STATUS.good : etapa === 'perdido' ? STATUS.critical : AZUL
+    etapa === 'ganado' ? STATUS.good : etapa === 'perdido' ? STATUS.critical : SERIE_COLOR
   const label = etapa.replace(/_/g, ' ')
   return (
     <span

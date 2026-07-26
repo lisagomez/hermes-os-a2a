@@ -1242,4 +1242,17 @@ npm run lint         # ESLint
 - **Aplicar en**: toda sesión larga cuando haya señales de otra sesión activa (commits
   que aparecen solos, archivos que "cambian" sin tocarlos, ramas que se mueven).
 
+### 2026-07-26: Tailwind v4 — un token `--radius-s` genera `rounded-s` que COLISIONA con la utilidad lógica de lado
+- **Error**: al tokenizar radios en meeting-copilot (`@theme` con `--radius-s`), la utilidad
+  emitida `rounded-s` ya EXISTE en Tailwind v4 como radio del lado lógico "start"
+  (`border-start-start-radius` + `border-end-start-radius`, .25rem) — y la de Tailwind gana
+  en los corners izquierdos aunque definas un `@utility` homónimo. El look se rompe en
+  silencio: ningún gate lo caza, solo se ve en el CSS COMPILADO.
+- **Fix**: override explícito en `@layer utilities` al final del globals.css (misma
+  especificidad, gana por orden) y verificar SIEMPRE la utilidad en el CSS compilado de
+  producción, no en el fuente. Alternativa si nace un token nuevo: evitar sufijos que sean
+  lados lógicos (`s`, `e`) o compuestos (`ss`, `se`, `es`, `ee`, `t`, `r`, `b`, `l`).
+- **Aplicar en**: todo token de `@theme` en apps Tailwind v4 cuyo nombre de utilidad pueda
+  chocar con utilidades nativas, y toda verificación de paridad visual (CSS compilado manda).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

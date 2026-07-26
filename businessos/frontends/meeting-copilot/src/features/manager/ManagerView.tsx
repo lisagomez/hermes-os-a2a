@@ -117,7 +117,7 @@ export function ManagerView() {
           <h3 className="mb-2 text-[13px] font-semibold text-ink">Calidad por agente</h3>
           <ul className="space-y-2">
             {porAsesor.map((a) => (
-              <li key={a.asesor} className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
+              <li key={a.asesor} className="flex items-center justify-between rounded-s bg-surface-muted px-3 py-2">
                 <span className="text-[13px] font-medium text-ink">{a.asesor}</span>
                 <span className="text-[12px] text-ink-secondary">{a.llamadas} llamada(s)</span>
                 <ScoreChip total={a.promedio} />
@@ -132,7 +132,7 @@ export function ManagerView() {
           ) : (
             <ul className="space-y-2">
               {preguntasFaltantes.map((p) => (
-                <li key={p.dimension} className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
+                <li key={p.dimension} className="flex items-center justify-between rounded-s bg-surface-muted px-3 py-2">
                   <span className="text-[13px] text-ink">{ETIQUETA_DIMENSION[p.dimension]}</span>
                   <Chip tono={p.veces > 1 ? 'warning' : 'neutral'}>{p.veces} llamada(s)</Chip>
                 </li>

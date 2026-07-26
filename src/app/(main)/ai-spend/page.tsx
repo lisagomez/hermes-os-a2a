@@ -4,6 +4,7 @@ import { ModelTable } from '@/features/dashboard/components/ai-spend/model-table
 import { VerticalBars } from '@/features/dashboard/components/ai-spend/vertical-bars'
 import { getDataSource } from '@/features/dashboard/services'
 import { Card } from '@/shared/components/card'
+import { SectionTitle } from '@/shared/components/section-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,17 +25,17 @@ export default async function AiSpendPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card as="section">
-          <h2 className="mb-4 text-sm font-medium text-slate-400">Costo diario (USD)</h2>
+          <SectionTitle className="mb-4">Costo diario (USD)</SectionTitle>
           <DailySeries datos={spend.serieDiaria} />
         </Card>
         <Card as="section">
-          <h2 className="mb-4 text-sm font-medium text-slate-400">Gasto por vertical</h2>
+          <SectionTitle className="mb-4">Gasto por vertical</SectionTitle>
           <VerticalBars filas={spend.porVertical} />
         </Card>
       </div>
 
       <Card as="section">
-        <h2 className="mb-4 text-sm font-medium text-slate-400">Desglose por modelo</h2>
+        <SectionTitle className="mb-4">Desglose por modelo</SectionTitle>
         <ModelTable filas={spend.porModelo} />
       </Card>
     </div>

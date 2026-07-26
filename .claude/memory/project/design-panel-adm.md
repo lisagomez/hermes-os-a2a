@@ -1,11 +1,12 @@
 # Design system del panel admin (panel-adm)
 
-**Estado (2026-07-26): set-up design CREADO y PRIMERA TANDA de la deuda EJECUTADA**
-(commits `84a23d6` MC + `219a41f` copilot en `docs/design-panel-adm-setup`, gates
-verdes verificados por el orquestador). Resuelto: MC tokens+Card+shadcn fuera+
-loading/error; copilot pulse-once+surface-raised+tonoScore+Button/Table/Dialog.
-Segunda tanda (colors.ts a shared, headings, /crm nav, PillToggle/Callout, radios,
-SPEC §14…): ver §6 del set-up. PR pendiente de abrir a decisión de la dueña.
+**Estado (2026-07-26): set-up CREADO y las DOS tandas de deuda EJECUTADAS.**
+Tanda 1 (PR #161, mergeado): MC tokens+Card+shadcn fuera+loading/error; copilot
+pulse-once+surface-raised+tonoScore+Button/Table/Dialog. Tanda 2 (commits
+`46ff58e`+`ea56bef`): MC colors.ts a shared+SectionTitle/MicroLabel+/crm al nav+
+conAlpha; copilot radios tokenizados (gotcha `rounded-s` vs utilidad lógica de
+Tailwind v4)+PillToggle/Callout+La-usé con constancia+config saneada+22rem.
+ÚNICO abierto: §MC-9 next/font (opcional, decisión de la dueña).
 
 ## Qué es
 
