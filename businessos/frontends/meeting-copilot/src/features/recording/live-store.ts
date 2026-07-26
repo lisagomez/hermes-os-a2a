@@ -16,6 +16,9 @@ import type { FuenteVivoId } from './fuentes-vivo'
 interface LiveState {
   asesorActivo: boolean
   fuente: FuenteVivoId
+  /** Atribución de hablantes en vivo: 'auto' = diarización heurística por voz
+   *  (con corrección de un clic); 'manual' = switch ¿Quién habla?. */
+  atribucion: 'auto' | 'manual'
   hablanteActual: 'Cliente' | 'Yo'
   /** Contexto de la entrevista (modo asesor). El nombre del asesor persiste
    *  (suele ser la misma persona); el del lead es por sesión. */
@@ -30,7 +33,9 @@ interface LiveState {
 
   setAsesor: (v: boolean) => void
   setFuente: (f: FuenteVivoId) => void
+  setAtribucion: (a: 'auto' | 'manual') => void
   setHablante: (h: 'Cliente' | 'Yo') => void
+  reasignarSegmento: (idx: number, nuevoHablante: string) => void
   setAsesorNombre: (n: string) => void
   setLeadNombre: (n: string) => void
   setGuiaVisible: (v: boolean) => void
@@ -52,6 +57,7 @@ export const useLiveStore = create<LiveState>()(
     (set) => ({
       asesorActivo: false,
       fuente: 'microfono',
+      atribucion: 'auto',
       hablanteActual: 'Cliente',
       asesorNombre: '',
       leadNombre: '',
@@ -64,7 +70,12 @@ export const useLiveStore = create<LiveState>()(
 
       setAsesor: (v) => set({ asesorActivo: v }),
       setFuente: (f) => set({ fuente: f }),
+      setAtribucion: (a) => set({ atribucion: a }),
       setHablante: (h) => set({ hablanteActual: h }),
+      reasignarSegmento: (idx, nuevoHablante) =>
+        set((st) => ({
+          segmentos: st.segmentos.map((s, i) => (i === idx ? { ...s, hablante: nuevoHablante } : s)),
+        })),
       setAsesorNombre: (n) => set({ asesorNombre: n }),
       setLeadNombre: (n) => set({ leadNombre: n }),
       setGuiaVisible: (v) => set({ guiaVisible: v }),
@@ -87,7 +98,7 @@ export const useLiveStore = create<LiveState>()(
     }),
     {
       name: 'meeting-copilot-asesor',
-      partialize: (s) => ({ asesorActivo: s.asesorActivo, fuente: s.fuente, asesorNombre: s.asesorNombre }),
+      partialize: (s) => ({ asesorActivo: s.asesorActivo, fuente: s.fuente, atribucion: s.atribucion, asesorNombre: s.asesorNombre }),
     }
   )
 )

@@ -51,7 +51,9 @@ export function webSpeechDisponible(): boolean {
 
 export function crearFuenteMicrofono(
   onSegmento: (s: Segmento) => void,
-  hablanteActual: () => string,
+  /** Resuelve el hablante de la frase [desdeS, hastaS]: diarización automática
+   *  por voz o switch manual — la fuente no sabe ni le importa cuál. */
+  atribuir: (desdeS: number, hastaS: number) => string,
   onError: (mensaje: string) => void
 ): FuenteVivo {
   const Ctor = constructorReconocimiento()
@@ -79,7 +81,7 @@ export function crearFuenteMicrofono(
         onSegmento({
           inicioS: inicioFrase,
           finS: ahora,
-          hablante: hablanteActual(),
+          hablante: atribuir(inicioFrase, ahora),
           texto,
           confianza: r[0].confidence > 0 ? r[0].confidence : 0.8,
         })

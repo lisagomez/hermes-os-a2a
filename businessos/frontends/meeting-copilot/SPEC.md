@@ -440,8 +440,17 @@ Diferencia = presentación (compacta, embebida) y contexto, no dos sistemas.
 **Fuentes de señales en vivo** (`features/recording/fuentes-vivo.ts`, arquitectura lista
 para streaming real — cualquier fuente emite `Segmento`):
 - `microfono`: **Web Speech API** del navegador (transcripción en vivo REAL, es-MX; requiere
-  conexión). Sin diarización → el asesor atribuye con el switch **¿Quién habla? (Cliente/Yo)**;
-  participantes stub `Yo (interno)` / `Cliente (cliente)`.
+  conexión). Identificación de interlocutores en dos modos (selector en el contexto de sesión):
+  - **Automática por voz (default, beta)**: diarización heurística en el navegador —
+    clustering online del tono fundamental (F0 por autocorrelación sobre el stream del mic,
+    `features/recording/diarizacion.ts`, núcleo puro con tests). La voz del asesor se calibra
+    con la apertura de la llamada; cada frase se asigna al centroide más cercano; sin voz
+    clara → `desconocido` y cae al modo manual (nunca adivina). **Corrección de un clic**:
+    tocar el nombre en la transcripción en curso reasigna la frase Y re-entrena al
+    diarizador. Honestidad declarada en UI: voces muy parecidas pueden confundirse. El seam
+    para diarización ML real (pyannote vía transcripcion-a2a) es el mismo contrato
+    `Segmento.hablante`.
+  - **Manual**: switch **¿Quién habla?** con los nombres reales del contexto de sesión.
 - `demo`: reproduce la conversación demo (etiquetada como demo) — permite probar el modo
   asesor sin micrófono/red y alimenta el smoke.
 

@@ -13,6 +13,7 @@ import { PROVIDER_STT } from '@/shared/lib/config'
 import { nuevoId } from '@/shared/lib/format'
 import { nombresSesion, useLiveStore } from './live-store'
 import { crearFuenteDemo, crearFuenteMicrofono, webSpeechDisponible, type FuenteVivo } from './fuentes-vivo'
+import { DiarizadorVivo } from './diarizacion'
 import { PrompterPanel } from './PrompterPanel'
 import { reunionVivoStub } from './prompter'
 import { TranscripcionEnCurso } from './TranscripcionEnCurso'
@@ -40,12 +41,14 @@ export function RecorderView() {
   const {
     asesorActivo,
     fuente,
+    atribucion,
     hablanteActual,
     asesorNombre,
     leadNombre,
     segmentos,
     setAsesor,
     setFuente,
+    setAtribucion,
     setHablante,
     setAsesorNombre,
     setLeadNombre,
@@ -64,6 +67,8 @@ export function RecorderView() {
   const chunksRef = useRef<Blob[]>([])
   const blobRef = useRef<Blob | null>(null)
   const fuenteRef = useRef<FuenteVivo | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const diarizadorRef = useRef<DiarizadorVivo | null>(null)
   const segundosRef = useRef(0)
   const registroRef = useRef<string | null>(null)
 
@@ -103,28 +108,50 @@ export function RecorderView() {
   )
   const playbook = playbookPorTipo('discovery', playbooks)
 
+  // Diarización automática por voz: se calibra con la apertura del asesor y
+  // aprende de las correcciones. Si no hay voz clara, cae al switch manual.
+  const arrancarDiarizador = () => {
+    if (!streamRef.current || diarizadorRef.current) return
+    diarizadorRef.current = new DiarizadorVivo()
+    diarizadorRef.current.iniciar(streamRef.current)
+  }
+
+  const atribuirHablante = (desdeS: number, hastaS: number): string => {
+    const st = useLiveStore.getState()
+    const n = nombresSesion(st)
+    if (st.atribucion === 'auto' && diarizadorRef.current) {
+      const lado = diarizadorRef.current.asignarVentana(desdeS, desdeS, hastaS)
+      if (lado === 'interno') return n.interno
+      if (lado === 'cliente') return n.cliente
+    }
+    return st.hablanteActual === 'Yo' ? n.interno : n.cliente
+  }
+
   const arrancarFuente = () => {
     setErrorVivo(null)
-    const f =
-      fuente === 'demo'
-        ? crearFuenteDemo(agregarSegmento)
-        : crearFuenteMicrofono(
-            agregarSegmento,
-            () => {
-              const st = useLiveStore.getState()
-              const n = nombresSesion(st)
-              return st.hablanteActual === 'Yo' ? n.interno : n.cliente
-            },
-            setErrorVivo
-          )
+    if (fuente === 'microfono' && atribucion === 'auto') arrancarDiarizador()
+    const f = fuente === 'demo' ? crearFuenteDemo(agregarSegmento) : crearFuenteMicrofono(agregarSegmento, atribuirHablante, setErrorVivo)
     fuenteRef.current = f
     f.iniciar()
+  }
+
+  // Corrección de un clic desde la transcripción en curso: reasigna el segmento
+  // Y re-entrena al diarizador con esa frase.
+  const corregirHablante = (idx: number) => {
+    const st = useLiveStore.getState()
+    const n = nombresSesion(st)
+    const seg = st.segmentos[idx]
+    if (!seg) return
+    const eraInterno = seg.hablante === n.interno
+    st.reasignarSegmento(idx, eraInterno ? n.cliente : n.interno)
+    diarizadorRef.current?.corregirSegmento(seg.inicioS, eraInterno ? 'cliente' : 'interno')
   }
 
   const iniciar = async () => {
     setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
       const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined
       const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
       chunksRef.current = []
@@ -188,6 +215,7 @@ export function RecorderView() {
   }
   const detener = () => {
     fuenteRef.current?.pausar() // conserva los segmentos capturados
+    diarizadorRef.current?.detener() // deja de muestrear; las correcciones siguen funcionando
     recorderRef.current?.stop()
   }
   const descartar = () => {
@@ -195,6 +223,9 @@ export function RecorderView() {
     blobRef.current = null
     fuenteRef.current?.detener()
     fuenteRef.current = null
+    diarizadorRef.current?.detener()
+    diarizadorRef.current = null
+    streamRef.current = null
     resetSesion()
     setAudioUrl(null)
     setSegundos(0)
@@ -299,7 +330,7 @@ export function RecorderView() {
         {estado === 'grabando' && <Chip tono="danger">grabando</Chip>}
         {estado === 'pausado' && <Chip tono="warning">en pausa</Chip>}
 
-        {asesorActivo && fuente === 'microfono' && grabandoOPausa && (
+        {asesorActivo && fuente === 'microfono' && grabandoOPausa && atribucion === 'manual' && (
           <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5" data-testid="switch-hablante">
             <span className="text-[11px] font-medium text-ink-muted">¿Quién habla?</span>
             {([
@@ -318,6 +349,9 @@ export function RecorderView() {
               </button>
             ))}
           </div>
+        )}
+        {asesorActivo && fuente === 'microfono' && grabandoOPausa && atribucion === 'auto' && (
+          <Chip tono="info">voces identificadas por tono — toca un nombre en la transcripción para corregir</Chip>
         )}
       </div>
 
@@ -370,7 +404,11 @@ export function RecorderView() {
   const columnaCentral = (
     <div className="space-y-4">
       {grabadora}
-      <TranscripcionEnCurso grabando={estado === 'grabando'} pausado={estado === 'pausado'} />
+      <TranscripcionEnCurso
+        grabando={estado === 'grabando'}
+        pausado={estado === 'pausado'}
+        onCorregir={fuente === 'microfono' ? corregirHablante : undefined}
+      />
     </div>
   )
 
@@ -461,6 +499,40 @@ export function RecorderView() {
                 <Chip tono="warning">sin nombres — la sesión usará “Yo / Cliente”</Chip>
               )}
             </div>
+
+            {fuente === 'microfono' && (
+              <div className="sm:col-span-3" data-testid="selector-atribucion">
+                <span className="text-[12px] font-medium text-ink-secondary">Identificación de interlocutores</span>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <div className="flex items-center rounded-lg border border-line bg-surface p-0.5">
+                    {([
+                      ['auto', 'Automática por voz'],
+                      ['manual', 'Manual (switch)'],
+                    ] as const).map(([clave, etiqueta]) => (
+                      <button
+                        key={clave}
+                        type="button"
+                        onClick={() => {
+                          setAtribucion(clave)
+                          if (clave === 'auto' && grabandoOPausa) arrancarDiarizador()
+                        }}
+                        data-testid={`atribucion-${clave}`}
+                        className={`rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors ${
+                          atribucion === clave ? 'bg-accent-muted text-accent' : 'text-ink-secondary hover:text-ink'
+                        }`}
+                      >
+                        {etiqueta}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-ink-muted">
+                    {atribucion === 'auto'
+                      ? 'Heurística por tono de voz (beta): abre TÚ la conversación para calibrar tu voz; corrige cualquier frase tocando el nombre. Voces muy parecidas pueden confundirse.'
+                      : 'Tú marcas quién habla con el switch durante la grabación.'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Card>

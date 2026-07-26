@@ -8,8 +8,18 @@ import { fmtTiempo } from '@/shared/lib/format'
 
 /** Bloque "Transcripción en curso": refleja los segmentos parciales de la
  *  sesión (Web Speech real o fuente demo). Contrato para streaming real:
- *  cualquier FuenteVivo que emita Segmento alimenta este bloque sin cambios. */
-export function TranscripcionEnCurso({ grabando, pausado }: { grabando: boolean; pausado: boolean }) {
+ *  cualquier FuenteVivo que emita Segmento alimenta este bloque sin cambios.
+ *  Con `onCorregir`, el nombre del hablante es clicable: corrección de un clic
+ *  de la identificación de interlocutores (re-entrena al diarizador). */
+export function TranscripcionEnCurso({
+  grabando,
+  pausado,
+  onCorregir,
+}: {
+  grabando: boolean
+  pausado: boolean
+  onCorregir?: (idx: number) => void
+}) {
   const { asesorActivo, segmentos, errorVivo } = useLiveStore()
   const finRef = useRef<HTMLDivElement>(null)
 
@@ -57,14 +67,30 @@ export function TranscripcionEnCurso({ grabando, pausado }: { grabando: boolean;
         </p>
       ) : (
         <div className="max-h-52 space-y-1.5 overflow-y-auto pr-1" data-testid="vivo-segmentos">
-          {segmentos.slice(-30).map((s, i) => (
-            <div key={`${s.inicioS}-${i}`} className="flex gap-2.5">
-              <span className="w-11 shrink-0 pt-0.5 font-mono text-[10px] text-ink-muted">[{fmtTiempo(s.inicioS)}]</span>
-              <p className="min-w-0 text-[12.5px] leading-snug text-ink">
-                <span className="font-semibold text-accent">{s.hablante}:</span> {s.texto}
-              </p>
-            </div>
-          ))}
+          {segmentos.slice(-30).map((s, i) => {
+            const idx = Math.max(0, segmentos.length - 30) + i
+            return (
+              <div key={`${s.inicioS}-${i}`} className="flex gap-2.5">
+                <span className="w-11 shrink-0 pt-0.5 font-mono text-[10px] text-ink-muted">[{fmtTiempo(s.inicioS)}]</span>
+                <p className="min-w-0 text-[12.5px] leading-snug text-ink">
+                  {onCorregir ? (
+                    <button
+                      type="button"
+                      onClick={() => onCorregir(idx)}
+                      title="¿Hablante equivocado? Toca para corregir — el identificador aprende de la corrección"
+                      className="font-semibold text-accent hover:underline"
+                      data-testid="corregir-hablante"
+                    >
+                      {s.hablante}:
+                    </button>
+                  ) : (
+                    <span className="font-semibold text-accent">{s.hablante}:</span>
+                  )}{' '}
+                  {s.texto}
+                </p>
+              </div>
+            )
+          })}
           <div ref={finRef} />
         </div>
       )}
