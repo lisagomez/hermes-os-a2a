@@ -77,7 +77,8 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
 - `token_usage`: una fila por llamada relevante (`fecha, vertical, modelo,
   tokens_in, tokens_out, costo_usd`). Fuente de verdad del presupuesto.
 - `facturas`: facturas extraídas (`cliente, folio, fecha, conceptos, subtotal,
-  impuestos, total` + deducibilidad pendiente hasta el grafo).
+  impuestos, total`); la deducibilidad nace `pendiente` y la dictamina el grafo vía
+  el host-job `evaluar-facturas.py` (⚠️ escrito pero SIN agendar, 2026-07-26).
 - Volumen `.hermes` por vertical: config, credenciales, sesiones, skills, memoria.
 - Bóveda Obsidian (`/opt/data/obsidian`): conocimiento personal versionado.
 - `cobros` y `contratos` (Fase 3): checkouts Polar y acuerdos validados por el grafo
@@ -87,6 +88,13 @@ memoria y bot; nunca se funden (principio "aislar, no fundir").
   paquete, lineage `origen`, aprobador y despliegue. Departamento:
   `businessos/departamentos/contratos-inteligentes.md`; operación del contrato
   (PM/oráculo) en la Fase 13.
+- Esquema `erp` (APLICADO 2026-07-26, decisión de la dueña): 22 tablas con RLS
+  FORCE + roles dedicados (`cli_fin`/rol_exe_fin, jamás service_role) en el MISMO
+  proyecto Supabase, aislado de `public`. Incluye el **módulo `act` (activos
+  digitales, ERP-4B)**: cada feature VENDIBLE aprobada por el trío se cosecha como
+  activo (`act_activo` + versión + costo real desde `token_usage.task_id`) y el
+  merge del PR la concreta. Catálogo inicial: 23 activos (ACT-0003..0025).
+  Detalle: `erp/migrations/README.md` y `.claude/memory/project/erp-modulo-act.md`.
 - Grafo (Fase 2-3, construido): PostgreSQL propio con el modelo
   proyecto → jurisdicción → dimensión → regla → impacto; MX + fiscal, 11 reglas
   citadas (LISR/CFF/SAT). Veredictos de facturas: `deducibilidad_estado` +

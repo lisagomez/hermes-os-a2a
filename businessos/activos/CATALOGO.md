@@ -13,16 +13,17 @@
 > Análisis completo: 2026-07-26 (Fable 5). Catálogo VIVO: alta al nacer un activo,
 > revisión de costos al cierre de cada fase del ROADMAP.
 >
-> **Encaje con el ERP (módulo `act`, ERP-MAESTRO §1.6-1.7):** este catálogo es el
-> **bootstrap manual** del inventario que el ERP hará dinámico — el detector de solo
-> lectura `swm-act` descubrirá activos nuevos/cambiados/huérfanos contra las fuentes
-> reales y el trío los catalogará con compuertas ("nadie mantiene el inventario a
-> mano"). Hasta que ERP-1+ exista (bloqueado por D-03), esta es la fuente de verdad,
-> ya estructurada con los DOS EJES que el ERP exige (§1.7): **D+I** (cómo nació →
-> tratamiento contable NIF C-8) y **DEFENSIBILIDAD** (qué lo hace difícil de copiar
-> → dónde va el dinero de protección). La capitalización contable y toda alta al
-> balance siguen la política auditada por el contador — nada de lo de aquí es
-> asiento contable todavía.
+> **Encaje con el ERP — ACTUALIZADO 2026-07-26: el módulo `act` ya VIVE.** Este
+> catálogo fue el bootstrap manual y cumplió su función: los 23 activos están
+> migrados a `erp.act_activo` (ACT-0003..0025, mapeo por `ref_catalogo`) con el
+> esquema `erp` aplicado al Supabase compartido. Desde hoy **la BD es la fuente
+> DINÁMICA** (cosechador `cosechar-activos.py` + detector `swm-act` semanal:
+> "nadie mantiene el inventario a mano") y este archivo queda como referencia
+> legible + registro del esquema de costeo; las ALTAS nuevas nacen en la BD, no
+> aquí. La clasificación de defensibilidad sigue como PROPUESTA hasta la
+> ratificación humana (D-10) y nada es asiento contable hasta la firma del
+> contador en `erp/reglas/act-contable.md` (D-07). Detalle:
+> `.claude/memory/project/erp-modulo-act.md`.
 
 ---
 
