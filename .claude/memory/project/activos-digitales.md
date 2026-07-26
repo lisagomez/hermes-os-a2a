@@ -1,5 +1,9 @@
 # Catálogo de Activos Digitales propios (A2A-NNN)
 
+> **ACTUALIZADO 2026-07-26:** el catálogo migró a la BD — módulo `act` del ERP vivo
+> (ACT-0003..0025 vía `ref_catalogo`). La BD es la fuente dinámica; el jsonl queda
+> como bootstrap/referencia. Ver `erp-modulo-act.md`.
+
 **Estado (2026-07-26):** creado en `businessos/activos/` — `CATALOGO.md` (fichas) +
 `activos.jsonl` (ledger machine-readable). 23 activos: 10 PRODUCTO, 5 FABRICA,
 4 CONOCIMIENTO, 2 DISEÑO, 1 COMERCIAL, 1 INFRA.
