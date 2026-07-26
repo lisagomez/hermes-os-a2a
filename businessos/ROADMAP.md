@@ -1049,6 +1049,42 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
 - [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod,
   integración Zoom/Meet, diarización ML (pyannote).
 
+## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
+
+El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `erp`
+(001-005) está **aplicado al Supabase compartido** y el **módulo act (activos
+digitales, ERP-4B)** opera el ciclo DETECTAR → CATALOGAR → REGISTRAR sobre la
+fábrica real. Cada feature VENDIBLE aprobada por el Supervisor se cosecha como
+activo con su costo desde `token_usage.task_id`. Detalle:
+`.claude/memory/project/erp-modulo-act.md` y `erp/migrations/README.md`.
+
+- [x] **Migración 005** (act_activo/act_version/act_proteccion/act_costo, dos ejes
+  §1.7, append-only, trigger de costo_acumulado) validada en efímero y aplicada;
+  Gate A 8/8 contra producción (RLS FORCE 22 tablas, rol_swm sin escritura,
+  folio ACT-, cero filas sin tenant, DELETE denegado).
+- [x] **Clasificación en el ORIGEN**: el contrato del trío acepta `clasificacion
+  {eje_dei, vendible}` con regla dura `vendible ⇒ eje≠operacion`, herencia
+  padre→hijas en el Coordinador, denormalización en `tareas` (fase13 aplicada).
+  302 tests verdes.
+- [x] **Cosechador** (`cosechar-activos.py`): detectar (flanco →aprobada&vendible)
+  · concretar (merge a master = gate humano → CAS a `concretada`, el estado
+  huérfano de contrato.py:57 cobró dueño) · ratificar/ajustar (decisiones
+  humanas con --confirmar). Puente `cli_fin`+SET ROLE (jamás service_role).
+- [x] **Detector swm-act v1** (semanal, D-09): NUEVO/CAMBIADO/HUÉRFANO, solo
+  propone — gate del ciclo dummy completo verificado en el servidor.
+- [x] **Cosecha inicial**: los 23 A2A-NNN del catálogo → ACT-0003..0025;
+  $36.32 acumulado = exactamente lo medido; 9 defendibles como PROPUESTA.
+- [x] **Política contable D-07 (borrador)** + `exportar-polizas.py` con gate duro:
+  capitalizar sin `AUDITADA-POR:` del contador = RECHAZADO exit 1 (verificado).
+- [ ] **Gates de la dueña**: (1) sesión de ratificación de defensibilidad
+  (9 propuestos: `cosechar-activos.py ratificar ACT-NNNN ... --confirmar`);
+  (2) auditoría del contador sobre `erp/reglas/act-contable.md` (firma
+  AUDITADA-POR) — desbloquea pólizas; (3) primera cosecha e2e con una tarea
+  vendible real (la próxima feature que se encole con `vendible: true`).
+- Pendientes estructurales: D-03 (CLI act formal, hoy puente psql interino),
+  separación física de repos defendibles (D-12), `act_proteccion` de los
+  defendibles ratificados, ERP-1+ según maestro.
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de
