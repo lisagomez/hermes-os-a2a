@@ -4,6 +4,7 @@
 import type { CasoPreDiscovery, IntakeLead } from './types'
 import { ORDEN_BLOQUES, estadoCasoDe } from './types'
 import { mockBloque } from './mock'
+import { mockEvaluacionGrafo } from './grafo'
 
 export const INTAKE_GAL: IntakeLead = {
   telefono: '',
@@ -244,6 +245,37 @@ const DIFERENCIACION_GAL = {
   },
 }
 
+
+// Marco regulatorio derivado QUIRÚRGICAMENTE de lo observado en las fuentes:
+// el claim "Elaborate Electronics AWB" dispara el marco e-AWB (Convenio de
+// Montreal 1999 Art. 4 + IATA Res. 672/MeA + EDI + info anticipada aduanas MX).
+const REGULATORIO_GAL = (() => {
+  const evaluacion = mockEvaluacionGrafo(
+    [
+      'Servicios de agencia de carga y transporte internacional (Hand Carry, Express Service, Air Freight — observados en galmexico.com)',
+      'Venta de seguro de carga al cliente final como intermediario',
+      'Emisión de guía aérea electrónica (e-AWB) — claim observado: «Elaborate Electronics AWB for you»',
+    ],
+    'regulatorio'
+  )
+  return {
+    estado: (evaluacion.estado === 'dudoso' ? 'no_concluyente' : 'listo') as 'listo' | 'no_concluyente',
+    datos: evaluacion,
+    confianza: 'alta' as const,
+    procedencia: {
+      metodo: 'observado' as const,
+      fuente: 'conceptos derivados de los servicios y claims OBSERVADOS en galmexico.com; dictamen del mock fiel del grafo (fuentes citadas)',
+    },
+    requiereValidacion: [
+      'Confirmar con GAL su adhesión vigente al Multilateral e-AWB Agreement (Res. 672) y su capacidad EDI (FWB/FHL Cargo-IMP o Cargo-XML)',
+      'Cotejar con su agente aduanal la regla RGCE vigente de información anticipada de carga aérea',
+      'Todo tema marcado dudoso requiere revisión posterior con el grafo real y un especialista',
+    ],
+    error: null,
+    generadoAt: '2026-07-27T00:00:00.000Z',
+  }
+})()
+
 const BLOQUES_GAL = {
   ...(Object.fromEntries(ORDEN_BLOQUES.map((b) => [b, mockBloque(b, INTAKE_GAL)])) as CasoPreDiscovery['bloques']),
   sitio: SITIO_GAL,
@@ -251,6 +283,7 @@ const BLOQUES_GAL = {
   brief: BRIEF_GAL,
   competencia: COMPETENCIA_GAL,
   diferenciacion: DIFERENCIACION_GAL,
+  regulatorio: REGULATORIO_GAL,
 } as CasoPreDiscovery['bloques']
 
 export const CASO_DEMO_GAL: CasoPreDiscovery = {

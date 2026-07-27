@@ -89,6 +89,29 @@ const REGLAS_MOCK: { patron: RegExp; dimension: DimensionGrafo; categoria: strin
     checklist: ['Autorizacion CNSF vigente del agente/corredor', 'Deber de informacion al cliente (Art. 94)'],
   },
   {
+    patron: /(e-?awb|awb electronica|air waybill|guia aerea electronica|electronics? awb)/i,
+    dimension: 'regulatorio',
+    categoria: 'CARGA_AEREA_EAWB',
+    estado: 'permitido',
+    razon: 'Guia aerea electronica (e-AWB): contrato de transporte por medios electronicos amparado por el Convenio de Montreal 1999 (Art. 4) e instrumentado via IATA Resolucion 672 (Multilateral e-AWB Agreement)',
+    fuente: {
+      clave: 'IATA-CSC-672-MEA',
+      cita: 'IATA Resolution 672 CSC(35) — Form of Multilateral e-AWB Agreement (marco juridico del contrato de carga por medios electronicos, bajo Convenio de Montreal 1999 Art. 4)',
+      url: 'https://www.iata.org/contentassets/783ac75f30d74e32a8eaef26af5696b6/csc-672-en-28dec2019.pdf',
+      vigencia: { desde: '2019-12-28', hasta: null },
+    },
+    banderas: [
+      'Operar e-AWB SIN adhesion al Multilateral e-AWB Agreement (MeA) deja el contrato electronico sin el marco juridico de la Res. 672',
+      'La informacion anticipada de carga aerea ante aduanas mexicanas (SAT/ANAM) es requisito paralelo: cotejar la regla RGCE vigente',
+    ],
+    checklist: [
+      'Adhesion vigente al MeA (firma unica ante IATA, Resolucion 672)',
+      'Capacidad de intercambio EDI: mensajes FWB/FHL (Cargo-IMP) o Cargo-XML con las aerolineas',
+      'Conservacion del registro electronico del contrato (Convenio de Montreal 1999, Art. 4)',
+      'Transmision de informacion anticipada de carga a aduanas MX (validar regla RGCE aplicable con el agente aduanal)',
+    ],
+  },
+  {
     patron: /(software|saas|plataforma|desarrollo|app|tecnolog[ií]a)/i,
     dimension: 'fiscal',
     categoria: 'MX-GASTOS-ESTRICTAMENTE-INDISPENSABLES',

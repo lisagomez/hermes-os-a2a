@@ -22,9 +22,13 @@ interface ResultadoAnalisis {
 }
 
 function conceptosRegulatorios(caso: CasoPreDiscovery): string[] {
-  const sitio = caso.bloques.sitio.datos as { servicios?: { texto: string }[] } | null
-  const servicios = (sitio?.servicios ?? []).slice(0, 2).map((s) => s.texto)
-  return [`Operación de ${caso.intake.giro} en ${caso.intake.pais}`, ...servicios].slice(0, 3)
+  // Escaneo QUIRÚRGICO: no solo el giro — también los servicios Y los claims
+  // observados del sitio derivan conceptos regulatorios (p. ej. "Electronics
+  // AWB" observado → concepto e-AWB con su marco IATA/Montreal).
+  const sitio = caso.bloques.sitio.datos as { servicios?: { texto: string }[]; claims?: { texto: string }[] } | null
+  const servicios = (sitio?.servicios ?? []).slice(0, 3).map((s) => s.texto)
+  const claims = (sitio?.claims ?? []).slice(0, 3).map((c) => c.texto)
+  return [`Operación de ${caso.intake.giro} en ${caso.intake.pais}`, ...servicios, ...claims].slice(0, 6)
 }
 
 async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, textoSitio: string | null): Promise<ResultadoAnalisis> {

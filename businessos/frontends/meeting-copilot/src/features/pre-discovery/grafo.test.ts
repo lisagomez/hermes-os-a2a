@@ -19,6 +19,19 @@ describe('mockEvaluacionGrafo — fiel al contrato del grafo real', () => {
     expect(e.conceptos[0].fuente).toBeNull()
   })
 
+
+  it('escaneo quirúrgico: el claim e-AWB observado dispara el marco IATA/Montreal', () => {
+    const e = mockEvaluacionGrafo(['Emisión de guía aérea electrónica (e-AWB) — «Elaborate Electronics AWB for you»'], 'regulatorio')
+    const c = e.conceptos[0]
+    expect(c.categoria).toBe('CARGA_AEREA_EAWB')
+    expect(c.fuente?.clave).toBe('IATA-CSC-672-MEA')
+    expect(c.razon).toContain('Convenio de Montreal')
+    expect(c.checklist.join(' ')).toContain('MeA')
+    expect(c.checklist.join(' ')).toContain('FWB/FHL')
+    expect(c.checklist.join(' ')).toContain('informacion anticipada')
+    expect(e.disclaimer).toBe(DISCLAIMER_GRAFO)
+  })
+
   it('veredictos mixtos → estado agregado dudoso (regla del grafo)', () => {
     const e = mockEvaluacionGrafo(['agencia de carga federal', 'Ajuste misterioso'], 'regulatorio')
     expect(e.estado).toBe('dudoso')
