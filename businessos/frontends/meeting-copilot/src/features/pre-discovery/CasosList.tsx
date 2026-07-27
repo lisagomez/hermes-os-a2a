@@ -54,13 +54,11 @@ export function CasosList() {
         <Card>
           <Table data-testid="tabla-casos">
             <THead>
-              <TRow>
                 <TH>Lead</TH>
                 <TH className="hidden md:table-cell">Bloques</TH>
                 <TH>Estado</TH>
                 <TH>Costo</TH>
                 <TH className="hidden sm:table-cell">Activo</TH>
-              </TRow>
             </THead>
             <TBody>
               {casos.map((c) => {

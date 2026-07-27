@@ -134,11 +134,123 @@ const BRIEF_GAL = {
   },
 }
 
+
+const PROCEDENCIA_RESEARCH = {
+  metodo: 'observado' as const,
+  fuente: 'deep research 2026-07-26: sitios de competidores leídos y verificados (timecritical.com.mx, onboardcourier.com, logisticsplus.mx) + búsqueda del sector time-critical MX',
+}
+
+const COMPETENCIA_GAL = {
+  estado: 'listo' as const,
+  confianza: 'alta' as const,
+  procedencia: PROCEDENCIA_RESEARCH,
+  requiereValidacion: [
+    'Confirmar con GAL contra quiénes pierden/ganan deals en la práctica (la lista observada es del sector, no de su pipeline)',
+  ],
+  error: null,
+  generadoAt: '2026-07-26T19:00:00.000Z',
+  datos: {
+    competidores: [
+      {
+        nombre: 'Time Critical Logistics (Guadalajara, MX)',
+        url: 'https://www.timecritical.com.mx/',
+        posicionamiento: 'Especialista mexicano en urgencias: hand carry/OBC, charter y courier internacional, 24/7/365, para automotriz, aeroespacial y hi-tech — el espejo más directo de GAL en México',
+        servicios: ['Hand carry / on-board courier', 'Charter', 'International courier', 'Time critical'],
+        diferenciadores: ['20+ años de especialistas declarados', 'Base en el corredor industrial de GDL'],
+        madurez: 'baja' as const,
+        confianza: 'alta' as const,
+      },
+      {
+        nombre: 'Chapman Freeborn OBC (global)',
+        url: 'https://onboardcourier.com/',
+        posicionamiento: 'El estándar premium global del OBC: couriers propios con visas en todo el mundo, cotización en 15 minutos, booking en línea y tracking en tiempo real; ISO 9001',
+        servicios: ['On-board courier', 'Next Flight Out', 'Charter (grupo Chapman Freeborn)'],
+        diferenciadores: ['Cotización en 15 min', 'Booking y tracking online', 'Red global de couriers con visas'],
+        madurez: 'alta' as const,
+        confianza: 'alta' as const,
+      },
+      {
+        nombre: 'Logistics Plus México (Monterrey, global)',
+        url: 'https://logisticsplus.mx/',
+        posicionamiento: 'Forwarder global con oficina en MTY (+52 81…): charter, Next Flight Out y hand carry como LÍNEAS de un portafolio amplio (forwarding + aduanas) — compite por el mismo cliente con más red y menos especialización',
+        servicios: ['Charter', 'Next Flight Out', 'Hand carry (OBC)', 'Freight forwarding', 'Aduanas'],
+        diferenciadores: ['Red global', 'Ventanilla única logística'],
+        madurez: 'media' as const,
+        confianza: 'alta' as const,
+      },
+      {
+        nombre: 'Grandes forwarders con plaza en Monterrey (AIT, Crane, Omni, Scan Global)',
+        url: 'https://www.aitworldwide.com/locations/monterrey-mexico/',
+        posicionamiento: 'Los globales instalados en MTY sirven automotriz/industrial con servicio urgente como línea (Scan Global incluso ofrece OBC): pelean por los mismos clientes del noreste con marca y capacidad, sin ser especialistas del urgente',
+        servicios: ['Air freight', 'Expedited / OBC (algunos)', 'Aduanas', '3PL'],
+        diferenciadores: ['Marca global', 'Capacidad y cobertura', 'Relaciones corporativas'],
+        madurez: 'alta' as const,
+        confianza: 'media' as const,
+      },
+    ],
+    comparativa: [
+      {
+        dimension: 'posicionamiento',
+        lead: 'Especialista time-critical local (Hand Carry, Express 24/7, aéreo 230 países) con trato directo',
+        lectura: 'GAL compite en un sector con tres frentes reales: el especialista MX (Time Critical Logistics), el premium global (Chapman OBC) y los generalistas con plaza en MTY. Su terreno defendible es el urgente ESPECIALIZADO con cercanía — ninguno de los grandes da trato de fundador.',
+      },
+      {
+        dimension: 'servicios',
+        lead: 'Mismo menú del sector (hand carry, NFO, charter, aéreo) — el portafolio NO diferencia',
+        lectura: 'Los cuatro competidores verificados ofrecen esencialmente lo mismo: en este sector el portafolio es commodity; se gana por velocidad de respuesta, confiabilidad demostrable y experiencia del cliente.',
+      },
+      {
+        dimension: 'madurez digital',
+        lead: 'Anuncia torre de control y tracking personalizado, sin portal visible',
+        lectura: 'La vara la pone Chapman OBC: cotización en 15 min, booking y tracking online. Su espejo directo (Time Critical Logistics) sigue en teléfono/correo, igual que GAL: EL PRIMERO de los especialistas MX que digitalice cotización y visibilidad se queda el diferenciador del segmento.',
+      },
+      {
+        dimension: 'cliente objetivo',
+        lead: 'Líneas de producción y emergencias industriales (observado en su sitio)',
+        lectura: 'Automotriz/aeroespacial del noreste es exactamente donde AIT/Crane/Omni concentran su oficina de MTY: GAL necesita defender esas cuentas con especialización y velocidad antes de que el urgente se vuelva una línea más del 3PL grande.',
+      },
+    ],
+  },
+}
+
+const DIFERENCIACION_GAL = {
+  estado: 'listo' as const,
+  confianza: 'alta' as const,
+  procedencia: PROCEDENCIA_RESEARCH,
+  requiereValidacion: [],
+  error: null,
+  generadoAt: '2026-07-26T19:00:00.000Z',
+  datos: {
+    oportunidades: [
+      {
+        titulo: 'Igualar la vara digital del premium global',
+        gapCompetitivo: 'Chapman OBC cotiza en 15 min con booking/tracking online; el especialista MX directo (Time Critical Logistics) sigue en teléfono — GAL también',
+        linea: 'Digitalizar cotización de urgencias y visibilidad del embarque ANTES que Time Critical Logistics: quedarse el título de "especialista MX con experiencia digital premium"',
+        naturaleza: 'recomendacion' as const,
+      },
+      {
+        titulo: 'La torre de control como producto vendible',
+        gapCompetitivo: 'GAL ya ANUNCIA torre de control y tracking personalizado (observado); los generalistas de MTY venden capacidad, no visibilidad dedicada',
+        linea: 'Convertir la promesa en portal/notificaciones reales para clientes de líneas de producción — es la defensa natural contra AIT/Crane/Omni',
+        naturaleza: 'recomendacion' as const,
+      },
+      {
+        titulo: 'Especialización vertical declarada',
+        gapCompetitivo: 'Los grandes de MTY sirven automotriz/industrial de forma genérica; el sitio de GAL ya habla de líneas de producción',
+        linea: 'Empaquetar el hand carry/NFO por vertical (automotriz noreste, aeroespacial) con SLAs y casos — foco que el 3PL grande no va a construir',
+        naturaleza: 'recomendacion' as const,
+      },
+    ],
+  },
+}
+
 const BLOQUES_GAL = {
   ...(Object.fromEntries(ORDEN_BLOQUES.map((b) => [b, mockBloque(b, INTAKE_GAL)])) as CasoPreDiscovery['bloques']),
   sitio: SITIO_GAL,
   perfil: PERFIL_GAL,
   brief: BRIEF_GAL,
+  competencia: COMPETENCIA_GAL,
+  diferenciacion: DIFERENCIACION_GAL,
 } as CasoPreDiscovery['bloques']
 
 export const CASO_DEMO_GAL: CasoPreDiscovery = {

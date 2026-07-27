@@ -45,7 +45,13 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Cuerpo inválido para /api/pre-discovery/analizar.' }, { status: 400 })
 
   const { bloque, intake, textoSitio, perfilPrevio, competenciaPrevia, bloquesPrevios } = parsed.data
-  const modelo = process.env.ASESOR_LLM_MODEL ?? MODELO_DEFAULT
+  let modelo = process.env.ASESOR_LLM_MODEL ?? MODELO_DEFAULT
+  // Deep research de competidores: con PREDISCOVERY_ONLINE=1, el bloque de
+  // competencia corre con búsqueda web del proveedor (sufijo :online de
+  // OpenRouter) — investiga el sector real del lead, no arquetipos.
+  if (bloque === 'competencia' && process.env.PREDISCOVERY_ONLINE === '1' && !modelo.includes(':online')) {
+    modelo = `${modelo}:online`
+  }
   const controlador = new AbortController()
   const timeout = setTimeout(() => controlador.abort(), 30_000)
 

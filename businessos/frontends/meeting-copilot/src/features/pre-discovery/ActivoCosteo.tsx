@@ -122,12 +122,10 @@ export function ActivoCosteo({
         {verLedger && (
           <Table className="mt-2" data-testid="ledger-completo">
             <THead>
-              <TRow>
                 <TH>Componente</TH>
                 <TH>Tokens (in/out)</TH>
                 <TH>Monto</TH>
                 <TH>Fuente</TH>
-              </TRow>
             </THead>
             <TBody>
               {ledger.map((c) => (

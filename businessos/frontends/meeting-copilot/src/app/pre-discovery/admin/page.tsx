@@ -54,12 +54,10 @@ export default function Page() {
         </p>
         <Table data-testid="tabla-tarifas">
           <THead>
-            <TRow>
               <TH>Modelo</TH>
               <TH>USD/MTok in</TH>
               <TH>USD/MTok out</TH>
               <TH className="hidden sm:table-cell">Fuente</TH>
-            </TRow>
           </THead>
           <TBody>
             {tarifas.map((t) => (
@@ -145,13 +143,11 @@ export default function Page() {
         ) : (
           <Table data-testid="tabla-activos-modulo">
             <THead>
-              <TRow>
                 <TH>Folio</TH>
                 <TH>Clase</TH>
                 <TH>Versión</TH>
                 <TH>Costo</TH>
                 <TH className="hidden sm:table-cell">Ubicación</TH>
-              </TRow>
             </THead>
             <TBody>
               {activos.map((a) => (

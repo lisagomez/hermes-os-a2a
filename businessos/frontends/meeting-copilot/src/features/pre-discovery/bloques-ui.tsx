@@ -171,25 +171,40 @@ export function SitioView({ datos }: { datos: DatosSitio }) {
 export function CompetenciaView({ datos }: { datos: DatosCompetencia }) {
   return (
     <div className="space-y-4">
-      <Card>
-        <Table>
+      <Card className="overflow-x-auto">
+        <Table className="table-fixed" data-testid="tabla-competidores">
           <THead>
-            <TRow>
-              <TH>Competidor</TH>
-              <TH>Posicionamiento</TH>
-              <TH className="hidden md:table-cell">Diferenciadores</TH>
-              <TH>Madurez</TH>
-              <TH>Confianza</TH>
-            </TRow>
+            <TH className="w-[24%]">Competidor</TH>
+            <TH>Posicionamiento</TH>
+            <TH className="hidden w-[22%] lg:table-cell">Diferenciadores</TH>
+            <TH className="w-24">Madurez</TH>
+            <TH className="w-24">Confianza</TH>
           </THead>
           <TBody>
             {datos.competidores.map((c) => (
-              <TRow key={c.nombre}>
-                <TCell className="font-medium text-ink">{c.nombre}</TCell>
-                <TCell className="text-ink-secondary">{c.posicionamiento}</TCell>
-                <TCell className="hidden text-ink-secondary md:table-cell">{c.diferenciadores.join(' · ')}</TCell>
-                <TCell><Chip tono={c.madurez === 'alta' ? 'success' : c.madurez === 'media' ? 'warning' : 'neutral'}>{c.madurez}</Chip></TCell>
-                <TCell><Chip>{c.confianza}</Chip></TCell>
+              <TRow key={c.nombre} className="align-top">
+                <TCell>
+                  {c.url ? (
+                    <a href={c.url} target="_blank" rel="noreferrer" className="font-medium text-ink hover:text-accent">
+                      {c.nombre}
+                    </a>
+                  ) : (
+                    <span className="font-medium text-ink">{c.nombre}</span>
+                  )}
+                  {c.servicios.length > 0 && (
+                    <p className="mt-0.5 text-[11px] leading-snug text-ink-muted">{c.servicios.join(' · ')}</p>
+                  )}
+                </TCell>
+                <TCell className="text-[12px] leading-snug text-ink-secondary">{c.posicionamiento}</TCell>
+                <TCell className="hidden text-[12px] leading-snug text-ink-secondary lg:table-cell">
+                  {c.diferenciadores.join(' · ')}
+                </TCell>
+                <TCell>
+                  <Chip tono={c.madurez === 'alta' ? 'success' : c.madurez === 'media' ? 'warning' : 'neutral'}>{c.madurez}</Chip>
+                </TCell>
+                <TCell>
+                  <Chip>{c.confianza}</Chip>
+                </TCell>
               </TRow>
             ))}
           </TBody>
