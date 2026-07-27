@@ -25,6 +25,7 @@ import { ETIQUETA_BLOQUE } from './types'
 import type { CasoPreDiscovery } from './types'
 import type { EvaluacionGrafo } from './grafo'
 import { propuestasSeed, type EscaneoRegulatorio } from './escaneo-regulatorio'
+import type { EscaneoTecnologico } from './escaneo-tecnologico'
 import { Table, TBody, TCell, TH, THead, TRow } from '@/shared/components/ui'
 
 export function ChipNaturaleza({ naturaleza }: { naturaleza: Naturaleza }) {
@@ -280,6 +281,32 @@ export function EstrategiaView({ dif, foda }: { dif: DatosDiferenciacion | null;
 const TONO_EXPECTATIVA = { evidencia: 'success', hipotesis: 'warning', vacio: 'danger' } as const
 const ETIQUETA_EXPECTATIVA = { evidencia: 'evidencia', hipotesis: 'hipótesis', vacio: 'VACÍO' } as const
 
+/** Renderer compartido del cruce declarado-vs-esperado (regulatorio y tecnológico). */
+function MatrizExpectativas({
+  items,
+  testid,
+}: {
+  items: { nombre: string; esperadaPor: string; estado: 'evidencia' | 'hipotesis' | 'vacio'; severidad: string; detalle: string }[]
+  testid: string
+}) {
+  return (
+    <ul className="mt-2 space-y-1.5">
+      {items.map((m) => (
+        <li key={m.nombre} className="rounded-s bg-surface-muted px-3 py-1.5" data-testid={testid}>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-[12px] text-ink">
+              <span className="font-medium">{m.nombre}</span>
+              <span className="text-ink-secondary"> — esperado por: {m.esperadaPor}</span>
+            </p>
+            <Chip tono={TONO_EXPECTATIVA[m.estado]}>{ETIQUETA_EXPECTATIVA[m.estado]}{m.estado !== 'evidencia' ? ` · sev. ${m.severidad}` : ''}</Chip>
+          </div>
+          <p className="mt-0.5 text-[11px] text-ink-secondary">{m.detalle}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 /** Hermes-Regulatory-Scan: cruce DECLARADO vs ESPERADO — el vacío es el hallazgo. */
 function EscaneoView({ escaneo, caso }: { escaneo: EscaneoRegulatorio; caso?: CasoPreDiscovery }) {
   const propuestas = caso ? propuestasSeed(caso, escaneo) : []
@@ -314,20 +341,7 @@ function EscaneoView({ escaneo, caso }: { escaneo: EscaneoRegulatorio; caso?: Ca
           <p className="text-[12px]">{escaneo.vacioDelGrafo}</p>
         </Callout>
       ) : (
-        <ul className="mt-2 space-y-1.5">
-          {escaneo.matriz.map((m) => (
-            <li key={m.categoria} className="rounded-s bg-surface-muted px-3 py-1.5" data-testid="expectativa-regulatoria">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[12px] text-ink">
-                  <span className="font-medium">{m.categoria}</span>
-                  <span className="text-ink-secondary"> — esperado por: {m.esperadaPor}</span>
-                </p>
-                <Chip tono={TONO_EXPECTATIVA[m.estado]}>{ETIQUETA_EXPECTATIVA[m.estado]}{m.estado !== 'evidencia' ? ` · sev. ${m.severidad}` : ''}</Chip>
-              </div>
-              <p className="mt-0.5 text-[11px] text-ink-secondary">{m.detalle}</p>
-            </li>
-          ))}
-        </ul>
+        <MatrizExpectativas items={escaneo.matriz.map((m) => ({ ...m, nombre: m.categoria }))} testid="expectativa-regulatoria" />
       )}
       <p className="mt-2 text-[10px] text-ink-muted">
         Las propuestas se exportan en modo PROPUESTA hacia el seed del grafo (revisión humana + gate de procedencia) — nada se siembra como hecho automáticamente.
@@ -388,7 +402,7 @@ export function RegulatorioView({ datos, caso }: { datos: EvaluacionGrafo & { es
   )
 }
 
-export function TecnologiaView({ datos }: { datos: DatosTecnologia }) {
+export function TecnologiaView({ datos }: { datos: DatosTecnologia & { escaneo?: EscaneoTecnologico } }) {
   const seccion = (titulo: string, items: Item[]) => (
     <div>
       <h3 className="mb-1 text-[12px] font-semibold text-ink">{titulo}</h3>
@@ -400,10 +414,33 @@ export function TecnologiaView({ datos }: { datos: DatosTecnologia }) {
     </div>
   )
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {seccion('Stack visible', datos.stackVisible)}
-      {seccion('Herramientas probables', datos.herramientasProbables)}
-      <div className="md:col-span-2">{seccion('Oportunidades de automatización', datos.oportunidadesAutomatizacion)}</div>
+    <div className="space-y-4">
+      {datos.escaneo && (
+        <div className="rounded-s border border-line-subtle p-3" data-testid="escaneo-tecnologico">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-[12px] font-semibold text-ink">Declarado vs esperado</h3>
+            {datos.escaneo.claseNegocio && <Chip>{datos.escaneo.claseNegocio}</Chip>}
+            <Chip tono={datos.escaneo.cobertura === 'alta' ? 'success' : datos.escaneo.cobertura === 'media' ? 'warning' : 'danger'}>
+              cobertura {datos.escaneo.cobertura}
+            </Chip>
+          </div>
+          {datos.escaneo.vacioDelMapa ? (
+            <Callout tono="warning" variante="inline" titulo="VACÍO DEL MAPA">
+              <p className="text-[12px]">{datos.escaneo.vacioDelMapa}</p>
+            </Callout>
+          ) : (
+            <MatrizExpectativas items={datos.escaneo.matriz.map((m) => ({ ...m, nombre: m.capacidad }))} testid="expectativa-tecnologica" />
+          )}
+          <p className="mt-2 text-[10px] text-ink-muted">
+            Los VACÍOS con severidad son las oportunidades de automatización: el pitch se ancla a estos huecos observados, no a catálogo.
+          </p>
+        </div>
+      )}
+      <div className="grid gap-4 md:grid-cols-2">
+        {seccion('Stack visible', datos.stackVisible)}
+        {seccion('Herramientas probables', datos.herramientasProbables)}
+        <div className="md:col-span-2">{seccion('Oportunidades de automatización', datos.oportunidadesAutomatizacion)}</div>
+      </div>
     </div>
   )
 }

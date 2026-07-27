@@ -6,11 +6,12 @@
 // se rompe y la fuente de cada bloque siempre se declara. Cada corrida APPENDEA
 // su costo al ledger del activo del caso (jamás se reemplaza).
 
-import type { Bloque, BloqueId, CasoPreDiscovery, DatosSitio } from './types'
+import type { Bloque, BloqueId, CasoPreDiscovery, DatosSitio, DatosTecnologia } from './types'
 import { ORDEN_BLOQUES } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo, type EvaluacionGrafo } from './grafo'
 import { escaneoRegulatorio } from './escaneo-regulatorio'
+import { escaneoTecnologico } from './escaneo-tecnologico'
 import { esBloqueLLM } from '@/features/agents/prompt-prediscovery'
 import { usePreDiscoveryStore } from './store'
 import { costearTokens, hashContenido, useActivosStore } from '@/features/activos/store'
@@ -244,6 +245,23 @@ export async function correrBloque(casoId: string, bloque: BloqueId, textoSitio:
         ...resultado.bloque.requiereValidacion,
         ...escaneo.matriz.filter((m) => m.estado !== 'evidencia').map((m) => `Marco esperado sin evidencia (${m.estado}): ${m.categoria} — ${m.esperadaPor}`),
         ...(escaneo.vacioDelGrafo ? [escaneo.vacioDelGrafo] : []),
+      ],
+    }
+  }
+
+  // Hermes-Tech-Stack-Scan: mismo cruce, dimensión tecnológica — los vacíos con
+  // severidad son las oportunidades de automatización (el pitch se ancla ahí).
+  if (bloque === 'tecnologia' && resultado.bloque.datos) {
+    const datos = resultado.bloque.datos as DatosTecnologia
+    const casoActual = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId) ?? caso
+    const escaneo = escaneoTecnologico(casoActual.intake, casoActual.bloques.sitio.datos as DatosSitio | null, datos)
+    resultado.bloque = {
+      ...resultado.bloque,
+      datos: { ...datos, escaneo },
+      requiereValidacion: [
+        ...resultado.bloque.requiereValidacion,
+        ...escaneo.matriz.filter((m) => m.estado === 'hipotesis').map((m) => `Capacidad declarada sin sistema observable: ${m.capacidad} — validar en entrevista sobre qué corre`),
+        ...(escaneo.vacioDelMapa ? [escaneo.vacioDelMapa] : []),
       ],
     }
   }

@@ -6,6 +6,8 @@ import { ORDEN_BLOQUES, estadoCasoDe } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo } from './grafo'
 import { escaneoRegulatorio } from './escaneo-regulatorio'
+import { escaneoTecnologico } from './escaneo-tecnologico'
+import type { DatosTecnologia } from './types'
 
 export const INTAKE_GAL: IntakeLead = {
   telefono: '',
@@ -279,6 +281,23 @@ const REGULATORIO_GAL = (() => {
   }
 })()
 
+// Marco tecnológico con el cruce declarado-vs-esperado sobre lo OBSERVADO:
+// "tracking personalizado" y "Electronics AWB" son claims (hipótesis: declarado
+// por el lead, por validar), y el portal/cotizador ausente queda como vacío —
+// la oportunidad de automatización que ancla el pitch.
+const TECNOLOGIA_GAL = (() => {
+  const base = mockBloque('tecnologia', INTAKE_GAL)
+  const escaneo = escaneoTecnologico(INTAKE_GAL, SITIO_GAL.datos as DatosSitio, base.datos as DatosTecnologia)
+  return {
+    ...base,
+    datos: { ...(base.datos as DatosTecnologia), escaneo },
+    requiereValidacion: [
+      ...base.requiereValidacion,
+      ...escaneo.matriz.filter((m) => m.estado === 'hipotesis').map((m) => `Capacidad declarada sin sistema observable: ${m.capacidad} — validar en entrevista sobre qué corre`),
+    ],
+  }
+})()
+
 const BLOQUES_GAL = {
   ...(Object.fromEntries(ORDEN_BLOQUES.map((b) => [b, mockBloque(b, INTAKE_GAL)])) as CasoPreDiscovery['bloques']),
   sitio: SITIO_GAL,
@@ -287,6 +306,7 @@ const BLOQUES_GAL = {
   competencia: COMPETENCIA_GAL,
   diferenciacion: DIFERENCIACION_GAL,
   regulatorio: REGULATORIO_GAL,
+  tecnologia: TECNOLOGIA_GAL,
 } as CasoPreDiscovery['bloques']
 
 export const CASO_DEMO_GAL: CasoPreDiscovery = {

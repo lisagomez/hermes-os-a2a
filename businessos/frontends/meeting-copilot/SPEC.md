@@ -650,6 +650,16 @@ directa. La compilación además lee hasta 2 **enlaces internos relevantes** del
 (`/services`, `/compliance`, `/legal`… — `extraerEnlacesRelevantes`), declarados como
 fuentes. Doctrina completa: `.claude/skills/hermes-regulatory-scan/SKILL.md`.
 
+**Hermes-Tech-Stack-Scan** — `escaneo-tecnologico.ts`, hermano del regulatorio (mismo
+contrato de matriz), adjunto al bloque tecnología en todos los caminos. Matiz propio:
+señal de SISTEMA observada → `evidencia`; un CLAIM ("tracking personalizado") →
+`hipotesis` (declarado por el lead, por validar: ¿sobre qué corre?); silencio →
+`vacio` con severidad = **oportunidad de automatización** (el pitch se ancla a huecos
+observados, no a catálogo). Solo el stack observado (`hecho`) cuenta como material —
+una inferencia jamás se auto-confirma. Clase de negocio fuera del mapa curado →
+**VACÍO DEL MAPA** (no se inventa el estándar de una industria desconocida). Doctrina:
+`.claude/skills/hermes-tech-stack-scan/SKILL.md`.
+
 ### 18.3 Activo Digital (espejo del módulo ACT del ERP)
 
 Cada caso y cada ENTREVISTA se catalogan como `ActivoDigitalLocal`

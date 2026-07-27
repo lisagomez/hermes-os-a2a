@@ -53,12 +53,13 @@ agenda en línea, expediente, recordatorios). Los vacíos, con severidad, son la
 - Fallo declarado, nunca oculto. Retroalimentación a conocimiento solo en modo `PROPOSED`.
 
 ## Estado de implementación en la fábrica
-- **Implementado (parcial)** en meeting-copilot: el bloque tecnología produce
-  stack visible / herramientas probables / oportunidades con naturaleza
-  etiquetada (inferencial, y así se declara). El cruce declarado-vs-esperado con
-  mapa curado (pasos 2–3) es hoy **manual** con este skill; su implementación
-  natural es un `escaneo-tecnologico.ts` hermano de `escaneo-regulatorio.ts`
-  (mismo contrato de matriz) cuando el dogfood lo pida.
+- **Implementado** en meeting-copilot (2026-07-27): `escaneo-tecnologico.ts`
+  (hermano de `escaneo-regulatorio.ts`, mismo contrato de matriz), adjunto al
+  bloque tecnología en todos los caminos del pipeline; mapa curado `CLASES` con
+  dos niveles de señal (sistema → evidencia; claim → hipótesis); UI "Declarado
+  vs esperado" en el tab Marcos; solo el stack `hecho` cuenta como material
+  (una inferencia no se auto-confirma — con test de control). Ampliar una clase
+  del mapa = propuesta revisada, y reflejarla en `CLASES`.
 - **Uso manual**: pasos 1–4; si no hay mapa curado del sector, construirlo
   primero con fuentes (reportes de industria, sitios de referentes) y dejarlo
   versionado como propuesta.

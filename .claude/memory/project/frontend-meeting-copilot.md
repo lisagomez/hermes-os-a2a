@@ -89,8 +89,9 @@ el canal de propuestas Y reflejarlo en el mapa `SECTORES`.
 `hermes-source-compilation` (compilar TODAS las fuentes declarando estado) →
 `hermes-claims-audit` (interrogar cada claim: ¿qué implicaría que sea verdad? → enruta a
 regulatorio/tech/pregunta de discovery; el multiplicador — nació del gotcha e-AWB) →
-`hermes-regulatory-scan` + `hermes-tech-stack-scan` (cruce declarado-vs-esperado; tech aún
-manual, su implementación natural es un `escaneo-tecnologico.ts` hermano) +
+`hermes-regulatory-scan` + `hermes-tech-stack-scan` (cruce declarado-vs-esperado; tech
+implementado 2026-07-27 en `escaneo-tecnologico.ts` — sistema→evidencia, claim→hipótesis,
+vacío=oportunidad; una inferencia del stack jamás se auto-confirma) +
 `hermes-competitive-deep-research` (competidores verificados, "no identificado" es salida
 válida) → `hermes-advisor-brief` (empaquetador: trazabilidad total o se rechaza). Forma:
 `hermes-design-integrity` (integridad/elocuencia de componentes panel-adm — nació de la
