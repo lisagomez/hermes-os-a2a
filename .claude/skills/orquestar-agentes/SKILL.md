@@ -350,6 +350,30 @@ tool para paralelo. Un `.md` como canal en tiempo real es mito; como memoria de 
 
 ---
 
+## 8.5 Ajustes de prompting por generación de modelo (2026-07-26)
+
+Comportamientos por defecto de la generación vigente que cambian **cómo se escribe el brief**, no a quién
+se rutea (eso es §2 y §6). Fuente: guía oficial de prompting de Anthropic.
+
+- **⚠️ Opus 5 invirtió el default de Opus 4.8: SOBRE-delega y SOBRE-verifica.** Opus 4.8 sub-usaba
+  subagentes y había que empujarlo explícito a bifurcar. **Opus 5 hace lo contrario**: agrega pasos de
+  verificación y lanza subagentes por su cuenta aunque la tarea no lo pida, y eso gasta cuota de más. Al
+  orquestar con Opus 5 el empujón va en la dirección OPUESTA a la que servía con 4.8: *"no agregues un
+  paso de verificación extra ni lances subagentes para esto; resuélvelo inline"* cuando la tarea no los
+  necesita. Si la ventana corre en Opus 4.8, aplica la regla vieja (pedirle explícito que paralelice lo
+  independiente, porque tiende a serializar de más).
+- **Thinking: ON por defecto en Opus 5** (en Opus 4.8 era un parámetro aparte que había que prender).
+- **Opus 5 es el más verboso medido de la familia** y de los más lentos de su tier. Exigir FORMATO
+  estructurado en el retorno del subagente no es cosmético: es la palanca que contiene su verbosidad (la
+  salida cuesta ~5x la entrada).
+- **Literalismo, declara el ALCANCE en briefs de lote.** La generación actual es más literal y NO
+  generaliza una instrucción del primer ítem al resto. Un brief *"corrige estos 5 archivos"* corre riesgo
+  de aplicar solo al primero: declara *"aplica a CADA ítem del lote"* cuando deba cubrir el conjunto.
+- **No fuerces updates de progreso intermedios** (tipo "resume cada N tool-calls"): ya reportan avance de
+  buena calidad en trazas largas. Si un brief viejo lo pide, quítalo.
+
+---
+
 ## 9. Cómo se invoca / referencia (en este repo)
 
 - **Desde la raíz del repo**: se auto-descubre como skill nativa por su `description` cuando
