@@ -1,405 +1,246 @@
 ---
 name: orquestar-agentes-fable
-description: Variante de orquestar-agentes donde el ORQUESTADOR es Fable (el modelo de mayor razonamiento/contexto de la fabrica) y Opus 4.8 actua como SUB-DIRECTOR adversarial fijo. Mantiene intacto el modelo L0-L2 (ruteo por blast radius, briefs en frio, verificacion antes de integrar, handoff PROGRESS.md) y agrega una politica de debate POR DEFECTO: Fable propone, Opus 4.8 ataca, antes de aprobar CUALQUIER plan que vaya a ejecutarse (no solo decisiones irreversibles) y ante cualquier error grave detectado en ejecucion. Techo de costo: ni Fable ni Opus escalan a max (tope xhigh) y el ataque se gradua por el riesgo del plan. Usar cuando Fable es el modelo del loop principal y va a orquestar/aprobar un plan: audita este plan, Fable dirige, debate con Opus, sub-director, variante fable, plan bajo ataque, aprueba antes de ejecutar. NO USAR para: tareas simples inline (Filtro maestro de la skill original), ni como reemplazo de orquestar-agentes cuando el orquestador es Opus.
+description: DELTA de la skill `orquestar-agentes` para cuando el modelo del loop principal ES Fable 5. No es autosuficiente: la doctrina completa (filtro maestro, niveles L0-L2, ruteo por blast radius, briefs en frio, paralelizacion, verificacion antes de integrar, escalada, handoff PROGRESS.md) vive en `.claude/skills/orquestar-agentes/SKILL.md` y hay que leerla primero. Aqui vive SOLO lo que cambia cuando dirige Fable: roles (Fable dirige y sintetiza; el atacante es Sonnet 5/Haiku 4.5 con lente escrito si el plan es barato de revertir y Opus 5 si es caro, nunca Fable), debate adversarial como politica POR DEFECTO antes de aprobar cualquier plan ejecutable (no solo lo irreversible) y ante error grave en ejecucion, economia de no-relectura del director, y techo de esfuerzo xhigh (nunca max). Se selecciona por un HECHO de la sesion (el loop corre en Fable), no por creer que Fable sea el mejor modelo: en codigo mergeable Opus 5 le gana. Usar cuando: Fable dirige, variante fable, debate con Opus, sub-director, audita este plan antes de ejecutarlo, plan bajo ataque. NO USAR para: tareas simples inline (Filtro maestro de la madre), ni cuando el director es Opus/Sonnet (ahi manda `orquestar-agentes` a secas).
 ---
 
-# Orquestar agentes — modelo de trabajo para builds complejos
+# Orquestar agentes, variante FABLE (delta, no doctrina completa)
 
-> Patron: **orquestador (L0) → ejecutor de riesgo (L1) → ejecutores mecanicos (L2)**, con verificacion
-> antes de integrar y debate adversarial antes de cerrar decisiones irreversibles.
-> Esta skill se **cita bajo demanda**: el agente la lee con Read y la aplica al build en curso.
+> ## ⚠️ LEE PRIMERO LA MADRE. Este archivo NO es autosuficiente.
 >
-> **Esta es la variante FABLE** de `orquestar-agentes` (la original queda intacta en
-> `saas-factory/.claude/skills/orquestar-agentes/SKILL.md`). Las §0–§8 son idénticas a la original;
-> la **§10** define qué cambia cuando el orquestador es **Fable** y no Opus.
+> Doctrina completa: **`.claude/skills/orquestar-agentes/SKILL.md`** (cargala con `Read`
+> si no esta ya en tu contexto). Ahi viven el Filtro maestro, los niveles L0-L2, el ruteo por blast
+> radius, los briefs en frio, la paralelizacion, la verificacion antes de integrar, la escalada por
+> ejes y el handoff `PROGRESS.md`. **Todo eso aplica igual cuando dirige Fable.**
+>
+> Este archivo es el **delta**: solo lo que cambia. Antes duplicaba las secciones 0-8 de la madre y
+> las dos copias se desincronizaron: este archivo se quedo citando a Opus 4.8 como el modelo tope
+> despues de que Opus 5 lo relevara, y la madre gano contenido que aqui nunca llego. La duplicacion
+> se elimino el 2026-07-26 por eso, no por estetica: sincronizar a mano dos copias de ~450 lineas no
+> es un mecanismo.
 
 ---
 
-## 0. Filtro maestro — ¿orquestar o no? (LÉELO PRIMERO)
+## A. ¿Cuando aplica esta variante? (la premisa cambio, 2026-07-26)
 
-Antes de montar nada: **¿el coste de orquestar (escribir briefs, lanzar subagentes, paneles, debate) es
-menor que el coste del error que evita (o que el contexto que ahorra)?** Si no, **NO orquestes — hazlo inline.**
+**La variante se selecciona por un HECHO de la sesion: el loop principal corre en Fable 5.** No se
+elige porque Fable sea "el modelo de mayor razonamiento": esa premisa, que era la del texto original
+(2026-07-01), **ya no la sostiene la evidencia**.
 
-- La mayoria de un build (UI, CRUD, endpoints estandar, refactors locales) **no es delicado**: va inline
-  o a un ejecutor barato, sin ceremonia.
-- Orquestar tiene coste real (tokens + latencia + tu tiempo redactando briefs). Aplicar la jerarquia a
-  *todo* convierte un build de 2h en uno de 5h y choca con el KPI (apps/semana) y con "esbelto en
-  construccion" + la regla 80/20.
-- **Regla:** orquesta solo la **fraccion delicada** del build (o la **fraccion pesada en contexto**, §3);
-  el resto, directo.
+| Eje | Fable 5 | Opus 5 | Lectura |
+|---|---|---|---|
+| Inteligencia compuesta (Artificial Analysis Index, [I] 2026-07-25) | 60 (#3/190) | **61 (#1/190)** | Empate tecnico, Opus arriba por un punto |
+| Razonamiento cerrado (GPQA) | 92.6 | **93.7** | Empate |
+| Codigo "mergeable" (FrontierCode, de Cognition [I]) | 46.3% | **53.4%** | Opus 5 gana claro |
+| Coding agentico (SWE-Pro) | **80.0-80.3** | 79.2 | Empate estrecho, Fable arriba |
+| Escritura creativa/emocional | **#1 en todas las tablas [I]** | sin dato; señal temprana negativa | Fable gana claro |
+| Fiabilidad en produccion (uptime / error de salida estructurada) | 94.0% / 8.7-16.2% | **99.7% / 3.5-7.2%** | Opus 5 gana claro |
+
+Etiqueta [I] = fuente independiente verificada. Opus 5 salio el 2026-07-24 y relevo a Opus 4.8 como
+flagship; Opus 4.8 sigue disponible, no esta deprecado.
+
+Fuentes y detalle: `.claude/memory/reference/mapa-capacidades-claude.md` (perfiles por modelo, datos y
+tabla de esfuerzo) y `.claude/memory/feedback/modelo-esfuerzo-por-tarea.md` (ruteo por tipo de tarea).
+
+**Consecuencias de ruteo (esto es lo accionable, no la tabla):**
+
+1. **Esta skill NO es un argumento para mandar trabajo a Fable.** Si la tarea es dificil **en codigo**
+   (implementar una direccion ya dada, migracion, refactor grande), la evidencia apunta a **Opus 5**.
+   Antes de escalar por dificultad hay que decir **en que** es dificil.
+2. **Fable sigue siendo la eleccion correcta** para diseño y escritura ABIERTA (elegir la direccion,
+   redactar la pieza insignia), razonamiento abierto sin direccion dada, y horizonte largo/autonomia.
+   "Diseño delicado" ya no es sinonimo de Fable a secas.
+3. **Fable NUNCA para seguridad/cyber/ML ni datos sensibles**, dirija o no: sus clasificadores
+   re-enrutan SILENCIOSAMENTE a otro modelo (falsos positivos documentados) y tiene retencion
+   obligatoria de 30 dias sin ZDR.
+
+**Y aun asi la variante sigue viva**, por dos razones que no dependen de quien gane el benchmark:
+Fable puede ser el modelo del loop cualquier dia (y entonces la pregunta "¿como se trabaja?" necesita
+respuesta), y lo que cambia cuando dirige Fable es real: quien ataca, cuando es obligatorio el debate,
+y que el director no puede permitirse releer material pesado.
 
 ---
 
-## 1. Niveles
+## B. Roles
 
-| Nivel | Quién | Para qué |
+| Rol | Quien | Que hace |
 |---|---|---|
-| **L0 · Orquestador** (Opus 4.8, este loop) | Dueño del PLAN GLOBAL por fases y de la **decisión final**. No ejecuta lo delicado: lo delega, lo verifica y lo integra. Mantiene y **persiste** el mapa de contexto. |
-| **L1 · Ejecutor de riesgo** (Opus 4.8 `high→xhigh`; lo verdaderamente difícil → subagente Fable 5 `low→med`, mejor score/$ por tarea — §6) | Lógica delicada, migraciones/RLS, integraciones, algoritmos portados, **contratos entre módulos**, cualquier cosa difícil de revertir. |
-| **L2 · Ejecutores mecánicos** (Sonnet 5; Haiku 4.5 solo para lo determinista sin juicio) | UI Tailwind cableando contratos ya definidos, scaffolding, traducciones, lecturas/escaneos, refactors de una sola carpeta. |
+| **Director / Orquestador** | **Fable 5** (este loop) | El L0 de la madre §1, con un matiz de costo: su tiempo se invierte en **sintesis y juicio**, no en exploracion repetitiva. Formula, reconcilia y decide; **no relee material pesado** que un subagente puede destilar (§E). |
+| **Sub-director / contraparte de debate** | **Opus 5** (subagente) cuando el plan es caro de revertir; **Sonnet 5 / Haiku 4.5 con lente escrito** cuando es barato (§C) | El adversario del protocolo: Fable propone, otro modelo ataca. Opus 5 tambien puede seguir siendo **L1 ejecutor de riesgo** (madre §1): son dos sombreros del mismo modelo. |
+| L2 ejecutores | Sonnet 5 / Haiku 4.5 | Igual que la madre. Sin cambios. |
+
+- **Por que Opus 5 y no Opus 4.8 como sub-director:** es el flagship desde 2026-07-24, gana el indice
+  compuesto, y su fiabilidad en produccion es claramente mejor. El dato historico de Opus 4.8 en el
+  benchmark de esfuerzo (§F) se conserva **etiquetado como 4.8**: se actualiza el ROL, no la cifra.
+- **Candado de calibracion:** Opus 5 **NO hereda automaticamente** el rol de verificador de hechos que
+  tenia Opus 4.8. Su propio system card admite que la alucinacion factual "subio un poco" y se
+  contradice en calibracion; el AA-Omniscience Non-Hallucination Rate lo pone en 49.9%. Mitigacion,
+  que aplica sin importar el modelo:
+  - Cada objecion del ataque viaja con **evidencia citada** (archivo + linea, salida de comando) y con
+    un **"no pude verificar"** explicito cuando no la tiene. Objecion sin evidencia es hipotesis, no
+    hallazgo.
+  - Si el nucleo del ataque es **verificacion de HECHOS contra fuentes** (no atacar la logica del
+    plan), sumar un **segundo lector Haiku 4.5** con la pregunta escrita (*"verifica esta afirmacion
+    contra la fuente y devuelve la evidencia; si no puedes, dilo"*): Haiku es el que MENOS alucina en
+    las tablas medidas (9.8% HHEM) y cuesta centavos. **Ojo, restriccion operativa:** desde una sesion
+    de Claude Code solo se puede rutear un subagente a `opus` / `sonnet` / `haiku` / `fable`, y `opus`
+    resuelve al Opus vigente, asi que **Opus 4.8 NO es seleccionable como subagente** aunque siga
+    existiendo por API. No lo cites como escape hatch: no es ejecutable.
+- **Fable NUNCA es el atacante**, ni siquiera cuando dirige Fable (seria el mismo modelo en los dos
+  lados) ni cuando dirige otro: pagas ~2x por paridad de razonamiento, con TTFT de ~128s, el doble de
+  error en salida estructurada (y el retorno del ataque ES estructurado), y clasificadores que lo
+  reemplazan en silencio, asi que ni siquiera sabes si atacó Fable.
+- **L1 dificil → subagente Fable `low→med`** sigue permitido: que el director no ejecute no prohibe
+  lanzar OTRA instancia de Fable como subagente ejecutor para hojas verdaderamente dificiles (procesos
+  separados; el director preserva SU contexto). Con el filtro del punto 1 de §A: si la dificultad es
+  de codigo, esa hoja va a Opus 5.
 
 ---
 
-## 2. Ruteo: por **blast radius**, no por "% de confianza"
+## C. Gatillo: el debate es OBLIGATORIO (endurece la madre §7)
 
-Un agente **no mide bien su propia confianza** (sesgo de competencia → subdelega lo delicado). Enruta por
-el **radio de impacto** del cambio, que sí es observable (blast radius contenido).
+La madre reserva el debate adversarial para decisiones **genuinamente irreversibles**. Cuando dirige
+Fable, el debate es **politica por defecto** en dos momentos:
 
-**CRITERIOS-DELICADOS** (si cumple **≥1** → sube de nivel: Opus 4.8 `high` para riesgo estándar, o subagente Fable 5 `low→med` si es de los verdaderamente difíciles — tabla abajo):
-- difícil de revertir
-- toca **contratos entre módulos** o el **esquema de datos**
-- seguridad / RLS / migración
-- lógica con **side cases no obvios**
-- requisitos ambiguos
-- **no hay verificación automática disponible** (sin tests/tipos que atrapen el error)
+1. **SIEMPRE antes de aprobar un plan que vaya a ejecutarse.** Cualquier plan al que Fable este por
+   dar luz verde (plan de build, plan de fases, un set de recomendaciones que otros van a ejecutar)
+   pasa por el ataque **antes** de darse por bueno. No solo lo irreversible.
+2. **Ante cualquier error grave detectado en ejecucion**: algo que, si sigue sin corregirse,
+   compromete el resultado (un supuesto roto, una migracion mal aplicada, un contrato violado). Se
+   pausa, se debate el fix, se reconcilia, se continua.
 
-**Va a Sonnet 5/Haiku 4.5** solo si los cumple **todos**: bien especificado · radio contenido a una carpeta/feature ·
-verificable automáticamente (build/tsc/test) · error barato de revertir.
+**Por que se endurece (rationale reescrito 2026-07-26 con evidencia; antes decia "Fable es el de mayor
+razonamiento", y eso ya no aplica):** el director Fable es el eslabon con **menos verificacion externa
+disponible**.
+- Su **calibracion de alucinacion no esta publicada**: es preciso en bruto pero no se sabe si se
+  abstiene bien. Un director del que no se sabe si sabe cuando no sabe necesita un gate externo, no
+  auto-reporte (la confianza autoreportada no es señal creible, madre §2).
+- Sus **clasificadores re-enrutan en silencio** a otro modelo: puede que el plan no lo haya escrito
+  Fable y nadie lo note.
+- Su **tasa de error de salida estructurada duplica** la de Opus 5 en produccion, asi que los
+  artefactos formales que emite (planes, contratos, JSON) tienen mas probabilidad de salir mal
+  formados.
 
-> ⚠️ **Si no hay verificación automática, el cambio NO es de bajo riesgo por defecto.** En proyectos nuevos
-> sin suite de tests, sube de nivel o define tú la verificación *antes* de delegar.
-> **Ante la duda, sube de nivel:** es barato ahora, carísimo después.
+Ninguna de las tres es una opinion sobre su inteligencia: son huecos de verificabilidad, y el debate
+obligatorio es el parche.
 
-**Tabla de ruteo canónica** (ejemplos; scores y precios: FrontierCode v1 + Artificial Analysis, 2026-07-01):
-
-| Tarea típica | Ruta | Por qué |
-|---|---|---|
-| git push, renombrar, formatear, extraer texto | Haiku 4.5 `low` | Determinista, sin juicio; el más rápido y barato ($1/$5 MTok) |
-| UI cableando contratos definidos, scaffolding, traducciones | Sonnet 5 `low→med` | Bien especificado y verificable; sweet spot score/$ |
-| Lectura pesada → destilado (repo, docs, screenshots) | Sonnet 5 `med` | En input manda el precio por token: $3/M vs $10/M de Fable |
-| L1 estándar: migración/RLS verificable, integración acotada | Opus 4.8 `high` | Frontera score/$ del riesgo estándar (~30% @ ~$4/tarea) |
-| L1 difícil: algoritmo portado, side cases, contrato multi-módulo | Fable 5 `low→med` (subagente) | Domina por tarea: 41% @ ~$6 vs 34% @ ~$7 de Opus/Sonnet `xhigh` |
-| Lo más difícil (clase Diamond: diseño delicado, bug imposible) | Fable 5 `high→xhigh` | En las tareas más duras, Fable ≥`med` dobla al mejor Opus |
-| Plan / arquitectura / síntesis final | L0 | El error de plan es el más caro del build; nunca Haiku ni `low` |
-| Debate adversarial | Opus 4.8 `high→xhigh` | Diversidad de modelo frente al que propone |
-
-> Antes de rutear a un modelo, aplica el **Eje 0** (§6): si el paso es SCRIPT puro (determinista, corre
-> como comando), no se rutea a ningún modelo — cero costo LLM.
-
----
-
-## 3. Delegar a subagentes — **arrancan EN FRÍO**
-
-Un subagente **no ve esta conversación, ni el plan, ni las decisiones previas.** Sub-especificar la tarea
-es la **causa #1 de fallo** en orquestación. Cada brief delegado debe ser **autocontenido**:
-
-1. **Objetivo** concreto + criterio de "hecho".
-2. **Contexto necesario**: rutas, contratos, decisiones ya tomadas (no asumas que las sabe).
-3. **Contrato de salida**: qué devuelve y en qué forma, para integrarlo sin adivinar.
-4. **Fronteras**: qué archivos/áreas puede tocar y cuáles **NO**.
-
-> **Proporcionalidad (no sobre-procesar):** si redactar el brief perfecto cuesta más que hacer la tarea,
-> hazla tú inline con esfuerzo bajo. El brief riguroso es para lo que de verdad se delega.
->
-> **Persistencia del contexto:** el PLAN GLOBAL y las decisiones cerradas **se persisten en un artefacto**
-> (PRP / memoria / handoff), no solo en el hilo — una compactación lo evaporaría a mitad de build. Cada fase
-> se **reancla** leyendo ese artefacto. Formato concreto del artefacto de progreso (handoff reanudable + cadencia): **§8**.
-
-> **El subagente NO hereda tu memoria ni tus reglas.** Arranca con el `CLAUDE.md`/`MEMORY.md` de SU cwd: si lo
-> lanzas en un proyecto hijo, carga la memoria de ESE proyecto. Toda regla, decisión o dato que necesite va
-> **explícito en el brief**; no asumas que lo ve.
->
-> **Delegar también preserva TU contexto.** Una lectura pesada (muchos archivos, un repo entero, un tour de
-> screenshots) que solo necesitas como conclusión: mándala a un subagente y que devuelva el **destilado, no el
-> volcado**. Él quema su ventana leyendo; tú recibes 5 líneas. Vale **aunque la tarea no sea delicada** (§2): es
-> la otra razón para delegar, además del riesgo.
->
-> **Economía ASIMÉTRICA de la comunicación** (hub-and-spoke: los subagentes **no se hablan entre sí**; todo
-> pasa por el orquestador). El ahorro de tokens va en **una sola dirección**:
-> - **Brief de ida (orquestador → subagente): completo > corto.** NO lo comprimas para ahorrar tokens —
->   sub-especificar es la **causa #1 de fallo**. Los tokens del brief son la inversión más barata del build.
-> - **Retorno de vuelta (subagente → orquestador, y al reportar al usuario): apretado y estructurado.** Solo el
->   entregable en el formato del contrato (§3.3), sin preámbulo ni narración. Aquí **SÍ** se minimiza. Pídelo en
->   el brief: *"devuelve solo X en forma Y, sin relleno"*.
-> - **La razón económica: la salida cuesta ~5x la entrada** (toda la familia Claude). Para apretar un retorno
->   sin truncarlo, pide FORMATO estructurado (tabla/lista con campos fijos), nunca un tope de palabras: el
->   formato comprime sin perder ítems; el tope trunca evidencia.
-
-### 3.5 El que PLANEA fija dificultad y modelo: el plan/PRP/kickoff también arranca EN FRÍO
-
-El arranque en frío de §3 no es solo de subagentes: pasa en cada **salto de ventana**. Quien escribe un
-plan/PRP/kickoff en modo plan lo hace con **todo el contexto y, normalmente, el modelo de frontera**; quien
-lo ejecuta abre una ventana NUEVA y puede ser un modelo más barato SIN ese contexto, o uno que no vio el hilo
-del que planeó. **La dificultad de cada unidad la conoce el que planeó y se pierde en el salto si no la
-escribe.** Por eso el que planea **estampa, por unidad ejecutable, con qué ejecutarla**: es transferir el
-ruteo de §2 hacia adelante para que el ejecutor no lo improvise. (Cuando el orquestador es Fable, el ataque
-adversarial de §10 aplica además al PLAN antes de estampar; el sello viaja igual con el kickoff.)
-
-Cada unidad ejecutable (tarea de plan, PRP, kickoff) lleva:
-
-```
-Dificultad: <Mecánica | Estándar | Delicada-frontera>   (por los CRITERIOS-DELICADOS de §2)
-Ejecutar con: <modelo> <esfuerzo>                        (el ruteo de §2, decidido con contexto completo)
-Por qué: <1 línea: qué la hace fácil o difícil y qué cuidar al ejecutarla>
-Auto-check: al arrancar, declara tu modelo; si es más débil que el recomendado, AVISA al usuario antes de proceder.
-```
-
-- **Por qué** viaja el RIESGO, no solo la capacidad: "usa Opus" sin motivo es frágil; "delicado: toca el
-  grafo, verifica recíprocas antes de integrar" sobrevive al frío.
-- **Auto-check** es el candado: convierte la recomendación pasiva en checkpoint activo (mismo patrón que "si
-  eres Fable, debate con Opus"). El plan **no puede forzar** el modelo (lo elige el usuario al abrir la
-  ventana), pero sí obliga al ejecutor a declarar que va con menos de lo pedido.
-- **Proporcionalidad (§0):** el sello es para unidades que corren en OTRA ventana o se delegan. Una tarea
-  inline corta no lo necesita (sería ceremonia).
+> El Filtro maestro (madre §0) sigue aplicando al **resto** de la ceremonia (briefs, paneles,
+> workflows), pero **NO exime del gatillo 1**: si hay un plan por aprobar, hay debate. La
+> proporcionalidad se aplica **graduando el ataque, no eximiendolo**. Y la graduacion es por MODELO,
+> porque la diversidad se compra barata: el valor del atacante viene de que no tiene tu rationale, es
+> read-only y lleva una pregunta escrita, no de su potencia bruta.
+> - **Plan simple** (pocas piezas, reversible, no toca datos ni contratos): **Sonnet 5 `med`** con un
+>   lente escrito, y **Haiku 4.5 `low`** como segundo lente si hay afirmaciones facticas que
+>   verificar. Brief corto, retorno corto: un ataque rapido, no un informe. Dos lentes ortogonales
+>   baratos rinden mas que un atacante caro con un "revisa esto".
+> - **Plan delicado** (multi-fase, toca esquema/contratos, lanza varios subagentes, caro de
+>   revertir): **Opus 5 `high→xhigh`**, ataque profundo con verificacion contra los archivos reales.
+>   Aqui si paga la capacidad.
 
 ---
 
-## 4. Paralelización segura + **orden topológico**
+## D. Protocolo del debate (mismo espiritu anti-teatro de la madre §7, roles fijos)
 
-- Particiona por **archivo o por feature/carpeta**: una feature = un agente. **Ningún agente toca el archivo de otro.**
-- "Archivos disjuntos" **≠** "tareas independientes". Si B consume el contrato que produce A, **no van en paralelo**
-  aunque toquen archivos distintos.
-- **Orden:** primero los **contratos/interfaces** que otras tareas consumen (secuencial) → luego las
-  **implementaciones** que dependen de ellos (paralelo).
-- La mayoría de los builds tienen un **núcleo secuencial irreductible** (schema, types, router); solo las **hojas** paralelizan.
-- Un cambio que cruza varios archivos es **un solo agente** o necesita un **contrato explícito** entre ellos.
-- **Aislamiento duro:** cuando varios agentes mutan archivos a la vez, da a cada uno su **git worktree**
-  (`isolation: worktree` en el Agent/Workflow tool) y reconcilia por merge al final.
-- **Recurso compartido NO paralelizable:** si los agentes comparten un único recurso vivo (p. ej. **una sola
-  pestaña de navegador autenticada**, un puerto, una BD de dev), van **en serie** — no hay worktree para eso.
+1. **Fable formula la propuesta/plan** completo, con los supuestos y las afirmaciones verificables
+   explicitas.
+2. **Fable delega al atacante que corresponda por §C** (Sonnet 5 / Haiku 4.5 si el plan es barato de
+   revertir, Opus 5 `high→xhigh` si es caro; nunca Fable, nunca `max`) dandole **SOLO la propuesta**,
+   nunca el razonamiento a favor (lo racionalizaria), y la **orden explicita de destruirla**: vectores
+   de ataque concretos con evidencia citada, alternativas con tradeoffs, el fallo mas probable, y un
+   veredicto. El lente va ESCRITO en el brief: un "revisa esto" desperdicia el agente sin importar que
+   modelo sea.
+3. **Fable responde por escrito a CADA objecion**: `refutada` / `aceptada` / `mitigada`. Ninguna se
+   ignora en silencio. Una objecion sin evidencia se responde como hipotesis, no como hallazgo.
+4. **Fable reconcilia, decide y deja constancia** de que adopto, que descarto y por que.
+5. **Una sola ronda**, salvo que el debate revele algo nuevo de peso.
 
----
-
-## 5. Verificación antes de integrar + **circuit breaker**
-
-- **Nada se integra sin verificar.** Lo automáticamente verificable: `build` / `tsc` / `test`.
-- Lo que **pasa el build y aun así puede estar mal** (contratos, RLS, side cases): el orquestador **revisa el
-  *cómo* y el rationale, no solo el resultado** (o lo manda al debate adversarial, §7).
-- **El paquete de quien verifica incluye el diff real.** Quien revise (orquestador, subagente verificador o
-  el adversario del debate §7) recibe el diff de los cambios generado por comando como paso SCRIPT (§6, Eje 0):
-  `git diff --stat` + el diff acotado a los archivos del scope. Es **efímero** (no se guarda como artefacto) y
-  es la **excepción deliberada** a "destila, no vuelques" (§3): evidencia primaria que **nunca se resume con
-  IA** — un diff resumido ya no es evidencia.
-- **Si falla:** vuelve al ejecutor **con el error concreto**. **Máx. 2 reintentos** por subtarea; al 3.º el
-  orquestador la asume con esfuerzo alto o **escala al usuario** describiendo el bloqueo. (Sin tope = bucle que quema tokens.)
-- **Idempotencia:** cada subtarea debe poder re-ejecutarse sobre su propio resultado parcial sin duplicar
-  efectos; si no, el orquestador limpia el estado antes de reintentar.
+> El atacante corre como subagente de SOLO LECTURA: recibe la propuesta y la orden de destruirla,
+> puede correr verificacion de lectura (tests, consultas) para fundamentar los ataques, y nunca edita.
+> Ese candado de herramientas es lo que hace confiable su veredicto. Verificar un DIFF ya escrito es
+> otro trabajo y otro agente (madre §5), no este.
 
 ---
 
-## 6. Escalada — **ejes ortogonales** (no una rampa)
+## E. Economia: el director no relee (la asimetria de la madre §3 aplicada a Fable)
 
-No confundir "pensar más" con "cambiar de herramienta". Son palancas distintas:
-
-- **Eje 0 — ¿necesita LLM siquiera?** En tareas de ≥3 pasos, etiqueta cada paso del plan como **LLM** o
-  **SCRIPT** y agrupa los SCRIPT consecutivos en un solo script: un paso SCRIPT (build, diff, mv, codegen
-  por plantilla) corre como comando y **no consume ninguna llamada de modelo**. Delimitación: SCRIPT =
-  determinista puro, sin juicio alguno · Haiku 4.5 `low` = trivial pero aún requiere leer/juzgar algo ·
-  Workflow (Eje B) = determinista a escala orquestando agentes. (El umbral de ≥3 pasos evita la ceremonia
-  en tareas menores — §0.)
-- **Eje A — esfuerzo de razonamiento** (mismo modelo): `low → medium → high → xhigh → max`.
-  Piso por defecto **medium**; se sube **bajo demanda**, no por defecto (alto en todo es caro y lento sin razón).
-  - **La escalera NO es monótona, y "modelo barato a esfuerzo alto" NO es más barato por tarea.** Datos
-    (FrontierCode v1 + Artificial Analysis, 2026-07-01): `max` rinde igual o **peor** que `xhigh` (Fable 5:
-    44.7% vs 46.3% · Opus 4.8: 31.3% vs 34.3%) costando 40-60% más — por eso el techo de los modelos
-    frontera es `xhigh` (§7). Y por TAREA, Fable 5 `med` (41.1% @ ~$6) **domina** a Opus 4.8 `xhigh`
-    (34.3% @ ~$6.5) y a Sonnet 5 `xhigh` (34.0% @ ~$7): en tareas difíciles densas en razonamiento, bajar
-    el esfuerzo del modelo frontera gana a subir el esfuerzo del barato. **Excepción — trabajo pesado en
-    input** (leer repos, muchos archivos): ahí manda el precio por token (Sonnet 5 $3/M vs Fable $10/M) y
-    la ruta sigue siendo Sonnet 5/Haiku 4.5 + destilado (§3).
-  - **Modelo (piso por defecto):** Sonnet 5 para el trabajo de campo (investigar, destilar, escribir, scripts,
-    escanear UIs), subiendo su **esfuerzo** por complejidad. **Opus 4.8 `high`** para riesgo estándar;
-    **Fable 5 `low→med`** para lo verdaderamente difícil (tabla de §2). Contexto: 1M es ESTÁNDAR en
-    Sonnet 5, Opus 4.8 y Fable 5 (Haiku 4.5: 200K); para contexto gigante con tarea simple gana Sonnet 5
-    (entrada más barata, $3/M vs $5/M). No sobre-limites a un solo modelo: **un mal resultado cuesta más
-    que los tokens extra.**
-- **Eje B — herramienta**: `un agente → panel → Workflow`.
-  - **Panel:** varias pasadas + **síntesis** (el lift viene de la síntesis).
-    ⚠️ Son N subagentes **en frío** → cada uno necesita su brief (§3). Si son el mismo modelo con el mismo brief,
-    **no son "independientes"**: es el mismo modelo N veces. Diversidad real = variar el **ángulo del brief** o el **modelo**.
-    **1 verificador a esfuerzo `xhigh` suele bastar**; reserva el panel de 2-3 para decisiones caras de revertir.
-  - **Workflow:** cuando el trabajo es **repetitivo/determinista a escala** (p. ej. 40 archivos a migrar).
-    Puede ser la opción correcta **desde el inicio** — NO el último escalón tras agotar el razonamiento.
-
-> ### ⚠️ Harnesses prehechos NO rutean modelos solos
-> Un **harness enlatado** (el `Workflow` tool, o cualquier script/skill que genere sus propios agentes)
-> **NO lee esta skill** y por defecto **hereda el modelo del loop principal** en TODOS sus subagentes.
-> Como en esta variante el director ES Fable, lanzarlo manda a **Fable** a hacer **carpintería** (buscar en
-> web, leer, extraer) — el bug exacto que el ruteo por complejidad (§2) prohíbe.
->
-> **Regla dura antes de lanzar CUALQUIER harness prehecho:**
-> 1. **Lee su script** y verifica el ruteo de modelos por agente.
-> 2. Si el fan-out es **mecánico** (search/fetch/extract/verify), el lanzamiento solo es válido con los agentes
->    **fijados a Sonnet 5 / Haiku 4.5** explícitos (`model` + `effort` por agente). Edita el script si no lo trae.
-> 3. Si no puedes fijar modelos por agente, **baja el modelo de la sesión** a Sonnet antes de lanzar, o no lances.
->
-> **Cuándo SÍ entra un modelo frontera (Fable/Opus) a un fan-out** — nunca por volumen; solo bajo condición:
-> - **(a) nodo de juicio**: el plan, la síntesis final, el juez adversarial (§2, §7).
-> - **(b) los baratos fallaron** tras el circuit breaker (§5, 2 reintentos).
-> - **(c) reincidencia del mismo error** → el frontera no reintenta la tarea: **audita QUÉ pasó y mejora la
->   orquestación misma** (el system prompt, el brief, el ruteo).
-
-> **Regla de desempate calidad/costo:** la calidad va primero; el costo se optimiza solo donde NO compra
-> calidad real. Sí: mismo resultado más barato (paso SCRIPT, L2 para lo mecánico, Fable `med` en vez de
-> Opus `xhigh` en lo difícil). No: sacrificar calidad en lo delicado por ahorro, ni pagar saltos de costo
-> desproporcionados por mejoras marginales (caso `max`: +60% de costo por menos score).
+- **Fable NO relee ni reprocesa el material en cada ronda.** La exploracion pesada (releer codigo y
+  specs, buscar edge cases contra los archivos reales, verificar afirmaciones facticas) **se delega
+  dentro del propio brief de ataque**: el brief de ida lleva las rutas exactas y las afirmaciones a
+  verificar; el atacante quema SU ventana leyendo y devuelve el veredicto apretado.
+- **Fable retiene solo tres cosas:** el brief de entrada, la propuesta que formulo, y la sintesis de
+  vuelta. Todo lo demas lo consume **destilado**.
+- **Brief de ida completo > corto** (sub-especificar sigue siendo la causa #1 de fallo); **retorno
+  apretado** con formato fijo: por objecion → ataque + evidencia + severidad; luego alternativas,
+  fallo mas probable, veredicto.
+- Si el ataque exige verificacion empirica extra (correr un test, consultar la BD), **el atacante la
+  pide o la ejecuta el**. Fable no se convierte en el ejecutor del debate.
+- Razon adicional propia de Fable: su **TTFT es de ~128s** y sus turnos son de minutos. Cada
+  relectura del director no cuesta solo cuota, cuesta la sesion entera de quien espera.
 
 ---
 
-## 7. Debate adversarial — gatillo y protocolo **(anti-teatro)**
+## F. Techo de esfuerzo: ni Fable ni Opus usan `max`
 
-**Gatillo:** solo decisiones **genuinamente irreversibles** (esquema de datos en producción, contratos
-públicos, arquitectura estructural, side cases no triviales). **NO** para "¿context o props?". Si trabajas
-solo y rápido, debatir lo trivial **paraliza** — reserva esto para lo que de verdad no se puede deshacer.
+`max` queda **reservado y fuera de uso** en este modelo de debate, igual que en la madre.
 
-**Protocolo (blindado contra complacencia y confirmación):**
-1. Al adversario se le da **la decisión** y la **orden de destruirla** (red team) — **NO** se le da tu
-   rationale a favor (lo racionalizaría). Modelo: Opus 4.8, esfuerzo `high→xhigh` según lo que esté en
-   juego (nunca `max` — ver §10.5).
-2. Devuelve: **vectores de ataque** concretos / side cases · **alternativas** con tradeoffs · **fallo más
-   probable** · **veredicto**.
-3. El orquestador **responde a CADA objeción por escrito**: `refutada` / `aceptada` / `mitigada`.
-   No puede ignorarla en silencio.
-4. **Una sola ronda**, salvo que el debate revele algo nuevo de peso.
-5. El orquestador **reconcilia, decide y deja constancia del porqué** (qué adoptó, qué descartó y por qué).
-
-> **Nota de esta variante:** cuando el orquestador es **Fable**, el gatillo de esta sección se **endurece**
-> — ver §10: el debate deja de ser solo-para-irreversibles y pasa a ser **política por defecto** antes de
-> aprobar cualquier plan ejecutable.
+- **Opus 5** (atacante, y como L1 ejecutor de riesgo): escala `high → xhigh` segun lo caro de
+  revertir. `xhigh` es el techo.
+- **Fable** (director): **alterna** su propio esfuerzo (`medium → high → xhigh`) segun la complejidad
+  de la sintesis del momento, no fija un nivel unico para todo. Techo `xhigh`.
+- **Por que, con el dato mas fresco** (Opus 5, API oficial de Artificial Analysis, [I] 2026-07-25):
+  `high` ya saca el **mejor GPQA de toda su escalera** (93.7%, empatado con `xhigh`) con TTFT de
+  10.1s, mientras `max` tarda 28.7s (~2.8x mas) y en GPQA **baja** a 93.2%; solo gana el indice
+  compuesto agregado por 0.6-1.8 puntos. Respaldo independiente en la doc oficial de Anthropic
+  (`build-with-claude/effort`): empezar en `xhigh` y subir a `max` solo con evals propias que muestren
+  headroom medible.
+- **Dato historico, conservado con su etiqueta** (es de **Opus 4.8** y de **Fable 5**, no de Opus 5;
+  FrontierCode v1 + Artificial Analysis, 2026-07-01): `max` rendia igual o peor que `xhigh` costando
+  40-60% mas (Fable 5: 44.7% vs 46.3% · Opus 4.8: 31.3% vs 34.3%). No reetiquetar esas cifras como si
+  fueran de Opus 5.
+- Razon estructural, ademas del benchmark: el atacante corre en **cada** aprobacion de plan (§C,
+  gatillo obligatorio). Sin techo y sin graduacion, el mecanismo de debate se comeria el ahorro que el
+  Filtro maestro protege.
 
 ---
 
-## 8. Handoff y checkpoint — artefacto de progreso reanudable
+## G. Que NO vive aqui (mapa a la madre)
 
-El artefacto de §3 tiene **forma concreta** para que un agente fresco retome sin preguntar nada (habilita
-matar el agente al ~50% de contexto y reanudar limpio). **El archivo es para durabilidad y reanudación, NO
-un bus de chat entre agentes:** la coordinación viva es hub-and-spoke por el orquestador (§3) o el `Workflow`
-tool para paralelo. Un `.md` como canal en tiempo real es mito; como memoria de handoff es oro.
+Si buscas cualquiera de estos, esta en `.claude/skills/orquestar-agentes/SKILL.md`:
 
-**Dónde:** un `PROGRESS.md` en la raíz del trabajo (o junto al PRP). Uno por build/feature.
-
-**Plantilla mínima:**
-```markdown
-# PROGRESS — <build>   (branch: <x> | últ. checkpoint: <ISO>)
-## Objetivo / contexto
-- <1-2 líneas + ruta al PRP/spec si existe>
-## En curso
-- [ ] <tarea>  (@<agente>, IN_PROGRESS <ISO>)
-  - Last checkpoint: <qué quedó hecho dentro de la tarea>
-  - Next action: <paso exacto siguiente: archivo + acción>
-## Completado
-- [x] <tarea>  (@<agente>, <ISO>, commit <hash>)
-## Decisiones (append-only)
-- <ISO> <decisión> : por qué : <agente>
-```
-
-**Cadencia: por hitos, NO continua ni solo-al-final** (continua satura, solo-al-final pierde reanudabilidad):
-
-| Momento | Qué escribe el agente |
+| Tema | Seccion de la madre |
 |---|---|
-| Toma la tarea | `IN_PROGRESS <ISO>` + `@agente` (claim) |
-| Cierra un sub-paso | actualiza `Last checkpoint` |
-| Cierra una FASE | resumen ≤5 bullets en `Last checkpoint` (hecho, pendiente, bloqueos, siguiente acción); NO regenera el handoff completo — la plantilla ya es el handoff |
-| Se bloquea | `BLOCKED: <razón>` + `Blocked by: <tarea>` |
-| Decide algo no trivial | agrega línea a Decisiones (append-only, no edita pasadas) |
-| Termina | `[x]` + commit/PR, mueve a Completado, libera el claim |
-| Tarea larga (>15 min) | heartbeat: refresca `últ. checkpoint` con timestamp |
+| Filtro maestro (¿orquestar o no?) | §0 |
+| Niveles L0-L2 | §1 |
+| Clasificador de arranque, CRITERIOS-DELICADOS, tabla de ruteo canonica | §2 |
+| Briefs en frio y economia asimetrica de la comunicacion | §3 |
+| Sello de dificultad/modelo por unidad en planes, PRPs y kickoffs | §3.5 |
+| Paralelizacion segura y orden topologico | §4 |
+| Verificacion antes de integrar, circuit breaker y la clase de error SILENCIOSO | §5 |
+| Escalada por ejes (0/A/B), candado de harnesses prehechos, desempate calidad/costo | §6 |
+| Debate adversarial base (gatillo por irreversibilidad y protocolo) | §7 |
+| Handoff `PROGRESS.md` y cadencia por hitos | §8 |
 
-> **Reanudar (agente fresco):** leer `PROGRESS.md` → ir a **En curso** → ejecutar **Next action**. Las dos
-> líneas `Last checkpoint` + `Next action` son las que hacen el handoff sin contexto previo.
+Al aplicar cualquiera de esas secciones **con Fable dirigiendo**, se leen tal cual: lo unico que las
+sobreescribe es lo de este delta (roles §B, gatillo §C, protocolo §D, economia §E, techo §F).
+
+---
+
+## Como se invoca
+
+- Se auto-descubre por su `description` cuando el loop corre en Fable. Al cargarla, **lee tambien la
+  madre**: este archivo lo dice en su primera linea.
+- Si la citas a mano: *"lee `.claude/skills/orquestar-agentes/SKILL.md` y luego el delta
+  `.claude/skills/orquestar-agentes-fable/SKILL.md`"*. Los dos, en ese orden.
+- **En subagentes:** arrancan en frio y no heredan nada. Si quieres que un subagente aplique este
+  modelo, pegale las secciones que necesita en el brief o dale las dos rutas.
+
+---
+
+> **Origen y registro.** La variante nacio el 2026-07-01. Registro de decisiones (ADR) con los datos
+> crudos: `README.md` en esta misma carpeta.
 >
-> **Proporcionalidad:** esto es para builds que cruzan fases/sesiones o se reparten. Una tarea inline corta
-> NO necesita `PROGRESS.md` — sería ceremonia (coherente con el Filtro maestro §0).
-
----
-
-## 9. Cómo se invoca / referencia (en esta fábrica)
-
-- **Desde `saas-factory/`** (raíz de la app): se auto-descubre como skill nativa por su `description` cuando
-  lanzas Claude desde ahí (igual que las demás skills de la fábrica).
-- **Desde la raíz del repo o un proyecto hijo:** di al agente *"lee y aplica
-  `saas-factory/.claude/skills/orquestar-agentes-fable/SKILL.md`"*. La carga con **Read** y la sigue.
-- **En subagentes:** como arrancan en frío (§3), si quieres que un subagente aplique este modelo, **pégale las
-  §0–§5 en el brief** o dile que lea este archivo por su ruta; no asumas que lo conoce.
-
----
-
-## 10. Variante FABLE — Director Fable + Sub-director Opus 4.8 **(lo nuevo de esta skill)**
-
-> Aplica cuando **el modelo del loop principal es Fable** (el de mayor razonamiento y contexto disponible
-> en la fábrica). Todo lo anterior (§0–§8) sigue vigente sin cambios; esta sección redefine **quién orquesta,
-> quién debate y cuándo es obligatorio debatir**. No reemplaza el modelo general: lo especializa.
-
-### 10.1 Roles
-
-| Rol | Quién | Qué hace |
-|---|---|---|
-| **Director / Orquestador** | **Fable** (este loop) | Dueño del plan global y de la **decisión final** — el rol L0 de §1, con un matiz: sus capacidades son grandes y **caras**, así que su tiempo se invierte en **síntesis y juicio**, no en exploración repetitiva. Fable formula, reconcilia y decide; **no relee material pesado** que un subagente puede destilar. |
-| **Sub-director / Contraparte de debate** | **Opus 4.8** (subagente) | El adversario **fijo** del protocolo §7. Antes el debate era Opus-contra-Opus (o Fable como juez externo); aquí **Fable propone y Opus 4.8 ataca directamente, uno a uno**. Opus también puede seguir actuando como **L1 ejecutor de riesgo** (§1) — son dos sombreros distintos del mismo modelo. |
-| L2 ejecutores | Sonnet 5 / Haiku 4.5 | Igual que §1 — sin cambios. |
-
-> **L1 difícil → subagente Fable 5 `low→med`** (§1-§2): que el director no ejecute NO prohíbe lanzar OTRA
-> instancia de Fable como subagente ejecutor para las tareas hoja verdaderamente difíciles — son procesos
-> separados, el director sigue reservando SU contexto para síntesis, y el costo por tarea lo justifica (§6).
-
-### 10.2 Gatillo — OBLIGATORIO, no opcional (endurece el §7)
-
-El §7 original reserva el debate para decisiones irreversibles. En esta variante el debate es
-**política por defecto** en DOS momentos:
-
-1. **SIEMPRE antes de lanzar/aprobar un plan que vaya a ejecutarse.** Cualquier plan al que Fable esté a
-   punto de dar luz verde — un plan de build, un plan de olas, un conjunto de recomendaciones que otros van
-   a ejecutar — pasa por el ataque de Opus 4.8 **antes** de darse por bueno. No solo lo irreversible.
-2. **En cualquier momento que se detecte un error grave durante la ejecución** — algo que, si sigue sin
-   corregirse, compromete el resultado (un supuesto roto, una migración mal aplicada, un contrato violado).
-   Se pausa, se debate el fix, se reconcilia, se continúa.
-
-> El Filtro maestro (§0) sigue aplicando al **resto** de la ceremonia (briefs, paneles, workflows), pero
-> **NO exime del debate del gatillo #1**: si hay un plan por aprobar, hay debate. La proporcionalidad se
-> aplica **graduando el ataque, no eximiéndolo**:
-> - **Plan simple** (pocas piezas, reversible, no toca datos ni contratos): Opus 4.8 esfuerzo `high`,
->   brief corto, retorno corto — un ataque rápido, no un informe.
-> - **Plan delicado** (multi-fase, toca esquema/contratos, lanza varios subagentes, caro de revertir):
->   Opus 4.8 esfuerzo `xhigh`, ataque profundo con verificación contra los archivos reales.
-
-### 10.3 Protocolo (mismo espíritu anti-teatro del §7, roles fijos)
-
-1. **Fable formula la propuesta/plan** (completo, con supuestos y afirmaciones verificables explícitas).
-2. **Fable delega a un subagente Opus 4.8** dándole **SOLO la propuesta** — **nunca el razonamiento a favor**
-   de Fable (lo racionalizaría) — y la **orden explícita de destruirla**: vectores de ataque concretos,
-   alternativas con tradeoffs, el fallo más probable, y un veredicto. Esfuerzo `high→xhigh`, graduado por
-   el riesgo del plan (§10.2); nunca `max`.
-3. **Fable responde por escrito a CADA objeción**: `refutada` / `aceptada` / `mitigada`.
-   Ninguna se ignora en silencio.
-4. **Fable reconcilia, decide y deja constancia** de qué adoptó, qué descartó y por qué.
-5. **Una sola ronda**, salvo que el debate revele algo nuevo de peso (hereda §7.4).
-
-### 10.4 Economía de costo/calidad — la asimetría de §3 aplicada a Fable
-
-- **Fable NO relee ni reprocesa todo el material en cada ronda.** La exploración pesada — releer código y
-  specs, buscar edge cases contra los archivos reales, verificar afirmaciones fácticas de la propuesta —
-  **se delega a Opus dentro del propio brief de ataque**: el brief de ida lleva las rutas exactas y las
-  afirmaciones a verificar; Opus quema SU ventana leyendo y devuelve el veredicto **apretado y estructurado**.
-- **Fable retiene solo tres cosas:** el brief de entrada, la propuesta que formuló, y la síntesis de vuelta.
-  Todo lo demás lo consume **destilado** (§3: "delegar preserva TU contexto").
-- **Brief de ida completo > corto** (causa #1 de fallo sigue siendo sub-especificar); **retorno apretado**
-  (formato fijo: por objeción → ataque + evidencia + severidad; luego alternativas, fallo más probable, veredicto).
-- Si el ataque de Opus exige verificación empírica extra (correr un test, consultar la BD), **Opus la pide o
-  la ejecuta él** — Fable no se convierte en el ejecutor del debate.
-
-### 10.5 Techo de esfuerzo (cost cap) — ni Fable ni Opus usan `max`
-
-Esta variante fija un **techo de esfuerzo por costo**: el nivel `max` de la escalera (§6) queda **reservado
-y fuera de uso** tanto para Fable como para Opus dentro de este modelo de debate.
-
-- **Opus** (atacante del debate §10.3, y también como L1 ejecutor de riesgo §1): escala su esfuerzo
-  `alto → xhigh` según qué tan caro de revertir es el plan o la tarea que está atacando/ejecutando.
-  `xhigh` es su techo — nunca `max`.
-- **Fable** (director): **alterna** su propio esfuerzo de razonamiento (`medium → high → xhigh`) según la
-  complejidad de la síntesis que esté haciendo en ese momento del build — no fija un único nivel para todo.
-  Igual que Opus, su techo es `xhigh`; no escala a `max`.
-- **Por qué:** `max` no solo es el nivel más caro de la escalera: en el benchmark rinde igual o **peor**
-  que `xhigh` (Fable 5: 44.7% vs 46.3% · Opus 4.8: 31.3% vs 34.3%) costando 40-60% más — pagar más por
-  menos. Además Opus corre como atacante en **cada** aprobación de plan (§10.2, gatillo obligatorio): sin
-  techo y sin graduación, el mecanismo de debate se comería el ahorro que el Filtro maestro (§0) protege.
-
----
-
-> **Origen:** adaptado del modelo de orquestación de OPS. Las §0–§8 son model-agnósticas y portables;
-> la §10 (variante Fable) se creó el 2026-07-01 sobre la copia de la skill de la fábrica. La skill original
-> (orquestador Opus) permanece intacta en `saas-factory/.claude/skills/orquestar-agentes/SKILL.md`.
-> **Ajuste 2026-07-01 (§10.5):** techo de esfuerzo `max → xhigh` para Opus y Fable — no solo por costo:
-> el benchmark muestra que `max` rinde igual o peor que `xhigh`. Segunda pasada el mismo día: generaciones
-> fijadas (Sonnet 5 / Opus 4.8 / Haiku 4.5 / Fable 5), ruteo por frontera de Pareto (L1 difícil →
-> subagente Fable 5 `low→med`), debate graduado por riesgo del plan (§10.2) y tabla de ruteo canónica
-> en §2 — datos: FrontierCode v1 + Artificial Analysis.
+> **Reescritura 2026-07-26:** tres cambios. (1) La premisa se corrigio: la variante se selecciona por
+> el modelo del loop, no por creer que Fable sea el mejor (en codigo mergeable Opus 5 le gana,
+> FrontierCode 53.4% vs 46.3%). (2) El sub-director paso de Opus 4.8 a **Opus 5**, con candado de
+> calibracion; los benchmarks de 4.8 se conservan etiquetados como historicos. (3) Se **elimino la
+> duplicacion** de las secciones 0-8, que era la causa estructural del desfase. La regla de
+> mantenimiento cambio: la variante es un DELTA, no una copia sincronizada.

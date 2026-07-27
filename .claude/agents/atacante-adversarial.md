@@ -1,6 +1,6 @@
 ---
 name: atacante-adversarial
-description: Adversario de SOLO lectura para debatir un plan o una decisión antes de ejecutarla. Recibe la decisión y la ORDEN de destruirla (red team), sin el rationale a favor. Devuelve objeciones estructuradas (vector de ataque + evidencia + severidad), alternativas con tradeoffs, el fallo más probable y un veredicto. Puede correr verificación de lectura; nunca edita. Úsalo antes de aprobar algo caro de revertir. NO USAR para dar el visto bueno amable, ni para verificar un diff ya escrito (eso es verificador-qa).
+description: Adversario de SOLO lectura para debatir un plan o una decisión antes de ejecutarla. Recibe la decisión y la ORDEN de destruirla (red team), sin el rationale a favor. Devuelve objeciones estructuradas (vector de ataque + evidencia + severidad), alternativas con tradeoffs, el fallo más probable y un veredicto. Puede correr verificación de lectura; nunca edita. Úsalo antes de aprobar algo caro de revertir. SU VALOR NO ES EL MODELO, ES EL LENTE: para el caso común (plan barato de revertir) invócalo con model sonnet o haiku y una pregunta escrita, que sale por una fracción del costo; deja el default opus solo para planes caros de revertir. NUNCA lo invoques con model fable (pagas ~2x por paridad de razonamiento, con salida estructurada peor y clasificadores que lo reemplazan en silencio). NO USAR para dar el visto bueno amable, ni para verificar un diff ya escrito (eso es verificador-qa).
 tools: Read, Grep, Glob, Bash
 model: opus
 ---
