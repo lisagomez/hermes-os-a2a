@@ -84,3 +84,16 @@ motor de reglas — habrían sido una segunda fuente de verdad). La compilación
 hasta 2 enlaces internos relevantes del sitio (`extraerEnlacesRelevantes`). Doctrina:
 `.claude/skills/hermes-regulatory-scan/SKILL.md`; ampliar un sector = ampliar el seed por
 el canal de propuestas Y reflejarlo en el mapa `SECTORES`.
+
+**Familia de skills marca blanca de Pre-Discovery (2026-07-27, 7 en `.claude/skills/`):**
+`hermes-source-compilation` (compilar TODAS las fuentes declarando estado) →
+`hermes-claims-audit` (interrogar cada claim: ¿qué implicaría que sea verdad? → enruta a
+regulatorio/tech/pregunta de discovery; el multiplicador — nació del gotcha e-AWB) →
+`hermes-regulatory-scan` + `hermes-tech-stack-scan` (cruce declarado-vs-esperado; tech aún
+manual, su implementación natural es un `escaneo-tecnologico.ts` hermano) +
+`hermes-competitive-deep-research` (competidores verificados, "no identificado" es salida
+válida) → `hermes-advisor-brief` (empaquetador: trazabilidad total o se rechaza). Forma:
+`hermes-design-integrity` (integridad/elocuencia de componentes panel-adm — nació de la
+tabla desalineada y el selector de playbook no persistente). Contrato de evidencia
+compartido embebido en cada uno; cada skill declara su estado real de implementación
+(implementado/parcial/manual) — jamás finge features.
