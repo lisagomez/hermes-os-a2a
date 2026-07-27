@@ -40,12 +40,83 @@ PROMPT_SISTEMA = (
     "task_id corto y unico [A-Za-z0-9._-], un objetivo claro y su propia lista de "
     "criterios_aceptacion; (2) depende_de lista los task_id que deben terminar antes "
     "(sin ciclos, hacia ids existentes); (3) alcance lista los globs de rutas que la "
-    "sub-tarea tocara — dos sub-tareas SIN dependencia entre si NO deben solapar alcance. "
+    "sub-tarea tocara — dos sub-tareas SIN dependencia entre si NO deben solapar alcance; "
+    "(4) cada sub-tarea declara su dificultad por el RADIO DE IMPACTO del cambio, no por "
+    "tu confianza: 'mecanica' SOLO si cumple todo (bien especificada, radio contenido a "
+    "una carpeta/feature, verificable automaticamente con build/tests, error barato de "
+    "revertir); 'delicada' si cumple >=1 de (dificil de revertir, toca contratos entre "
+    "modulos o el esquema de datos, seguridad/migraciones, side cases no obvios, "
+    "requisitos ambiguos, sin verificacion automatica); 'estandar' el resto. Ante la "
+    "duda, sube de nivel. Acompania cada dificultad con un 'por_que' de UNA linea que "
+    "viaje el RIESGO (que cuidar al ejecutarla), no solo la capacidad. "
     "Responde EXCLUSIVAMENTE con JSON valido de la forma "
     '{"sub_tareas": [{"task_id": "...", "objetivo": "...", '
-    '"criterios_aceptacion": ["..."], "depende_de": [], "alcance": ["..."]}]}. '
+    '"criterios_aceptacion": ["..."], "depende_de": [], "alcance": ["..."], '
+    '"dificultad": "mecanica|estandar|delicada", "por_que": "..."}]}. '
     "Sin texto antes ni despues, sin markdown."
 )
+
+# Ruteo por dificultad (doctrina orquestar-agentes §3.5, 2026-07-27): la IA propone
+# la CLASE de la sub-tarea; el modelo concreto sale SOLO de este mapa de env — nunca
+# del texto del modelo. Formato: "mecanica=<modelo>,estandar=<modelo>,delicada=<modelo>"
+# (claves opcionales; vacio/ausente = ruteo apagado → herencia del padre, como siempre).
+DIFICULTADES = ("mecanica", "estandar", "delicada")
+ENV_RUTEO = "PLANNER_RUTEO_MODELOS"
+
+
+def mapa_ruteo_de_env(crudo: str | None = None) -> dict[str, str]:
+    """Parsea el mapa dificultad→modelo. Malformado = config invalida = NO arranca."""
+    texto = (os.environ.get(ENV_RUTEO, "") if crudo is None else crudo).strip()
+    if not texto:
+        return {}
+    mapa: dict[str, str] = {}
+    for par in texto.split(","):
+        clave, sep, modelo = par.partition("=")
+        clave, modelo = clave.strip(), modelo.strip()
+        if not sep or clave not in DIFICULTADES or not modelo:
+            raise PlannerError(
+                f"{ENV_RUTEO} malformado en {par!r}: se espera "
+                "'mecanica|estandar|delicada=<modelo>' separado por comas"
+            )
+        mapa[clave] = modelo
+    return mapa
+
+
+def rutear_por_dificultad(crudo: dict, mapa: dict[str, str]) -> dict:
+    """Convierte `dificultad` (juicio del Planner) en `limites.modelo_pref` (contrato).
+
+    Corre ANTES de validar_plan porque la normalizacion del contrato descarta los
+    campos no-whitelisted (`dificultad`/`por_que` no persisten en la tarea). Fail-safe:
+    una sub-tarea con modelo_pref propio se respeta; dificultad ausente o desconocida
+    NO rompe el plan (queda para la herencia del padre) pero se loguea — un degradado
+    silencioso es invisible, y lo invisible muerde.
+    """
+    if not mapa or not isinstance(crudo, dict) or not isinstance(crudo.get("sub_tareas"), list):
+        return crudo
+    subs = []
+    for s in crudo["sub_tareas"]:
+        if not isinstance(s, dict):
+            subs.append(s)
+            continue
+        task_id = s.get("task_id", "?")
+        propio = isinstance(s.get("limites"), dict) and s["limites"].get("modelo_pref")
+        dificultad = s.get("dificultad")
+        if propio:
+            print(f"[planner] ruteo: {task_id} conserva modelo_pref propio", flush=True)
+            subs.append(s)
+        elif dificultad in mapa:
+            print(f"[planner] ruteo: {task_id} ({dificultad}) → {mapa[dificultad]}", flush=True)
+            limites = dict(s.get("limites") or {})
+            limites["modelo_pref"] = mapa[dificultad]
+            subs.append({**s, "limites": limites})
+        else:
+            detalle = "sin dificultad" if dificultad is None else f"dificultad {dificultad!r}"
+            print(
+                f"[planner] ruteo: {task_id} {detalle} sin mapeo → herencia del padre",
+                flush=True,
+            )
+            subs.append(s)
+    return {**crudo, "sub_tareas": subs}
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*\})\s*```", re.DOTALL)
 
@@ -152,11 +223,18 @@ class RegistroTokenUsage:
 class ClaudePlanner:
     """Planner real. `query_fn` y `registro` inyectables: los tests NUNCA queman tokens."""
 
-    def __init__(self, query_fn=None, registro: RegistroTokenUsage | None = None) -> None:
+    def __init__(
+        self,
+        query_fn=None,
+        registro: RegistroTokenUsage | None = None,
+        ruteo: dict[str, str] | None = None,
+    ) -> None:
         if query_fn is None:
             from claude_agent_sdk import query as query_fn  # el SDK instalado manda
         self._query = query_fn
         self._registro = registro or RegistroTokenUsage()
+        # Se lee/valida en el ARRANQUE (crear_planner): mapa malformado = no arranca.
+        self._ruteo = mapa_ruteo_de_env() if ruteo is None else ruteo
 
     @staticmethod
     def _planner_error(
@@ -222,7 +300,7 @@ class ClaudePlanner:
                 result, rate_info, None, errores_stream,
             )
 
-        crudo = _extraer_json(result.result or "")
+        crudo = rutear_por_dificultad(_extraer_json(result.result or ""), self._ruteo)
         try:
             return validar_plan(crudo)
         except ContratoInvalido as exc:

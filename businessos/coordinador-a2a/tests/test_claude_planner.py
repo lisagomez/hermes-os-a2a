@@ -259,3 +259,88 @@ def test_corrida_en_error_normal_NO_es_transitorio():
     with pytest.raises(PlannerError) as e:
         plan_de(ClaudePlanner(query_fn=QueryFake([rm]), registro=RegistroEspia()), tarea())
     assert e.value.transitorio is False
+
+
+# ---------- ruteo por dificultad (doctrina §3.5, 2026-07-27) ----------
+
+from claude_planner import ENV_RUTEO, PROMPT_SISTEMA, mapa_ruteo_de_env  # noqa: E402
+
+PLAN_CON_DIFICULTAD = {"sub_tareas": [
+    {"task_id": "scaffold", "objetivo": "scaffolding de vistas", "criterios_aceptacion": ["build verde"],
+     "depende_de": [], "alcance": ["app/ui/**"], "dificultad": "mecanica",
+     "por_que": "bien especificada, una carpeta, la verifica el build"},
+    {"task_id": "contrato", "objetivo": "contrato entre modulos", "criterios_aceptacion": ["tests verdes"],
+     "depende_de": ["scaffold"], "alcance": ["app/lib/**"], "dificultad": "delicada",
+     "por_que": "toca el contrato compartido; verificar reciprocas antes de integrar"},
+    {"task_id": "docs", "objetivo": "documentar el modulo", "criterios_aceptacion": ["docs al dia"],
+     "depende_de": ["contrato"], "alcance": ["docs/**"]},
+]}
+
+
+def test_mapa_ruteo_parse_completo_y_parcial():
+    assert mapa_ruteo_de_env("mecanica=glm-4.7, delicada=glm-5.2") == {
+        "mecanica": "glm-4.7", "delicada": "glm-5.2",
+    }
+    assert mapa_ruteo_de_env("") == {}
+    assert mapa_ruteo_de_env("estandar=glm-5.2") == {"estandar": "glm-5.2"}
+
+
+@pytest.mark.parametrize("crudo", ["mecanica", "facil=glm-5.2", "mecanica=", "=glm-5.2"])
+def test_mapa_ruteo_malformado_es_config_invalida(crudo):
+    with pytest.raises(PlannerError, match="malformado"):
+        mapa_ruteo_de_env(crudo)
+
+
+def test_env_malformada_no_deja_arrancar_el_planner(monkeypatch):
+    monkeypatch.setenv(ENV_RUTEO, "facil=glm-5.2")
+    with pytest.raises(PlannerError, match="malformado"):
+        crear_planner("claude")
+
+
+def test_ruteo_estampa_modelo_pref_por_dificultad():
+    rm = result_message(result=json.dumps(PLAN_CON_DIFICULTAD))
+    planner = ClaudePlanner(
+        query_fn=QueryFake([rm]), registro=RegistroEspia(),
+        ruteo={"mecanica": "glm-4.7", "delicada": "glm-5.2"},
+    )
+    plan = plan_de(planner, tarea())
+    prefs = {s["task_id"]: s.get("limites", {}).get("modelo_pref") for s in plan["sub_tareas"]}
+    assert prefs["scaffold"] == "glm-4.7"
+    assert prefs["contrato"] == "glm-5.2"
+    # Sin dificultad y sin mapeo: queda para la herencia del padre (executor).
+    assert prefs["docs"] is None
+
+
+def test_modelo_pref_propio_de_la_subtarea_gana_al_ruteo():
+    con_propio = {"sub_tareas": [dict(
+        PLAN_CON_DIFICULTAD["sub_tareas"][0],
+        limites={"modelo_pref": "el-que-pidio-la-subtarea"},
+    )]}
+    rm = result_message(result=json.dumps(con_propio))
+    planner = ClaudePlanner(
+        query_fn=QueryFake([rm]), registro=RegistroEspia(), ruteo={"mecanica": "glm-4.7"},
+    )
+    plan = plan_de(planner, tarea())
+    assert plan["sub_tareas"][0]["limites"]["modelo_pref"] == "el-que-pidio-la-subtarea"
+
+
+def test_ruteo_apagado_no_cambia_el_plan():
+    rm = result_message(result=json.dumps(PLAN_CON_DIFICULTAD))
+    planner = ClaudePlanner(query_fn=QueryFake([rm]), registro=RegistroEspia(), ruteo={})
+    plan = plan_de(planner, tarea())
+    assert all(not s.get("limites", {}).get("modelo_pref") for s in plan["sub_tareas"])
+
+
+def test_dificultad_desconocida_no_rompe_el_plan():
+    raro = {"sub_tareas": [dict(PLAN_CON_DIFICULTAD["sub_tareas"][0], dificultad="imposible")]}
+    rm = result_message(result=json.dumps(raro))
+    planner = ClaudePlanner(
+        query_fn=QueryFake([rm]), registro=RegistroEspia(), ruteo={"mecanica": "glm-4.7"},
+    )
+    plan = plan_de(planner, tarea())
+    assert not plan["sub_tareas"][0].get("limites", {}).get("modelo_pref")
+
+
+def test_prompt_del_sistema_pide_dificultad():
+    for termino in ("dificultad", "mecanica", "estandar", "delicada", "por_que"):
+        assert termino in PROMPT_SISTEMA

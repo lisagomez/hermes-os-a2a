@@ -47,9 +47,11 @@ ESPERA_MAX_S = 3600.0       # techo de una sola pausa (ni un `resets_at` raro cu
 def heredar_modelo_pref(plan: dict, tarea: dict) -> dict:
     """Las sub-tareas sin `limites.modelo_pref` heredan el del padre.
 
-    El ruteo por tarea de la dueña (GLM-5.2 simple, Sonnet media/alta) se decide
-    en la feature PADRE; el Planner no emite límites, así que sin esta herencia
-    cada sub-tarea caería al modelo default del CLI, no al que pidió la feature.
+    Es el FALLBACK del ruteo: desde 2026-07-27 el Planner real puede estampar
+    modelo_pref por sub-tarea vía `rutear_por_dificultad` (claude_planner, mapa
+    en env PLANNER_RUTEO_MODELOS); lo que el ruteo no cubra (mapa apagado,
+    dificultad sin mapeo, MockPlanner) cae aquí y hereda el del padre — sin
+    esta herencia caería al modelo default del CLI, no al que pidió la feature.
     Una sub-tarea con su propio modelo_pref se respeta.
     """
     pref = tarea.get("limites", {}).get("modelo_pref")
