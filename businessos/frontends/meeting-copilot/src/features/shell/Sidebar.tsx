@@ -13,6 +13,7 @@ import {
   MessagesSquare,
   Mic,
   Radar,
+  Telescope,
   Settings,
 } from 'lucide-react'
 import { useUiStore } from '@/shared/stores/ui-store'
@@ -20,6 +21,7 @@ import { useUiStore } from '@/shared/stores/ui-store'
 const NAV = [
   { href: '/', etiqueta: 'Inicio', Icono: Home, exacto: true },
   { href: '/reuniones', etiqueta: 'Reuniones', Icono: CalendarDays, exacto: false },
+  { href: '/pre-discovery', etiqueta: 'Pre-Discovery', Icono: Telescope, exacto: false },
   { href: '/grabacion', etiqueta: 'Grabación', Icono: Mic, exacto: true },
   { href: '/reuniones?vista=conversaciones', etiqueta: 'Conversaciones', Icono: MessagesSquare, exacto: true },
   { href: '/herramientas', etiqueta: 'Herramientas', Icono: LayoutGrid, exacto: true },

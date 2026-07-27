@@ -59,3 +59,42 @@ después, con el campo de operación ya capturado; si la investigación llamara 
 ella misma infirió, rompe el invariante (a) del PRP (inferencia disfrazada de dato). (2) **Señal ≠
 dato**: lo que produce es una hipótesis que un humano confirma; `PerfilRegulatorio` sigue siendo un
 campo capturado, no derivado.
+
+**Pre-Discovery (rama `feat/pre-discovery`, 2026-07-26):** sección nativa entre lead y
+entrevista — intake → pipeline de 8 bloques (real→mock declarado, confidence/provenance y
+naturaleza hecho/hipótesis/recomendación por contrato), benchmark de analista, marcos
+regulatorio (grafo: proxy `/api/grafo/evaluaciones` con validación estilo grafo-a2a + mock
+fiel) y tecnológico, brief del asesor reutilizado en Prompter/Guided/CRM (briefContexto en
+usePreguntaIA), Activos Digitales espejo ACT (casos y entrevistas; versiones append-only,
+costo=SUMA del ledger con fuente obligatoria), admin del módulo con bitácora, CLIs
+copiables, y host-job `businessos/cosechar-prediscovery.py` (export JSON versionado →
+erp.act_* con SET ROLE, idempotente por traza, 11 tests). Gotcha pagado: `Card` no
+reenviaba `data-testid` (props nativas ahora spreadeadas).
+
+**Hermes-Regulatory-Scan (2026-07-27, skill aportado por Victor e integrado ADAPTADO):**
+el dictamen regulatorio de Pre-Discovery ahora lleva el cruce **DECLARADO vs ESPERADO**
+(`escaneo-regulatorio.ts`): sector → categorías que el grafo espera → evidencia/hipótesis/
+vacío con severidad, cobertura alta/media/baja, ALTA OPACIDAD REGULATORIA y VACÍO DEL
+GRAFO (sector sin categorías → no se inventan marcos). Nació del gotcha e-AWB de GAL: el
+escaneo directo solo ve lo declarado; la dirección inversa caza lo que el sitio calla.
+Retroalimentación al grafo SOLO en modo PROPUESTA (`propuestasSeed` → JSONL → revisión
+humana → `grafo/seed/reglas.json` + gate de procedencia). Lo que NO se adoptó del skill
+original: `graph_lookup/graph_write` y la ontología de triplets (no existen; el grafo es
+motor de reglas — habrían sido una segunda fuente de verdad). La compilación además lee
+hasta 2 enlaces internos relevantes del sitio (`extraerEnlacesRelevantes`). Doctrina:
+`.claude/skills/hermes-regulatory-scan/SKILL.md`; ampliar un sector = ampliar el seed por
+el canal de propuestas Y reflejarlo en el mapa `SECTORES`.
+
+**Familia de skills marca blanca de Pre-Discovery (2026-07-27, 7 en `.claude/skills/`):**
+`hermes-source-compilation` (compilar TODAS las fuentes declarando estado) →
+`hermes-claims-audit` (interrogar cada claim: ¿qué implicaría que sea verdad? → enruta a
+regulatorio/tech/pregunta de discovery; el multiplicador — nació del gotcha e-AWB) →
+`hermes-regulatory-scan` + `hermes-tech-stack-scan` (cruce declarado-vs-esperado; tech
+implementado 2026-07-27 en `escaneo-tecnologico.ts` — sistema→evidencia, claim→hipótesis,
+vacío=oportunidad; una inferencia del stack jamás se auto-confirma) +
+`hermes-competitive-deep-research` (competidores verificados, "no identificado" es salida
+válida) → `hermes-advisor-brief` (empaquetador: trazabilidad total o se rechaza). Forma:
+`hermes-design-integrity` (integridad/elocuencia de componentes panel-adm — nació de la
+tabla desalineada y el selector de playbook no persistente). Contrato de evidencia
+compartido embebido en cada uno; cada skill declara su estado real de implementación
+(implementado/parcial/manual) — jamás finge features.

@@ -33,9 +33,9 @@ export function ScoreChip({ total }: { total: number }) {
   return <Chip tono={tonoScore(total)}>{total} / 100</Chip>
 }
 
-export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
+export function Card({ children, className = '', ...rest }: { children: ReactNode; className?: string } & ComponentProps<'div'>) {
   return (
-    <div className={`card ${className}`} id={id}>
+    <div className={`card ${className}`.trim()} {...rest}>
       {children}
     </div>
   )

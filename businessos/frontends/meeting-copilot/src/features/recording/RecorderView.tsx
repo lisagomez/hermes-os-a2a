@@ -14,6 +14,8 @@ import { nuevoId } from '@/shared/lib/format'
 import { nombresSesion, useLiveStore } from './live-store'
 import { crearFuenteDemo, crearFuenteMicrofono, type FuenteVivo } from './fuentes-vivo'
 import { useCapacidades } from './capacidades'
+import { useCasoDeLead } from '@/features/pre-discovery/store'
+import { PrepAsesorCard, briefCompacto } from '@/features/pre-discovery/PrepAsesor'
 import { DiarizadorVivo } from './diarizacion'
 import { PrompterPanel } from './PrompterPanel'
 import { reunionVivoStub } from './prompter'
@@ -53,10 +55,15 @@ export function RecorderView() {
     setHablante,
     setAsesorNombre,
     setLeadNombre,
+    setLeadId,
     agregarSegmento,
     setErrorVivo,
     resetSesion,
   } = useLiveStore()
+  const leadId = useLiveStore((s) => s.leadId)
+  const leads = useAppStore((s) => s.leads)
+  const leadSesion = useMemo(() => leads.find((l) => l.leadId === leadId) ?? null, [leads, leadId])
+  const casoDelLead = useCasoDeLead(leadId)
 
   const [estado, setEstado] = useState<EstadoGrabacion>('inactivo')
   const [error, setError] = useState<string | null>(null)
@@ -100,13 +107,12 @@ export function RecorderView() {
   const nombres = nombresSesion({ asesorNombre, leadNombre })
   const contextoCompleto = asesorNombre.trim().length > 0 && leadNombre.trim().length > 0
 
-  const reunionVivo: Reunion = useMemo(
-    () =>
-      fuente === 'demo'
-        ? { ...AUDIO_DEMO.reunionBase, id: 'sesion-demo', titulo: 'Sesión demo en vivo', estado: 'capturada' }
-        : reunionVivoStub('sesion-vivo', 'Sesión en vivo', nombres),
-    [fuente, nombres.interno, nombres.cliente] // eslint-disable-line react-hooks/exhaustive-deps
-  )
+  const reunionVivo: Reunion = useMemo(() => {
+    if (fuente === 'demo') return { ...AUDIO_DEMO.reunionBase, id: 'sesion-demo', titulo: 'Sesión demo en vivo', estado: 'capturada' }
+    const stub = reunionVivoStub('sesion-vivo', 'Sesión en vivo', nombres)
+    // Lead del CRM ligado: la reunión hereda leadId y la cuenta real.
+    return leadSesion ? { ...stub, leadId: leadSesion.leadId, cuenta: leadSesion.empresa } : stub
+  }, [fuente, nombres.interno, nombres.cliente, leadSesion]) // eslint-disable-line react-hooks/exhaustive-deps
   const playbook = playbookPorTipo('discovery', playbooks)
 
   // Diarización automática por voz: se calibra con la apertura del asesor y
@@ -501,15 +507,40 @@ export function RecorderView() {
               />
             </label>
             <label className="block text-[12px] font-medium text-ink-secondary">
-              Nombre del lead entrevistado
-              <input
-                value={leadNombre}
-                onChange={(e) => setLeadNombre(e.target.value)}
+              Lead entrevistado
+              <select
+                value={leadId ?? 'libre'}
+                onChange={(e) => {
+                  const v = e.target.value
+                  if (v === 'libre') {
+                    setLeadId(null)
+                  } else {
+                    setLeadId(v)
+                    const l = leads.find((x) => x.leadId === v)
+                    if (l) setLeadNombre(l.contacto)
+                  }
+                }}
                 disabled={grabandoOPausa}
-                placeholder="p. ej. Marco (TransLogika)"
                 className="input mt-1"
-                data-testid="input-lead-nombre"
-              />
+                data-testid="selector-lead-sesion"
+              >
+                <option value="libre">— Sin lead del CRM (nombre libre) —</option>
+                {leads.map((l) => (
+                  <option key={l.leadId} value={l.leadId}>
+                    {l.empresa} · {l.contacto}
+                  </option>
+                ))}
+              </select>
+              {leadId === null && (
+                <input
+                  value={leadNombre}
+                  onChange={(e) => setLeadNombre(e.target.value)}
+                  disabled={grabandoOPausa}
+                  placeholder="p. ej. Marco (TransLogika)"
+                  className="input mt-1"
+                  data-testid="input-lead-nombre"
+                />
+              )}
             </label>
             <div className="flex items-end pb-1">
               {contextoCompleto ? (
@@ -557,7 +588,10 @@ export function RecorderView() {
       ) : asesorActivo ? (
         <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
           {columnaCentral}
-          <PrompterPanel reunion={reunionVivo} playbook={playbook} grabando={grabandoOPausa} />
+          <div className="space-y-3">
+            {casoDelLead && <PrepAsesorCard caso={casoDelLead} />}
+            <PrompterPanel reunion={reunionVivo} playbook={playbook} grabando={grabandoOPausa} brief={briefCompacto(casoDelLead)} />
+          </div>
         </div>
       ) : (
         columnaCentral

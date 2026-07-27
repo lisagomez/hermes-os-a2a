@@ -185,3 +185,71 @@ test('responsive básico: el shell no rompe en viewport angosto', async ({ page 
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   expect(overflowX).toBeLessThanOrEqual(24)
 })
+
+test('pre-discovery: intake → análisis (mock declarado) → brief → activo/costeo → CLIs', async ({ page }) => {
+  await page.goto('/pre-discovery')
+  await expect(page.getByTestId('tabla-casos')).toBeVisible() // caso demo GAL presente
+  await page.getByTestId('nuevo-caso').click()
+  await page.getByTestId('intake-empresa').fill('EcoNorte Consultores')
+  await page.getByTestId('intake-contacto').fill('Diana Robles')
+  await page.getByTestId('intake-giro').fill('Consultoría ambiental')
+  await page.getByTestId('crear-caso').click()
+  // Workspace del caso: el pipeline mock corre y el caso queda listo.
+  await expect(page.getByText('Resumen ejecutivo')).toBeVisible({ timeout: 20_000 })
+  // Benchmark honesto: giro sin arquetipos → no concluyente, no se inventa.
+  await page.getByTestId('tab-caso-benchmark').click()
+  await expect(page.getByTestId('competencia-no-concluyente')).toBeVisible()
+  // Marcos: fail-safe del grafo con disclaimer SIEMPRE.
+  await page.getByTestId('tab-caso-marcos').click()
+  await expect(page.getByTestId('disclaimer-grafo')).toBeVisible()
+  await expect(page.getByText('sin regla aplicable').first()).toBeVisible()
+  // Brief del asesor consumible.
+  await page.getByTestId('tab-caso-brief').click()
+  await expect(page.getByTestId('brief-asesor')).toBeVisible()
+  await expect(page.getByTestId('descargar-brief')).toBeVisible()
+  // Activo Digital espejo ACT + costeo ejecutivo con origen declarado.
+  await page.getByTestId('tab-caso-activo').click()
+  await expect(page.getByTestId('activo-costeo')).toBeVisible()
+  await expect(page.getByText(/ACT-LOC-\d{4}/).first()).toBeVisible()
+  await expect(page.getByText('análisis demo: $0 declarado')).toBeVisible()
+  await expect(page.getByTestId('exportar-activo')).toBeVisible()
+  // CLIs copiables (nunca fingidos).
+  await page.getByTestId('tab-caso-clis').click()
+  const comandos = page.getByTestId('cli-comando')
+  await expect(comandos.first()).toBeVisible()
+  expect(await comandos.count()).toBeGreaterThanOrEqual(4)
+})
+
+test('pre-discovery: el prep del asesor aparece en Grabación al ligar el lead con caso', async ({ page }) => {
+  await page.goto('/grabacion')
+  await page.getByTestId('toggle-asesor').click()
+  await page.getByTestId('selector-lead-sesion').selectOption('lead-gal')
+  await expect(page.getByTestId('prep-asesor')).toBeVisible()
+  await expect(page.getByTestId('prep-asesor')).toContainText('Hipótesis a validar')
+})
+
+test('pre-discovery: panel admin con tarifas, límites y auditoría', async ({ page }) => {
+  await page.goto('/pre-discovery/admin')
+  await expect(page.getByTestId('tabla-tarifas')).toBeVisible()
+  await expect(page.getByTestId('presupuesto-caso')).toBeVisible()
+  await expect(page.getByTestId('eje-desarrollo')).toBeVisible()
+  await expect(page.getByText('Sin acciones registradas todavía', { exact: false })).toBeVisible()
+  await expect(page.getByTestId('tabla-activos-modulo')).toBeVisible() // activo del caso demo GAL
+})
+
+test('integridad de diseño: el selector de playbook persiste su posición al salir y volver', async ({ page }) => {
+  // Regla 2 de hermes-design-integrity: la selección es estado de navegación →
+  // vive en la URL. Control del bug "el selector regresa solo al primero".
+  await page.goto('/playbooks')
+  await expect(page.getByTestId('playbook-pb-discovery')).toHaveAttribute('aria-pressed', 'true')
+  await page.getByTestId('playbook-pb-negociacion').click()
+  await expect(page.getByTestId('playbook-pb-negociacion')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page).toHaveURL(/playbook=pb-negociacion/)
+
+  // Salir a otra sección y volver por el sidebar: la selección debe seguir ahí
+  // …al volver por la URL con la selección (back del navegador / link compartido).
+  await page.goto('/')
+  await page.goBack()
+  await expect(page.getByTestId('playbook-pb-negociacion')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('heading', { name: 'Negociación' })).toBeVisible()
+})

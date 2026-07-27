@@ -1,8 +1,10 @@
-import type { Reunion, Segmento, Transcripcion } from './types'
+import type { Lead, Reunion, Segmento, Transcripcion } from './types'
 import { UMBRAL_INAUDIBLE } from './types'
 import { fmtTiempo } from '@/shared/lib/format'
 
-// Personajes FICTICIOS (regla del PRP: cero datos de clientes reales).
+// Personajes de TRANSCRIPCIONES ficticios (regla del PRP). Excepción dirigida
+// por el usuario (2026-07-26): el lead GAL usa los datos PÚBLICOS reales del
+// prospecto (sitio + LinkedIn) como simulación de gate de Pre-Discovery.
 // Cada fixture está diseñada para ejercitar estados distintos del score:
 //  R1 discovery bueno (~88) · R2 discovery superficial (~35) · R3 demo con objeciones (~60)
 
@@ -179,3 +181,38 @@ export const AUDIO_DEMO = {
   reunionBase: REUNIONES_DEMO[0],
   segmentos: SEG_R1,
 }
+
+// ─── Leads demo (espejo de public.leads; origen 'copilot') ──────────────────
+
+export const LEADS_DEMO: Lead[] = [
+  {
+    leadId: 'lead-gal',
+    empresa: 'GAL',
+    contacto: 'Adán Reyes García',
+    etapa: 'calificado',
+    origen: 'copilot',
+    datos: {
+      sitio: 'https://galmexico.com/',
+      linkedin_empresa: 'https://www.linkedin.com/company/galogisticsmex/',
+      fundador_1: 'https://www.linkedin.com/in/adan-reyesgracia/',
+      fundador_2: 'https://www.linkedin.com/in/rogelio-betancourt-8a7891108/',
+    },
+    creadoAt: '2026-07-20T16:00:00.000Z',
+  },
+  {
+    leadId: 'lead-translogika',
+    empresa: 'TransLogika MX',
+    contacto: 'Marco Antúnez',
+    etapa: 'descubrimiento',
+    origen: 'copilot',
+    creadoAt: '2026-07-18T16:00:00.000Z',
+  },
+  {
+    leadId: 'lead-andamex',
+    empresa: 'Andamex Norte',
+    contacto: 'Raúl Quintero',
+    etapa: 'propuesta',
+    origen: 'copilot',
+    creadoAt: '2026-07-15T16:00:00.000Z',
+  },
+]

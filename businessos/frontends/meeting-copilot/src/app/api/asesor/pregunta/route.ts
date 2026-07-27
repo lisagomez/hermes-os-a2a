@@ -15,6 +15,7 @@ const Cuerpo = z.object({
   leadNombre: z.string().nullable(),
   contexto: z.array(z.object({ hablante: z.string(), texto: z.string().max(600) })).max(40),
   preguntasPrevias: z.array(z.string()).max(12),
+  briefContexto: z.string().max(2000).optional(),
 })
 
 // Modelo barato/rápido por defecto (doctrina de ruteo del proyecto); override por env.

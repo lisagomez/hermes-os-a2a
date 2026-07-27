@@ -8,6 +8,7 @@ export const CATALOGO_HERRAMIENTAS: Herramienta[] = [
   { slug: 'grabacion', nombre: 'Grabación', descripcion: 'Graba la reunión desde la app con tu micrófono', categoria: 'captura', icono: 'Mic', estado: 'active', ruta: '/grabacion' },
   { slug: 'meetings', nombre: 'Meetings', descripcion: 'Pipeline de reuniones y su estado de análisis', categoria: 'captura', icono: 'CalendarDays', estado: 'active', ruta: '/reuniones' },
   { slug: 'conversations', nombre: 'Conversations', descripcion: 'Historial de conversaciones por cuenta', categoria: 'captura', icono: 'MessagesSquare', estado: 'active', ruta: '/reuniones?vista=conversaciones' },
+  { slug: 'pre-discovery', nombre: 'Pre-Discovery', descripcion: 'Inteligencia del lead antes de la entrevista: benchmark, FODA, marcos y brief', categoria: 'analisis', icono: 'Telescope', estado: 'active', ruta: '/pre-discovery' },
   { slug: 'discovery-analyzer', nombre: 'Discovery Analyzer', descripcion: 'Insights estructurados con evidencia citada', categoria: 'analisis', icono: 'ScanSearch', estado: 'active', ruta: '/reuniones/[ultima]/insights' },
   { slug: 'deal-risks', nombre: 'Deal Risks', descripcion: 'Riesgos comerciales detectados y su mitigación', categoria: 'analisis', icono: 'ShieldAlert', estado: 'active', ruta: '/reuniones/[ultima]/resumen#riesgos' },
   { slug: 'stakeholder-map', nombre: 'Stakeholder Map', descripcion: 'Participantes, roles e influencia en el deal', categoria: 'analisis', icono: 'Network', estado: 'active', ruta: '/reuniones/[ultima]/resumen#stakeholders' },
@@ -17,6 +18,7 @@ export const CATALOGO_HERRAMIENTAS: Herramienta[] = [
   { slug: 'follow-up-writer', nombre: 'Follow-up Writer', descripcion: 'Draft de correo de seguimiento desde la reunión', categoria: 'ejecucion', icono: 'MailPlus', estado: 'active', ruta: '/reuniones/[ultima]/resumen#followup' },
   { slug: 'crm-notes', nombre: 'CRM Notes', descripcion: 'Notas estructuradas listas para el CRM', categoria: 'ejecucion', icono: 'NotebookPen', estado: 'active', ruta: '/reuniones/[ultima]/resumen#crm' },
   { slug: 'tasks', nombre: 'Tasks', descripcion: 'Action items con responsable y fecha', categoria: 'ejecucion', icono: 'ListChecks', estado: 'active', ruta: '/reuniones?vista=acciones' },
+  { slug: 'pre-discovery-admin', nombre: 'Admin Pre-Discovery', descripcion: 'Costeo, seams, clasificación en origen y auditoría del módulo', categoria: 'configuracion', icono: 'SlidersHorizontal', estado: 'active', ruta: '/pre-discovery/admin' },
   { slug: 'playbooks', nombre: 'Playbooks', descripcion: 'Dimensiones, pesos y banco de preguntas por tipo de reunión', categoria: 'configuracion', icono: 'BookOpenCheck', estado: 'active', ruta: '/playbooks' },
   { slug: 'templates', nombre: 'Templates', descripcion: 'Plantillas de salida: follow-up, CRM notes, resumen', categoria: 'configuracion', icono: 'LayoutTemplate', estado: 'active', ruta: '/playbooks#templates' },
 ]

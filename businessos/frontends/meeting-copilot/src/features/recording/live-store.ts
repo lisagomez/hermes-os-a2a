@@ -34,6 +34,9 @@ interface LiveState {
    *  (suele ser la misma persona); el del lead es por sesión. */
   asesorNombre: string
   leadNombre: string
+  /** Lead del CRM ligado a la sesión (habilita el Prep del asesor y liga la
+   *  reunión resultante al lead/caso). null = sesión sin lead del sistema. */
+  leadId: string | null
   guiaVisible: boolean
   segmentos: Segmento[]
   temasCubiertosManual: DimensionId[]
@@ -50,6 +53,7 @@ interface LiveState {
   reasignarSegmento: (idx: number, nuevoHablante: string) => void
   setAsesorNombre: (n: string) => void
   setLeadNombre: (n: string) => void
+  setLeadId: (id: string | null) => void
   setGuiaVisible: (v: boolean) => void
   agregarSegmento: (s: Segmento) => void
   marcarTema: (d: DimensionId) => void
@@ -76,6 +80,7 @@ export const useLiveStore = create<LiveState>()(
       hablanteActual: 'Cliente',
       asesorNombre: '',
       leadNombre: '',
+      leadId: null,
       guiaVisible: true,
       segmentos: [],
       temasCubiertosManual: [],
@@ -94,6 +99,7 @@ export const useLiveStore = create<LiveState>()(
         })),
       setAsesorNombre: (n) => set({ asesorNombre: n }),
       setLeadNombre: (n) => set({ leadNombre: n }),
+      setLeadId: (id) => set({ leadId: id }),
       setGuiaVisible: (v) => set({ guiaVisible: v }),
       agregarSegmento: (s) => set((st) => ({ segmentos: [...st.segmentos, s] })),
       marcarTema: (d) =>

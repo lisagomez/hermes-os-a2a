@@ -92,6 +92,23 @@ phases:
         verticales: [negocio, clientes]
         note: "Solo cuando llegues a Fase 5. Pasar por grafo antes de activar."
 
+  "copilot":
+    label: "Meeting Copilot (Pre-Discovery + reuniones)"
+    clis:
+      - name: "https://meeting-copilot-pi.vercel.app"
+        slug: meeting-copilot
+        source: sniff
+        why: >-
+          Operar casos de Pre-Discovery y briefs del asesor desde agentes:
+          analizar bloques (/api/pre-discovery/analizar), leer sitios de leads
+          (/api/pre-discovery/sitio) y regenerar análisis sin abrir la UI.
+        verticales: [negocio]
+        note: >-
+          Declarado 2026-07-26 (módulo Pre-Discovery). La app Next no expone
+          OpenAPI → source sniff sobre las rutas /api documentadas en su
+          SPEC.md. Las rutas IA requieren OPENROUTER_API_KEY del lado del
+          deploy; sin clave devuelven 503 (fallback mock en la UI).
+
 # Convenciones de impresión (se aplican a todos):
 defaults:
   mode: codex          # usa 'codex' para ~60% menos tokens de Opus en Fase 3 de la prensa

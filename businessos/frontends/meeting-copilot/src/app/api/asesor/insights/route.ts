@@ -64,14 +64,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `OpenRouter respondió ${respuesta.status}: ${detalle.slice(0, 160)}` }, { status: 502 })
     }
 
-    const data = (await respuesta.json()) as { choices?: { message?: { content?: string } }[] }
+    const data = (await respuesta.json()) as {
+      choices?: { message?: { content?: string } }[]
+      usage?: { prompt_tokens?: number; completion_tokens?: number }
+    }
     const contenido = data.choices?.[0]?.message?.content ?? ''
     // Reutiliza el extractor defensivo de JSON (directo o embebido en markdown).
     const objeto = extraerJson(contenido)
     if (!objeto) return NextResponse.json({ error: 'El modelo no devolvió JSON válido.' }, { status: 502 })
     // La VALIDACIÓN fuerte (evidencia contra la transcripción) ocurre en el
     // cliente con validarAnalisisIA — aquí solo se garantiza JSON bien formado.
-    return NextResponse.json({ analisis: objeto, modelo })
+    return NextResponse.json({
+      analisis: objeto,
+      modelo,
+      usage: { tokensIn: data.usage?.prompt_tokens ?? 0, tokensOut: data.usage?.completion_tokens ?? 0 },
+    })
   } catch (e) {
     const mensaje = e instanceof Error && e.name === 'AbortError' ? 'Timeout (25 s) llamando al modelo.' : String(e)
     return NextResponse.json({ error: mensaje }, { status: 502 })
