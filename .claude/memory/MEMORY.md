@@ -38,6 +38,7 @@
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
 - [Mantener docs vivas](feedback/mantener-docs-vivas.md) — tras cada cambio importante, actualizar aprendizajes (CLAUDE.md), roadmap, memoria y BUSINESS_LOGIC.md.
+- [Selección de modelo y esfuerzo por tarea](feedback/modelo-esfuerzo-por-tarea.md): qué modelo Claude (Haiku/Sonnet/Opus/Fable) y qué esfuerzo (low→xhigh, techo xhigh) conviene según el tipo de tarea (código, escritura, verificación); usado por `orquestar-agentes` y `orquestar-agentes-fable` para el ruteo.
 
 ## reference/ — Donde encontrar cosas
 - [Dos máquinas: runtime vs desarrollo](reference/maquinas-entornos.md) — desde 2026-07-08 TODAS las verticales viven en Hetzner (nada en WSL2); en la de desarrollo solo repo+APIs; el .env no viaja por git (sync a mano).
@@ -47,3 +48,4 @@
 - [Revocar EXECUTE en funciones Postgres](reference/revocar-execute-funciones-postgres.md) — para quitar permiso a anon/authenticated hay que `revoke ... from public`, no de los roles (lo heredan via PUBLIC).
 - [Hermes sin Docker en runtime](reference/hermes-sin-docker-runtime.md) — CORREGIDO 2026-07-11: la causa era `TERMINAL_ENV=docker` en el .env del volumen (mina de migración), no diseño; con `config set terminal.backend local` read_file/execute_code/terminal FUNCIONAN (también en chat -q). Sigue vigente: solo SOUL.md se inyecta al prompt; dato-en-SOUL como optimización; Telegram Web no dibuja tool-calls; agent.log dice qué entorno se creó.
 - [Auditoría de seguridad de Houston](reference/auditoria-seguridad-houston.md): código del competidor (gethouston/houston) auditado 2026-07-25, SOSPECHOSO, 2 fallas ALTAS (tablas Supabase sin RLS/REVOKE en credenciales OAuth; traversal de rutas en comandos Tauri que puede encadenar a ejecución con un clic); leer antes de tomar prestada cualquier idea de su arquitectura.
+- [Mapa de capacidades de la familia Claude](reference/mapa-capacidades-claude.md): fortalezas/debilidades por modelo (Haiku 4.5, Sonnet 5, Opus 5, Opus 4.8, Fable 5) y por dominio (código, escritura, computer use, contexto largo, alucinación), con evidencia citada; usado por `orquestar-agentes` y `orquestar-agentes-fable` para el ruteo.

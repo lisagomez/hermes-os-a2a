@@ -38,6 +38,9 @@ elige porque Fable sea "el modelo de mayor razonamiento": esa premisa, que era l
 Etiqueta [I] = fuente independiente verificada. Opus 5 salio el 2026-07-24 y relevo a Opus 4.8 como
 flagship; Opus 4.8 sigue disponible, no esta deprecado.
 
+Fuentes y detalle: `.claude/memory/reference/mapa-capacidades-claude.md` (perfiles por modelo, datos y
+tabla de esfuerzo) y `.claude/memory/feedback/modelo-esfuerzo-por-tarea.md` (ruteo por tipo de tarea).
+
 **Consecuencias de ruteo (esto es lo accionable, no la tabla):**
 
 1. **Esta skill NO es un argumento para mandar trabajo a Fable.** Si la tarea es dificil **en codigo**

@@ -372,6 +372,10 @@ se rutea (eso es §2 y §6). Fuente: guía oficial de prompting de Anthropic.
 - **No fuerces updates de progreso intermedios** (tipo "resume cada N tool-calls"): ya reportan avance de
   buena calidad en trazas largas. Si un brief viejo lo pide, quítalo.
 
+> **Datos por modelo y ruteo por tarea:** `.claude/memory/reference/mapa-capacidades-claude.md`
+> (fortalezas/debilidades por modelo, con evidencia) y `.claude/memory/feedback/modelo-esfuerzo-por-tarea.md`
+> (qué modelo/esfuerzo para cada tipo de tarea). Consultar antes de fijar el ruteo de un fan-out.
+
 ---
 
 ## 9. Cómo se invoca / referencia (en este repo)
