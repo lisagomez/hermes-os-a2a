@@ -22,7 +22,9 @@ import type {
   Naturaleza,
 } from './types'
 import { ETIQUETA_BLOQUE } from './types'
+import type { CasoPreDiscovery } from './types'
 import type { EvaluacionGrafo } from './grafo'
+import { propuestasSeed, type EscaneoRegulatorio } from './escaneo-regulatorio'
 import { Table, TBody, TCell, TH, THead, TRow } from '@/shared/components/ui'
 
 export function ChipNaturaleza({ naturaleza }: { naturaleza: Naturaleza }) {
@@ -275,7 +277,66 @@ export function EstrategiaView({ dif, foda }: { dif: DatosDiferenciacion | null;
   )
 }
 
-export function RegulatorioView({ datos }: { datos: EvaluacionGrafo }) {
+const TONO_EXPECTATIVA = { evidencia: 'success', hipotesis: 'warning', vacio: 'danger' } as const
+const ETIQUETA_EXPECTATIVA = { evidencia: 'evidencia', hipotesis: 'hipótesis', vacio: 'VACÍO' } as const
+
+/** Hermes-Regulatory-Scan: cruce DECLARADO vs ESPERADO — el vacío es el hallazgo. */
+function EscaneoView({ escaneo, caso }: { escaneo: EscaneoRegulatorio; caso?: CasoPreDiscovery }) {
+  const propuestas = caso ? propuestasSeed(caso, escaneo) : []
+  const exportar = () => {
+    const jsonl = propuestas.map((p) => JSON.stringify(p)).join('\n')
+    const blob = new Blob([jsonl], { type: 'application/jsonl' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `propuestas-seed-${caso?.id ?? 'caso'}.jsonl`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+  return (
+    <div className="rounded-s border border-line-subtle p-3" data-testid="escaneo-regulatorio">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-[12px] font-semibold text-ink">Declarado vs esperado</h3>
+          {escaneo.sector && <Chip>{escaneo.sector}</Chip>}
+          <Chip tono={escaneo.cobertura === 'alta' ? 'success' : escaneo.cobertura === 'media' ? 'warning' : 'danger'}>
+            cobertura {escaneo.cobertura}
+          </Chip>
+          {escaneo.opacidadAlta && <Chip tono="danger">ALTA OPACIDAD REGULATORIA</Chip>}
+        </div>
+        {propuestas.length > 0 && (
+          <Button variante="secondary" tamano="sm" onClick={exportar} data-testid="exportar-propuestas-seed">
+            Exportar propuestas de seed ({propuestas.length})
+          </Button>
+        )}
+      </div>
+      {escaneo.vacioDelGrafo ? (
+        <Callout tono="warning" variante="inline" titulo="VACÍO DEL GRAFO">
+          <p className="text-[12px]">{escaneo.vacioDelGrafo}</p>
+        </Callout>
+      ) : (
+        <ul className="mt-2 space-y-1.5">
+          {escaneo.matriz.map((m) => (
+            <li key={m.categoria} className="rounded-s bg-surface-muted px-3 py-1.5" data-testid="expectativa-regulatoria">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[12px] text-ink">
+                  <span className="font-medium">{m.categoria}</span>
+                  <span className="text-ink-secondary"> — esperado por: {m.esperadaPor}</span>
+                </p>
+                <Chip tono={TONO_EXPECTATIVA[m.estado]}>{ETIQUETA_EXPECTATIVA[m.estado]}{m.estado !== 'evidencia' ? ` · sev. ${m.severidad}` : ''}</Chip>
+              </div>
+              <p className="mt-0.5 text-[11px] text-ink-secondary">{m.detalle}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-[10px] text-ink-muted">
+        Las propuestas se exportan en modo PROPUESTA hacia el seed del grafo (revisión humana + gate de procedencia) — nada se siembra como hecho automáticamente.
+      </p>
+    </div>
+  )
+}
+
+export function RegulatorioView({ datos, caso }: { datos: EvaluacionGrafo & { escaneo?: EscaneoRegulatorio }; caso?: CasoPreDiscovery }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -285,6 +346,7 @@ export function RegulatorioView({ datos }: { datos: EvaluacionGrafo }) {
         <Chip tono={datos.conexion === 'grafo' ? 'success' : 'warning'}>{datos.conexion === 'grafo' ? 'grafo regulatorio' : 'mock fiel del grafo'}</Chip>
         <Chip>{datos.contexto.jurisdiccion} · {datos.contexto.dimension}</Chip>
       </div>
+      {datos.escaneo && <EscaneoView escaneo={datos.escaneo} caso={caso} />}
       <ul className="space-y-2">
         {datos.conceptos.map((c) => (
           <li key={c.descripcion} className="rounded-s bg-surface-muted px-3 py-2" data-testid="concepto-regulatorio">

@@ -635,6 +635,21 @@ fail-safe (`dudoso` + "sin regla aplicable" + `fuente:null`), citas con clave/UR
 y el disclaimer EXACTO del grafo — siempre visible, `dudoso` marcado "requiere revisión
 posterior". El marco tecnológico es inferencial y así se etiqueta.
 
+**Hermes-Regulatory-Scan (cruce DECLARADO vs ESPERADO)** — `escaneo-regulatorio.ts`,
+adjunto al dictamen en todos los caminos (grafo/mock/fallback). Dada la clase de servicio
+del lead, lista las categorías que el grafo ESPERA y las cruza con lo observado:
+`evidencia` (declarado + dictaminado con fuente), `hipotesis` (señal indirecta sin
+categoría en el dictamen → validar en entrevista), `vacio` (el sector lo espera y el
+sitio calla — el vacío ES el hallazgo, con severidad). Salidas ejecutivas: cobertura
+alta/media/baja, chip **ALTA OPACIDAD REGULATORIA** (cero evidencias) y **VACÍO DEL
+GRAFO** (sector sin categorías → jamás se inventan marcos). La retroalimentación al
+grafo sale SOLO como export JSONL en modo `PROPOSED` (`propuestasSeed`: tipos
+`nueva_senal | validar_regla | nuevo_ambito`, evidencia con URL) rumbo a
+`grafo/seed/reglas.json` vía revisión humana + gate de procedencia — nunca escritura
+directa. La compilación además lee hasta 2 **enlaces internos relevantes** del sitio
+(`/services`, `/compliance`, `/legal`… — `extraerEnlacesRelevantes`), declarados como
+fuentes. Doctrina completa: `.claude/skills/hermes-regulatory-scan/SKILL.md`.
+
 ### 18.3 Activo Digital (espejo del módulo ACT del ERP)
 
 Cada caso y cada ENTREVISTA se catalogan como `ActivoDigitalLocal`

@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { htmlATexto } from '@/features/pre-discovery/html'
+import { extraerEnlacesRelevantes, htmlATexto } from '@/features/pre-discovery/html'
 
 const Cuerpo = z.object({ url: z.string().min(4) })
 const MAX_BYTES = 500_000
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     if (resultado.texto.length < 100) {
       return NextResponse.json({ error: 'El sitio devolvió muy poco texto legible (¿SPA sin SSR?). Continúa sin sitio o pega contenido a mano.' }, { status: 502 })
     }
-    return NextResponse.json({ url, ...resultado })
+    return NextResponse.json({ url, ...resultado, enlacesRelevantes: extraerEnlacesRelevantes(html, url) })
   } catch (e) {
     const mensaje = e instanceof Error && e.name === 'AbortError' ? 'Timeout (8 s) al leer el sitio.' : `No se pudo leer el sitio: ${e instanceof Error ? e.message : String(e)}`
     return NextResponse.json({ error: mensaje }, { status: 502 })

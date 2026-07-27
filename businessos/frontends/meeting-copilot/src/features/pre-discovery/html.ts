@@ -20,3 +20,31 @@ export function htmlATexto(html: string): { titulo: string; descripcionMeta: str
     .trim()
   return { titulo, descripcionMeta, texto: texto.slice(0, 20_000) }
 }
+
+/** Enlaces internos que suelen concentrar señales regulatorias (Hermes-Regulatory-Scan):
+ *  /services, /compliance, /certifications, /legal, /privacy, /terms, /aviso…
+ *  Solo mismo host, dedupe, máximo 5 — el pipeline decide cuántos compilar. */
+export function extraerEnlacesRelevantes(html: string, baseUrl: string): string[] {
+  const RELEVANTE = /(servic|solucion|solution|compliance|regulat|certif|licen|legal|privac|aviso|terms|t[ée]rminos|about|nosotros)/i
+  const enlaces = new Set<string>()
+  let base: URL
+  try {
+    base = new URL(baseUrl)
+  } catch {
+    return []
+  }
+  for (const m of html.matchAll(/<a[^>]+href=["']([^"'#]+)["']/gi)) {
+    try {
+      const u = new URL(m[1], base)
+      if (u.host !== base.host || !['http:', 'https:'].includes(u.protocol)) continue
+      if (!RELEVANTE.test(u.pathname)) continue
+      u.hash = ''
+      const limpio = u.toString()
+      if (limpio !== base.toString()) enlaces.add(limpio)
+    } catch {
+      // href malformado: se ignora
+    }
+    if (enlaces.size >= 5) break
+  }
+  return [...enlaces]
+}

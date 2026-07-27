@@ -70,3 +70,17 @@ costo=SUMA del ledger con fuente obligatoria), admin del módulo con bitácora, 
 copiables, y host-job `businessos/cosechar-prediscovery.py` (export JSON versionado →
 erp.act_* con SET ROLE, idempotente por traza, 11 tests). Gotcha pagado: `Card` no
 reenviaba `data-testid` (props nativas ahora spreadeadas).
+
+**Hermes-Regulatory-Scan (2026-07-27, skill aportado por Victor e integrado ADAPTADO):**
+el dictamen regulatorio de Pre-Discovery ahora lleva el cruce **DECLARADO vs ESPERADO**
+(`escaneo-regulatorio.ts`): sector → categorías que el grafo espera → evidencia/hipótesis/
+vacío con severidad, cobertura alta/media/baja, ALTA OPACIDAD REGULATORIA y VACÍO DEL
+GRAFO (sector sin categorías → no se inventan marcos). Nació del gotcha e-AWB de GAL: el
+escaneo directo solo ve lo declarado; la dirección inversa caza lo que el sitio calla.
+Retroalimentación al grafo SOLO en modo PROPUESTA (`propuestasSeed` → JSONL → revisión
+humana → `grafo/seed/reglas.json` + gate de procedencia). Lo que NO se adoptó del skill
+original: `graph_lookup/graph_write` y la ontología de triplets (no existen; el grafo es
+motor de reglas — habrían sido una segunda fuente de verdad). La compilación además lee
+hasta 2 enlaces internos relevantes del sitio (`extraerEnlacesRelevantes`). Doctrina:
+`.claude/skills/hermes-regulatory-scan/SKILL.md`; ampliar un sector = ampliar el seed por
+el canal de propuestas Y reflejarlo en el mapa `SECTORES`.

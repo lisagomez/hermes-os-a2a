@@ -6,10 +6,11 @@
 // se rompe y la fuente de cada bloque siempre se declara. Cada corrida APPENDEA
 // su costo al ledger del activo del caso (jamás se reemplaza).
 
-import type { Bloque, BloqueId, CasoPreDiscovery } from './types'
+import type { Bloque, BloqueId, CasoPreDiscovery, DatosSitio } from './types'
 import { ORDEN_BLOQUES } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo, type EvaluacionGrafo } from './grafo'
+import { escaneoRegulatorio } from './escaneo-regulatorio'
 import { esBloqueLLM } from '@/features/agents/prompt-prediscovery'
 import { usePreDiscoveryStore } from './store'
 import { costearTokens, hashContenido, useActivosStore } from '@/features/activos/store'
@@ -134,17 +135,30 @@ async function compilarFuentes(caso: CasoPreDiscovery): Promise<{ texto: string 
   const urls = extraerUrls(caso)
   const fuentes: import('./types').FuenteCompilada[] = []
   const textos: string[] = []
-  for (const url of urls) {
+  // Escaneo quirúrgico: los enlaces internos relevantes del sitio (/services,
+  // /compliance, /legal…) se suman a la cola — máximo 2 extra, declarados.
+  const cola = [...urls]
+  const vistas = new Set(urls)
+  let extrasRestantes = 2
+  for (let i = 0; i < cola.length; i++) {
+    const url = cola[i]
     try {
       const respuesta = await fetch('/api/pre-discovery/sitio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       })
-      const data = (await respuesta.json()) as { texto?: string; titulo?: string; error?: string }
+      const data = (await respuesta.json()) as { texto?: string; titulo?: string; error?: string; enlacesRelevantes?: string[] }
       if (respuesta.ok && data.texto) {
         textos.push(`=== ${url} ===\n${data.titulo ?? ''}\n${data.texto}`.trim())
         fuentes.push({ url, estado: 'leida', detalle: `${data.texto.length.toLocaleString()} caracteres` })
+        for (const enlace of data.enlacesRelevantes ?? []) {
+          if (extrasRestantes > 0 && !vistas.has(enlace)) {
+            vistas.add(enlace)
+            cola.push(enlace)
+            extrasRestantes--
+          }
+        }
       } else {
         const bloqueada = /999|403|login|sesi[oó]n|denied/i.test(data.error ?? '')
         fuentes.push({ url, estado: bloqueada ? 'bloqueada' : 'error', detalle: data.error ?? `HTTP ${respuesta.status}` })
@@ -215,6 +229,23 @@ export async function correrBloque(casoId: string, bloque: BloqueId, textoSitio:
       bloque: { ...mock, procedencia: { metodo: 'mock', fuente: `${mock.procedencia?.fuente ?? 'demo'} — motivo: ${motivo}` } },
     }
     esMock = true
+  }
+
+  // Hermes-Regulatory-Scan: al dictamen (cualquier camino: grafo/mock/fallback)
+  // se le adjunta el cruce DECLARADO vs ESPERADO — el vacío también es hallazgo.
+  if (bloque === 'regulatorio' && resultado.bloque.datos) {
+    const evaluacion = resultado.bloque.datos as EvaluacionGrafo
+    const casoActual = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId) ?? caso
+    const escaneo = escaneoRegulatorio(casoActual.intake, casoActual.bloques.sitio.datos as DatosSitio | null, evaluacion)
+    resultado.bloque = {
+      ...resultado.bloque,
+      datos: { ...evaluacion, escaneo },
+      requiereValidacion: [
+        ...resultado.bloque.requiereValidacion,
+        ...escaneo.matriz.filter((m) => m.estado !== 'evidencia').map((m) => `Marco esperado sin evidencia (${m.estado}): ${m.categoria} — ${m.esperadaPor}`),
+        ...(escaneo.vacioDelGrafo ? [escaneo.vacioDelGrafo] : []),
+      ],
+    }
   }
 
   usePreDiscoveryStore.getState().actualizarBloque(casoId, bloque, resultado.bloque)

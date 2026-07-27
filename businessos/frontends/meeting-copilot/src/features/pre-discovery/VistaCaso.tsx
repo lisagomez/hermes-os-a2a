@@ -199,7 +199,7 @@ export function VistaCaso() {
           <Card className="p-4">
             {cabecera('regulatorio')}
             {caso.bloques.regulatorio.datos ? (
-              <RegulatorioView datos={caso.bloques.regulatorio.datos as EvaluacionGrafo} />
+              <RegulatorioView datos={caso.bloques.regulatorio.datos as EvaluacionGrafo} caso={caso} />
             ) : (
               <BloquePendiente caso={caso} bloque="regulatorio" />
             )}

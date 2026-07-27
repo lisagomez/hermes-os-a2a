@@ -1,10 +1,11 @@
 // Caso demo de Pre-Discovery (lead GAL): construido con el MISMO provider mock
 // del pipeline — fidelidad garantizada entre fixture y fallback por construcción.
 
-import type { CasoPreDiscovery, IntakeLead } from './types'
+import type { CasoPreDiscovery, DatosSitio, IntakeLead } from './types'
 import { ORDEN_BLOQUES, estadoCasoDe } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo } from './grafo'
+import { escaneoRegulatorio } from './escaneo-regulatorio'
 
 export const INTAKE_GAL: IntakeLead = {
   telefono: '',
@@ -258,9 +259,11 @@ const REGULATORIO_GAL = (() => {
     ],
     'regulatorio'
   )
+  // Hermes-Regulatory-Scan: cruce declarado-vs-esperado sobre lo observado en GAL.
+  const escaneo = escaneoRegulatorio(INTAKE_GAL, SITIO_GAL.datos as DatosSitio, evaluacion)
   return {
     estado: (evaluacion.estado === 'dudoso' ? 'no_concluyente' : 'listo') as 'listo' | 'no_concluyente',
-    datos: evaluacion,
+    datos: { ...evaluacion, escaneo },
     confianza: 'alta' as const,
     procedencia: {
       metodo: 'observado' as const,
