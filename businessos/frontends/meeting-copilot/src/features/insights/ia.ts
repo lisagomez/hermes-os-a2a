@@ -9,6 +9,7 @@
 
 import { create } from 'zustand'
 import { validarAnalisisIA, type AnalisisIA } from '@/features/agents/prompt-insights'
+import { appendCostoEntrevista } from '@/features/activos/entrevista'
 import { evaluarRiesgos, mapearStakeholders, type AnalisisReunion } from './engine'
 import { ORDEN_PRIORIDAD } from '@/features/playbooks/defaults'
 import { ETIQUETA_DIMENSION, type Playbook, type Reunion, type ScoreDiscovery, type Transcripcion } from '@/features/domain/types'
@@ -49,7 +50,12 @@ export const useAnalisisIAStore = create<IAState>()((set, get) => ({
             segmentos: transcripcion.segmentos.slice(0, 120),
           }),
         })
-        const data = (await respuesta.json()) as { analisis?: unknown; modelo?: string; error?: string }
+        const data = (await respuesta.json()) as {
+          analisis?: unknown
+          modelo?: string
+          usage?: { tokensIn: number; tokensOut: number }
+          error?: string
+        }
         if (!respuesta.ok || data.analisis === undefined) {
           set((s) => ({ porTranscripcion: { ...s.porTranscripcion, [clave]: { estado: 'error', error: data.error ?? `HTTP ${respuesta.status}` } } }))
           return
@@ -62,6 +68,8 @@ export const useAnalisisIAStore = create<IAState>()((set, get) => ({
           return
         }
         set((s) => ({ porTranscripcion: { ...s.porTranscripcion, [clave]: { estado: 'listo', analisis: validado, modelo: data.modelo ?? '' } } }))
+        // El costo IA real de la entrevista va al ledger de su Activo Digital.
+        if (data.usage && data.modelo) appendCostoEntrevista(reunion.id, { ...data.usage, modelo: data.modelo })
       } catch (e) {
         set((s) => ({ porTranscripcion: { ...s.porTranscripcion, [clave]: { estado: 'error', error: e instanceof Error ? e.message : String(e) } } }))
       }

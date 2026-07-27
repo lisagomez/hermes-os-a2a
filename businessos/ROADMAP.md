@@ -1046,8 +1046,15 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   `meeting-copilot`, cuenta dueña, motor LLM activo en producción; smoke de las 14 rutas +
   API con respuesta real. Runbook: `businessos/frontends/DEPLOY-meeting-copilot.md`.
   Sin auth (solo mocks, cero datos de negocio); auth obligatoria antes de conectar Supabase.
+- [x] Pre-Discovery (2026-07-26): sección nativa lead→entrevista — pipeline por bloques
+  (real con OPENROUTER_API_KEY / mock declarado), benchmark de competidores, FODA,
+  marco regulatorio vía grafo (proxy + mock fiel del contrato), brief del asesor
+  inyectado a Prompter/Guided/CRM, Activos Digitales espejo ACT (casos Y entrevistas)
+  con costeo por ledger y cosecha real al ERP (`cosechar-prediscovery.py`), admin del
+  módulo y CLIs; entrada `meeting-copilot` en cli-manifest. 15 smoke + 81 unit tests.
 - [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod,
-  integración Zoom/Meet, diarización ML (pyannote).
+  integración Zoom/Meet, diarización ML (pyannote), corrida real de la cosecha
+  Pre-Discovery→erp (máquina con credenciales cli_fin).
 
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 

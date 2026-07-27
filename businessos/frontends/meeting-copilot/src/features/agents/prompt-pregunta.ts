@@ -11,6 +11,9 @@ export interface ContextoPregunta {
   leadNombre: string | null
   contexto: { hablante: string; texto: string }[]
   preguntasPrevias: string[]
+  /** Brief de Pre-Discovery del lead (hipótesis/temas), si existe: la pregunta
+   *  redactada debe apalancarlo sin repetir lo ya validado. */
+  briefContexto?: string
 }
 
 export const SYSTEM_PREGUNTA = `Eres el coach de un vendedor profesional estratégico durante una entrevista de discovery EN CURSO (español de México). Trabajas SOLO con la transcripción provista — jamás inventes datos que no estén ahí.
@@ -31,6 +34,7 @@ export function construirUsuarioPregunta(c: ContextoPregunta): string {
     `Dimensión faltante a cubrir: ${c.dimension} — ${c.motivo}`,
     `Pregunta genérica del playbook (mejórala con el contexto): "${c.preguntaBanco}"`,
     c.preguntasPrevias.length > 0 ? `Preguntas ya sugeridas (NO repetir): ${c.preguntasPrevias.map((q) => `"${q}"`).join(', ')}` : null,
+    c.briefContexto ? `BRIEF DE PRE-DISCOVERY del lead (hipótesis del analista; apóyate en él sin repetir lo ya validado):\n${c.briefContexto.slice(0, 1200)}` : null,
     '',
     'Transcripción reciente de la conversación:',
     lineas.length > 0 ? lineas : '(aún no hay conversación: es la pregunta de apertura)',

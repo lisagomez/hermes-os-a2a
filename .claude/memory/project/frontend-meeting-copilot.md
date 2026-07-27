@@ -59,3 +59,14 @@ después, con el campo de operación ya capturado; si la investigación llamara 
 ella misma infirió, rompe el invariante (a) del PRP (inferencia disfrazada de dato). (2) **Señal ≠
 dato**: lo que produce es una hipótesis que un humano confirma; `PerfilRegulatorio` sigue siendo un
 campo capturado, no derivado.
+
+**Pre-Discovery (rama `feat/pre-discovery`, 2026-07-26):** sección nativa entre lead y
+entrevista — intake → pipeline de 8 bloques (real→mock declarado, confidence/provenance y
+naturaleza hecho/hipótesis/recomendación por contrato), benchmark de analista, marcos
+regulatorio (grafo: proxy `/api/grafo/evaluaciones` con validación estilo grafo-a2a + mock
+fiel) y tecnológico, brief del asesor reutilizado en Prompter/Guided/CRM (briefContexto en
+usePreguntaIA), Activos Digitales espejo ACT (casos y entrevistas; versiones append-only,
+costo=SUMA del ledger con fuente obligatoria), admin del módulo con bitácora, CLIs
+copiables, y host-job `businessos/cosechar-prediscovery.py` (export JSON versionado →
+erp.act_* con SET ROLE, idempotente por traza, 11 tests). Gotcha pagado: `Card` no
+reenviaba `data-testid` (props nativas ahora spreadeadas).

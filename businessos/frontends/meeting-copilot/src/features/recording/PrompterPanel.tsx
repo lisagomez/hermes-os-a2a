@@ -24,7 +24,18 @@ import { fmtTiempo } from '@/shared/lib/format'
 /** Prompter: la guía de Guided Meeting, compacta y embebida en Grabación.
  *  Mismo motor (evaluarCoach/extraerInsights vía estadoPrompter); solo cambia
  *  la presentación al contexto de una entrevista en vivo. */
-export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunion; playbook: Playbook; grabando: boolean }) {
+export function PrompterPanel({
+  reunion,
+  playbook,
+  grabando,
+  brief = null,
+}: {
+  reunion: Reunion
+  playbook: Playbook
+  grabando: boolean
+  /** Brief compacto de Pre-Discovery del lead (alimenta al redactor IA). */
+  brief?: string | null
+}) {
   const {
     segmentos,
     temasCubiertosManual,
@@ -54,6 +65,7 @@ export function PrompterPanel({ reunion, playbook, grabando }: { reunion: Reunio
     tipoReunion: reunion.tipoReunion,
     leadNombre: nombreCliente !== 'Cliente' ? nombreCliente : null,
     preguntasPrevias: preguntasDescartadas,
+    briefContexto: brief,
   })
 
   if (!guiaVisible) {

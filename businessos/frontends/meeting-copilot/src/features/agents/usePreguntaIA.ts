@@ -23,11 +23,12 @@ interface Args {
   tipoReunion: TipoReunion
   leadNombre: string | null
   preguntasPrevias: string[]
+  briefContexto?: string | null
 }
 
 const cache = new Map<string, { pregunta: string; justificacion: string }>()
 
-export function usePreguntaIA({ hueco, segmentos, tipoReunion, leadNombre, preguntasPrevias }: Args): PreguntaSugerida {
+export function usePreguntaIA({ hueco, segmentos, tipoReunion, leadNombre, preguntasPrevias, briefContexto }: Args): PreguntaSugerida {
   const [estado, setEstado] = useState<{ clave: string; pregunta: string; justificacion: string; cargando: boolean; error: string | null }>({
     clave: '',
     pregunta: '',
@@ -68,6 +69,7 @@ export function usePreguntaIA({ hueco, segmentos, tipoReunion, leadNombre, pregu
             leadNombre,
             contexto: segmentos.slice(-24).map((s) => ({ hablante: s.hablante, texto: s.texto })),
             preguntasPrevias: preguntasPrevias.slice(-12),
+            briefContexto: briefContexto ?? undefined,
           }),
         })
         const data = (await respuesta.json()) as { pregunta?: string; justificacion?: string; error?: string }

@@ -593,3 +593,131 @@ sin datos reales de clientes).
 15. *(Extra del pedido)* `businessos/negocio/SOUL.md` con sección "Enfoque de ventas"
    (vendedor profesional estratégico), antes del bloque AUTO `TRIO-DOGFOOD`, con nota de
    sync a volumen pendiente como paso operativo.
+
+---
+
+## 18. Pre-Discovery (sección de Mission Control)
+
+**Qué es:** el paso entre la captación del lead y la entrevista. Un caso de Pre-Discovery
+toma el intake mínimo del lead (teléfono, correo, web, tamaño, giro, país, notas), corre un
+pipeline de análisis por bloques y produce el **brief del asesor** que alimenta la
+entrevista (Prompter del modo asesor, Guided Meeting y CRM notes). Rutas: `/pre-discovery`
+(lista), `/pre-discovery/nuevo` (intake), `/pre-discovery/[id]` (workspace con tabs:
+Resumen · Sitio y servicios · Benchmark · Estrategia · Marcos · Brief · Activo & Costeo ·
+CLIs), `/pre-discovery/admin` (panel admin del módulo). En Sidebar, launcher y ⌘K.
+
+**Journey:** lead captado → caso (intake+análisis) → asesor revisa brief → entrevista con
+el brief inyectado → CRM notes con hipótesis a contrastar → activos digitales trazables.
+
+### 18.1 Pipeline por bloques (real → mock declarado)
+
+8 bloques en orden: `perfil → sitio → competencia → diferenciacion → foda → regulatorio →
+tecnologia → brief` (`pipeline.ts`), cada uno re-ejecutable ("Regenerar") y cola-friendly
+(el batch futuro no requiere rediseño). Con `AGENT_ENGINE=llm`: fetch REAL del sitio
+(`/api/pre-discovery/sitio`: timeout 8 s, cap 500 KB, HTML→texto) + análisis IA por bloque
+(`/api/pre-discovery/analizar`, prompts en `agents/prompt-prediscovery.ts`). Ante
+503/error → **mock determinista fiel** con `procedencia.metodo:'mock'` y el motivo
+declarado. Cada bloque muestra **confidence & provenance** (observado/inferido/mock +
+fuente + confianza) y su lista `requiereValidacion`.
+
+**Separación dura hecho/hipótesis/recomendación:** todo ítem lleva `naturaleza`; el
+validador (`validarBloqueIA`) degrada a hipótesis cualquier "hecho" sin evidencia citada
+(contado y declarado en UI) y rechaza formas inválidas — la IA propone, el contrato
+verifica. El benchmark actúa como analista (arquetipos con confianza declarada cuando no
+hay señal de nombres reales; comparativa con LECTURA, no dumping).
+
+### 18.2 Marco regulatorio (grafo) y tecnológico
+
+El bloque regulatorio consulta el **grafo regulatorio** vía `/api/grafo/evaluaciones`
+(proxy server a `GRAFO_URL`; respuesta sin `disclaimer` o sin fuentes → RECHAZADA, patrón
+grafo-a2a). Sin `GRAFO_URL` → mock FIEL al contrato (`pre-discovery/grafo.ts`): mismo
+fail-safe (`dudoso` + "sin regla aplicable" + `fuente:null`), citas con clave/URL/vigencia
+y el disclaimer EXACTO del grafo — siempre visible, `dudoso` marcado "requiere revisión
+posterior". El marco tecnológico es inferencial y así se etiqueta.
+
+### 18.3 Activo Digital (espejo del módulo ACT del ERP)
+
+Cada caso y cada ENTREVISTA se catalogan como `ActivoDigitalLocal`
+(`features/activos/`): folio `ACT-LOC-NNNN`, clase (`pre_discovery`|`entrevista`),
+`ubicacion` verificable (`meeting-copilot://caso/<id>`), **clasificación declarada EN
+ORIGEN** (eje D+I desde el admin del módulo), defensibilidad `propuesta` (ratificar =
+humano, en el ERP), **versiones APPEND-ONLY** (hash sha256 del contenido; regenerar solo
+versiona si el hash cambió) y **costo = SUMA del ledger** (espejo del trigger
+`act_actualiza_costo`; jamás a mano). Ledger `CostoEntrada` con `fuente` OBLIGATORIA:
+`openrouter_usage·tarifa <modelo>` (usage real de las rutas IA) o `estimado_mock` /
+`no_medido` (huecos declarados, jamás inventados). UI ejecutiva en Activo & Costeo:
+desglose por componente + chip real/mock + ledger expandible.
+
+**Cosecha al ERP real:** botón "Exportar activo" → JSON con contrato versionado
+(`meeting-copilot/activo-export@1`) → host-job **`businessos/cosechar-prediscovery.py`**
+(patrón "el agente deja un JSON, el host-job de confianza lo sube"): valida el contrato
+(export inválido = exit 1), registra en `erp.act_activo`+`act_version`+`act_costo` vía
+`psql` + `SET ROLE rol_exe_fin` + `app.cliente_id` (jamás service_role), folio ERP
+asignado por la BD (el local queda como `ref_catalogo`), idempotente por traza en
+`sis_bitacora`. `--dry-run` imprime el SQL; la corrida real es post-merge en la máquina
+con credenciales `cli_fin`. Tests en `businessos/tests/test_cosechar_prediscovery.py`.
+
+### 18.4 Costeo
+
+Tarifas por modelo con FUENTE declarada, editables en el admin (quedan marcadas "editada
+en admin"); modelo sin tarifa → `no_medido` declarado. Presupuesto BLANDO por caso
+(aviso). El costo real sale del `usage` de OpenRouter capturado por las rutas
+`/api/pre-discovery/analizar` y `/api/asesor/insights` (las entrevistas cargan su costo IA
+a su propio activo).
+
+### 18.5 Reuso en la entrevista (regla de integración)
+
+- **Grabación (modo asesor):** "Lead entrevistado" es combo de leads del CRM local; con
+  caso listo aparece la Card **"Prep del asesor"** (resumen, hipótesis, temas sensibles) y
+  el brief compacto alimenta a `usePreguntaIA` (`briefContexto`) — las preguntas IA se
+  redactan sabiendo qué hipótesis validar.
+- **Guided Meeting:** misma Card + mismo `briefContexto` si `reunion.leadId` tiene caso.
+- **CRM notes:** sección "Contexto Pre-Discovery" (hipótesis del brief) visible y INCLUIDA
+  al copiar las notas.
+
+### 18.6 Admin del módulo (`/pre-discovery/admin`)
+
+Misma plantilla que `/configuracion` + cards Manager: estado del módulo y seams
+(motor/GRAFO_URL/fetch), parámetros de costeo (tarifas), límites (presupuesto por caso),
+clasificación en origen (eje D+I), histórico de activos del módulo y **auditoría**
+(bitácora append-only local, espejo `sis_bitacora`: crear/analizar/regenerar/exportar/
+editar settings).
+
+### 18.7 CLIs
+
+Tab CLIs del caso: comandos COPIABLES reales (curl a las rutas del caso, consulta al
+grafo, comando de cosecha del host-job, `/printing-press` del CLI del grafo pendiente).
+Doctrina Printing Press respetada: imprimir binarios es acto humano en Claude Code; la app
+declara — no finge. `businessos/cli-manifest.yaml` ganó la entrada `meeting-copilot`
+(fase copilot, source sniff).
+
+### 18.8 Estados con criterio
+
+Web inválida → el análisis continúa sin sitio, declarado en `requiereValidacion`;
+competencia insuficiente → `no_concluyente` con instrucción ("no se inventa"); costo sin
+tarifa → `no_medido`; regulatorio `dudoso` → "requiere revisión posterior"; análisis
+parcial → estado por bloque + "Re-analizar todo".
+
+### 18.9 Modelo de datos (resumen)
+
+`Lead` (espejo `public.leads`, 10 etapas, origen `copilot`) · `CasoPreDiscovery`
+(intake + `Record<BloqueId, Bloque<T>>`, estado derivado de los bloques) ·
+`Bloque<T>` (estado/confianza/procedencia/requiereValidacion) · `Item` (naturaleza +
+evidencia) · `EvaluacionGrafo` (contrato exacto del grafo + `conexion`) ·
+`ActivoDigitalLocal` + `CostoEntrada` + `ExportActivo` (espejo ACT) · `AdminSettings` +
+`BitacoraModulo`. Persistencia: casos/activos/ledger/settings en localStorage (usuario;
+fixtures por merge); nada toca Supabase/erp desde la app.
+
+### 18.10 Criterios de aceptación de la sección
+
+1. Sección real en Mission Control (sidebar/launcher/⌘K) con la plantilla panel-adm. ✔
+2. Intake mínimo del lead + alta de lead. ✔ 3. Análisis del sitio (real con clave; mock
+declarado). ✔ 4. Benchmark de competidores con lectura de analista y fallback honesto. ✔
+5. Diferenciación + FODA con naturaleza separada. ✔ 6. Marco regulatorio vía grafo
+(proxy + mock fiel, fail-safe y disclaimer) y marco tecnológico. ✔ 7. Guía accionable +
+preguntas para la entrevista (brief consumible en minutos). ✔ 8. Activo Digital con
+lógica ACT (origen, versiones append-only, costo=SUMA, cosecha real vía host-job). ✔
+9. Costeo claro y ejecutivo con fuentes declaradas. ✔ 10. CLIs donde aplican. ✔
+11. Panel admin coherente. ✔ 12. Salida reutilizada en Grabación/Guided/CRM. ✔
+13. Entrevistas modeladas como activos trazables. ✔ 14. Smoke Playwright (3 escenarios
+nuevos) + tests unitarios del contrato. ✔

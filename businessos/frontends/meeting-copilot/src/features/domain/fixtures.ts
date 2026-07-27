@@ -1,4 +1,4 @@
-import type { Reunion, Segmento, Transcripcion } from './types'
+import type { Lead, Reunion, Segmento, Transcripcion } from './types'
 import { UMBRAL_INAUDIBLE } from './types'
 import { fmtTiempo } from '@/shared/lib/format'
 
@@ -179,3 +179,33 @@ export const AUDIO_DEMO = {
   reunionBase: REUNIONES_DEMO[0],
   segmentos: SEG_R1,
 }
+
+// ─── Leads demo (espejo de public.leads; origen 'copilot') ──────────────────
+
+export const LEADS_DEMO: Lead[] = [
+  {
+    leadId: 'lead-gal',
+    empresa: 'GAL MEXICO (freight forwarder)',
+    contacto: 'Alex Gallardo',
+    etapa: 'calificado',
+    origen: 'copilot',
+    datos: { fuente: 'referido', interes: 'digitalizar cotización y seguimiento de embarques' },
+    creadoAt: '2026-07-20T16:00:00.000Z',
+  },
+  {
+    leadId: 'lead-translogika',
+    empresa: 'TransLogika MX',
+    contacto: 'Marco Antúnez',
+    etapa: 'descubrimiento',
+    origen: 'copilot',
+    creadoAt: '2026-07-18T16:00:00.000Z',
+  },
+  {
+    leadId: 'lead-andamex',
+    empresa: 'Andamex Norte',
+    contacto: 'Raúl Quintero',
+    etapa: 'propuesta',
+    origen: 'copilot',
+    creadoAt: '2026-07-15T16:00:00.000Z',
+  },
+]

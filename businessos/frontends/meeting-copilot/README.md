@@ -79,6 +79,20 @@ degradación silenciosa). Todo por variables de entorno:
   el MISMO contrato de segmento — al desplegarse con motor real, el adapter es directo.
 - **groq-whisper**: patrón `chat/transcribe` de control-interno (texto plano, server-side).
 
+
+## Pre-Discovery
+
+Sección previa a la entrevista: crea un caso desde un lead (intake mínimo), corre el
+pipeline de análisis (perfil, sitio, benchmark, diferenciación+FODA, marco regulatorio vía
+grafo, marco tecnológico) y produce el **brief del asesor** que aparece en el modo asesor
+de Grabación, en Guided Meeting y en las CRM notes. Cada caso y cada entrevista quedan
+catalogados como **Activo Digital** (espejo del módulo ACT del ERP: versiones append-only,
+costo = suma del ledger con fuente declarada) exportables a `erp.act_*` con
+`businessos/cosechar-prediscovery.py` (dry-run + confirmar, roles reales). Admin del módulo
+en `/pre-discovery/admin`. Envs adicionales: `GRAFO_URL` (server, opcional — sin ella el
+bloque regulatorio usa un mock fiel del contrato del grafo con su fail-safe y disclaimer).
+Detalle completo en SPEC §18.
+
 ## Arquitectura
 
 Next 16 + React 19 + TypeScript strict + Tailwind v4 (tokens CSS light/dark + `@theme

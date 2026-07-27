@@ -8,6 +8,8 @@ import { useAppStore } from '@/features/domain/store'
 import { playbookPorTipo } from '@/features/playbooks/defaults'
 import { evaluarCoach } from './coach'
 import { usePreguntaIA } from '@/features/agents/usePreguntaIA'
+import { useCasoDeLead } from '@/features/pre-discovery/store'
+import { PrepAsesorCard, briefCompacto } from '@/features/pre-discovery/PrepAsesor'
 import { Callout, Card, Chip } from '@/shared/components/ui'
 import { fmtTiempo } from '@/shared/lib/format'
 
@@ -45,12 +47,16 @@ export function GuidedMeeting({ reunion, transcripcion }: { reunion: Reunion; tr
   const alerta = estado.alertas[0] ?? null
 
   // Motor llm (mismo hook que el Prompter de Grabación — paridad real):
+  // Prep de Pre-Discovery del lead de la reunión (si existe): visible y
+  // alimentando al redactor de preguntas IA.
+  const casoDelLead = useCasoDeLead(reunion.leadId ?? null)
   const sugerenciaIA = usePreguntaIA({
     hueco: estado.sugerencia,
     segmentos: visibles,
     tipoReunion: reunion.tipoReunion,
     leadNombre: reunion.participantes.find((p) => p.lado === 'cliente')?.nombre ?? null,
     preguntasPrevias: [],
+    briefContexto: briefCompacto(casoDelLead),
   })
 
   return (
@@ -116,6 +122,7 @@ export function GuidedMeeting({ reunion, transcripcion }: { reunion: Reunion; tr
       </div>
 
       <div className="space-y-4">
+        {casoDelLead && <PrepAsesorCard caso={casoDelLead} />}
         {alerta && (
           <Callout
             tono="warning"

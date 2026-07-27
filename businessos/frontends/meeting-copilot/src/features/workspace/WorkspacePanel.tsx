@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Check, ClipboardCopy, Mail, NotebookPen, ShieldAlert, Users } from 'lucide-react'
 import type { AnalisisReunion } from '@/features/insights/engine'
 import type { Reunion, Transcripcion } from '@/features/domain/types'
 import { useAppStore } from '@/features/domain/store'
+import { useCasoDeLead } from '@/features/pre-discovery/store'
+import type { DatosBrief } from '@/features/pre-discovery/types'
 import { generarCrmNotes, generarFollowUp, generarRecomendaciones, generarResumenEjecutivo } from './agents'
 import { Card, Chip } from '@/shared/components/ui'
 import { DesgloseScore } from '@/features/insights/InsightsPanel'
@@ -41,6 +44,13 @@ export function WorkspacePanel({
   const resumen = generarResumenEjecutivo(reunion, analisis)
   const followUp = generarFollowUp(reunion, analisis)
   const crm = generarCrmNotes(reunion, analisis)
+  // Contexto de Pre-Discovery del lead: hipótesis del brief para contrastar con
+  // lo que la entrevista SÍ validó — y se incluye en las notas de CRM copiadas.
+  const casoDelLead = useCasoDeLead(reunion.leadId ?? null)
+  const briefPre = casoDelLead?.bloques.brief.datos as DatosBrief | null
+  const notasConContexto = briefPre
+    ? `${crm.notas}\n- Contexto Pre-Discovery (hipótesis del brief): ${briefPre.hipotesis.map((h) => h.texto).join(' · ')}\n- Caso: meeting-copilot://caso/${casoDelLead?.id}`
+    : crm.notas
   const recomendaciones = generarRecomendaciones(reunion, analisis, transcripcion)
 
   return (
@@ -103,7 +113,7 @@ export function WorkspacePanel({
               <NotebookPen className="h-4 w-4 text-accent" />
               <h2 className="text-sm font-semibold text-ink">CRM notes</h2>
             </div>
-            <BotonCopiar texto={crm.notas} />
+            <BotonCopiar texto={notasConContexto} />
           </div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <Chip tono="accent">etapa sugerida: {crm.etapaSugerida}</Chip>
@@ -112,6 +122,19 @@ export function WorkspacePanel({
           <pre className="overflow-x-auto whitespace-pre-wrap rounded-s bg-surface-muted p-3 font-sans text-[13px] leading-relaxed text-ink" data-testid="crm-notas">
             {crm.notas}
           </pre>
+          {briefPre && casoDelLead && (
+            <div className="mt-2 rounded-s bg-accent-muted px-3 py-2" data-testid="crm-contexto-prediscovery">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Contexto Pre-Discovery</p>
+              <ul className="mt-1 list-inside list-disc text-[12px] text-ink">
+                {briefPre.hipotesis.slice(0, 4).map((h) => (
+                  <li key={h.texto}>{h.texto}</li>
+                ))}
+              </ul>
+              <Link href={`/pre-discovery/${casoDelLead.id}?tab=brief`} className="mt-1 block text-[11px] font-medium text-accent hover:underline">
+                Ver caso completo → (incluido al copiar las notas)
+              </Link>
+            </div>
+          )}
         </Card>
       </div>
 

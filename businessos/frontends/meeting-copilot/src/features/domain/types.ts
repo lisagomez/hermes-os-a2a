@@ -247,3 +247,40 @@ export const ETIQUETA_ESTADO_REUNION: Record<EstadoReunion, string> = {
   revisada: 'Revisada',
   cerrada: 'Cerrada',
 }
+
+// ─── Leads (espejo de public.leads del repo: 10 etapas canónicas del embudo) ─
+
+export type EtapaLead =
+  | 'nuevo'
+  | 'calificado'
+  | 'contactado'
+  | 'descubrimiento'
+  | 'propuesta'
+  | 'negociacion'
+  | 'contrato'
+  | 'onboarding'
+  | 'ganado'
+  | 'perdido'
+
+export const ETAPAS_LEAD: EtapaLead[] = [
+  'nuevo',
+  'calificado',
+  'contactado',
+  'descubrimiento',
+  'propuesta',
+  'negociacion',
+  'contrato',
+  'onboarding',
+  'ganado',
+  'perdido',
+]
+
+export interface Lead {
+  leadId: string // clave natural (espejo de leads.lead_id)
+  empresa: string
+  contacto: string // nombre de la persona
+  etapa: EtapaLead
+  origen: 'copilot' // un escritor por origen (doctrina del repo)
+  datos?: Record<string, string>
+  creadoAt: string
+}
