@@ -114,20 +114,42 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
   }
 }
 
-async function obtenerTextoSitio(caso: CasoPreDiscovery): Promise<{ texto: string | null; error: string | null }> {
-  if (!caso.intake.web.trim()) return { texto: null, error: null }
-  try {
-    const respuesta = await fetch('/api/pre-discovery/sitio', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: caso.intake.web }),
-    })
-    const data = (await respuesta.json()) as { texto?: string; titulo?: string; error?: string }
-    if (!respuesta.ok || !data.texto) return { texto: null, error: data.error ?? `HTTP ${respuesta.status}` }
-    return { texto: `${data.titulo ?? ''}\n${data.texto}`.trim(), error: null }
-  } catch (e) {
-    return { texto: null, error: e instanceof Error ? e.message : String(e) }
+/** TODAS las fuentes del intake: la web + toda URL en las notas (LinkedIn, etc.). */
+export function extraerUrls(caso: CasoPreDiscovery): string[] {
+  const urls = new Set<string>()
+  if (caso.intake.web.trim()) urls.add(caso.intake.web.trim())
+  for (const m of caso.intake.notas.matchAll(/https?:\/\/[^\s)"'·]+/g)) {
+    urls.add(m[0].replace(/[.,;]+$/, ''))
   }
+  return [...urls]
+}
+
+/** Compila TODAS las fuentes (web + perfiles): texto agregado + estado por fuente.
+ *  Lo bloqueado o fallido se DECLARA — jamás se oculta ni se inventa. */
+async function compilarFuentes(caso: CasoPreDiscovery): Promise<{ texto: string | null; fuentes: import('./types').FuenteCompilada[] }> {
+  const urls = extraerUrls(caso)
+  const fuentes: import('./types').FuenteCompilada[] = []
+  const textos: string[] = []
+  for (const url of urls) {
+    try {
+      const respuesta = await fetch('/api/pre-discovery/sitio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      const data = (await respuesta.json()) as { texto?: string; titulo?: string; error?: string }
+      if (respuesta.ok && data.texto) {
+        textos.push(`=== ${url} ===\n${data.titulo ?? ''}\n${data.texto}`.trim())
+        fuentes.push({ url, estado: 'leida', detalle: `${data.texto.length.toLocaleString()} caracteres` })
+      } else {
+        const bloqueada = /999|403|login|sesi[oó]n|denied/i.test(data.error ?? '')
+        fuentes.push({ url, estado: bloqueada ? 'bloqueada' : 'error', detalle: data.error ?? `HTTP ${respuesta.status}` })
+      }
+    } catch (e) {
+      fuentes.push({ url, estado: 'error', detalle: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  return { texto: textos.length > 0 ? textos.join('\n\n').slice(0, 18_000) : null, fuentes }
 }
 
 /** Asegura el activo del caso y appendea el costo de una corrida al ledger. */
@@ -196,19 +218,30 @@ export async function correrBloque(casoId: string, bloque: BloqueId, textoSitio:
   await registrarCostoCorrida(casoId, resultado.usage, esMock, `caso:${casoId} bloque:${bloque}`)
 }
 
-/** Corre el pipeline completo en orden (perfil → … → brief). */
+/** Corre el pipeline completo en orden (perfil → … → brief), compilando ANTES
+ *  todas las fuentes del intake (web + perfiles de redes en las notas). */
 export async function correrPipeline(casoId: string): Promise<void> {
   const caso = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId)
   if (!caso) return
-  const { texto: textoSitio, error: errorSitio } = MOTOR_AGENTE === 'llm' ? await obtenerTextoSitio(caso) : { texto: null, error: null }
-  if (errorSitio) {
-    // Web inválida es un ESTADO del producto: el análisis continúa sin sitio, declarado.
-    usePreDiscoveryStore.getState().actualizarBloque(casoId, 'sitio', {
-      ...caso.bloques.sitio,
-      requiereValidacion: [`No se pudo leer el sitio (${errorSitio}); el análisis continúa sin él`],
-    })
-  }
+  const { texto: textoSitio, fuentes } =
+    MOTOR_AGENTE === 'llm' ? await compilarFuentes(caso) : { texto: null, fuentes: [] as import('./types').FuenteCompilada[] }
   for (const bloque of ORDEN_BLOQUES) {
     await correrBloque(casoId, bloque, textoSitio)
+  }
+  // El estado de la compilación queda PLASMADO en el bloque sitio (fuente por fuente).
+  if (fuentes.length > 0) {
+    const casoFinal = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId)
+    const bloqueSitio = casoFinal?.bloques.sitio
+    if (casoFinal && bloqueSitio?.datos) {
+      const noLeidas = fuentes.filter((f) => f.estado !== 'leida')
+      usePreDiscoveryStore.getState().actualizarBloque(casoId, 'sitio', {
+        ...bloqueSitio,
+        datos: { ...(bloqueSitio.datos as object), fuentes },
+        requiereValidacion: [
+          ...bloqueSitio.requiereValidacion,
+          ...noLeidas.map((f) => `Fuente no compilada (${f.estado}): ${f.url} — ${f.detalle}`),
+        ],
+      })
+    }
   }
 }

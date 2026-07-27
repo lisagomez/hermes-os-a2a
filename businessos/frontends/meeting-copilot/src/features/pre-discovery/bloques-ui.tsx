@@ -110,6 +110,7 @@ export function PerfilView({ datos }: { datos: DatosPerfil }) {
 }
 
 export function SitioView({ datos }: { datos: DatosSitio }) {
+  const fuentes = datos.fuentes ?? []
   const seccion = (titulo: string, items: Item[]) => (
     <div>
       <h3 className="mb-1 text-[12px] font-semibold text-ink">{titulo}</h3>
@@ -125,7 +126,24 @@ export function SitioView({ datos }: { datos: DatosSitio }) {
     </div>
   )
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-4">
+      {fuentes.length > 0 && (
+        <div data-testid="fuentes-compiladas">
+          <h3 className="mb-1 text-[12px] font-semibold text-ink">Fuentes compiladas</h3>
+          <ul className="space-y-1">
+            {fuentes.map((f) => (
+              <li key={f.url} className="flex flex-wrap items-center gap-2 rounded-s bg-surface-muted px-2.5 py-1.5">
+                <a href={f.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-[12px] text-accent hover:underline">
+                  {f.url}
+                </a>
+                <Chip tono={f.estado === 'leida' ? 'success' : f.estado === 'bloqueada' ? 'warning' : 'danger'}>{f.estado}</Chip>
+                <span className="text-[11px] text-ink-muted">{f.detalle}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="grid gap-4 md:grid-cols-2">
       {seccion('Servicios detectados', datos.servicios)}
       <div className="space-y-4">
         {seccion('Propuesta de valor', [datos.propuestaValor])}
@@ -144,6 +162,7 @@ export function SitioView({ datos }: { datos: DatosSitio }) {
           </ul>
         </div>
         {seccion('Vacíos del posicionamiento', datos.vacios)}
+      </div>
       </div>
     </div>
   )

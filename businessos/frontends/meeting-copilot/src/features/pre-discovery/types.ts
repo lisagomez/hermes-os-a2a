@@ -70,7 +70,17 @@ export interface DatosPerfil {
   resumenEjecutivo: string
 }
 
+/** Estado de cada sitio/perfil compilado (web, LinkedIn, etc.) — se declara
+ *  SIEMPRE, incluido lo bloqueado o fallido. */
+export interface FuenteCompilada {
+  url: string
+  estado: 'leida' | 'bloqueada' | 'error'
+  detalle: string
+}
+
 export interface DatosSitio {
+  /** Compilación multi-fuente: qué se leyó y qué no (jamás se oculta un fallo). */
+  fuentes?: FuenteCompilada[]
   servicios: Item[]
   propuestaValor: Item
   claims: Item[]
