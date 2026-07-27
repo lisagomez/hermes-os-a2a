@@ -105,3 +105,15 @@ estado; el ledger `token_usage.task_id` es la fuente de verdad). El worktree
 integrado `tarea/dogfood-swarm-1` quedó en el server para inspección de la dueña
 (merge a main = gate humano); limpiar = borrar dir → prune → borrar rama, DESDE
 el contenedor (admin-dirs de root).
+
+
+## 2026-07-27: El Planner estampa modelo_pref por dificultad (doctrina §3.5, PR #168)
+
+El Planner real clasifica cada sub-tarea (`mecanica`/`estandar`/`delicada`, criterios de
+blast radius) y `rutear_por_dificultad` (claude_planner.py) convierte la clase en
+`limites.modelo_pref` usando SOLO el mapa de env `PLANNER_RUTEO_MODELOS` — la IA propone
+la clase, el modelo sale del allowlist. Apagado por default; `heredar_modelo_pref` queda
+como fallback; pref propio de la sub-tarea gana; mapa malformado = no arranca. Encender:
+`PLANNER_RUTEO_MODELOS=mecanica=<m>,delicada=<m>` en el .env del server + rebuild del
+coordinador (la env ya está en compose). Gate previo a usar un segundo modelo: su probe
+(hoy el único motor alterno cableado es GLM vía z.ai).
