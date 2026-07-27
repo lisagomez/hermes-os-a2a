@@ -283,9 +283,22 @@ antes de ejecutar T2/T3.
 
 ### Fase 4 — T3 (NO se enciende; se deja listo tras aprobacion humana + debate)
 - **G1. Sesiones de agente ERC-4337 (umbral + ventana) + Safe con umbrales.**
-  Dificultad: **Diamante** · **Fable `low->xhigh` (subagente)** · Por que: mueve valor real,
+  Dificultad: **Diamante** · **Opus `xhigh` (subagente)** · Por que: mueve valor real,
   irreversible, seguridad critica. **Debate adversarial obligatorio; no se integra sin verificacion
   contra archivos reales.** Permanece apagado tras un gate humano explicito.
+  > **Por que Opus y no Fable en esta unidad concreta** (propuesta externa, 2026-07-27): el sello
+  > original era Fable, y el cambio NO es por capacidad sino por dos restricciones del proveedor que
+  > pegan justo en trabajo de seguridad. (1) Los clasificadores cyber/bio de Fable tienen falsos
+  > positivos documentados que **re-enrutan la peticion a otro modelo en silencio**: en una unidad
+  > marcada "seguridad critica" es el escenario que mas los dispara, y el fallo no avisa. Los de Opus
+  > disparan 42%->5% menos (Anthropic, 2026-07-25). (2) Fable tiene **retencion obligatoria de 30 dias
+  > sin ZDR**, lo que choca con material sensible. Y no hay costo de calidad en el cambio: en codigo
+  > "mergeable" con la direccion ya dada, **Opus 5 saca 53.4% vs 46.3% de Fable** (FrontierCode de
+  > Cognition, leaderboard publico, verificado 2026-07-25). Fable sigue siendo la mejor opcion para
+  > diseno y razonamiento ABIERTO; esta unidad es implementacion con contrato definido.
+  > *Dato colateral verificado el 2026-07-27:* en junio de 2026 el Departamento de Comercio de EEUU
+  > obligo a desconectar Fable 5 globalmente durante ~19 dias (CSIS; Euronews 2026-07-01). Colgar una
+  > unidad critica de ese modelo agrega un riesgo de disponibilidad que Opus no tiene.
 
 ## 10. Paralelizacion, verificacion y gates
 
