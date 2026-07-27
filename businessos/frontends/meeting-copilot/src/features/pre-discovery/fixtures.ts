@@ -6,13 +6,16 @@ import { ORDEN_BLOQUES, estadoCasoDe } from './types'
 import { mockBloque } from './mock'
 
 export const INTAKE_GAL: IntakeLead = {
-  telefono: '+52 81 5555 0142',
-  email: 'alex@galmexico.example',
-  web: 'https://galmexico.example',
+  telefono: '',
+  email: '',
+  web: 'https://galmexico.com/',
   tamano: '11-50',
-  giro: 'Agencia de carga (freight forwarder)',
+  giro: 'Agencia de carga / logística (freight forwarder)',
   pais: 'México',
-  notas: 'Referido; interesa digitalizar cotización y seguimiento de embarques. Opera flete marítimo/aéreo y transporte terrestre.',
+  notas:
+    'LinkedIn empresa: https://www.linkedin.com/company/galogisticsmex/ · ' +
+    'Fundadores: Adán Reyes García (https://www.linkedin.com/in/adan-reyesgracia/) y ' +
+    'Rogelio Betancourt (https://www.linkedin.com/in/rogelio-betancourt-8a7891108/).',
 }
 
 const BLOQUES_GAL = Object.fromEntries(ORDEN_BLOQUES.map((b) => [b, mockBloque(b, INTAKE_GAL)])) as CasoPreDiscovery['bloques']
