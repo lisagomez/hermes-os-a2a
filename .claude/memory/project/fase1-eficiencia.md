@@ -137,3 +137,22 @@ Invariantes INTACTOS: idempotencia delete+insert, jamás tocar filas con `task_i
 
 Fases 2-4 del PRP-002 (arena-watch, probe-kimi, piloto Kimi↔Opus): construidas/pendientes
 según gates de la dueña. Ver `.claude/PRPs/prp-eficiencia-v2-benchmarking-kimi.md`.
+
+## 2026-07-27: La doctrina de orquestación (PR #165) queda como CRITERIO DE MÉTODO de esta fase
+
+La doctrina `orquestar-agentes` (Opus 5) formaliza lo que esta fase ya practicaba por
+convergencia: ruteo por tipo de tarea (≈ frecuencia×peso), gate de probe antes de confiar
+(≈ probe-glm), Eje 0 sin-LLM (≈ host-jobs/dato-en-SOUL/CLIs impresos) y costo por TAREA,
+no por token. Regla operativa desde hoy: **todo cambio de modelo en profiles/loop se decide
+con ese método** — citando `.claude/memory/feedback/modelo-esfuerzo-por-tarea.md` — y pasa
+su probe (idioma+tools+caché). La TABLA de modelos de la doctrina NO aplica aquí (es de
+Claude Code, que solo rutea familia Claude; Hermes es multi-proveedor con presupuesto
+$30/mes: el loop lo ganan caché+latencia, la capa pesada la ganó GLM por costo).
+
+Aplicación concreta en el enjambre: el Planner del Coordinador estampa `modelo_pref` por
+sub-tarea según dificultad (doctrina §3.5) vía `PLANNER_RUTEO_MODELOS` — ver
+`coordinador-a2a/claude_planner.py::rutear_por_dificultad` (apagado por default; herencia
+del padre intacta como fallback).
+
+Pendiente menor: probe de Sonnet 5 para el profile `vision` (hoy sonnet-4.6; mismo tier de
+precio, uso raro) — correr probe antes de aplicar, como siempre.
