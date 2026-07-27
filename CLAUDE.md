@@ -1255,4 +1255,17 @@ npm run lint         # ESLint
 - **Aplicar en**: todo token de `@theme` en apps Tailwind v4 cuyo nombre de utilidad pueda
   chocar con utilidades nativas, y toda verificación de paridad visual (CSS compilado manda).
 
+### 2026-07-27: COPY multi-fuente con destino `.` — compila en el server (BuildKit), revienta en dev (builder legacy)
+- **Error**: `COPY a.py b.py .` en los Dockerfiles del trío (coordinador y ejecutor) construía
+  bien en el server (BuildKit tolera `.`), pero el `docker build` de la máquina de dev usa el
+  builder LEGACY, que exige destino-directorio con `/` final en COPY multi-fuente → el build
+  falla en una máquina y pasa en otra. Lo cazó el **gate de imagen** (lección 2026-07-23:
+  "build de la imagen es parte del terminado") al aplicarlo por primera vez en dev.
+- **Fix**: destino SIEMPRE `./` en COPY multi-fuente (funciona en ambos builders). Barridos
+  los 6 Dockerfiles A2A: solo coordinador y ejecutor tenían la mina; el resto ya usaba `./`
+  o es single-source (donde `.` es válido).
+- **Aplicar en**: todo Dockerfile nuevo y todo gate de imagen — correr el build en la máquina
+  de DEV también, no solo donde "siempre ha funcionado": la diferencia de builder es señal,
+  no ruido.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

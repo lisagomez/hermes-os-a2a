@@ -31,7 +31,7 @@ WORKDIR /app
 COPY ejecutor-a2a/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY trio-contrato/contrato.py trio-contrato/errores_proveedor.py .
+COPY trio-contrato/contrato.py trio-contrato/errores_proveedor.py ./
 # OJO: el COPY es EXPLICITO. Un modulo nuevo sin su linea aqui = ModuleNotFoundError y
 # crash-loop en runtime, y los tests de dev NO lo cazan (paso el 2026-07-10). Los cuatro
 # ultimos son la COLA (PRP-010): cola, worker, pipeline y su tope de gasto. fabric_engine.py
