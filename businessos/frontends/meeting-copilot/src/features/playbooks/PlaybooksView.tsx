@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { BookOpenCheck } from 'lucide-react'
 import { useAppStore } from '@/features/domain/store'
 import { ETIQUETA_DIMENSION, ETIQUETA_TIPO_REUNION, type Playbook } from '@/features/domain/types'
@@ -70,7 +70,12 @@ function EditorPlaybook({ playbook }: { playbook: Playbook }) {
 
 export function PlaybooksView() {
   const playbooks = useAppStore((s) => s.playbooks)
-  const [activo, setActivo] = useState(playbooks[0]?.id ?? '')
+  // Integridad de selector (hermes-design-integrity): la selección es estado de
+  // NAVEGACIÓN → vive en la URL (sobrevive a salir/volver y es compartible),
+  // no en un useState que se resetea con cada montaje.
+  const router = useRouter()
+  const activo = useSearchParams().get('playbook') ?? playbooks[0]?.id ?? ''
+  const setActivo = (id: string) => router.replace(`/playbooks?playbook=${id}`, { scroll: false })
   const seleccionado = playbooks.find((p) => p.id === activo) ?? playbooks[0]
 
   return (
@@ -85,7 +90,7 @@ export function PlaybooksView() {
         valor={seleccionado?.id ?? ''}
         onCambio={setActivo}
         claseBoton="px-3 py-1.5 text-[13px] font-medium"
-        opciones={playbooks.map((p) => ({ id: p.id, contenido: p.nombre }))}
+        opciones={playbooks.map((p) => ({ id: p.id, contenido: p.nombre, testid: `playbook-${p.id}` }))}
       />
       {seleccionado && <EditorPlaybook playbook={seleccionado} />}
 

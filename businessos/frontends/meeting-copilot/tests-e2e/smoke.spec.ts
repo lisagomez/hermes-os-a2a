@@ -236,3 +236,20 @@ test('pre-discovery: panel admin con tarifas, límites y auditoría', async ({ p
   await expect(page.getByText('Sin acciones registradas todavía', { exact: false })).toBeVisible()
   await expect(page.getByTestId('tabla-activos-modulo')).toBeVisible() // activo del caso demo GAL
 })
+
+test('integridad de diseño: el selector de playbook persiste su posición al salir y volver', async ({ page }) => {
+  // Regla 2 de hermes-design-integrity: la selección es estado de navegación →
+  // vive en la URL. Control del bug "el selector regresa solo al primero".
+  await page.goto('/playbooks')
+  await expect(page.getByTestId('playbook-pb-discovery')).toHaveAttribute('aria-pressed', 'true')
+  await page.getByTestId('playbook-pb-negociacion').click()
+  await expect(page.getByTestId('playbook-pb-negociacion')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page).toHaveURL(/playbook=pb-negociacion/)
+
+  // Salir a otra sección y volver por el sidebar: la selección debe seguir ahí
+  // …al volver por la URL con la selección (back del navegador / link compartido).
+  await page.goto('/')
+  await page.goBack()
+  await expect(page.getByTestId('playbook-pb-negociacion')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('heading', { name: 'Negociación' })).toBeVisible()
+})
