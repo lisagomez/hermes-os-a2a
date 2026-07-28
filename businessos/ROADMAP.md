@@ -1034,8 +1034,9 @@ pipeline de adquisición**: el primer mensaje de un contacto crea un lead con
 `origen='crm'`, `canal` y `telefono` (`crm-canales/leads.py`, insert
 ignore-duplicates que jamás pisa la etapa del funnel). `leads` ganó columnas
 `canal`/`telefono` y los orígenes `crm`/`copilot`
-(`supabase-fase12-leads-crm.sql` — prerequisito de despliegue, pendiente de
-aplicar en prod), y Mission Control /crm muestra canal en la tabla y en el
+(`supabase-fase12-leads-crm.sql` — APLICADA en prod el 2026-07-28 vía
+management API y verificada: CHECK con 6 orígenes, columnas + índice, vista
+con `canal` y revokes intactos), y Mission Control /crm muestra canal en la tabla y en el
 resumen de conversaciones. Pendiente P2: plantillas HSM + ventana 24h (bloquea
 outbound proactivo), media/voz entrante, observabilidad del canal (error 190).
 
