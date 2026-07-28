@@ -33,6 +33,12 @@ regulatorio/fiscal/contable multi-país, y un dashboard "Mission Control" encima
   `modelo_pref="glm-5.2"`); (b) profiles pesados de Hermes vía OpenRouter (no el loop).
   Gate `businessos/probe-glm.py` (caché+tools) antes de cablear; default intacto sin las
   env vars. Detalle en la reference de setup y en fase1-eficiencia.
+  **Doctrina de ruteo en capas (2026-07-28, origen PR #170)**: la capa de EXCLUSIÓN
+  manda — "¿qué modelo está PROHIBIDO para este dato/dominio?" (retención sin ZDR,
+  clasificadores que re-rutean, proveedor externo vs dato de cliente) va ANTES de
+  capacidad y de costo; el probe de eficiencia solo compara entre permitidos. El
+  coordinador rechaza al arrancar un mapa de ruteo con modelo prohibido
+  (`orquestar-agentes` §2 + `CLAUDE.md` 2026-07-28).
 - **Canales:** Telegram (3 bots) + voz (TTS de salida, transcripción de entrada)
 - **Conocimiento personal:** Obsidian (bóveda montada como volumen)
 - **Cerebro regulatorio:** grafo (de lisagomez/grafo, rediseñado multi-país)

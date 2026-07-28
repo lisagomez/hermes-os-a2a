@@ -165,6 +165,7 @@ Solo actualiza lo que corresponda — no todos los cambios tocan los 4:
 | Un aprendizaje específico de UNA feature/iniciativa | `.claude/memory/project/<tema>.md` (+ línea en `MEMORY.md`) | Ver estructura de `memory-manager` |
 | Corrección de comportamiento del agente o preferencia confirmada | `.claude/memory/feedback/<tema>.md` | Ver estructura de `memory-manager` |
 | Vertical pasa a viva / cambia de fase del roadmap / KPI alcanzado | `businessos/ROADMAP.md` + "Próximos Pasos" de `BUSINESS_LOGIC.md` | Tachar completado, no reescribir historia |
+| **SIEMPRE, en todo cierre con cambios de estado** (pedido de Elisa 2026-07-28) | `README.md` raíz (§"Estado actual") **y** `businessos/ROADMAP.md` | Revisarlos aunque "no parezca" que tocan: el README se congela en silencio |
 
 **Qué NO hacer** (heredado del original, sigue aplicando):
 - No reescribir secciones históricas de ningún doc — solo agregar y tachar
@@ -221,7 +222,9 @@ documentos vivos del Paso 2).
 Antes de proponer un push, ejecuta esta checklist silenciosamente. Si algo
 falla, corrígelo antes de continuar:
 
-- [ ] ¿Se actualizó alguno de los 4 documentos vivos que correspondía? (Paso 2)
+- [ ] ¿Se actualizó alguno de los documentos vivos que correspondía? (Paso 2)
+- [ ] ¿README.md (§Estado actual) y ROADMAP reflejan el estado tras esta sesión?
+      (SIEMPRE se revisan — pedido de Elisa 2026-07-28)
 - [ ] ¿Las decisiones quedaron con el WHY, no solo el what?
 - [ ] ¿Hay memories que crear/actualizar basadas en lo aprendido esta sesión?
 - [ ] ¿El working tree está limpio (`git status` sin cambios sueltos que deban
