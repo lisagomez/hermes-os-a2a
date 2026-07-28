@@ -33,26 +33,45 @@ despliega. Publicar cambios = repetir el paso 5 desde el directorio de la app.
 | `ASESOR_LLM_MODEL` | runtime | opcional; default `google/gemini-2.5-flash-lite` |
 | `NEXT_PUBLIC_COPILOT_DATA` | build | NO fijar (`mock` es el único válido; `real` reservado a Supabase post-MVP y truena al cargar) |
 | `NEXT_PUBLIC_TRANSCRIPTION_PROVIDER` | build | NO fijar (mock); providers reales requieren backend accesible desde el navegador |
+| `NEXT_PUBLIC_SUPABASE_URL` | build+runtime | proyecto A2ABot (`hsejpktzcqwkwkwholkw`); público |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | build+runtime | público |
+| `NEXT_PUBLIC_SITE_URL` | build+runtime | `https://meeting-copilot-pi.vercel.app` (redirect del magic link) |
+| `PANEL_ALLOWED_EMAILS` | runtime | coma-separado; **vacío = nadie entra** (fail-closed). Cambiarla exige redeploy (las env de runtime se congelan por deployment) |
+| `AUTH_DISABLED` | runtime | **JAMÁS en Vercel** — escape solo para dev local mock-first |
 
-## 3. Exposición pública — por qué NO lleva auth (hoy)
+## 3. Auth (activa desde 2026-07-28) — patrón Mission Control
 
-Doctrina 2026-07-24: auth es prerequisito cuando la superficie renderiza datos de negocio
-o usa `service_role`. Meeting Copilot **no toca Supabase ni datos reales** (100% fixtures
-mock); lo único server-side es la llamada a OpenRouter, acotada: Zod estricto en el body
-(contexto ≤40×600 chars), `max_tokens` 220/900, timeout 9 s, modelo flash-lite. El riesgo
-de abuso es gasto marginal de tokens, no fuga de datos. **Revisar esta decisión cuando
-entre `NEXT_PUBLIC_COPILOT_DATA=real` (Supabase)**: en ese momento aplica el patrón
-Mission Control (magic link + allowlist fail-closed) ANTES de mantenerlo público.
+Magic link (passwordless) + **allowlist fail-closed**: `src/middleware.ts` exige usuario
+autenticado Y en `PANEL_ALLOWED_EMAILS` para toda ruta salvo `/login` y `/auth/*` —
+**incluidas las `/api/*`** (las rutas del asesor gastan OpenRouter; con la app pública
+cualquiera podía quemar tokens). El envío del OTP se gatea en el servidor
+(`/auth/otp`, respuesta siempre genérica: sin oráculo de enumeración ni email-bombing).
+Sin variables de Supabase el middleware NO truena: redirige todo a `/login?error=config`
+(fail-closed honesto). Mismo proyecto Supabase que Mission Control (A2ABot) → mismo
+prerequisito de `uri_allow_list`: la URL del deploy + `/auth/callback` deben estar en
+Authentication → URL Configuration. El trigger `handle_new_user` crea la fila en
+`profiles` al primer login (comportamiento del proyecto compartido; la allowlist
+gobierna el acceso real).
+
+Historia: el MVP salió sin auth (2026-07-26) porque era 100% mock sin datos de negocio;
+la decisión quedó condicionada y se ejerció el 2026-07-28 (motor LLM ya activo en prod +
+Pre-Discovery con datos de leads reales en camino).
 
 ## 4. Verificación post-deploy (smoke de TODAS las vistas — doctrina 2026-07-23)
 
 Hecho en el deploy inicial; repetir tras cada `deploy --prod`:
 
-1. Las 9 rutas estáticas → 200: `/`, `/reuniones`, `/grabacion`, `/manager`, `/playbooks`,
-   `/herramientas`, `/herramientas/transcripcion`, `/configuracion`, `/reuniones/nueva`.
+0. **Candado primero**: `/`, `/reuniones` y `POST /api/asesor/pregunta` SIN sesión →
+   307 a `/login` (no `error=config`, que indicaría env vars ausentes); `/login` → 200
+   con el formulario; `POST /auth/otp` con un correo cualquiera → respuesta genérica.
+1. Las 9 rutas estáticas → 200 **con sesión** (mintarla por admin API sin buzón —
+   doctrina 2026-07-25, `generate_link` + `/auth/v1/verify` + cookie `sb-<ref>-auth-token`;
+   revocar con `logout?scope=local` al terminar): `/`, `/reuniones`, `/grabacion`,
+   `/manager`, `/playbooks`, `/herramientas`, `/herramientas/transcripcion`,
+   `/configuracion`, `/reuniones/nueva`.
 2. Dinámicas con fixture `r-translogika-disc`: `/reuniones/<id>` → **307 a
    `/transcripcion` (esperado, tab por defecto)** → 200; `guiada`/`insights`/`resumen`/
    `transcripcion` → 200.
-3. `POST /api/asesor/pregunta` con body válido → 200 con `pregunta` + `justificacion` +
-   `modelo` (prueba la clave end-to-end). `POST /api/asesor/insights` con `{}` → error de
-   contrato ("Cuerpo inválido"), no 500.
+3. `POST /api/asesor/pregunta` con body válido (y sesión) → 200 con `pregunta` +
+   `justificacion` + `modelo` (prueba la clave end-to-end). `POST /api/asesor/insights`
+   con `{}` → error de contrato ("Cuerpo inválido"), no 500.

@@ -253,3 +253,19 @@ test('integridad de diseño: el selector de playbook persiste su posición al sa
   await expect(page.getByTestId('playbook-pb-negociacion')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('heading', { name: 'Negociación' })).toBeVisible()
 })
+
+test('login: la página pública renderiza el formulario sin el shell', async ({ page }) => {
+  // Con AUTH_DISABLED=1 (webServer del smoke) /login sigue siendo pública:
+  // valida el render de la vista y el escape del AppShell (sin sidebar).
+  await page.goto('/login')
+  await expect(page.getByRole('heading', { name: 'Meeting Copilot' })).toBeVisible()
+  await expect(page.getByLabel('Correo del equipo')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Enviar enlace de acceso' })).toBeVisible()
+  await expect(page.getByTestId('sidebar')).toHaveCount(0)
+
+  // Estados de error honestos por query param
+  await page.goto('/login?denied=1')
+  await expect(page.getByText('no tiene acceso')).toBeVisible()
+  await page.goto('/login?error=config')
+  await expect(page.getByText('no está configurada')).toBeVisible()
+})
