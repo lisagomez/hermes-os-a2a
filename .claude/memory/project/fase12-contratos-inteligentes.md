@@ -100,3 +100,15 @@ org — sin eso el rechazo de revocados jamás se observa. Verificación final:
 identidad revocada → access denied DEL PEER + control positivo verde. Un
 rechazo por la razón equivocada no prueba nada (el primer intento falló por
 NodeOUs del cliente, no por la CRL).
+
+**Ceremonia de llaves EN PAUSA (2026-07-28)**: Fase 0 completa (binarios 2.5.9/
+1.5.12 instalados y hasheados en el cx33, kit commit 9313702 en ~/red-tier1,
+acta abierta en ~/red-tier1/ACTA-ceremonia-2026-07-28.md). Pausada ANTES de la
+Fase 1 — cero secretos nacidos, reanudación limpia desde los read -s + 01.
+Máquina A = cx33; Máquina B = laptop Linux de Elisa (tiene SSH al server; el
+enroll Testigo irá por túnel ssh -L 7056). El bloque B se escribe a archivo
+0600, no a stdout (PR #180). Para reanudar Elisa necesita: gestor de
+contraseñas con CA_TLS/OP/TG_ADMIN_PW (32+ chars generados) y 2 USB cifrables
+(si faltan USBs: oficiar 1-4+6-7 y dejar Fase 5 como bloqueante pre-clientes).
+Nota: el cx33 tiene "System restart required" (kernel) — reiniciar ANTES de
+reanudar la ceremonia, no después de que las CAs vivan.
