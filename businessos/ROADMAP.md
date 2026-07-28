@@ -1082,7 +1082,11 @@ El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `er
 (001-005) está **aplicado al Supabase compartido** y el **módulo act (activos
 digitales, ERP-4B)** opera el ciclo DETECTAR → CATALOGAR → REGISTRAR sobre la
 fábrica real. Cada feature VENDIBLE aprobada por el Supervisor se cosecha como
-activo con su costo desde `token_usage.task_id`. Detalle:
+activo con su costo desde `token_usage.task_id`. **Regla de marca blanca
+(2026-07-28)**: toda feature generada en white-label es vendible POR DEFINICIÓN —
+`clasificacion {vendible: true}` obligatoria en el origen, asiento doble (ERP +
+ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
+(`departamentos/white-label.md` §5). Detalle:
 `.claude/memory/project/erp-modulo-act.md` y `erp/migrations/README.md`.
 
 - [x] **Migración 005** (act_activo/act_version/act_proteccion/act_costo, dos ejes

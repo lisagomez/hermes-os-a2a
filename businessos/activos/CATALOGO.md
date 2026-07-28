@@ -88,6 +88,13 @@ gates pendientes) · `blueprint` (diseñado/validado, no desplegado).
 Cuatro componentes por activo, cada uno con `fuente` declarada — regla heredada del
 ledger GAL: **nunca aparentar precisión que no hay**. `no_medido` es un valor honesto.
 
+> **Regla de marca blanca (2026-07-28):** toda feature generada en white-label entra
+> al inventario como activo digital con este esquema de costeo. La impone el ORIGEN
+> (`clasificacion {vendible: true}` obligatoria en la tarea del trío — regla dura del
+> skill `trio-software`) y la doctrina del departamento
+> (`departamentos/white-label.md` §5); la cosecha a `erp.act_activo` + `act_costo` es
+> automática, nadie cataloga a mano.
+
 | Componente | Qué mide | Fuentes válidas |
 |---|---|---|
 | **Construcción** (hundido) | Tokens de sesiones dev + corridas del trío + horas de aprobación humana | `token_usage` (vertical `trio`), datapoints del ROADMAP, `/cost` de sesión; pre-ledger = `no_medido` |
