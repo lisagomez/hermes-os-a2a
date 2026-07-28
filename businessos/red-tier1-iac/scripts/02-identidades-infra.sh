@@ -105,7 +105,12 @@ for org in operadora testigo; do
   mkdir -p "$M/tlscacerts"; cp "$CA_CERT_TLS" "$M/tlscacerts/tlsca.pem"
 done
 
-cat <<EOF
+# El bloque de la Máquina B lleva el secreto de un solo uso del admin Testigo:
+# NO va a stdout (los logs/transcripts de sesión lo capturarían) — se escribe a
+# archivo 0600 y la oficiante lo lee en SU terminal (ceremonia real 2026-07-28).
+BLOQUE_B="$RAIZ/BLOQUE-MAQUINA-B.txt"
+umask 077
+cat > "$BLOQUE_B" <<EOF
 
 ============================================================================
 ⚠ BLOQUE PARA LA MÁQUINA B (ceremonia Fase 3 — admin Testigo)
@@ -127,4 +132,6 @@ El secreto de arriba es de UN SOLO USO: al enrolar, deja de servir.
 Registra en el acta: fecha, quién ejecutó, hash del certificado emitido.
 ============================================================================
 EOF
+echo ">> Bloque de la Máquina B escrito en: $BLOQUE_B (0600 — léelo en TU terminal;"
+echo ">> bórralo tras el enroll: el secreto muere con el primer uso, el archivo también debe)"
 echo ">> OK infra. Siguiente: 03-identidades-servicio.sh"
