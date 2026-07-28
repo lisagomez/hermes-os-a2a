@@ -83,7 +83,13 @@ precios finales, no firma, no envía correos. La firma es exclusivamente humana.
 No se vende nada nuevo hasta cerrar los gates que hoy frenan la conversión. Son
 decisiones de la dueña, no deuda técnica de fondo:
 
-1. Elegir **BSP de WhatsApp** (P-01) — desbloquea todo el CRM.
+1. **Alta de WhatsApp Cloud API** (P-01) — desbloquea todo el CRM. La vía técnica
+   ya quedó resuelta por construcción: `crm-canales` habla **Cloud API directa de
+   Meta** (ser nuestro propio BSP, sin intermediario ni margen por conversación).
+   Lo que queda es operativo y es de la dueña: Meta Business verificado + número +
+   token permanente de System User por tenant (runbook en
+   `.claude/memory/project/crm0-canales.md`). Un BSP solo se reevalúa si algún
+   día hace falta lo que Meta directo no da (números compartidos, SLA gestionado).
 2. **Dominio real** para la card pública (hoy `sslip.io` temporal).
 3. Aprobar **motor LLM real + host-job `enviar-salientes.py`** en adquisición —
    hoy corre en MockEngine y ningún saliente se envía.
@@ -203,7 +209,7 @@ KPIs propuestos, revisión semanal en `#dep-adquisicionclientes`:
 
 | Bloqueante | Impacto | Decide |
 |---|---|---|
-| **BSP de WhatsApp** (P-01) | Frena todo el CRM, la vía rápida | CEO + CFO (contrato, costo/conversación, apto multi-tenant) |
+| **Alta WhatsApp Cloud API** (P-01) | Frena todo el CRM, la vía rápida (la vía técnica ya es Cloud API directa; falta Meta Business + número + token) | CEO + CFO (cuenta Meta, costo/conversación de Meta) |
 | **Motor real + envío de emails** en adquisición | Sin esto el outreach no sale del worktree | CEO |
 | **Dominio real** para el edge | La card pública luce temporal ante prospectos | CEO |
 | **Mapa persona → rol** | Las compuertas las sostiene el juicio humano, no la config | CEO (decisión de negocio) |
@@ -226,9 +232,10 @@ KPIs propuestos, revisión semanal en `#dep-adquisicionclientes`:
 
 ## 13. Los primeros 5 movimientos
 
-1. **Cerrar el BSP de WhatsApp** — evaluar proveedores con los criterios ya
-   definidos (sandbox, precio por conversación, estabilidad, contrato apto para
-   marca blanca multi-tenant).
+1. **Cerrar el alta de WhatsApp Cloud API** — ya no se evalúan BSPs: la vía
+   construida es Cloud API directa de Meta. El movimiento es dar de alta el
+   Meta Business verificado, el número y el token permanente del primer tenant
+   (runbook en `.claude/memory/project/crm0-canales.md`).
 2. **Nombrar los 2 prospectos CRM de la Ola 1** desde la red del equipo y agendarles
    la sesión de descubrimiento de 60 minutos.
 3. **Arrancar el discovery de seguros** — lista de 4–6 brokers de carga y guión de

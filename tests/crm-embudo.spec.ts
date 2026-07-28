@@ -110,19 +110,21 @@ test('panel de conversaciones: empty state honesto sin tenant conectado', () => 
   expect(text).toContain('tenant')
 })
 
-test('panel de conversaciones: agrega por estado y desglosa por nivel', () => {
+test('panel de conversaciones: agrega por estado, canal y desglosa por nivel', () => {
   const { text } = render(
     ConversacionesPanel({
       conversaciones: [
-        { estado: 'abierta', nivel: 'A1', cuenta: 4 },
-        { estado: 'abierta', nivel: 'A2', cuenta: 2 },
-        { estado: 'cerrada', nivel: 'A1', cuenta: 7 },
+        { estado: 'abierta', nivel: 'A1', canal: 'whatsapp', cuenta: 4 },
+        { estado: 'abierta', nivel: 'A2', canal: 'telegram', cuenta: 2 },
+        { estado: 'cerrada', nivel: 'A1', canal: 'whatsapp', cuenta: 7 },
       ],
     })
   )
   expect(text).toContain('abierta')
   expect(text).toContain('6') // 4 + 2 agregado por estado
   expect(text).toContain('abierta A2: 2')
+  expect(text).toContain('whatsapp: 11') // 4 + 7 agregado por canal
+  expect(text).toContain('telegram: 2')
 })
 
 test('el submenú de adquisición lista Tareas y CRM; otros departamentos no pintan nada', () => {
@@ -147,14 +149,16 @@ const LEADS_FIXTURE: LeadResumen[] = [
   {
     lead_id: 'web2-abc',
     origen: 'web2',
+    canal: '',
     empresa: 'Mi IA',
     contacto: 'Elisa <elisa@ejemplo.mx>',
     etapa: 'nuevo',
     updated_at: '2026-07-19T04:04:15Z',
   },
   {
-    lead_id: 'lead-xyz',
-    origen: 'a2a',
+    lead_id: 'crm-acme-whatsapp-5215512345678',
+    origen: 'crm',
+    canal: 'whatsapp',
     empresa: null,
     contacto: null,
     etapa: 'ganado',
@@ -162,11 +166,13 @@ const LEADS_FIXTURE: LeadResumen[] = [
   },
 ]
 
-test('LeadsTable pinta cada lead con su origen, etapa y el formulario de mover', () => {
+test('LeadsTable pinta cada lead con su origen, canal, etapa y el formulario de mover', () => {
   const { text } = render(LeadsTable({ leads: LEADS_FIXTURE, accionMover: accionStub }))
   expect(text).toContain('Mi IA')
   expect(text).toContain('web2')
-  expect(text).toContain('a2a')
+  expect(text).toContain('crm')
+  expect(text).toContain('whatsapp') // canal visible
+  expect(text).toContain('—') // canal vacío no rompe la fila
   expect(text).toContain('Sin empresa') // empresa null no rompe la fila
   expect(text).toContain('Mover')
   // el select de mover ofrece TODAS las etapas movibles (embudo + perdido)

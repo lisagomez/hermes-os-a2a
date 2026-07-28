@@ -1025,6 +1025,19 @@ juez LLM adversarial, fail-closed en ambos lados) con auditoría en
 en `.claude/memory/project/crm0-canales.md`; fases siguientes (muestreo A2,
 panel, niveles medidos) en `crm/propuesta-crm-marca-blanca.md`.
 
+**Consolidación WhatsApp P0+P1 (2026-07-28)**: firma `X-Hub-Signature-256`
+obligatoria y fail-closed en el webhook de WhatsApp (app secret por tenant con
+fallback global; sin secret → 503) + P-01 dictaminado en GTM (Cloud API directa
+de Meta, sin BSP; token permanente de System User en el runbook) + **puente al
+pipeline de adquisición**: el primer mensaje de un contacto crea un lead con
+`origen='crm'`, `canal` y `telefono` (`crm-canales/leads.py`, insert
+ignore-duplicates que jamás pisa la etapa del funnel). `leads` ganó columnas
+`canal`/`telefono` y los orígenes `crm`/`copilot`
+(`supabase-fase12-leads-crm.sql` — prerequisito de despliegue, pendiente de
+aplicar en prod), y Mission Control /crm muestra canal en la tabla y en el
+resumen de conversaciones. Pendiente P2: plantillas HSM + ventana 24h (bloquea
+outbound proactivo), media/voz entrante, observabilidad del canal (error 190).
+
 ---
 
 ## Línea Meeting Copilot (marca blanca) — MVP construido (2026-07-25)

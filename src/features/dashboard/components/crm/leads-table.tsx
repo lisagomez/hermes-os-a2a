@@ -35,6 +35,7 @@ export function LeadsTable({
           <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
             <th className="py-2 pl-4 pr-2 font-medium">Lead</th>
             <th className="py-2 px-2 font-medium">Origen</th>
+            <th className="py-2 px-2 font-medium">Canal</th>
             <th className="py-2 px-2 font-medium">Etapa</th>
             <th className="py-2 px-2 font-medium">Mover a</th>
             <th className="py-2 pl-2 pr-4 font-medium">Actualizado</th>
@@ -49,6 +50,10 @@ export function LeadsTable({
               </td>
               <td className="py-2 px-2 align-top">
                 <code className="text-xs text-slate-400">{l.origen}</code>
+              </td>
+              <td className="py-2 px-2 align-top">
+                {/* '—' = el origen no expone canal (a2a/manual/web2 form) */}
+                <code className="text-xs text-slate-400">{l.canal || '—'}</code>
               </td>
               <td className="py-2 px-2 align-top">
                 <EstadoLeadBadge etapa={l.etapa} />

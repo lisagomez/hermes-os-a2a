@@ -4,6 +4,10 @@ Patrón del repo: async con fakes inyectados; TestClient de Starlette.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
+
 from starlette.testclient import TestClient
 
 from app import build_app
@@ -11,6 +15,7 @@ from motor import MotorError
 
 TG_SECRET = "s3cr3t"
 WA_VERIFY = "v3r1fy"
+WA_APP_SECRET = "app-s3cret-hex"
 
 TENANT = {
     "tenant_id": "acme",
@@ -71,6 +76,17 @@ class FakeCanales:
         return self.ok
 
 
+class FakeLeads:
+    """Puente al pipeline de adquisición: registra qué se intentó capturar."""
+
+    def __init__(self, ok=True):
+        self.ok, self.capturados = ok, []
+
+    async def capturar(self, tenant_id, canal, canal_uid, nombre, texto):
+        self.capturados.append({"tenant_id": tenant_id, "canal": canal, "canal_uid": canal_uid, "nombre": nombre, "texto": texto})
+        return self.ok
+
+
 class FakeSup:
     """None = sup caído (fail-closed); dict = veredicto."""
 
@@ -82,14 +98,16 @@ class FakeSup:
         return self.veredicto
 
 
-def _client(motor=None, store=None, canales=None, sup=None):
+def _client(motor=None, store=None, canales=None, sup=None, leads=None, wa_app_secret=WA_APP_SECRET):
     app = build_app(
         motor=motor or FakeMotor(),
         store=store or FakeStore(),
         canales=canales or FakeCanales(),
         sup=sup or FakeSup(),
+        leads=leads or FakeLeads(),
         tg_secret=TG_SECRET,
         wa_verify=WA_VERIFY,
+        wa_app_secret=wa_app_secret,
     )
     return TestClient(app)
 
@@ -105,6 +123,18 @@ def _wa_payload(texto, wa_id="5215512345678", nombre="Eli W"):
             "messages": [{"type": "text", "from": wa_id, "text": {"body": texto}}],
         }}]}]
     }
+
+
+def _wa_post(c, payload, secret=WA_APP_SECRET, tenant="acme", firma=None):
+    """POST al webhook de WhatsApp firmado como lo hace Meta (HMAC del cuerpo crudo)."""
+    cuerpo = json.dumps(payload).encode()
+    if firma is None:
+        firma = "sha256=" + hmac.new(secret.encode(), cuerpo, hashlib.sha256).hexdigest()
+    return c.post(
+        f"/webhook/whatsapp/{tenant}",
+        content=cuerpo,
+        headers={"Content-Type": "application/json", "X-Hub-Signature-256": firma},
+    )
 
 
 def test_health_ok():
@@ -192,10 +222,60 @@ def test_whatsapp_verify_challenge_y_403():
 def test_whatsapp_flujo_feliz_con_perfil():
     store, canales = FakeStore(), FakeCanales()
     c = _client(store=store, canales=canales)
-    r = c.post("/webhook/whatsapp/acme", json=_wa_payload("precio del tour"))
+    r = _wa_post(c, _wa_payload("precio del tour"))
     assert r.status_code == 200
     assert store.contactos[0] == {"canal": "whatsapp", "canal_uid": "5215512345678", "nombre": "Eli W"}
     assert canales.enviados[0]["phone_id"] == "555000"
+    assert [m["direccion"] for m in store.mensajes] == ["entrante", "saliente"]
+
+
+def test_whatsapp_firma_invalida_403_y_no_procesa():
+    store = FakeStore()
+    c = _client(store=store)
+    r = _wa_post(c, _wa_payload("hola"), firma="sha256=" + "0" * 64)
+    assert r.status_code == 403 and store.mensajes == []
+
+
+def test_whatsapp_sin_firma_403():
+    store = FakeStore()
+    c = _client(store=store)
+    r = c.post("/webhook/whatsapp/acme", json=_wa_payload("hola"))
+    assert r.status_code == 403 and store.mensajes == []
+
+
+def test_whatsapp_sin_app_secret_503_fail_closed():
+    store = FakeStore()
+    c = _client(store=store, wa_app_secret="")
+    r = _wa_post(c, _wa_payload("hola"), secret="cualquiera")
+    assert r.status_code == 503 and store.mensajes == []
+
+
+def test_whatsapp_app_secret_por_tenant_gana(monkeypatch):
+    # El secret por tenant (CRM_WHATSAPP_APP_SECRET__<TENANT>) manda sobre el global.
+    monkeypatch.setenv("CRM_WHATSAPP_APP_SECRET__ACME", "secreto-del-tenant")
+    store = FakeStore()
+    c = _client(store=store, wa_app_secret="global-que-no-aplica")
+    ok = _wa_post(c, _wa_payload("hola"), secret="secreto-del-tenant")
+    mal = _wa_post(c, _wa_payload("hola"), secret="global-que-no-aplica")
+    assert ok.status_code == 200 and mal.status_code == 403
+
+
+def test_lead_capturado_desde_whatsapp_y_telegram():
+    leads = FakeLeads()
+    c = _client(leads=leads)
+    _wa_post(c, _wa_payload("precio del tour"))
+    c.post("/webhook/telegram/acme", json=_tg_update("hola"),
+           headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+    assert leads.capturados[0]["canal"] == "whatsapp"
+    assert leads.capturados[0]["canal_uid"] == "5215512345678"
+    assert leads.capturados[1]["canal"] == "telegram"
+
+
+def test_lead_fallido_no_tumba_la_atencion():
+    store, leads = FakeStore(), FakeLeads(ok=False)
+    c = _client(store=store, leads=leads)
+    r = _wa_post(c, _wa_payload("hola"))
+    assert r.status_code == 200
     assert [m["direccion"] for m in store.mensajes] == ["entrante", "saliente"]
 
 
@@ -251,5 +331,5 @@ def test_escalado_y_degradacion_no_pasan_por_sup():
 def test_canal_sin_token_bitacora_enviado_false():
     store = FakeStore()
     c = _client(store=store, canales=FakeCanales(ok=False))
-    c.post("/webhook/whatsapp/acme", json=_wa_payload("hola"))
+    _wa_post(c, _wa_payload("hola"))
     assert store.mensajes[1]["enviado"] is False  # trazable, jamás silencioso

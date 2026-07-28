@@ -3,7 +3,8 @@
 Webhooks entrantes de Telegram y WhatsApp Cloud API, multi-tenant por path:
   POST /webhook/telegram/{tenant}   (protegido por X-Telegram-Bot-Api-Secret-Token)
   GET  /webhook/whatsapp/{tenant}   (verificación de Meta: hub.challenge)
-  POST /webhook/whatsapp/{tenant}   (mensajes; firma opcional en fase 2)
+  POST /webhook/whatsapp/{tenant}   (firma X-Hub-Signature-256 obligatoria,
+                                     fail-closed: sin app secret configurado → 503)
   GET  /health
 
 Flujo por mensaje: tenant activo + canal habilitado → contacto (upsert) →
@@ -14,6 +15,7 @@ el canal no tenga token todavía (enviado=false, visible, jamás silencioso).
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import logging
@@ -24,7 +26,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Route
 
-from canales import Canales
+from canales import Canales, _token
+from leads import LeadsCrm
 from motor import MotorError, MotorOpenRouter
 from prompt import requiere_humano, system_prompt
 from store import Store
@@ -53,16 +56,20 @@ def build_app(
     store: Store | None = None,
     canales: Canales | None = None,
     sup: SupervisorClient | None = None,
+    leads: LeadsCrm | None = None,
     tg_secret: str | None = None,
     wa_verify: str | None = None,
+    wa_app_secret: str | None = None,
 ) -> Starlette:
     """Dependencias inyectables para tests (env por defecto)."""
     motor = motor or MotorOpenRouter()
     store = store or Store()
     canales = canales or Canales()
     sup = sup or SupervisorClient()
+    leads = leads or LeadsCrm()
     tg_secret = tg_secret if tg_secret is not None else os.environ.get("CRM_TELEGRAM_WEBHOOK_SECRET", "")
     wa_verify = wa_verify if wa_verify is not None else os.environ.get("CRM_WHATSAPP_VERIFY_TOKEN", "")
+    wa_app_secret = wa_app_secret if wa_app_secret is not None else os.environ.get("CRM_WHATSAPP_APP_SECRET", "")
 
     async def health(_: Request) -> JSONResponse:
         return JSONResponse({"status": "ok", "servicio": "crm-canales"})
@@ -85,6 +92,9 @@ def build_app(
             return
         texto = texto.strip()[:MAX_TEXTO]
         await store.mensaje(tenant_id, conv["id"], "entrante", canal, texto, "cliente")
+        # Puente al pipeline de adquisición: primer mensaje → lead (origen 'crm').
+        # Idempotente (ignore-duplicates): los mensajes siguientes no lo tocan.
+        await leads.capturar(tenant_id, canal, canal_uid, nombre, texto)
 
         if requiere_humano(texto):
             await store.escalar(conv["id"])
@@ -147,8 +157,21 @@ def build_app(
 
     async def webhook_whatsapp(request: Request) -> Response:
         tenant_id = request.path_params["tenant"]
+        # Firma HMAC de Meta sobre el cuerpo CRUDO (misma práctica que el
+        # gateway de la guía Hermes): app secret por tenant con fallback
+        # global. Fail-closed: sin secret NO se aceptan entrantes (503) —
+        # un webhook público sin firma es texto adversarial sin remitente.
+        secreto = _token("CRM_WHATSAPP_APP_SECRET", tenant_id) or wa_app_secret
+        if not secreto:
+            log.warning("whatsapp SIN app secret (tenant=%s): entrante rechazado 503", tenant_id)
+            return JSONResponse({"error": "app secret no configurado"}, status_code=503)
+        cuerpo = await request.body()
+        esperada = "sha256=" + hmac.new(secreto.encode(), cuerpo, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(request.headers.get("x-hub-signature-256", ""), esperada):
+            log.warning("whatsapp firma inválida/ausente (tenant=%s): 403", tenant_id)
+            return JSONResponse({"error": "firma inválida"}, status_code=403)
         try:
-            payload = await request.json()
+            payload = json.loads(cuerpo)
         except (json.JSONDecodeError, ValueError):
             return JSONResponse({"error": "JSON inválido"}, status_code=400)
         # Estructura Cloud API: entry[].changes[].value.messages[] (+ contacts[]).

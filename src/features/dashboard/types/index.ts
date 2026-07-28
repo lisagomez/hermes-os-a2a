@@ -257,6 +257,7 @@ export type EtapaEmbudo = z.infer<typeof etapaEmbudoSchema>
 export const conversacionResumenSchema = z.object({
   estado: z.string(), // abierta | escalada | cerrada (check en BD)
   nivel: z.string(), // A0..A3 (check en BD)
+  canal: z.string(), // telegram | whatsapp (de crm_contactos; dominio abierto)
   cuenta: z.number().int().nonnegative(),
 })
 export type ConversacionResumen = z.infer<typeof conversacionResumenSchema>
@@ -267,7 +268,8 @@ export const ETAPAS_MOVIBLES = [...ETAPAS_EMBUDO, 'perdido'] as const
 
 export const leadResumenSchema = z.object({
   lead_id: z.string(),
-  origen: z.string(), // a2a | manual | slack | web2 (check en BD)
+  origen: z.string(), // a2a | manual | slack | web2 | crm | copilot (check en BD)
+  canal: z.string(), // telegram | whatsapp | '' (dominio abierto, sin enum)
   empresa: z.string().nullable(),
   contacto: z.string().nullable(),
   etapa: z.string(),

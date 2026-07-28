@@ -13,8 +13,16 @@ Primer servicio de la línea CRM conversacional del blueprint
   canales jsonb) arma el system prompt por tenant; tokens de canal por env
   (`CRM_TELEGRAM_TOKEN__<TENANT>` / `CRM_WHATSAPP_TOKEN__<TENANT>`), jamás en BD.
 - **Canales**: webhook Telegram (header secret-token) + WhatsApp Cloud API
-  (GET verify + POST mensajes). Saliente sin token → `enviado=false` en bitácora
-  (visible, jamás silencioso).
+  (GET verify + POST mensajes **con firma `X-Hub-Signature-256` obligatoria**
+  desde 2026-07-28: app secret por tenant `CRM_WHATSAPP_APP_SECRET__<TENANT>`
+  con fallback global `CRM_WHATSAPP_APP_SECRET`; FAIL-CLOSED — sin secret el
+  POST responde 503, firma mala 403). Saliente sin token → `enviado=false` en
+  bitácora (visible, jamás silencioso).
+- **Puente a adquisición (2026-07-28)**: el PRIMER mensaje de un contacto crea
+  un lead en `public.leads` con `origen='crm'`, `canal` y `telefono` (wa_id) —
+  `crm-canales/leads.py`, único escritor del origen `crm`, insert
+  `ignore-duplicates` (los mensajes siguientes NO tocan la etapa que ya movió
+  el funnel). Prerequisito BD: `supabase-fase12-leads-crm.sql`.
 - **Techo estructural (plan D-40)** en código: dinero/legal/"hablar con una
   persona" escalan a humano ANTES del modelo (`prompt.requiere_humano`);
   conversación pasa a `escalada`.
@@ -36,9 +44,22 @@ Cloud API (contacto con wa_id + nombre de profile) · escalado a humano
    (`CRM_TELEGRAM_TOKEN__<TENANT>`) → `setWebhook` a
    `https://<edge>/crm/webhook/telegram/<tenant>` con `secret_token` =
    `CRM_TELEGRAM_WEBHOOK_SECRET` → restart del servicio.
-2. WhatsApp: número en Meta Business + token Cloud API → env + `phone_id` en
-   `crm_tenants.canales.whatsapp` → registrar webhook en Meta apuntando a
-   `/crm/webhook/whatsapp/<tenant>` con `CRM_WHATSAPP_VERIFY_TOKEN`.
+2. WhatsApp (Cloud API directa de Meta — P-01 dictaminado 2026-07-28: sin BSP):
+   a. Meta Business verificado + app con caso de uso "Connect with customers
+      through WhatsApp" + número (el `phone_number_id` de 15-17 dígitos NO es
+      el teléfono).
+   b. Token **PERMANENTE de System User** (Business Manager → System users →
+      rol Admin; permisos `business_management` + `whatsapp_business_messaging`
+      + `whatsapp_business_management`; expiración **Never**). JAMÁS el token
+      de 24h del dashboard: expira y el canal muere en silencio (error 190).
+      Verificar credenciales por FORMATO sin imprimirlas (token `EAA…` 100+
+      chars; app secret 32 hex).
+   c. Al `.env` del server: `CRM_WHATSAPP_TOKEN__<TENANT>` + app secret
+      (`CRM_WHATSAPP_APP_SECRET` o `…__<TENANT>`) → `phone_id` en
+      `crm_tenants.canales.whatsapp` → webhook en Meta a
+      `/crm/webhook/whatsapp/<tenant>` con `CRM_WHATSAPP_VERIFY_TOKEN` y
+      **suscripción al campo `messages`** (sin eso Meta nunca entrega mensajes
+      y no hay error en ningún lado) → restart del servicio.
 
 ## CRM-1 — sup-crm VIVO (2026-07-21, PR #107)
 

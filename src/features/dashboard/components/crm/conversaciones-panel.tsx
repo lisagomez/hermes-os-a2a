@@ -35,8 +35,10 @@ export function ConversacionesPanel({
   }
 
   const porEstado = new Map<string, number>()
+  const porCanal = new Map<string, number>()
   for (const c of conversaciones) {
     porEstado.set(c.estado, (porEstado.get(c.estado) ?? 0) + c.cuenta)
+    porCanal.set(c.canal, (porCanal.get(c.canal) ?? 0) + c.cuenta)
   }
 
   return (
@@ -56,6 +58,10 @@ export function ConversacionesPanel({
         })}
       </ul>
       <p className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-500">
+        Por canal:{' '}
+        {[...porCanal.entries()].map(([canal, cuenta]) => `${canal}: ${cuenta}`).join(' · ')}
+      </p>
+      <p className="mt-1 text-xs text-slate-500">
         Por nivel:{' '}
         {conversaciones
           .map((c) => `${c.estado} ${c.nivel}: ${c.cuenta}`)

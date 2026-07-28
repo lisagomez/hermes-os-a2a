@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY prompt.py motor.py store.py canales.py sup.py app.py ./
+COPY prompt.py motor.py store.py canales.py sup.py leads.py app.py ./
 
 EXPOSE 4600
 

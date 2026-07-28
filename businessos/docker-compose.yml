@@ -332,6 +332,10 @@ services:
       - CRM_MODELO=${CRM_MODELO:-google/gemini-2.5-flash-lite}
       - CRM_TELEGRAM_WEBHOOK_SECRET=${CRM_TELEGRAM_WEBHOOK_SECRET}
       - CRM_WHATSAPP_VERIFY_TOKEN=${CRM_WHATSAPP_VERIFY_TOKEN}
+      # App secret de la app de Meta: firma X-Hub-Signature-256 del webhook.
+      # FAIL-CLOSED: sin el, todo POST de WhatsApp responde 503 (a proposito).
+      # Por-tenant opcional: CRM_WHATSAPP_APP_SECRET__<TENANT> le gana al global.
+      - CRM_WHATSAPP_APP_SECRET=${CRM_WHATSAPP_APP_SECRET:-}
       # Tokens por tenant (marca blanca): CRM_TELEGRAM_TOKEN__<TENANT> /
       # CRM_WHATSAPP_TOKEN__<TENANT>. Se agregan al .env al dar de alta el
       # tenant; sin token el saliente queda en bitacora con enviado=false.
