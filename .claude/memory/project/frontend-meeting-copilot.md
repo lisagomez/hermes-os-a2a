@@ -5,8 +5,16 @@
 cuenta dueña, motor LLM ACTIVO con `OPENROUTER_API_KEY` + `NEXT_PUBLIC_AGENT_ENGINE=llm` en
 producción; smoke completo de las 14 rutas + API con respuesta real del modelo). Runbook:
 `businessos/frontends/DEPLOY-meeting-copilot.md` — la app es self-contained (sin
-design-system `file:`), upload root = el dir de la app; sin auth por ahora (solo mocks, cero
-datos de negocio — re-evaluar al conectar Supabase). Verificado en dev:
+design-system `file:`), upload root = el dir de la app. **AUTH ACTIVA desde 2026-07-28
+(PR #183)**: magic link + allowlist fail-closed (patrón Mission Control) sobre toda ruta
+incl. `/api/asesor/*`; mismo Supabase A2ABot, `PANEL_ALLOWED_EMAILS` = los 5 del equipo,
+`NEXT_PUBLIC_SITE_URL` + entrada en el `uri_allow_list` de Supabase. Dev local mock-first
+= `AUTH_DISABLED=1` en `.env.local` (el smoke Playwright lo fija en su webServer); gate de
+acceso extraído puro en `src/shared/lib/auth/acceso.ts` (testeado sin navegador).
+Verificado en prod con sesión mintada por admin API y revocada (doctrina 2026-07-25).
+Gotcha de esa verificación: `vercel env pull` devuelve PLACEHOLDER (11 chars) para vars
+marcadas sensitive → las keys reales salen de la management API
+(`GET /v1/projects/{ref}/api-keys?reveal=true`). Verificado en dev:
 42 unit tests + smoke Playwright 12/12 + typecheck/lint/build. Spec en
 `businessos/frontends/meeting-copilot/SPEC.md`; aprendizajes en el PRP `prp-meeting-copilot.md`.
 Incluye post-MVP por dogfood real de Victor: sección Grabación (MediaRecorder + bitácora con

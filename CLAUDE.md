@@ -1107,7 +1107,12 @@ npm run lint         # ESLint
   lambdas (mina de 2026-07-17 confirmada: borrarlo entre `link` y `deploy`); (3) el
   rate-limit de correos de Supabase (`rate_limit_email_sent`, **2/hora por proyecto**) no
   se puede subir sin SMTP propio: la management API responde `401 Custom SMTP required`
-  (y un PATCH que mezcle campos permitidos con ese muere entero → patchear por separado).
+  (y un PATCH que mezcle campos permitidos con ese muere entero → patchear por separado);
+  (4) `vercel env pull` escribe un PLACEHOLDER (~11 chars) para las vars marcadas
+  *sensitive* (p. ej. `SUPABASE_SERVICE_ROLE_KEY`) SIN error — validar formato/largo antes
+  de usar; las keys reales salen de la management API de Supabase
+  (`GET /v1/projects/{ref}/api-keys?reveal=true`), no del pull. (Visto 2026-07-28 al
+  replicar el patrón en meeting-copilot.)
 - **Aplicar en**: todo deploy de una superficie con auth (Vercel u otra) y toda config de
   auth por management API. Detalle: `businessos/DEPLOY-mission-control.md` §3.
 
