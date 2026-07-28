@@ -44,6 +44,29 @@ menor que el coste del error que evita (o que el contexto que ahorra)?** Si no, 
 
 ## 2. Ruteo: por **blast radius**, no por "% de confianza"
 
+> ### Capa 1 — EXCLUSIÓN primero, y manda (doctrina 2026-07-28, origen PR #170)
+> El ruteo tiene capas y la de exclusión va ANTES de comparar capacidad o precio:
+> **"¿qué modelo está PROHIBIDO para este dato o dominio?"** (fail-closed), y solo
+> después "¿cuál es el mejor?". Un descalificador NO se compensa con capacidad.
+> Descalificadores vigentes:
+> - **Dato sensible o de terceros** (corpus privados, credenciales, código de
+>   cliente) → fuera modelos con retención forzosa sin ZDR (hoy: Fable 5/clase
+>   Mythos, 30 días) y proveedores externos sin acuerdo de datos (p. ej. código
+>   de un cliente white-label NO va a z.ai/GLM sin su consentimiento).
+> - **Dominio seguridad/cyber/bio** → fuera modelos cuyos clasificadores
+>   re-rutean la petición a otro modelo (en subagentes esa señal no aflora).
+>   Hoy: Fable 5 (§3 de la variante fable).
+> - **Unidad crítica de disponibilidad** → pondera historial regulatorio
+>   (Fable 5: apagado global ~19 días, jun-2026, orden BIS).
+>
+> **Cómo se alinea con el resto de la fábrica**: la Fase 1 (eficiencia de
+> tokens) es la capa 3 — su ruteo por costo/caché (probe de caché+tools antes
+> de cablear) optimiza SOLO entre modelos ya permitidos. En el enjambre, el
+> mapa `PLANNER_RUTEO_MODELOS` (dificultad→modelo) es capa 2: sus VALORES los
+> escribe un humano que ya aplicó la capa 1 (y el coordinador rechaza al
+> arrancar un mapa con modelo prohibido — config inválida, no fallo en vuelo);
+> la IA solo propone la clase, nunca el modelo.
+
 Un agente **no mide bien su propia confianza** (sesgo de competencia → subdelega lo delicado). Enruta por
 el **radio de impacto** del cambio, que sí es observable (blast radius contenido).
 

@@ -63,6 +63,14 @@ PROMPT_SISTEMA = (
 DIFICULTADES = ("mecanica", "estandar", "delicada")
 ENV_RUTEO = "PLANNER_RUTEO_MODELOS"
 
+# Capa de EXCLUSIÓN del ruteo (doctrina 2026-07-28, orquestar-agentes §2): el mapa
+# es la capa de CAPACIDAD; sus valores deben venir ya filtrados por "¿qué modelo
+# está PROHIBIDO para este dato/dominio?". Fable/Mythos nunca es válido para el
+# motor del trío: retención 30d sin ZDR (el worktree lleva código que puede ser
+# de terceros) y clasificadores que re-rutean en silencio. Un mapa que lo nombre
+# es config inválida y el servicio NO arranca (mismo patrón que un gate sin runner).
+MODELOS_PROHIBIDOS_TRIO = ("fable", "mythos")
+
 
 def mapa_ruteo_de_env(crudo: str | None = None) -> dict[str, str]:
     """Parsea el mapa dificultad→modelo. Malformado = config invalida = NO arranca."""
@@ -77,6 +85,12 @@ def mapa_ruteo_de_env(crudo: str | None = None) -> dict[str, str]:
             raise PlannerError(
                 f"{ENV_RUTEO} malformado en {par!r}: se espera "
                 "'mecanica|estandar|delicada=<modelo>' separado por comas"
+            )
+        if any(p in modelo.lower() for p in MODELOS_PROHIBIDOS_TRIO):
+            raise PlannerError(
+                f"{ENV_RUTEO}: {modelo!r} esta en la capa de exclusion del trio "
+                "(retencion sin ZDR / clasificadores que re-rutean) — un "
+                "descalificador no se compensa con capacidad"
             )
         mapa[clave] = modelo
     return mapa
