@@ -56,8 +56,13 @@ verificadas.
   con motivo obligatorio, tiempo-en-revisión como métrica de fatiga.
 - 440 tests python + 35 MC verdes; imagen del Ejecutor reconstruida (gate).
 
-**Pendiente**: firma de auditoría de escrow-v1 por la dueña (sin firma NO hay
-fabricación real); Fase 6 (e2e real: los runners de red efímera y lifecycle
+**Firma de auditoría de escrow-v1: HECHA** (Elisa Gómez Quäly, 2026-07-28, sesión
+guiada: gates frescos en el toolchain del juez + sha256 repo↔imagen idéntico;
+riesgo #1 —`entregado` sin contra-jugada del vendedor— ACEPTADO para v1 con
+mitigación fuera de cadena; disputa desde `entregado` = alcance escrow-v2).
+La fabricación real queda desbloqueada.
+
+**Pendiente**: Fase 6 (e2e real: los runners de red efímera y lifecycle
 contra una red Fabric VIVA — nodo sandbox con fabric-samples + ceremonia de
 llaves tier 1 + skill de encargo patrón trio-software); todo el PRP-014
 (pm-a2a). Gotchas nuevos en el PRP (aprendizajes 2026-07-27).

@@ -101,8 +101,9 @@ línea CRM arrancó. En corto:
   conversacional → plantilla **auditada** parametrizada (jamás código libre) →
   gates fabric del Supervisor → gate de **red efímera** → aprobación humana en
   `/contratos` → despliegue lifecycle con **doble firma** (Operadora+Testigo) y
-  re-verificación de hash (G5). Fases 1–5 en dev y runtime; falta la firma de
-  auditoría de escrow-v1 y el nodo sandbox (Fase 6). El PM/oráculo es la Fase 13.
+  re-verificación de hash (G5). Fases 1–5 en dev y runtime; plantilla escrow-v1
+  **auditada y firmada** (2026-07-28) — falta el nodo sandbox y la ceremonia de
+  llaves (Fase 6). El PM/oráculo es la Fase 13.
 - **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido.

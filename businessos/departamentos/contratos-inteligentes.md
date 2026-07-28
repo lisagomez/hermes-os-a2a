@@ -49,7 +49,7 @@ fabricación + fee recurrente de operación (Polar).
 | Evolucionar un contrato en operación (spec v(n+1)) | Ciclo SDD completo de vuelta + `--sequence`+1 (PRP-014 §evolución) |
 
 **Catálogo de plantillas** (crece SOLO con auditoría humana firmada):
-1. `escrow-v1` — depósito en garantía con árbitro. **Código hecho; auditoría SIN firmar.**
+1. `escrow-v1` — depósito en garantía con árbitro. ✅ **Auditada y FIRMADA** (Elisa, 2026-07-28; riesgo #1 aceptado para v1 — acta en README-auditoria).
 2. `escrow-v2` — + oráculo acotado, vencimientos, acción por defecto (PRP-014).
 3. `registro-agentes-v1` — identidad/reputación/validación de agentes, espejo
    permisionado de ERC-8004 (adenda web agéntica §3).
@@ -108,8 +108,8 @@ Reglas propias del dominio (además de los gates):
 
 ## Qué falta para operar (en orden)
 
-1. **Firma de auditoría de escrow-v1** por la dueña (línea por línea, una vez) —
-   sin firma no hay fabricación real.
+1. ~~Firma de auditoría de escrow-v1~~ ✅ (Elisa, 2026-07-28 — acta con riesgo #1
+   aceptado para v1; la fabricación real queda DESBLOQUEADA).
 2. ~~Fases 3-5 del PRP-013~~ ✅ (Engine 07-20; gates fabric 07-20; aprobación+
    despliegue 07-27). Queda la Fase 6 (e2e real: Telegram → contrato vivo).
 3. ~~Alta del departamento~~ ✅ (2026-07-20). Skill de encargo (patrón
