@@ -361,6 +361,16 @@ exige la red tier 1 viva — es parte de la Fase 6 en el nodo sandbox.
 
 > Crece durante la implementación. El mismo error nunca ocurre dos veces.
 
+- **2026-07-28 (sandbox)**: (1) el supuesto de COSTO de una decisión caduca — la
+  línea CX de Hetzner ($6.49) se agotó globalmente y el nodo fijo pasaba a
+  $22.99 (3.5×): verificar el precio VIVO antes de ejecutar una decisión vieja,
+  y si la base cambió, volver a preguntar (la dueña eligió efímero). (2) Un
+  recurso efímero exige DELETE VERIFICADO: el primer smoke dejó un huérfano
+  porque `servers delete --id` (sintaxis inventada) fallaba en silencio bajo
+  `>/dev/null || true` — la verificación post-borrado y el modo `status` son el
+  fusible, y todo delete imprime su resultado. (3) En el CLI impreso de hcloud
+  los recursos van top-level y `delete` es posicional.
+
 - **2026-07-27 (Fase 5)**: (1) una heurística de "cláusula sospechosa" que marca
   la prerrogativa acotada del árbitro (resolver CON regla de plazo) es ruido que
   diluye la señal G4 — "condición unilateral" exige poder SIN condición: salidas

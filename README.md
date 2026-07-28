@@ -102,8 +102,10 @@ línea CRM arrancó. En corto:
   gates fabric del Supervisor → gate de **red efímera** → aprobación humana en
   `/contratos` → despliegue lifecycle con **doble firma** (Operadora+Testigo) y
   re-verificación de hash (G5). Fases 1–5 en dev y runtime; plantilla escrow-v1
-  **auditada y firmada** (2026-07-28) — falta el nodo sandbox y la ceremonia de
-  llaves (Fase 6). El PM/oráculo es la Fase 13.
+  **auditada y firmada** (2026-07-28); gate de red efímera con **sandbox
+  Hetzner EFÍMERO** (se crea, corre y destruye por corrida, ~$0.04 — smoke
+  verde). Falta la ceremonia de llaves tier 1 y el e2e (Fase 6). El PM/oráculo
+  es la Fase 13.
 - **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido.

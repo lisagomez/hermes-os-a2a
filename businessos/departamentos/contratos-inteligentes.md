@@ -86,9 +86,11 @@ Reglas propias del dominio (además de los gates):
 
 ## Topología de red por tier (resumen; detalle en arquitectura-red-fabric.md)
 
-- **Tier Gate**: red efímera del Supervisor (test-network, cryptogen OK, muere con el
-  test). En **nodo Hetzner aparte** (decisión 2026-07-19) — sus picos de 2-3 GB no
-  compiten con la cola ni con la red estable.
+- **Tier Gate**: red efímera (test-network, muere con el test). En nodo Hetzner
+  aparte y **EFÍMERO** (decisión 2026-07-19, ajustada 2026-07-28 al agotarse la
+  línea CX: el nodo se crea/corre/destruye por corrida con
+  `fabrica-sc/sandbox-efimero.sh`, ~$0.04 y ~2 min por ciclo; cero costo fijo,
+  cero competencia de RAM con el cx33).
 - **Tier 1**: SaaS compartido, canal por cliente. Org-Operadora + **Org-Testigo**
   (llaves separadas de verdad — la ceremonia lo garantiza); honestidad comercial: el
   valor es el ledger auditable + operación del PM, no descentralización.
@@ -114,8 +116,8 @@ Reglas propias del dominio (además de los gates):
    despliegue 07-27). Queda la Fase 6 (e2e real: Telegram → contrato vivo).
 3. ~~Alta del departamento~~ ✅ (2026-07-20). Skill de encargo (patrón
    `trio-software`) pendiente de la Fase 6.
-4. Nodo Hetzner del sandbox (fabric-samples para `verificar-red-efimera.py`) +
-   ceremonia de llaves de la red tier 1 (`CEREMONIA.md`, 2-3 h, con acta).
+4. ~~Nodo Hetzner del sandbox~~ ✅ efímero operativo (2026-07-28, smoke verde).
+   Queda la ceremonia de llaves de la red tier 1 (`CEREMONIA.md`, 2-3 h, con acta).
 5. PRP-014 completo (pm-a2a).
 
 ## Anti-patrones del departamento

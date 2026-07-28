@@ -69,3 +69,15 @@ llaves tier 1 + skill de encargo patrón trio-software); todo el PRP-014
 
 Detalle completo del gotcha de Dockerfiles/imports y la verificación del toolchain: el
 propio PRP (`prp-fase12-fabrica-sc.md`, sección Aprendizajes, entrada 2026-07-20).
+
+**Sandbox EFÍMERO (2026-07-28)**: la línea CX ($6.49/mes) se agotó en toda la
+nube Hetzner (solo CPX/CCX a 3.5×) → decisión de Elisa: nada de nodo fijo a
+$22.99/mes; `fabrica-sc/sandbox-efimero.sh` crea un cpx22 (nbg1) con cloud-init
+(docker + Go 1.24.5 checksum-pineado + Fabric 2.5.9), corre el gate y lo
+DESTRUYE con verificación en vivo (trap EXIT + modo `status` para huérfanos).
+Smoke verde: ciclo completo ~2 min, cloud-init 1:35, ~$0.04/corrida. Gotchas
+del CLI impreso hcloud: recursos top-level (`servers list`, NO `api servers
+list`), `delete` POSICIONAL (`delete <id>` — `--id` falla), y el primer
+huérfano sobrevivió porque el delete estaba silenciado con `>/dev/null || true`
+(reincidencia del 2026-07-13: todo best-effort imprime; la verificación de
+borrado lo cazó). El HCLOUD_TOKEN vive SOLO en dev; jamás viaja al sandbox.
