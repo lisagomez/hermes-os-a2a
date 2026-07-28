@@ -57,6 +57,14 @@ Construye este JSON (el contrato exige TODOS estos campos):
     inventario del ERP con su costo real. Es vendible lo que un cliente podría comprar
     o licenciar: features de producto, componentes white-label, packs, integraciones
     reutilizables. NO es vendible un fix interno, un ajuste de config o mantenimiento.
+  - **Regla dura de MARCA BLANCA**: si la feature es para un cliente white-label
+    (repo de un tercero, o componente que se instancia por cliente), `vendible: true`
+    NO es juicio tuyo — es **obligatorio, siempre**. Es la vía por la que el control
+    de inventario registra cada feature de marca blanca como ACTIVO DIGITAL con su
+    esquema de costeo (`erp.act_activo` + `act_costo`, tokens reales de
+    `token_usage.task_id`); además el entregable se asienta en el ledger del cliente
+    (`activos-clientes/<slug>/activos.jsonl`). Doctrina:
+    `departamentos/white-label.md` §5.
   - `eje_dei`: cómo nace — `desarrollo` (beneficio económico identificable; lo normal
     en features vendibles), `investigacion` (spike/exploración sin beneficio aún → va
     a GASTO por NIF C-8), `operacion` (default; trabajo operativo, no fabrica activos).
