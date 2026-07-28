@@ -320,8 +320,22 @@ spec) NO corre en el contenedor del Supervisor por diseño (sin socket Docker, a
 del juez) — es el host-job `verificar-red-efimera.py` de la Fase 5, antes de la aprobación
 humana. Ese gate sigue pendiente.
 
-### Fase 5: Aprobación humana + despliegue lifecycle
-**Objetivo**: paquete de revisión en Mission Control (banderas G1 arriba);
+### Fase 5: Aprobación humana + despliegue lifecycle — ✅ HECHA en dev (2026-07-27); runners contra red real = Fase 6
+**Construido**: `supabase-fase12-contratos-sc.sql` (APLICADA a producción; un
+escritor por transición: Ejecutor crea `fabricando` → red efímera pasa a
+`en_revision` → humana decide → host-job despliega; lineage `origen`);
+`fabrica-sc/banderas.py` (G1 ejecutable: plazo sospechoso, concentración de
+poder, condición unilateral — la escrow canónica levanta 2 A PROPÓSITO);
+`ejecutor-a2a/contratos_sc.py` (registro best-effort LOGUEADO desde
+`fabric_engine`); `fabrica-sc/integridad.py` (espejo de la fórmula del
+manifest, compartido por ambos host-jobs); `fabrica-sc/verificar-red-efimera.py`
+(plan puro: CADA transición sobre instancia fresca + negativos solo con
+credencial que de verdad no autoriza; runner fabric-samples pluggable);
+`fabrica-sc/desplegar-chaincode.py` (G5 + doble firma op/tg + secuencia de la
+fila + WHERE estado=aprobado también en el PATCH); vista `/contratos` en
+Mission Control (banderas ARRIBA, renglón O1, decisión con sesión autenticada,
+tiempo-en-revisión como métrica G4). 35 tests nuevos.
+**Objetivo original**: paquete de revisión en Mission Control (banderas G1 arriba);
 `desplegar-chaincode.py` operando solo sobre `aprobada`, firmando con
 `admin-despliegue-op` y exigiendo la 2ª firma del admin Testigo (ceremonia registrada
 en `contratos_sc`); **G5**: re-verificar el sha256 del paquete APROBADO justo antes de
@@ -330,6 +344,8 @@ en `contratos_sc`); **G5**: re-verificar el sha256 del paquete APROBADO justo an
 **Validación**: intento de desplegar una fila NO aprobada → rechazo del host-job;
 paquete con hash distinto al aprobado → rechazo; flujo aprobado → chaincode `commit`
 en el canal y consultable con `peer lifecycle chaincode querycommitted`.
+→ Las dos primeras FIJADAS en tests (runner espía); la tercera (commit real)
+exige la red tier 1 viva — es parte de la Fase 6 en el nodo sandbox.
 
 ### Fase 6: Validación Final (end-to-end real)
 **Objetivo**: de un mensaje de Telegram a un contrato vivo en el canal de demo.
@@ -344,6 +360,23 @@ en el canal y consultable con `peer lifecycle chaincode querycommitted`.
 ## 🧠 Aprendizajes (Self-Annealing)
 
 > Crece durante la implementación. El mismo error nunca ocurre dos veces.
+
+- **2026-07-27 (Fase 5)**: (1) una heurística de "cláusula sospechosa" que marca
+  la prerrogativa acotada del árbitro (resolver CON regla de plazo) es ruido que
+  diluye la señal G4 — "condición unilateral" exige poder SIN condición: salidas
+  sin regla controladas por un solo rol; el par de banderas que la escrow
+  canónica sí levanta (comprador concentra desenlaces; `entregado` sin
+  contra-jugada) es un hallazgo REAL de la plantilla, y los tests lo fijan a
+  propósito para que nadie lo "arregle" en silencio. (2) Un caso negativo de la
+  red efímera solo vale si la credencial presentada de verdad NO autoriza: con
+  control por MSP, un rol del MISMO MSP que el autorizado "pasaría" el rechazo
+  por razones equivocadas — el plan lo omite y lo declara (`sin_negativo`).
+  (3) La regla `react-hooks/purity` de ESLint (Next 16) prohíbe `Date.now()` en
+  render de server components: para métricas por-request en páginas
+  force-dynamic, disable puntual documentado en la línea inmediata (el
+  directive NO salta líneas de comentario). (4) Backticks en `git commit -m`
+  con comillas dobles ejecutan sustitución de comando y se comen palabras del
+  mensaje — mensajes multilínea SIEMPRE con `-F -` + heredoc quoted.
 
 - **2026-07-19 (integración)**: material redactado fuera del repo llegó numerado
   "Fase 8/PRP-008" cuando el repo ya iba por la Fase 11/PRP-012 — todo artefacto

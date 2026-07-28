@@ -20,7 +20,9 @@ import {
   type CrmVista,
   type EtapaEmbudo,
   verticalPantheonSchema,
+  contratoScSchema,
   type AiSpend,
+  type ContratosVista,
   type DesarrolloVista,
   type GrafoVista,
   type Pantheon,
@@ -269,4 +271,60 @@ export async function realDepartamentos(): Promise<string[]> {
       ...conTareas.map((d) => d.departamento),
     ]),
   ].sort()
+}
+
+export async function realContratos(): Promise<ContratosVista> {
+  // Ciclo de vida de smart contracts (contratos_sc, Fase 12 F5). Solo lectura;
+  // la única escritura humana es realDecidirContratoSc. `spec` no viaja a la
+  // UI (pesa y el paquete de revisión se arma con manifest+banderas).
+  return sb(
+    'contratos_sc?select=id,task_id,solicitante,plantilla,canal_destino,estado,' +
+      'secuencia,hash_paquete,banderas,manifest,red_efimera,en_revision_desde,' +
+      'aprobado_por,aprobado_en,motivo_rechazo,desplegado_en,created_at' +
+      '&order=created_at.desc&limit=20',
+    z.array(contratoScSchema)
+  )
+}
+
+export async function realDecidirContratoSc(
+  id: string,
+  decision: 'aprobado' | 'rechazado',
+  quien: string,
+  motivo?: string
+): Promise<void> {
+  // Decisión humana sobre el paquete de revisión (un escritor por transición:
+  // esta es LA transición de la dueña). El WHERE exige estado=en_revision: si
+  // la fila ya se movió (carrera con un host-job u otra pestaña), 0 filas
+  // afectadas → error visible, jamás un éxito silencioso sobre otro estado.
+  const url = process.env.SUPABASE_URL
+  if (!url) throw new Error('SUPABASE_URL ausente (fuente real)')
+  const cuerpo: Record<string, string> = {
+    estado: decision,
+    aprobado_por: quien,
+    aprobado_en: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  if (decision === 'rechazado') cuerpo.motivo_rechazo = motivo ?? 'sin motivo declarado'
+  const res = await fetch(
+    `${url.replace(/\/$/, '')}/rest/v1/contratos_sc?id=eq.${encodeURIComponent(id)}` +
+      '&estado=eq.en_revision',
+    {
+      method: 'PATCH',
+      headers: {
+        ...sbHeaders(),
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify(cuerpo),
+      cache: 'no-store',
+    }
+  )
+  if (!res.ok) throw new Error(`contratos_sc PATCH decision: HTTP ${res.status}`)
+  const filas = (await res.json()) as unknown[]
+  if (filas.length !== 1) {
+    throw new Error(
+      `contratos_sc PATCH decision: ${filas.length} filas afectadas para ${id} ` +
+        '(la fila ya no estaba en_revision)'
+    )
+  }
 }

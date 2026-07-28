@@ -41,7 +41,7 @@ COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
      ejecutor-a2a/estado.py ejecutor-a2a/supervisor_cliente.py \
      ejecutor-a2a/cola.py ejecutor-a2a/worker.py ejecutor-a2a/pipeline.py \
      ejecutor-a2a/presupuesto.py ejecutor-a2a/fabric_engine.py \
-     ejecutor-a2a/app.py ./
+     ejecutor-a2a/contratos_sc.py ejecutor-a2a/app.py ./
 
 # La fabrica de contratos inteligentes (Fase 3, PRP-013): FabricPaqueteEngine la
 # carga desde /app/fabrica-sc por defecto (env FABRICA_SC_DIR la override). Sin
@@ -51,7 +51,7 @@ COPY ejecutor-a2a/card.py ejecutor-a2a/executor.py ejecutor-a2a/engine.py \
 # OJO gotcha COPY multi-fuente: un directorio como fuente copia su CONTENIDO,
 # no el directorio → engine/ y plantillas/ quedaban aplanados y _cargar_fabrica()
 # no encontraba engine/fabrica.py (crash-loop, visto 2026-07-23). Una linea por dir.
-COPY fabrica-sc/contrato_sc.py ./fabrica-sc/
+COPY fabrica-sc/contrato_sc.py fabrica-sc/banderas.py ./fabrica-sc/
 COPY fabrica-sc/engine ./fabrica-sc/engine
 COPY fabrica-sc/plantillas ./fabrica-sc/plantillas
 

@@ -1,10 +1,12 @@
 import 'server-only'
-import type { AiSpend, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type { AiSpend, ContratosVista, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
 import { DEPARTAMENTOS_REGISTRADOS } from '../types'
-import { mockAiSpend, mockCrm, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
+import { mockAiSpend, mockContratos, mockCrm, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
 import {
   realAiSpend,
+  realContratos,
   realCrm,
+  realDecidirContratoSc,
   realDepartamentos,
   realMoverLeadEtapa,
   realDesarrollo,
@@ -27,6 +29,13 @@ export interface DataSource {
   departamentos(): Promise<string[]>
   crm(): Promise<CrmVista>
   moverLeadEtapa(leadId: string, etapa: string): Promise<void>
+  contratos(): Promise<ContratosVista>
+  decidirContratoSc(
+    id: string,
+    decision: 'aprobado' | 'rechazado',
+    quien: string,
+    motivo?: string
+  ): Promise<void>
 }
 
 const mockSource: DataSource = {
@@ -41,6 +50,8 @@ const mockSource: DataSource = {
   crm: async () => mockCrm,
   // En mock no hay dónde persistir: la acción es un no-op explícito.
   moverLeadEtapa: async () => {},
+  contratos: async () => mockContratos,
+  decidirContratoSc: async () => {},
 }
 
 const realSource: DataSource = {
@@ -51,6 +62,8 @@ const realSource: DataSource = {
   departamentos: realDepartamentos,
   crm: realCrm,
   moverLeadEtapa: realMoverLeadEtapa,
+  contratos: realContratos,
+  decidirContratoSc: realDecidirContratoSc,
 }
 
 export function getDataSource(): DataSource {

@@ -35,12 +35,32 @@ verificadas.
   supervisor-a2a, coordinador-a2a). `trio-contrato/contrato.py::DEPARTAMENTOS` ya
   incluye `contratos_inteligentes` (activado al cerrar Fase 4, como estaba previsto).
 
+**Fase 5 HECHA (2026-07-27, rama `feat/fase12-fase5-aprobacion-despliegue`)**:
+- `contratos_sc` APLICADA a producción. **Un escritor por transición**: Ejecutor
+  crea `fabricando` (con manifest, hash G5, banderas G1, lineage `origen`);
+  `verificar-red-efimera.py` → `en_revision`/`escalado`; la dueña decide en
+  Mission Control `/contratos`; `desplegar-chaincode.py` → `desplegado`.
+- Banderas G1 por fin EN CÓDIGO (`fabrica-sc/banderas.py`): plazo sospechoso,
+  concentración de poder, condición unilateral (= poder SIN regla; el resolver
+  del árbitro con plazo NO es bandera). La escrow canónica levanta 2 a
+  propósito — hallazgos reales de la plantilla, fijados en tests.
+- Gate de red efímera: plan PURO (cada transición sobre instancia fresca por
+  BFS + negativos solo con credencial que de verdad no autoriza + query de
+  estado tras cada transición) + runner fabric-samples pluggable. Specs con
+  MSPs fuera de Org1/Org2 → `no_ejecutable` → escala (nunca aparentar).
+- `desplegar-chaincode.py`: solo filas `aprobado` (guard también en el WHERE
+  del PATCH), G5 antes de package/install, doble firma op+tg (MAJORITY),
+  secuencia leída de la fila, aviso por `hermes send`.
+- `/contratos` en Mission Control: banderas ARRIBA (G4), renglón O1, decisión
+  con sesión autenticada (aprobado_por de la sesión, jamás del form), rechazo
+  con motivo obligatorio, tiempo-en-revisión como métrica de fatiga.
+- 440 tests python + 35 MC verdes; imagen del Ejecutor reconstruida (gate).
+
 **Pendiente**: firma de auditoría de escrow-v1 por la dueña (sin firma NO hay
-fabricación real, aunque el pipeline ya funciona técnicamente); Fase 5 (aprobación
-humana + `desplegar-chaincode.py` + host-job `verificar-red-efimera.py` — la red
-efímera de Fabric NO corre en el contenedor del Supervisor por diseño, sin socket
-Docker); Fase 6 (validación end-to-end real); todo el PRP-014 (pm-a2a); nodo Hetzner
-del sandbox; ceremonia de llaves; tabla `contratos_sc` en Supabase.
+fabricación real); Fase 6 (e2e real: los runners de red efímera y lifecycle
+contra una red Fabric VIVA — nodo sandbox con fabric-samples + ceremonia de
+llaves tier 1 + skill de encargo patrón trio-software); todo el PRP-014
+(pm-a2a). Gotchas nuevos en el PRP (aprendizajes 2026-07-27).
 
 Detalle completo del gotcha de Dockerfiles/imports y la verificación del toolchain: el
 propio PRP (`prp-fase12-fabrica-sc.md`, sección Aprendizajes, entrada 2026-07-20).

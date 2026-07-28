@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from contratos_sc import RegistroContratosSC
 from engine import EngineError
 
 PAQUETE_DIR = "paquete-sc"
@@ -40,18 +41,23 @@ def _cargar_fabrica():
     for p in (str(raiz), str(raiz / "engine")):
         if p not in sys.path:
             sys.path.insert(0, p)
-    import fabrica  # noqa: PLC0415 — modulo propio de la fabrica (sin homonimos)
+    import banderas  # noqa: PLC0415 — modulos propios de la fabrica (sin homonimos)
+    import contrato_sc  # noqa: PLC0415
+    import fabrica  # noqa: PLC0415
 
-    return fabrica
+    return fabrica, contrato_sc, banderas
 
 
 class FabricPaqueteEngine:
     """Engine determinista: sc_spec → paquete-sc/ dentro del worktree."""
 
-    def __init__(self) -> None:
-        fabrica = _cargar_fabrica()
+    def __init__(self, registro: RegistroContratosSC | None = None) -> None:
+        fabrica, contrato_sc, banderas = _cargar_fabrica()
         self._fabrica = fabrica
+        self._contrato_sc = contrato_sc
+        self._banderas = banderas
         self._engine = fabrica.FabricChaincodeEngine()
+        self._registro = registro if registro is not None else RegistroContratosSC()
 
     async def run(self, tarea: dict, worktree: Path) -> dict[str, Any]:
         spec = (tarea.get("contexto") or {}).get("sc_spec")
@@ -67,6 +73,13 @@ class FabricPaqueteEngine:
         except self._fabrica.EngineError as e:
             raise EngineError(f"la spec no encaja en la plantilla: {e}") from e
 
+        # Registro en contratos_sc (Fase 5): fila `fabricando` con banderas G1
+        # y lineage. Best-effort logueado — la fabricacion nunca depende de
+        # Supabase para operar (mismo contrato que estado.py).
+        normalizada = self._contrato_sc.validar_sc_spec(spec)
+        banderas = self._banderas.banderas_g1(normalizada)
+        await self._registro.registrar_fabricacion(tarea, manifest, banderas, normalizada)
+
         return {
             "artefactos": {
                 "engine": "fabric-determinista",
@@ -74,6 +87,7 @@ class FabricPaqueteEngine:
                 "paquete_sha256": manifest["paquete_sha256"],
                 "diff_lineas": len(manifest["diff"]),
                 "paquete_dir": PAQUETE_DIR,
+                "banderas_g1": len(banderas),
             },
             "notas": (
                 f"FabricChaincodeEngine: {manifest['nombre']} sobre "
