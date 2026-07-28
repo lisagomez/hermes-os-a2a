@@ -4,12 +4,14 @@
 > Ejecutor + (2) reglas de validación del Supervisor + (3) fuentes de conocimiento**.
 > Añadir un departamento = definir este paquete, no desplegar agentes nuevos.
 >
-> **Estado: FUNDADO (2026-07-19) — pipeline NO operativo todavía.** Las Fases 1-2 del
-> PRP-013 están construidas (contrato de la spec + plantilla escrow-v1); las Fases 3-6
-> (Engine, gates fabric, aprobación+despliegue) están pendientes. Por eso este
-> departamento **NO** está dado de alta en `trio-contrato/contrato.py::DEPARTAMENTOS`
-> ni tiene skill de runtime: no se activa lo que no puede correr. El alta ocurre al
-> cerrar la Fase 4 del PRP-013 (cuando el Supervisor tenga el perfil de gates fabric).
+> **Estado (2026-07-27): Fases 1-5 del PRP-013 construidas y verificadas en dev.**
+> El departamento está dado de alta en `trio-contrato/contrato.py::DEPARTAMENTOS`
+> (alta al cerrar Fase 4, 2026-07-20). El pipeline completo existe: spec → Engine
+> determinista → gates fabric del Supervisor → `contratos_sc` → gate de red efímera
+> (host-job) → aprobación humana en Mission Control (`/contratos`) → despliegue con
+> doble firma (host-job). **Aún NO opera contratos reales**: falta la firma de
+> auditoría de escrow-v1 (bloquea fabricación real), el nodo sandbox con
+> fabric-samples y la ceremonia de llaves tier 1 — todo converge en la Fase 6.
 
 ---
 
@@ -35,7 +37,8 @@ fabricación + fee recurrente de operación (Polar).
 | **Hermes Negocio** | Encarga y orquesta la fabricación (patrón skill `trio-software`: arma la tarea, la encola al trío, reporta acuse y estado). Reporta costo por `token_usage.task_id` | Escribir código; aprobar; tocar credenciales |
 | **Trío/enjambre** (Coordinador→Ejecutor→Supervisor) | Descompone, parametriza plantillas con `FabricChaincodeEngine`, re-gatea de cero con el perfil "fabric" | El Ejecutor no se auto-aprueba; el Supervisor no despliega; el Coordinador no genera código |
 | **La dueña** | Audita y FIRMA cada plantilla del catálogo una vez; aprueba cada contrato en Mission Control; oficia la ceremonia de llaves | Aprobar por fatiga: el paquete de revisión pone las banderas G1 arriba (anti-sello-de-goma G4) |
-| **Host-job `desplegar-chaincode.py`** (Fase 5, pendiente) | package → install → approveformyorg → commit, SOLO sobre filas `aprobada`, re-verificando el hash aprobado (G5) | Decidir; correr sobre filas no aprobadas |
+| **Host-job `verificar-red-efimera.py`** (Fase 5) | Antes de la aprobación: test network real, CADA transición con los roles declarados + negativos; `fabricando → en_revision` o `escalado` | Aprobar; correr en el contenedor del juez |
+| **Host-job `desplegar-chaincode.py`** (Fase 5) | package → install → approveformyorg (op **y** tg) → commit, SOLO sobre filas `aprobado`, re-verificando el hash aprobado (G5); `--sequence` leído de `contratos_sc` | Decidir; correr sobre filas no aprobadas |
 
 ## 1. Tareas que sabrá hacer el Ejecutor (cuando el pipeline esté vivo)
 
@@ -107,11 +110,12 @@ Reglas propias del dominio (además de los gates):
 
 1. **Firma de auditoría de escrow-v1** por la dueña (línea por línea, una vez) —
    sin firma no hay fabricación real.
-2. Fases 3-6 del PRP-013 (Engine → gates fabric → aprobación+despliegue → e2e).
-3. Alta del departamento en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill de
-   encargo (patrón `trio-software`) — SOLO al cerrar la Fase 4.
-4. Nodo Hetzner del sandbox + ceremonia de llaves de la red tier 1 (`CEREMONIA.md`,
-   2-3 h, con acta).
+2. ~~Fases 3-5 del PRP-013~~ ✅ (Engine 07-20; gates fabric 07-20; aprobación+
+   despliegue 07-27). Queda la Fase 6 (e2e real: Telegram → contrato vivo).
+3. ~~Alta del departamento~~ ✅ (2026-07-20). Skill de encargo (patrón
+   `trio-software`) pendiente de la Fase 6.
+4. Nodo Hetzner del sandbox (fabric-samples para `verificar-red-efimera.py`) +
+   ceremonia de llaves de la red tier 1 (`CEREMONIA.md`, 2-3 h, con acta).
 5. PRP-014 completo (pm-a2a).
 
 ## Anti-patrones del departamento
