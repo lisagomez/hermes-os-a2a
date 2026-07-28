@@ -12,12 +12,18 @@ Spec completa: [`SPEC.md`](./SPEC.md) · PRP: `.claude/PRPs/prp-meeting-copilot.
 ```bash
 cd businessos/frontends/meeting-copilot
 npm install
+echo "AUTH_DISABLED=1" > .env.local   # dev mock-first: salta la auth (fail-closed sin esto)
 npm run dev        # abre el puerto que indique la consola (auto)
 ```
 
 MVP 100% local: sin Supabase, sin API keys, cero tokens de LLM. Los datos demo (3 reuniones
 es-MX con arcos distintos: discovery bueno ~88, superficial ~35, demo con objeciones ~60)
 cargan solos.
+
+> **Auth (producción):** la app usa el patrón Mission Control — magic link + allowlist
+> fail-closed (`PANEL_ALLOWED_EMAILS`). Sin variables de Supabase y sin `AUTH_DISABLED=1`,
+> TODA ruta (incl. `/api/*`) redirige a `/login` y nadie entra. Ver `.env.example` y
+> `businessos/frontends/DEPLOY-meeting-copilot.md`.
 
 ## Flujo demo sugerido (2 minutos)
 

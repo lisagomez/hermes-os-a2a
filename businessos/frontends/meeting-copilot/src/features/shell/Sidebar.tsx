@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Home,
   LayoutGrid,
+  LogOut,
   MessagesSquare,
   Mic,
   Radar,
@@ -81,6 +82,16 @@ export function Sidebar() {
           {sidebarColapsado ? <ChevronsRight className="h-4 w-4 shrink-0" /> : <ChevronsLeft className="h-4 w-4 shrink-0" />}
           {!sidebarColapsado && <span>Colapsar</span>}
         </button>
+        {/* Solo cuando hay auth real (la var se inline-a al compilar): en dev
+            mock-first (AUTH_DISABLED=1, sin Supabase) el botón no aplica. */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL ? (
+          <form method="post" action="/auth/signout">
+            <button type="submit" className="nav-item w-full" title="Cerrar sesión">
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!sidebarColapsado && <span>Cerrar sesión</span>}
+            </button>
+          </form>
+        ) : null}
       </div>
     </aside>
   )

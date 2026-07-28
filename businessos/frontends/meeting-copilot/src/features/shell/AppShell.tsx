@@ -1,12 +1,18 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { CommandBar } from './CommandBar'
 import { LauncherPopover } from '@/features/launcher/LauncherPopover'
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+
+  // /login es pública y de pantalla completa: sin sidebar/topbar/launcher.
+  if (pathname === '/login') return <>{children}</>
+
   return (
     <div className="flex h-dvh overflow-hidden">
       <Sidebar />

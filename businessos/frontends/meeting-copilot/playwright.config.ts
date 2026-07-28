@@ -17,5 +17,9 @@ export default defineConfig({
     url: 'http://localhost:4321',
     timeout: 240_000,
     reuseExistingServer: true,
+    // El smoke valida la APP, no el candado: sin esto, toda ruta redirige a
+    // /login (fail-closed sin Supabase). El gate de auth se prueba en unit
+    // tests (acceso.test.ts) y en el smoke post-deploy de producción.
+    env: { AUTH_DISABLED: '1' },
   },
 })
