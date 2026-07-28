@@ -48,3 +48,9 @@ Reglas duras del flujo:
   PRs #49/#50 con autorización expresa, documentado como excepcional.
 - 2026-07-18: Elisa convierte el bypass en el flujo estándar del agente (autorización
   permanente); usado ese día para #57–#61, #55 y #56.
+- 2026-07-28: gotcha del procedimiento — el PATCH de
+  `required_pull_request_reviews` exige `required_approving_review_count` como
+  ENTERO: `gh api -f` lo manda como string y GitHub responde 422 ("is not an
+  integer") SIN aplicar nada. Usar `gh api -F`. Señal sana: si el primer PATCH
+  falla, la protección nunca llegó a bajarse (el merge también falla; no queda
+  ventana abierta).
