@@ -22,7 +22,10 @@ Primer servicio de la línea CRM conversacional del blueprint
   un lead en `public.leads` con `origen='crm'`, `canal` y `telefono` (wa_id) —
   `crm-canales/leads.py`, único escritor del origen `crm`, insert
   `ignore-duplicates` (los mensajes siguientes NO tocan la etapa que ya movió
-  el funnel). Prerequisito BD: `supabase-fase12-leads-crm.sql`.
+  el funnel). Prerequisito BD: `supabase-fase12-leads-crm.sql` — **APLICADA en
+  prod (Elisa, 2026-07-28)**. Imagen nueva verificada en runtime por smoke del
+  edge: POST sin firma → 503 fail-closed (esperado sin app secret; el E2E
+  firmado + lead se corre al conectar el primer tenant real).
 - **Techo estructural (plan D-40)** en código: dinero/legal/"hablar con una
   persona" escalan a humano ANTES del modelo (`prompt.requiere_humano`);
   conversación pasa a `escalada`.
