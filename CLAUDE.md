@@ -1307,5 +1307,8 @@ npm run lint         # ESLint
   sirve el dominio (title/contenido), no asumir un problema de auth o de usuario.
 - **Aplicar en**: los 3+ proyectos Vercel del repo (a2abot-mission-control, cliente-web2,
   meeting-copilot) y todo proyecto nuevo. Detalle: `DEPLOY-meeting-copilot.md` §1.
+- **Seguimiento (mismo día)**: la dueña pidió el auto-deploy en forma → Root Directory
+  fijado por API (`PATCH /v9/projects/{id}`, el CLI no tiene flag) ANTES de `vercel git
+  connect`; meeting-copilot ahora SÍ despliega por merge a master (runbook §1).
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

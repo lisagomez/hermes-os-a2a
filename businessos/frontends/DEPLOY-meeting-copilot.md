@@ -21,8 +21,13 @@ Todo desde `businessos/frontends/meeting-copilot/`, como cuenta dueña (`lisagom
    - `NEXT_PUBLIC_AGENT_ENGINE=llm` (build: los `NEXT_PUBLIC_*` se inline-an al compilar)
 5. `npx vercel deploy --prod` (47 s). Verificar con `npx vercel ls meeting-copilot`.
 
-El proyecto **NO está conectado a GitHub** (igual que cliente-web2): mergear a master NO
-despliega. Publicar cambios = repetir el paso 5 desde el directorio de la app.
+**Deploy por git (desde 2026-07-28, decisión de la dueña):** el proyecto está conectado a
+GitHub con **Root Directory = `businessos/frontends/meeting-copilot`** (fijado por API ANTES
+de conectar — ver incidente abajo). Publicar = **mergear a master** (el merge lo ejecuta la
+cuenta dueña → sin bloqueo Hobby). El deploy CLI del paso 5 sigue funcionando como fallback.
+Previews: cada push de rama genera uno; sin env vars de preview quedan **fail-closed**
+(todo redirige a `/login?error=config`) — esperado, no configurarles auth; los push de
+colaboradores pasan por el workflow `reauthor-tip-vercel.yml` (aprendizaje 2026-07-17).
 
 > ⚠️ **Incidente 2026-07-28 — conectar este proyecto a GitHub CLOBBEA producción.**
 > El proyecto amaneció conectado al repo (conexión hecha desde el dashboard, ventana
@@ -36,7 +41,9 @@ despliega. Publicar cambios = repetir el paso 5 desde el directorio de la app.
 > `vercel git disconnect` + `vercel deploy --prod` desde el dir de la app. Si algún día
 > se QUIERE auto-deploy por git, fijar ANTES Root Directory =
 > `businessos/frontends/meeting-copilot` (y recordar el bloqueo Hobby a deploys de
-> colaboradores, aprendizaje 2026-07-17).
+> colaboradores, aprendizaje 2026-07-17). **Hecho ese mismo día por decisión de la
+> dueña**: Root Directory fijado por API y repo reconectado — el estado vigente es el
+> del bloque "Deploy por git" de arriba.
 
 ## 2. Env vars
 
