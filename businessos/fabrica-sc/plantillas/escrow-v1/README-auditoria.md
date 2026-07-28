@@ -1,6 +1,8 @@
 # escrow-v1 — README de auditoría (PRP-013, Fase 2)
 
-> **Estado de auditoría**: PENDIENTE (firma de la dueña al pie tras revisión línea por línea)
+> **Estado de auditoría**: ✅ **FIRMADA** (2026-07-28, revisión guiada por secciones
+> con gates frescos: build/vet/test OK + gosec 0 issues/350 líneas sobre el toolchain
+> del juez, sha256 del artefacto idéntico repo↔imagen del Supervisor)
 > Esta plantilla es EL ACTIVO de la fábrica: el Engine parametriza, jamás reescribe.
 
 ## Qué es
@@ -80,4 +82,13 @@ de Org1 (`fabric-ca-client register/enroll` con `--id.attrs 'rol=arbitro:ecert'`
 
 ---
 
-**Firma de auditoría**: ____________________  **Fecha**: ____________
+## Acta de decisión de la auditoría (2026-07-28)
+
+La firmante ratifica las 4 decisiones de diseño auditables de arriba y, en
+particular, **ACEPTA para v1 el riesgo del hallazgo #1**: un depósito en
+`entregado` no tiene contra-jugada del vendedor (`AbrirDisputa` solo existe
+desde `fondeado`) — si el comprador no libera, el depósito queda en `entregado`;
+la mitigación es fuera de cadena (contrato-documento). Una disputa desde
+`entregado` es alcance de `escrow-v2`, no un parche a esta plantilla.
+
+**Firma de auditoría**: Elisa Gómez Quäly  **Fecha**: 2026-07-28
