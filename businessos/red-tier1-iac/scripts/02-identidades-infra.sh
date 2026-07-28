@@ -13,6 +13,14 @@ RAIZ="$PWD/organizaciones"
 TLS_CERT_TLS="$RAIZ/fabric-ca/ca-tls/tls-cert.pem"
 TLS_CERT_OP="$RAIZ/fabric-ca/ca-operadora/tls-cert.pem"
 TLS_CERT_TG="$RAIZ/fabric-ca/ca-testigo/tls-cert.pem"
+# RAICES de firma de cada CA (ca-cert.pem) — NO confundir con los tls-cert.pem
+# de arriba: esos son certs HOJA del servidor CA (solo para --tls.certfiles).
+# Meter una hoja como cacert del MSP rompe la cadena y el orderer PANIQUEA al
+# arrancar ("failed to traverse certificate verification chain") — lo cazó el
+# dry-run del 2026-07-28.
+CA_CERT_OP="$RAIZ/fabric-ca/ca-operadora/ca-cert.pem"
+CA_CERT_TG="$RAIZ/fabric-ca/ca-testigo/ca-cert.pem"
+CA_CERT_TLS="$RAIZ/fabric-ca/ca-tls/ca-cert.pem"
 
 # Escribe el config.yaml de NodeOUs en un MSP (clasifica certificados por OU:
 # admin/peer/orderer/client — sin esto las políticas 'OperadoraMSP.admin' no evalúan)
@@ -31,8 +39,12 @@ EOF
 registrar() { # $1 home-admin  $2 caname  $3 puerto  $4 tlscert  $5 id  $6 secreto  $7 tipo  $8 attrs(opcional)
   export FABRIC_CA_CLIENT_HOME="$1"
   local extra=(); [ -n "${8:-}" ] && extra=(--id.attrs "$8")
+  # --id.maxenrollments 1: el secreto es de UN SOLO USO de verdad (el default de
+  # la CA es ilimitado — sin esto, el paso 11 de CEREMONIA.md "el segundo enroll
+  # debe fallar" NO se cumple; lo cazó el dry-run del 2026-07-28).
   fabric-ca-client register --caname "$2" -u "https://localhost:$3" \
-    --tls.certfiles "$4" --id.name "$5" --id.secret "$6" --id.type "$7" "${extra[@]}"
+    --tls.certfiles "$4" --id.name "$5" --id.secret "$6" --id.type "$7" \
+    --id.maxenrollments 1 "${extra[@]}"
 }
 
 enrolar() { # $1 caname $2 puerto $3 tlscert $4 id $5 secreto $6 msp-destino $7 pem-ca
@@ -59,13 +71,13 @@ registrar "$H_TG" ca-testigo "$CA_TG_PORT" "$TLS_CERT_TG" admin-despliegue-tg "$
 
 echo ">> Enrolar identidades MSP (Máquina A)"
 enrolar ca-operadora "$CA_OP_PORT" "$TLS_CERT_OP" peer0-operadora "$S_PEER_OP" \
-  "$RAIZ/operadora/peer0/msp" "$TLS_CERT_OP"
+  "$RAIZ/operadora/peer0/msp" "$CA_CERT_OP"
 enrolar ca-operadora "$CA_OP_PORT" "$TLS_CERT_OP" orderer "$S_ORDERER" \
-  "$RAIZ/operadora/orderer/msp" "$TLS_CERT_OP"
+  "$RAIZ/operadora/orderer/msp" "$CA_CERT_OP"
 enrolar ca-operadora "$CA_OP_PORT" "$TLS_CERT_OP" admin-despliegue-op "$S_ADMIN_OP" \
-  "$RAIZ/operadora/usuarios/admin-despliegue-op/msp" "$TLS_CERT_OP"
+  "$RAIZ/operadora/usuarios/admin-despliegue-op/msp" "$CA_CERT_OP"
 enrolar ca-testigo "$CA_TG_PORT" "$TLS_CERT_TG" peer0-testigo "$S_PEER_TG" \
-  "$RAIZ/testigo/peer0/msp" "$TLS_CERT_TG"
+  "$RAIZ/testigo/peer0/msp" "$CA_CERT_TG"
 
 echo ">> TLS de nodos (contra ca-tls, con SANs correctos)"
 tls_nodo() { # $1 id $2 secreto $3 hosts $4 destino
@@ -85,9 +97,12 @@ tls_nodo tls-orderer   "$(openssl rand -hex 16)" "orderer,localhost"        "$RA
 
 echo ">> MSP de ORGANIZACIÓN (para configtx: cacerts + NodeOUs + tlscacerts)"
 for org in operadora testigo; do
-  case $org in operadora) PEM="$TLS_CERT_OP";; testigo) PEM="$TLS_CERT_TG";; esac
+  case $org in operadora) PEM="$CA_CERT_OP";; testigo) PEM="$CA_CERT_TG";; esac
   M="$RAIZ/$org/msp"; escribir_nodeous "$M" "$PEM"
-  mkdir -p "$M/tlscacerts"; cp "$TLS_CERT_TLS" "$M/tlscacerts/tlsca.pem"
+  # RAIZ de ca-tls (no su hoja): un cert sin atributo CA en tlscacerts hace que
+  # el orderer rechace el join block ("CA Certificate did not have the CA
+  # attribute") — hermano del fix de cacerts, dry-run 2026-07-28.
+  mkdir -p "$M/tlscacerts"; cp "$CA_CERT_TLS" "$M/tlscacerts/tlsca.pem"
 done
 
 cat <<EOF
@@ -99,9 +114,12 @@ tls-cert.pem de ca-testigo transferido por canal seguro). La llave privada
 de admin-despliegue-tg NACE en B y JAMÁS se copia a la Máquina A:
 
   export FABRIC_CA_CLIENT_HOME=\$HOME/testigo-admin
+  mkdir -p \$HOME/testigo-admin
+  # OJO: --tls.certfiles RELATIVO se resuelve contra FABRIC_CA_CLIENT_HOME, no
+  # contra el directorio actual (lo cazó el dry-run 2026-07-28) — usa path ABSOLUTO:
   fabric-ca-client enroll --caname ca-testigo \\
     -u "https://admin-despliegue-tg:${S_ADMIN_TG}@<IP-MAQUINA-A>:${CA_TG_PORT}" \\
-    --tls.certfiles ./tls-cert-ca-testigo.pem \\
+    --tls.certfiles /ruta/absoluta/a/tls-cert-ca-testigo.pem \\
     -M \$HOME/testigo-admin/msp
   # (después: escribir NodeOUs config.yaml igual que en la Máquina A)
 

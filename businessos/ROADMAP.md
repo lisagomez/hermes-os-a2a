@@ -755,7 +755,7 @@ Fabric a dos organizaciones (Operadora + **Testigo**, llaves separadas por cerem
 |---|---|
 | Contrato de la spec (`validar_sc_spec`) + suite | ✅ integrado, 23 tests verdes |
 | Plantilla escrow-v1 (Go + tests + README-auditoria) | ✅ **AUDITADA Y FIRMADA** (Elisa, 2026-07-28; riesgo #1 —`entregado` sin contra-jugada— aceptado para v1, acta en el README-auditoria). Desbloquea la fabricación real |
-| Kit IaC red tier 1 + ceremonia de llaves | ✅ escrito; NO probado contra Docker real |
+| Kit IaC red tier 1 + ceremonia de llaves | ✅ **VALIDADO contra Docker real en dry-run** (2026-07-28, nodo efímero): 01→05 verdes end-to-end — CAs, identidades, enroll Testigo remoto con secreto de UN uso verificado, canal en ambos peers (doble firma real), y simulacro de revocación con RECHAZO OBSERVADO + control positivo. 8 hallazgos corregidos en el kit (maxenrollments, atributos ABAC, hoja-como-raíz ×2, bootstrap none, core.yaml, tls.certfiles relativo, CRL al MSP local del peer). Falta solo la ceremonia REAL con la dueña |
 | `FabricChaincodeEngine` en el Ejecutor (`RouterEngine`: contratos_inteligentes NUNCA al LLM) | ✅ Fase 3 — verificado con Go real: build+vet+mod-verify+test(7/7)+gosec(0 issues) sobre un paquete recién fabricado |
 | Perfil de gates "fabric" en el Supervisor (4 estáticos + build/vet/gosec/deps/tests) | ✅ Fase 4 (lado Supervisor); **red efímera** queda para el host-job de la Fase 5 (sin socket Docker en el juez, por diseño) |
 | Alta en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill | ✅ activado al cerrar Fase 4 |

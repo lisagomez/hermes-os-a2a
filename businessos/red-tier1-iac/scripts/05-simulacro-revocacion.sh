@@ -28,6 +28,11 @@ fabric-ca-client gencrl --caname ca-operadora -u "https://localhost:${CA_OP_PORT
 echo ">> 3) Publicar la CRL en el MSP de la org (y del canal, vía config update si aplica)"
 mkdir -p "$RAIZ/operadora/msp/crls"
 cp "$FABRIC_CA_CLIENT_HOME/msp/crls/crl.pem" "$RAIZ/operadora/msp/crls/"
+# TAMBIEN al MSP LOCAL del peer: es el que el peer monta y recarga al reiniciar —
+# sin esto el rechazo jamas se observa (lo cazo el dry-run 2026-07-28). El MSP de
+# org de arriba alimenta configtx (nivel canal, via config update cuando aplique).
+mkdir -p "$RAIZ/operadora/peer0/msp/crls"
+cp "$FABRIC_CA_CLIENT_HOME/msp/crls/crl.pem" "$RAIZ/operadora/peer0/msp/crls/"
 echo "   CRL copiada. Reiniciar el peer Operadora para recargar MSP local:"
 echo "   docker restart peer-operadora"
 

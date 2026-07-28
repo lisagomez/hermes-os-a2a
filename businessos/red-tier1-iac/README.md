@@ -35,3 +35,14 @@ el admin Testigo → `05-simulacro-revocacion.sh` → acta firmada.
 - `listener-hermes` (solo lectura) para el listener de eventos.
 - CDC (gobernanza ciclo de vida): cambios a este kit = cambio de infraestructura
   con PRP y acta, como todo.
+
+## Estado de validación
+
+**VALIDADO en dry-run contra Docker real el 2026-07-28** (nodo Hetzner efímero,
+Fabric 2.5.9 / CA 1.5.12): secuencia 01→05 completa, enroll del Testigo desde
+"Máquina B" con secreto de un solo uso VERIFICADO (2º enroll falla), canal unido
+por ambos peers (la unión Testigo con el MSP nacido en B), y simulacro de
+revocación con rechazo OBSERVADO del peer + control positivo. Los 8 hallazgos
+del dry-run están corregidos en estos scripts (ver comentarios "dry-run
+2026-07-28" en cada fix). Pendiente: la ceremonia REAL (CEREMONIA.md) con
+custodia y acta.
