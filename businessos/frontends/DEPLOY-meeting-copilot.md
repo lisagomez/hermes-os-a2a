@@ -24,6 +24,20 @@ Todo desde `businessos/frontends/meeting-copilot/`, como cuenta dueña (`lisagom
 El proyecto **NO está conectado a GitHub** (igual que cliente-web2): mergear a master NO
 despliega. Publicar cambios = repetir el paso 5 desde el directorio de la app.
 
+> ⚠️ **Incidente 2026-07-28 — conectar este proyecto a GitHub CLOBBEA producción.**
+> El proyecto amaneció conectado al repo (conexión hecha desde el dashboard, ventana
+> ~13:11–13:55 UTC) con su Root Directory en `.` → cada merge a master construyó la app
+> de la RAÍZ del repo (Mission Control de infra) y la publicó ENCIMA del alias de
+> producción del copiloto: `meeting-copilot-pi.vercel.app` sirvió Mission Control y la
+> dueña "entraba a la página equivocada" con su sesión válida (misma cookie Supabase,
+> mismo dominio → ni login pidió). Señales para cazarlo: `vercel alias ls` con entradas
+> `meeting-copilot-git-<rama>-…` y `vercel ls` con deployments Production que nadie
+> lanzó por CLI; el `<title>` de `/login` delata qué app está sirviendo. Fix:
+> `vercel git disconnect` + `vercel deploy --prod` desde el dir de la app. Si algún día
+> se QUIERE auto-deploy por git, fijar ANTES Root Directory =
+> `businessos/frontends/meeting-copilot` (y recordar el bloqueo Hobby a deploys de
+> colaboradores, aprendizaje 2026-07-17).
+
 ## 2. Env vars
 
 | Var | Ámbito | Notas |
