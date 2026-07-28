@@ -1268,4 +1268,22 @@ npm run lint         # ESLint
   de DEV también, no solo donde "siempre ha funcionado": la diferencia de builder es señal,
   no ruido.
 
+### 2026-07-28: El ruteo de modelos tiene DOS capas y la de EXCLUSIÓN manda (fail-closed)
+- **Error**: elegir modelo comparando solo capacidad/precio. Dos casos reales: la unidad
+  G1 del PRP frontend (seguridad crítica, mueve valor) sellada a Fable contradiciendo la
+  doctrina del propio repo ("Fable NUNCA para seguridad/cyber ni datos sensibles"); y del
+  lado de Johann, un corpus de conversaciones privadas ruteado a Fable — ninguna
+  comparación de "quién escribe mejor" lo revela, porque el problema no es de capacidad.
+- **Fix (doctrina, origen PR #170)**: primero *"¿qué modelo está PROHIBIDO para este dato
+  o dominio?"* (retención sin ZDR, clasificadores que re-rutean en silencio, proveedor
+  externo sin acuerdo de datos del cliente, historial de disponibilidad); solo DESPUÉS
+  "¿cuál es el mejor/más barato?". Un descalificador no se compensa con capacidad ni con
+  caché. Orden completo: capa 1 exclusión → capa 2 capacidad/blast radius (orquestar-
+  agentes §2; en el enjambre, `PLANNER_RUTEO_MODELOS`) → capa 3 eficiencia (Fase 1:
+  probe caché+tools, el más barato que pase). Aplicado en código: el coordinador rechaza
+  AL ARRANCAR un mapa de ruteo que nombre `fable`/`mythos` (config inválida); el skill
+  `trio-software` fija la misma regla para el `modelo_pref` padre.
+- **Aplicar en**: todo ruteo — profiles Hermes, `modelo_pref` del trío/enjambre,
+  subagentes de sesión, y cada modelo/proveedor nuevo ANTES de su probe de eficiencia.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

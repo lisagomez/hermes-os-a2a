@@ -117,3 +117,15 @@ como fallback; pref propio de la sub-tarea gana; mapa malformado = no arranca. E
 `PLANNER_RUTEO_MODELOS=mecanica=<m>,delicada=<m>` en el .env del server + rebuild del
 coordinador (la env ya está en compose). Gate previo a usar un segundo modelo: su probe
 (hoy el único motor alterno cableado es GLM vía z.ai).
+
+## 2026-07-28: Capa de EXCLUSIÓN del ruteo (alineación con PR #170)
+El mapa `PLANNER_RUTEO_MODELOS` es la capa de CAPACIDAD (2); antes manda la de
+EXCLUSIÓN (1): "¿qué modelo está PROHIBIDO para este dato/dominio?" (fail-closed,
+doctrina en orquestar-agentes §2). Aplicado en código: `mapa_ruteo_de_env` rechaza
+al ARRANCAR un mapa que nombre `fable`/`mythos` (config inválida, mismo patrón que
+un gate sin runner) — retención 30d sin ZDR sobre worktrees que pueden llevar
+código de terceros + clasificadores que re-rutean en silencio. El skill
+`trio-software` fija la misma regla para el `modelo_pref` padre, incl. la
+variante por DATO: repos de clientes no van a proveedores externos (z.ai/GLM)
+sin acuerdo. La Fase 1 (probe caché+tools) queda como capa 3 (eficiencia): solo
+compara entre modelos ya permitidos.

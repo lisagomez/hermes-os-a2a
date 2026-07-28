@@ -297,6 +297,22 @@ def test_env_malformada_no_deja_arrancar_el_planner(monkeypatch):
         crear_planner("claude")
 
 
+@pytest.mark.parametrize("crudo", [
+    "delicada=fable", "estandar=claude-fable-5", "mecanica=Mythos-5",
+])
+def test_mapa_con_modelo_de_la_capa_de_exclusion_es_config_invalida(crudo):
+    """Capa 1 del ruteo (orquestar-agentes §2): un descalificador no se
+    compensa con capacidad — el mapa lo rechaza al ARRANCAR, no en vuelo."""
+    with pytest.raises(PlannerError, match="capa de exclusion"):
+        mapa_ruteo_de_env(crudo)
+
+
+def test_env_con_modelo_prohibido_no_deja_arrancar_el_planner(monkeypatch):
+    monkeypatch.setenv(ENV_RUTEO, "delicada=fable")
+    with pytest.raises(PlannerError, match="capa de exclusion"):
+        crear_planner("claude")
+
+
 def test_ruteo_estampa_modelo_pref_por_dificultad():
     rm = result_message(result=json.dumps(PLAN_CON_DIFICULTAD))
     planner = ClaudePlanner(

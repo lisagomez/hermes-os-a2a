@@ -156,3 +156,12 @@ del padre intacta como fallback).
 
 Pendiente menor: probe de Sonnet 5 para el profile `vision` (hoy sonnet-4.6; mismo tier de
 precio, uso raro) — correr probe antes de aplicar, como siempre.
+
+## 2026-07-28: El ruteo por costo es la ÚLTIMA capa, no la primera
+Alineación con la doctrina de exclusión (orquestar-agentes §2, origen PR #170):
+todo lo de esta fase — routing de profiles, probe de caché+tools, fallback
+chains — es la capa de EFICIENCIA, que compara SOLO entre modelos ya permitidos
+para ese dato/dominio. Antes de cablear un modelo nuevo por precio, la pregunta
+previa al probe es "¿está PROHIBIDO para lo que va a ver?" (retención/ZDR,
+clasificadores, proveedor externo vs dato de cliente). Un descalificador no se
+compensa con caché al 97%.

@@ -85,7 +85,12 @@ Un criterio que contradiga a cualquiera de ellos es una tarea imposible: no la m
   (le pasó a `mission-control-2026-0001` el 2026-07-12: trabajo bueno, tirado por el techo).
   Para un arreglo pequeño (un bug de una línea) 40 basta, pero **si dudas, 120**.
 - `limites.presupuesto_usd`: **5** para una feature (1.5 no alcanza: un `next build` + una
-  feature completa se lo comen). Opcional: `modelo_pref` (string).
+  feature completa se lo comen). Opcional: `modelo_pref` (string). **Capa de exclusión
+  antes que capacidad**: `fable`/`mythos` JAMÁS son valores válidos (retención 30 días
+  sin ZDR + clasificadores que re-rutean — el coordinador además los rechaza al
+  arrancar); y si el repo objetivo es de un TERCERO (cliente/white-label), no estampes
+  modelos de proveedores externos (p. ej. `glm-*` va a z.ai) sin acuerdo de datos del
+  cliente — ante la duda, omite `modelo_pref` y deja el default Anthropic.
 - En **reintentos** agrega `"observaciones": ["..."]` (ver Paso 4) y usa el
   **MISMO** `task_id`.
 
