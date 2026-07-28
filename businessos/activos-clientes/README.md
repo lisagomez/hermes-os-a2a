@@ -15,7 +15,12 @@
 3. **Nada sale hacia el cliente sin visto bueno de Elisa** (regla de la vertical). Un
    entregable pasa a `estado: entregado` solo tras ese OK.
 4. **Todo activo se etiqueta y se costea** (etiqueta de entregable + línea en el ledger
-   `activos.jsonl` del cliente, con tokens y `fuente_costo` declarada).
+   `activos.jsonl` del cliente, con tokens y `fuente_costo` declarada). Esto incluye
+   **toda FEATURE generada en marca blanca**, no solo entregables-documento: cada
+   feature entra al inventario como activo digital con su esquema de costeo, en
+   asiento doble — línea en este ledger + cosecha al ERP (módulo `act`) vía la
+   `clasificacion {vendible: true}` obligatoria de la tarea del trío que la produjo.
+   Doctrina: `departamentos/white-label.md` §5.
 5. **Documentado = aplicado**: si un proyecto dice "entregado", el archivo entregado
    existe en `entregables/`; si dice "facturado", hay folio en `facturas`.
 

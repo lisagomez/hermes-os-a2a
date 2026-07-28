@@ -108,7 +108,8 @@ línea CRM arrancó. En corto:
   es la Fase 13.
 - **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
-  **Meeting Copilot** (marca blanca) MVP construido.
+  **Meeting Copilot** (marca blanca) MVP construido, desplegado y con login
+  (magic link + allowlist del equipo, 2026-07-28).
 - **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**
   multi-tenant (`crm-canales`), supervisor de salientes (`sup-crm`: gates +
   juez LLM), **muestreo A2 con evidencia** y **expediente de promoción** con

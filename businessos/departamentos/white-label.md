@@ -65,7 +65,36 @@ cliente bien aislado antes de muchos.
 
 ---
 
-## 5. Honestidad comercial
+## 5. Inventario y costeo de features (no negociable)
+
+**Toda feature generada en marca blanca se incluye como activo digital con su esquema
+de costeo.** Sin asiento en el inventario no hay entrega: el margen se conoce por
+activo medido, no se estima de memoria (tesis GTM §8, confirmada por el costeo de
+`activos/CATALOGO.md`).
+
+El asiento es doble — un escritor por origen, como siempre:
+
+1. **Inventario de la fábrica (ERP, módulo `act`).** La tarea del trío que produce la
+   feature declara EN EL ORIGEN `clasificacion: {eje_dei: desarrollo, vendible: true}`.
+   Para marca blanca esto no es un juicio del que arma la tarea: es **obligatorio, sin
+   excepción** (regla dura en el skill `trio-software`). Al aprobarse, la cosecha
+   automática (`cosechar-activos.py`) la da de alta en `erp.act_activo` +
+   `act_version` + `act_costo` con su costo real (`token_usage.task_id`, tarea y
+   sub-tareas). Nadie cataloga a mano.
+2. **Ledger del cliente.** El entregable se asienta en
+   `activos-clientes/<slug>/activos.jsonl` con tokens, costo y `fuente_costo`
+   declarada (principio 4 de ese control: todo activo se etiqueta y se costea).
+
+El **esquema de costeo** es el de `activos/CATALOGO.md`: construcción (hundido),
+operación mensual, réplica y reposición — cada componente con `fuente` declarada.
+`no_medido` es un valor honesto; un costo inventado no lo es.
+
+Recordatorio de defensibilidad (§1.7 del ERP-MAESTRO): en marca blanca el cliente
+recibe **USO**, jamás las fuentes de los activos defendibles.
+
+---
+
+## 6. Honestidad comercial
 
 - Lo que se vende **no** es "el agente lo hace solo": es un departamento **con supervisión**
   (automática + humana en lo irreversible). Esa es la promesa defendible y la que hay que

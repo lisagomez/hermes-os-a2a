@@ -12,13 +12,22 @@ export FABRIC_CA_CLIENT_HOME="$RAIZ/clientes-ca/op-admin"
 
 emitir() { # $1 id  $2 attrs  $3 destino
   local S; S=$(openssl rand -hex 16)
+  # maxenrollments 1: secreto de un solo uso (mismo fix que 02, dry-run 2026-07-28).
   fabric-ca-client register --caname ca-operadora -u "https://localhost:${CA_OP_PORT}" \
     --tls.certfiles "$TLS_CERT_OP" --id.name "$1" --id.secret "$S" \
-    --id.type client --id.attrs "$2"
+    --id.type client --id.maxenrollments 1 --id.attrs "$2"
+  # Sin --enrollment.attrs: el sufijo ":ecert" del registro ya mete el atributo
+  # al certificado por defecto. (El bug original pedia un atributo llamado
+  # "rol=oraculo" — ${2%%:*} recorta el :ecert pero no el =valor — y la CA
+  # respondia "required attributes missing"; lo cazó el dry-run 2026-07-28.)
   fabric-ca-client enroll --caname ca-operadora \
     -u "https://$1:${S}@localhost:${CA_OP_PORT}" --tls.certfiles "$TLS_CERT_OP" \
-    --enrollment.attrs "${2%%:*}" -M "$3"
-  echo "   emitida: $1 [$2] -> $3"
+    -M "$3"
+  # Verificación: el atributo DEBE venir dentro del certificado (extensión
+  # 1.2.3.4.5.6.7.8.1) — es lo que el chaincode lee; sin esto la identidad es inútil.
+  grep -q "\"${2%%=*}\"" <(openssl x509 -in "$3/signcerts/cert.pem" -noout -text) \
+    || { echo "ERROR: el certificado de $1 NO trae el atributo ${2%%=*}"; exit 1; }
+  echo "   emitida: $1 [$2] -> $3 (atributo verificado en el cert)"
 }
 
 echo ">> oraculo-pm: SOLO registrar_evidencia/declarar_vencido (techo en chaincode)"

@@ -755,7 +755,7 @@ Fabric a dos organizaciones (Operadora + **Testigo**, llaves separadas por cerem
 |---|---|
 | Contrato de la spec (`validar_sc_spec`) + suite | ✅ integrado, 23 tests verdes |
 | Plantilla escrow-v1 (Go + tests + README-auditoria) | ✅ **AUDITADA Y FIRMADA** (Elisa, 2026-07-28; riesgo #1 —`entregado` sin contra-jugada— aceptado para v1, acta en el README-auditoria). Desbloquea la fabricación real |
-| Kit IaC red tier 1 + ceremonia de llaves | ✅ escrito; NO probado contra Docker real |
+| Kit IaC red tier 1 + ceremonia de llaves | ✅ **VALIDADO contra Docker real en dry-run** (2026-07-28, nodo efímero): 01→05 verdes end-to-end — CAs, identidades, enroll Testigo remoto con secreto de UN uso verificado, canal en ambos peers (doble firma real), y simulacro de revocación con RECHAZO OBSERVADO + control positivo. 8 hallazgos corregidos en el kit (maxenrollments, atributos ABAC, hoja-como-raíz ×2, bootstrap none, core.yaml, tls.certfiles relativo, CRL al MSP local del peer). Falta solo la ceremonia REAL con la dueña |
 | `FabricChaincodeEngine` en el Ejecutor (`RouterEngine`: contratos_inteligentes NUNCA al LLM) | ✅ Fase 3 — verificado con Go real: build+vet+mod-verify+test(7/7)+gosec(0 issues) sobre un paquete recién fabricado |
 | Perfil de gates "fabric" en el Supervisor (4 estáticos + build/vet/gosec/deps/tests) | ✅ Fase 4 (lado Supervisor); **red efímera** queda para el host-job de la Fase 5 (sin socket Docker en el juez, por diseño) |
 | Alta en `trio-contrato/contrato.py::DEPARTAMENTOS` + skill | ✅ activado al cerrar Fase 4 |
@@ -1034,16 +1034,17 @@ pipeline de adquisición**: el primer mensaje de un contacto crea un lead con
 `origen='crm'`, `canal` y `telefono` (`crm-canales/leads.py`, insert
 ignore-duplicates que jamás pisa la etapa del funnel). `leads` ganó columnas
 `canal`/`telefono` y los orígenes `crm`/`copilot`
-(`supabase-fase12-leads-crm.sql` — **APLICADA en prod por Elisa 2026-07-28**;
-antes validada e idempotente en Postgres local, evidencia en PR #177), y
-Mission Control /crm muestra canal en la tabla y en el resumen de
-conversaciones. Imagen nueva de crm-canales verificada en runtime por smoke del
-edge (2026-07-28): health ok y POST sin firma → 503 fail-closed ("app secret no
-configurado" — estado seguro esperado hasta el alta del primer tenant real, que
-trae el app secret de Meta). El smoke E2E firmado (200 + lead `origen='crm'`)
-queda atado al alta del tenant (runbook). Pendiente P2: plantillas HSM +
-ventana 24h (bloquea outbound proactivo), media/voz entrante, observabilidad
-del canal (error 190).
+(`supabase-fase12-leads-crm.sql` — **APLICADA en prod el 2026-07-28** vía
+management API y verificada: CHECK con 6 orígenes, columnas + índice, vista
+con `canal` y revokes intactos; antes validada e idempotente en Postgres
+local, evidencia en PR #177), y Mission Control /crm muestra canal en la
+tabla y en el resumen de conversaciones. Imagen nueva de crm-canales
+verificada en runtime por smoke del edge (2026-07-28): health ok y POST sin
+firma → 503 fail-closed ("app secret no configurado" — estado seguro esperado
+hasta el alta del primer tenant real, que trae el app secret de Meta). El
+smoke E2E firmado (200 + lead `origen='crm'`) queda atado al alta del tenant
+(runbook). Pendiente P2: plantillas HSM + ventana 24h (bloquea outbound
+proactivo), media/voz entrante, observabilidad del canal (error 190).
 
 ---
 
@@ -1071,16 +1072,21 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
 - [x] Deploy en Vercel (2026-07-26): https://meeting-copilot-pi.vercel.app — proyecto
   `meeting-copilot`, cuenta dueña, motor LLM activo en producción; smoke de las 14 rutas +
   API con respuesta real. Runbook: `businessos/frontends/DEPLOY-meeting-copilot.md`.
-  Sin auth (solo mocks, cero datos de negocio); auth obligatoria antes de conectar Supabase.
+- [x] **Auth activa (2026-07-28, PR #183)**: magic link + allowlist fail-closed (patrón
+  Mission Control) sobre TODA ruta incl. `/api/asesor/*` (gastaban OpenRouter en público).
+  Mismo Supabase A2ABot + `PANEL_ALLOWED_EMAILS` (los 5 del equipo). Dev local mock-first
+  intacto vía `AUTH_DISABLED=1` en `.env.local`. Verificado en prod con sesión mintada por
+  admin API (doctrina 2026-07-25) y revocada al terminar.
 - [x] Pre-Discovery (2026-07-26): sección nativa lead→entrevista — pipeline por bloques
   (real con OPENROUTER_API_KEY / mock declarado), benchmark de competidores, FODA,
   marco regulatorio vía grafo (proxy + mock fiel del contrato), brief del asesor
   inyectado a Prompter/Guided/CRM, Activos Digitales espejo ACT (casos Y entrevistas)
   con costeo por ledger y cosecha real al ERP (`cosechar-prediscovery.py`), admin del
   módulo y CLIs; entrada `meeting-copilot` en cli-manifest. 15 smoke + 81 unit tests.
-- [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod,
-  integración Zoom/Meet, diarización ML (pyannote), corrida real de la cosecha
-  Pre-Discovery→erp (máquina con credenciales cli_fin).
+- [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod
+  (la auth ya quedó lista como prerequisito), integración Zoom/Meet, diarización ML
+  (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
+  cli_fin).
 
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 
@@ -1088,7 +1094,11 @@ El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `er
 (001-005) está **aplicado al Supabase compartido** y el **módulo act (activos
 digitales, ERP-4B)** opera el ciclo DETECTAR → CATALOGAR → REGISTRAR sobre la
 fábrica real. Cada feature VENDIBLE aprobada por el Supervisor se cosecha como
-activo con su costo desde `token_usage.task_id`. Detalle:
+activo con su costo desde `token_usage.task_id`. **Regla de marca blanca
+(2026-07-28)**: toda feature generada en white-label es vendible POR DEFINICIÓN —
+`clasificacion {vendible: true}` obligatoria en el origen, asiento doble (ERP +
+ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
+(`departamentos/white-label.md` §5). Detalle:
 `.claude/memory/project/erp-modulo-act.md` y `erp/migrations/README.md`.
 
 - [x] **Migración 005** (act_activo/act_version/act_proteccion/act_costo, dos ejes

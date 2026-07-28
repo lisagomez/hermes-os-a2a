@@ -29,6 +29,10 @@ services:
       - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       # Sin canal de sistema (Fabric 2.5): los canales se crean por participación
+      # BOOTSTRAPMETHOD=none: esta red une canales por participacion (osnadmin),
+      # SIN genesis de arranque — sin esta linea el orderer paniquea buscando
+      # /etc/hyperledger/fabric/genesisblock (lo cazo el dry-run 2026-07-28).
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
       - ORDERER_CHANNELPARTICIPATION_ENABLED=true
       - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
       - ORDERER_ADMIN_TLS_ENABLED=true
