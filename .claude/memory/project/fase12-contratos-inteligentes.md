@@ -81,3 +81,22 @@ list`), `delete` POSICIONAL (`delete <id>` — `--id` falla), y el primer
 huérfano sobrevivió porque el delete estaba silenciado con `>/dev/null || true`
 (reincidencia del 2026-07-13: todo best-effort imprime; la verificación de
 borrado lo cazó). El HCLOUD_TOKEN vive SOLO en dev; jamás viaja al sandbox.
+
+**Kit de ceremonia VALIDADO en dry-run (2026-07-28, nodo efímero)**: 01→05
+verdes end-to-end con los 8 hallazgos corregidos EN el kit: (1) registros sin
+`--id.maxenrollments 1` — el "secreto de un solo uso" servía 2 veces; (2) 03
+pedía `--enrollment.attrs "rol=oraculo"` (nombre con =valor, bug de recorte) —
+se quitó: `:ecert` ya embebe el atributo, y ahora se VERIFICA en el cert;
+(3+6) hoja-como-raíz DOS veces: tls-cert.pem (hoja del server CA) copiado como
+cacert del MSP (orderer paniquea "failed to traverse chain") y como tlscacert
+(join block rechazado "CA Certificate did not have the CA attribute") — usar
+SIEMPRE ca-cert.pem; (4) orderer sin `ORDERER_GENERAL_BOOTSTRAPMETHOD=none`
+paniquea buscando genesisblock (la red une por participación/osnadmin);
+(5) `--tls.certfiles` RELATIVO se resuelve contra FABRIC_CA_CLIENT_HOME (no
+CWD) — el bloque de Máquina B ahora exige path absoluto; (7) `peer` exige
+core.yaml (default /opt/fabric-samples/config vía CORE_YAML_DIR); (8) la CRL
+debe publicarse en el MSP LOCAL del peer (peer0/msp/crls), no solo en el de
+org — sin eso el rechazo de revocados jamás se observa. Verificación final:
+identidad revocada → access denied DEL PEER + control positivo verde. Un
+rechazo por la razón equivocada no prueba nada (el primer intento falló por
+NodeOUs del cliente, no por la CRL).

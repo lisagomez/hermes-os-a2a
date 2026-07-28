@@ -24,6 +24,11 @@ osnadmin channel join --channelID "$CANAL" \
   --client-key "$RAIZ/operadora/orderer/tls/server.key"
 
 echo ">> Unir peer Operadora"
+# peer exige un core.yaml en FABRIC_CFG_PATH (el config/ del kit solo trae
+# configtx.yaml para configtxgen). Default: el config/ de fabric-samples, que
+# la Maquina A ya tiene por los binarios (override: CORE_YAML_DIR).
+export FABRIC_CFG_PATH="${CORE_YAML_DIR:-/opt/fabric-samples/config}"
+[ -f "$FABRIC_CFG_PATH/core.yaml" ] || { echo "falta core.yaml en $FABRIC_CFG_PATH (exporta CORE_YAML_DIR)"; exit 1; }
 export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_LOCALMSPID=OperadoraMSP
 export CORE_PEER_MSPCONFIGPATH="$RAIZ/operadora/usuarios/admin-despliegue-op/msp"
