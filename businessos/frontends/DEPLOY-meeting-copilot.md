@@ -57,6 +57,18 @@ Historia: el MVP salió sin auth (2026-07-26) porque era 100% mock sin datos de 
 la decisión quedó condicionada y se ejerció el 2026-07-28 (motor LLM ya activo en prod +
 Pre-Discovery con datos de leads reales en camino).
 
+> ⚠️ **Gotcha del proyecto Supabase COMPARTIDO (visto en vivo 2026-07-28)**: Mission
+> Control y Meeting Copilot mandan un magic link **idéntico** ("Your sign-in link",
+> mismo remitente) — Gmail los agrupa en un hilo y es fácil abrir el de la OTRA app,
+> que te deja en su sesión (la dueña acabó en el Pantheon de Mission Control creyendo
+> que el login del copiloto falló; en los logs de auth el login del copiloto había
+> sido EXITOSO). La plantilla NO se puede editar en free tier sin SMTP propio
+> (`400: Email template modification is not available for free tier`). Mitigación:
+> abrir siempre el correo MÁS RECIENTE, y si caes en la app equivocada, navegar
+> directo a la URL correcta (la sesión ya quedó creada). Fix real: SMTP propio
+> (Resend) → habilita plantilla con `{{ .RedirectTo }}` visible Y quita el
+> rate-limit de 2 correos/hora — un solo prerequisito para ambas mejoras.
+
 ## 4. Verificación post-deploy (smoke de TODAS las vistas — doctrina 2026-07-23)
 
 Hecho en el deploy inicial; repetir tras cada `deploy --prod`:
