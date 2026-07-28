@@ -218,11 +218,12 @@ peor que `xhigh` costando 40-60% mas.
 
 ## 7. Modelo y esfuerzo recomendado para ESTA sesion de planeacion
 
-- **Fable, esfuerzo xhigh** como director (formula el plan/PRP).
-- **Opus 4.8, esfuerzo xhigh** como sub-director adversarial fijo (ataca el plan antes de aprobarlo,
+- **Fable, esfuerzo xhigh** como director (formula el plan/PRP). Planear es razonamiento ABIERTO, que
+  es donde Fable rinde mas. Ojo con dos casos donde NO aplica: si la sesion va a leer material sensible
+  o de terceros (Fable retiene 30 dias sin ZDR) o si va a razonar sobre seguridad/cyber (sus
+  clasificadores re-enrutan en silencio a otro modelo). En esos dos casos, dirige Opus.
+- **Opus, esfuerzo xhigh** como sub-director adversarial fijo (ataca el plan antes de aprobarlo,
   obligatorio en esta variante, no opcional, ver seccion 10 arriba).
-- **Urgencia:** Fable sale de disponibilidad el 12 de julio de 2026 (inclusive). Si se va a usar,
-  hacerlo pronto.
 - Al cerrar el PRP: usar el skill `prp` de este mismo repo para dejarlo en formato consistente con
   el resto de `.claude/PRPs/`, y luego ejecutar con `bucle-agentico`.
 
