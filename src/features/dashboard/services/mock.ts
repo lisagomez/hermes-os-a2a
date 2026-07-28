@@ -255,6 +255,7 @@ export const mockCrm: CrmVista = {
     {
       lead_id: 'web2-266d25d2-cd0e-4487-b785-c31e4b96f76d',
       origen: 'web2',
+      canal: '',
       empresa: 'Mi IA',
       contacto: 'Elisa <lisagomez967@gmail.com>',
       etapa: 'nuevo',
@@ -263,6 +264,7 @@ export const mockCrm: CrmVista = {
     {
       lead_id: 'lead-d8dafc4f-04ab-4a9f-b03d-7ef23394768e',
       origen: 'a2a',
+      canal: '',
       empresa: 'Smoke Test S.A.',
       contacto: 'smoke@ejemplo.mx',
       etapa: 'nuevo',
@@ -271,6 +273,7 @@ export const mockCrm: CrmVista = {
     {
       lead_id: 'lead-5e70ed15-1d1d-4647-b211-d82d67aa5e3f',
       origen: 'a2a',
+      canal: '',
       empresa: 'Smoke Test S.A.',
       contacto: 'smoke@ejemplo.mx',
       etapa: 'nuevo',

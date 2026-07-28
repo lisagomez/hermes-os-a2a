@@ -211,11 +211,11 @@ export async function realCrm(): Promise<CrmVista> {
   const [porEtapa, conversaciones, leads] = await Promise.all([
     sb('v_embudo_leads?select=etapa,cuenta', z.array(etapaEmbudoSchema)),
     sb(
-      'v_crm_conversaciones_resumen?select=estado,nivel,cuenta&order=estado,nivel',
+      'v_crm_conversaciones_resumen?select=estado,nivel,canal,cuenta&order=estado,nivel',
       z.array(conversacionResumenSchema)
     ),
     sb(
-      'leads?select=lead_id,origen,empresa,contacto,etapa,updated_at&order=updated_at.desc&limit=50',
+      'leads?select=lead_id,origen,canal,empresa,contacto,etapa,updated_at&order=updated_at.desc&limit=50',
       z.array(leadResumenSchema)
     ),
   ])
