@@ -1034,10 +1034,16 @@ pipeline de adquisición**: el primer mensaje de un contacto crea un lead con
 `origen='crm'`, `canal` y `telefono` (`crm-canales/leads.py`, insert
 ignore-duplicates que jamás pisa la etapa del funnel). `leads` ganó columnas
 `canal`/`telefono` y los orígenes `crm`/`copilot`
-(`supabase-fase12-leads-crm.sql` — prerequisito de despliegue, pendiente de
-aplicar en prod), y Mission Control /crm muestra canal en la tabla y en el
-resumen de conversaciones. Pendiente P2: plantillas HSM + ventana 24h (bloquea
-outbound proactivo), media/voz entrante, observabilidad del canal (error 190).
+(`supabase-fase12-leads-crm.sql` — **APLICADA en prod por Elisa 2026-07-28**;
+antes validada e idempotente en Postgres local, evidencia en PR #177), y
+Mission Control /crm muestra canal en la tabla y en el resumen de
+conversaciones. Imagen nueva de crm-canales verificada en runtime por smoke del
+edge (2026-07-28): health ok y POST sin firma → 503 fail-closed ("app secret no
+configurado" — estado seguro esperado hasta el alta del primer tenant real, que
+trae el app secret de Meta). El smoke E2E firmado (200 + lead `origen='crm'`)
+queda atado al alta del tenant (runbook). Pendiente P2: plantillas HSM +
+ventana 24h (bloquea outbound proactivo), media/voz entrante, observabilidad
+del canal (error 190).
 
 ---
 
