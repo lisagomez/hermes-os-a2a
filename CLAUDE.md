@@ -1309,6 +1309,11 @@ npm run lint         # ESLint
   meeting-copilot) y todo proyecto nuevo. Detalle: `DEPLOY-meeting-copilot.md` §1.
 - **Seguimiento (mismo día)**: la dueña pidió el auto-deploy en forma → Root Directory
   fijado por API (`PATCH /v9/projects/{id}`, el CLI no tiene flag) ANTES de `vercel git
-  connect`; meeting-copilot ahora SÍ despliega por merge a master (runbook §1).
+  connect`; meeting-copilot ahora SÍ despliega por merge a master (runbook §1). Dos minas
+  más en el camino: (a) `sourceFilesOutsideRootDirectory` en ON hace que el builder busque
+  `.next` en `/vercel/path0/` (la raíz del repo = otra app Next) → `ENOENT pages-manifest`
+  post-build; apagarlo para apps self-contained; (b) `vercel redeploy` de un deployment
+  fallido REUSA el snapshot de settings del original — para probar un ajuste hay que crear
+  deployment fresco (push o `POST /v13/deployments` con `gitSource`).
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
