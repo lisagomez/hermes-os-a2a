@@ -115,8 +115,8 @@ Luego, con un correo de la allowlist: pedir enlace en `/login` → abrir el emai
 recibe el mismo mensaje genérico (sin filtrar) pero **no** recibe enlace, y si
 lograra una sesión, el middleware lo manda a `/login?denied=1`.
 
-Recordatorio de drift (aprendizaje 2026-07-23): haz smoke de **las 6 rutas**
-(`/dashboard /ai-spend /grafo /desarrollo /crm` + `/`), no solo una: `/grafo`
+Recordatorio de drift (aprendizaje 2026-07-23): haz smoke de **las 7 rutas**
+(`/dashboard /ai-spend /grafo /desarrollo /crm /contratos` + `/`), no solo una: `/grafo`
 (evaluaciones) y el health de gateways en `/dashboard` saldrán degradados en
 Vercel (servicios internos inalcanzables) — es esperado, no un bug.
 
