@@ -74,7 +74,7 @@ funden: ese es el primer principio del proyecto.
 
 ---
 
-## Estado actual (2026-07-21)
+## Estado actual (2026-07-28)
 
 Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
 línea CRM arrancó. En corto:
@@ -83,9 +83,9 @@ línea CRM arrancó. En corto:
   equipo), respaldo nocturno, gasto de tokens controlado ($30/mes, alerta 80%).
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO, contable y
   contractual MX; todo citado), cobros Polar y contratos validados.
-- **Fases 4–5** ✅ — dashboard **Mission Control** (5 vistas: Pantheon, AI Spend,
-  Grafo, Desarrollo y CRM con el **embudo de cliente operable** — los leads se
-  mueven de etapa desde el panel) + primer servicio **A2A** (`grafo-a2a`).
+- **Fases 4–5** ✅ — dashboard **Mission Control** (6 vistas: Pantheon, AI Spend,
+  Grafo, Desarrollo, CRM con el **embudo de cliente operable** y **Contratos SC**
+  — paquete de revisión con banderas G1) + primer servicio **A2A** (`grafo-a2a`).
 - **Fases 6–7** ✅ — **trío de desarrollo** (Hermes→Ejecutor→Supervisor) y
   **enjambre** (Coordinador con fan-out acotado y presupuesto); dogfood real
   aprobado con GLM-5.2 como motor.
@@ -97,6 +97,15 @@ línea CRM arrancó. En corto:
   en un módulo compartido.
 - **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
   chat de venta en vivo (`chat-web2`).
+- **Fase 12** 🟡 — **fábrica de Smart Contracts** (Hyperledger Fabric): spec
+  conversacional → plantilla **auditada** parametrizada (jamás código libre) →
+  gates fabric del Supervisor → gate de **red efímera** → aprobación humana en
+  `/contratos` → despliegue lifecycle con **doble firma** (Operadora+Testigo) y
+  re-verificación de hash (G5). Fases 1–5 en dev y runtime; falta la firma de
+  auditoría de escrow-v1 y el nodo sandbox (Fase 6). El PM/oráculo es la Fase 13.
+- **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
+  módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
+  **Meeting Copilot** (marca blanca) MVP construido.
 - **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**
   multi-tenant (`crm-canales`), supervisor de salientes (`sup-crm`: gates +
   juez LLM), **muestreo A2 con evidencia** y **expediente de promoción** con

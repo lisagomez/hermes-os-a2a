@@ -1,15 +1,17 @@
 # Mantener la documentación viva tras cambios importantes
 
-Feedback del usuario (Elisa) el 2026-06-28.
+Feedback del usuario (Elisa) el 2026-06-28; ampliado por ella el 2026-07-28:
+**README.md y ROADMAP van SIEMPRE en la pasada de docs**, no solo cuando "toque".
 
 ## Qué pidió
 Cada vez que hacemos un **cambio importante**, actualizar (sin que ella lo pida) los
-cuatro lugares donde vive el estado del proyecto:
+lugares donde vive el estado del proyecto:
 
 | Qué actualizar | Dónde |
 |----------------|-------|
 | **Aprendizajes / Auto-Blindaje** | `CLAUDE.md` §"Aprendizajes" (errores y su fix permanente) |
-| **Roadmap** | `businessos/ROADMAP.md` + "Próximos Pasos" de `BUSINESS_LOGIC.md` |
+| **Roadmap** | `businessos/ROADMAP.md` + "Próximos Pasos" de `BUSINESS_LOGIC.md` — **SIEMPRE en la pasada** |
+| **README** | `README.md` de la raíz (§"Estado actual" y arquitectura) — **SIEMPRE en la pasada** (pedido 2026-07-28; llevaba una semana congelado y nadie lo notó) |
 | **Memoria** | `.claude/memory/` (project/feedback/reference + índice `MEMORY.md`) |
 | **Business logic** | `BUSINESS_LOGIC.md` (problema, solución, datos, KPIs, arquitectura) |
 
