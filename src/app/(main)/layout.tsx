@@ -13,6 +13,7 @@ const vistas = [
   // Acceso directo; el subnav de adquisición (Tareas | CRM) sigue dando el
   // contexto de departamento y el cruce a Tareas — no es duplicidad de barra.
   { href: '/crm', label: 'CRM' },
+  { href: '/contratos', label: 'Contratos SC' },
 ]
 
 export default async function MainLayout({

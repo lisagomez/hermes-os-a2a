@@ -1,5 +1,5 @@
 import 'server-only'
-import type { AiSpend, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type { AiSpend, ContratosVista, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
 import { ETAPAS_EMBUDO } from '../types'
 
 /**
@@ -278,3 +278,79 @@ export const mockCrm: CrmVista = {
     },
   ],
 }
+
+// ---------- Contratos SC (Fase 12 F5) ----------
+// Dos fixtures: uno EN REVISIÓN con banderas (el caso que ejercita el paquete
+// de revisión completo) y uno ya desplegado (trazabilidad).
+export const mockContratos: ContratosVista = [
+  {
+    id: 'c0000000-0000-0000-0000-000000000001',
+    task_id: 'sc-demo-0001',
+    solicitante: 'telegram:5551234',
+    plantilla: 'escrow-v1',
+    canal_destino: 'canal-clientes-demo',
+    estado: 'en_revision',
+    secuencia: 1,
+    hash_paquete: 'a3f9c2d84b17e6a09c455d21f8b3a7c4d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4',
+    banderas: [
+      {
+        codigo: 'condicion_unilateral',
+        severidad: 'alta',
+        detalle:
+          'desde `entregado` toda salida la controla `comprador`: las demas partes ya comprometieron acciones y no tienen contra-jugada',
+        donde: 'estado `entregado`, salidas: liberar_pago',
+      },
+      {
+        codigo: 'concentracion_poder',
+        severidad: 'media',
+        detalle:
+          'el rol `comprador` es el unico autorizado en 2 transiciones hacia estados terminales: concentra los desenlaces',
+        donde: 'funciones: cancelar, liberar_pago',
+      },
+    ],
+    manifest: {
+      diff: [
+        { antes: 'mspComprador = "Org1MSP"', despues: 'mspComprador = "Org1MSP"' },
+        {
+          antes: 'plazoResolucionSegundos int64 = 30 * 24 * 60 * 60',
+          despues: 'plazoResolucionSegundos int64 = 30 * 24 * 60 * 60',
+        },
+      ],
+      criterios_aceptacion: [
+        'comprador puede fondear un deposito creado',
+        'vendedor NO puede liberar_pago',
+      ],
+      politica_endorsement: "AND('Org1MSP.peer','Org2MSP.peer')",
+    },
+    red_efimera: {
+      verde: true,
+      fase: 'red',
+      resumen: { transiciones: 6, negativos: 5, invocaciones: 25 },
+    },
+    en_revision_desde: '2026-07-26T18:30:00+00:00',
+    aprobado_por: null,
+    aprobado_en: null,
+    motivo_rechazo: null,
+    desplegado_en: null,
+    created_at: '2026-07-26T17:05:00+00:00',
+  },
+  {
+    id: 'c0000000-0000-0000-0000-000000000002',
+    task_id: 'sc-demo-0000',
+    solicitante: 'telegram:5551234',
+    plantilla: 'escrow-v1',
+    canal_destino: 'canal-clientes-demo',
+    estado: 'desplegado',
+    secuencia: 1,
+    hash_paquete: 'b4e8d3c95a26f7b10d566e32a9c4b8d5e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5',
+    banderas: [],
+    manifest: { diff: [], criterios_aceptacion: [], politica_endorsement: '' },
+    red_efimera: { verde: true, fase: 'red' },
+    en_revision_desde: '2026-07-20T10:00:00+00:00',
+    aprobado_por: 'elisa.qualy@gmail.com',
+    aprobado_en: '2026-07-20T10:24:00+00:00',
+    motivo_rechazo: null,
+    desplegado_en: '2026-07-20T11:00:00+00:00',
+    created_at: '2026-07-20T09:00:00+00:00',
+  },
+]

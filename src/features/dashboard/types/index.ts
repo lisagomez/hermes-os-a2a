@@ -283,3 +283,69 @@ export const crmVistaSchema = z.object({
   leads: z.array(leadResumenSchema),
 })
 export type CrmVista = z.infer<typeof crmVistaSchema>
+
+// ---------- Contratos SC (departamento contratos_inteligentes, Fase 12 F5) ----------
+// Paquete de revisión humana: banderas G1 ARRIBA (anti-sello-de-goma G4),
+// diff acotado, hash G5 y resultado de la red efímera. `estado` es z.string()
+// tolerante (lección 2026-07-23: el schema no debe ser el eslabón frágil de un
+// dominio que puede crecer); el orden/os glifos los pone la UI.
+
+export const banderaG1Schema = z.object({
+  codigo: z.string(),
+  severidad: z.string(), // alta | media (banderas.py)
+  detalle: z.string(),
+  donde: z.string(),
+})
+export type BanderaG1 = z.infer<typeof banderaG1Schema>
+
+export const diffLineaSchema = z.object({ antes: z.string(), despues: z.string() })
+
+export const manifestScSchema = z.object({
+  diff: z.array(diffLineaSchema).catch([]),
+  criterios_aceptacion: z.array(z.string()).catch([]),
+  politica_endorsement: z.string().catch(''),
+})
+export type ManifestSc = z.infer<typeof manifestScSchema>
+
+export const redEfimeraSchema = z
+  .object({
+    verde: z.boolean().optional(),
+    fase: z.string().optional(),
+    motivo: z.string().optional(),
+    resumen: z
+      .object({
+        transiciones: z.number().optional(),
+        negativos: z.number().optional(),
+        invocaciones: z.number().optional(),
+      })
+      .optional(),
+  })
+  .nullable()
+  .catch(null)
+
+export const contratoScSchema = z.object({
+  id: z.string(),
+  task_id: z.string(),
+  solicitante: z.string(),
+  plantilla: z.string(),
+  canal_destino: z.string().nullable(),
+  estado: z.string(), // fabricando|en_revision|aprobado|desplegado|rechazado|escalado
+  secuencia: z.number().int(),
+  hash_paquete: z.string().nullable(),
+  banderas: z.array(banderaG1Schema).catch([]),
+  manifest: manifestScSchema.catch({ diff: [], criterios_aceptacion: [], politica_endorsement: '' }),
+  red_efimera: redEfimeraSchema,
+  en_revision_desde: z.string().nullable(),
+  aprobado_por: z.string().nullable(),
+  aprobado_en: z.string().nullable(),
+  motivo_rechazo: z.string().nullable(),
+  desplegado_en: z.string().nullable(),
+  created_at: z.string(),
+})
+export type ContratoSc = z.infer<typeof contratoScSchema>
+
+export const contratosVistaSchema = z.array(contratoScSchema)
+export type ContratosVista = z.infer<typeof contratosVistaSchema>
+
+// Decisiones humanas posibles sobre una fila en_revision (server action).
+export const DECISIONES_CONTRATO = ['aprobado', 'rechazado'] as const
