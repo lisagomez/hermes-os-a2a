@@ -29,6 +29,18 @@ Previews: cada push de rama genera uno; sin env vars de preview quedan **fail-cl
 (todo redirige a `/login?error=config`) — esperado, no configurarles auth; los push de
 colaboradores pasan por el workflow `reauthor-tip-vercel.yml` (aprendizaje 2026-07-17).
 
+Dos gotchas pagados al montarlo (2026-07-28):
+
+- **`sourceFilesOutsideRootDirectory` debe estar OFF** ("Include source files outside of
+  the Root Directory" en el dashboard; `PATCH /v9/projects/{id}` con
+  `{"sourceFilesOutsideRootDirectory": false}`). Con ON, el builder resuelve `.next` en
+  `/vercel/path0/` = la RAÍZ del repo — que aquí es OTRA app Next (Mission Control) — y el
+  deploy muere post-build con `ENOENT …/.next/pages-manifest.json` aunque el build haya
+  compilado la app correcta. Esta app es self-contained: no necesita nada fuera de su dir.
+- **`vercel redeploy` de un deployment fallido NO prueba un ajuste de settings**: reusa el
+  snapshot del original (falló igual tras el fix). Deployment fresco: push nuevo o
+  `POST /v13/deployments` con `gitSource {type: github, repoId, ref: master}`.
+
 > ⚠️ **Incidente 2026-07-28 — conectar este proyecto a GitHub CLOBBEA producción.**
 > El proyecto amaneció conectado al repo (conexión hecha desde el dashboard, ventana
 > ~13:11–13:55 UTC) con su Root Directory en `.` → cada merge a master construyó la app
