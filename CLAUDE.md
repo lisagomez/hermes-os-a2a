@@ -1291,4 +1291,21 @@ npm run lint         # ESLint
 - **Aplicar en**: todo ruteo — profiles Hermes, `modelo_pref` del trío/enjambre,
   subagentes de sesión, y cada modelo/proveedor nuevo ANTES de su probe de eficiencia.
 
+### 2026-07-28: Conectar un proyecto Vercel al monorepo SIN fijar Root Directory clobbea producción
+- **Error (visto en vivo)**: el proyecto Vercel `meeting-copilot` (flujo documentado: solo-CLI)
+  apareció conectado a GitHub con Root Directory `.` → cada merge a master construyó la app de
+  la RAÍZ del repo (Mission Control) y la publicó ENCIMA del alias de producción del copiloto.
+  Síntoma engañoso: la dueña "caía en la página equivocada" SIN pedir login — misma cookie de
+  Supabase (proyecto auth compartido) + mismo dominio = sesión válida en la app equivocada.
+  Primero se diagnosticó mal (correos de magic link indistinguibles — gotcha real pero
+  secundario): el dato que destapó la verdad fue `curl <dominio>/login | grep '<title>'`
+  (el título delata QUÉ app sirve el dominio) + `vercel alias ls` con entradas
+  `<proyecto>-git-<rama>-…` que nadie desplegó por CLI.
+- **Fix**: `vercel git disconnect` + redeploy CLI desde el dir de la app. Regla: en este
+  monorepo (varias apps, un repo), conectar un proyecto Vercel a GitHub exige fijar ANTES
+  su Root Directory; y ante "estoy en la app/página equivocada", verificar primero qué app
+  sirve el dominio (title/contenido), no asumir un problema de auth o de usuario.
+- **Aplicar en**: los 3+ proyectos Vercel del repo (a2abot-mission-control, cliente-web2,
+  meeting-copilot) y todo proyecto nuevo. Detalle: `DEPLOY-meeting-copilot.md` §1.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
