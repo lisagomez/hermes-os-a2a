@@ -74,6 +74,7 @@ degradación silenciosa). Todo por variables de entorno:
 | `NEXT_PUBLIC_TRANSCRIPTION_PROVIDER` | `mock` | `mock` \| `transcriptor-local` \| `transcripcion-a2a` \| `groq-whisper` | Motor de STT detrás de la interfaz única (`src/features/transcription/providers.ts`) |
 | `NEXT_PUBLIC_TRANSCRIPTOR_URL` | `http://localhost:5000` | URL | Flask de [`altaventasllc-source/transcriptor`](https://github.com/altaventasllc-source/transcriptor) (faster-whisper) para el provider `transcriptor-local` |
 | `NEXT_PUBLIC_AGENT_ENGINE` | `rules` | `rules` \| `llm` | Con `llm`: (a) la IA **redacta la siguiente mejor pregunta** con el contexto vivo (Prompter y Guided Meeting) y (b) el **Discovery Analyst IA** analiza la transcripción real (insights + dimensiones, cada hallazgo citando su segmento; evidencia inválida se descarta). Requiere `OPENROUTER_API_KEY` (server-side) en `.env.local`; modelo por `ASESOR_LLM_MODEL` (default `google/gemini-2.5-flash-lite`). Sin clave o sin red → fallback visible al motor de reglas |
+| `NEXT_PUBLIC_AGENDA_NOTIFICADOR` | `mock` | `mock` \| `host-job` | Quién procesa la cola de confirmaciones del agendamiento (email + WhatsApp). `mock` simula al host-job en el navegador; `host-job` es el contrato real (cron con `enviar-salientes.py` + `crm-canales`), reservado a la fase Supabase — hoy detiene la app |
 
 ### Providers de transcripción
 
@@ -98,6 +99,19 @@ costo = suma del ledger con fuente declarada) exportables a `erp.act_*` con
 en `/pre-discovery/admin`. Envs adicionales: `GRAFO_URL` (server, opcional — sin ella el
 bloque regulatorio usa un mock fiel del contrato del grafo con su fail-safe y disclaimer).
 Detalle completo en SPEC §18.
+
+## Agendamiento
+
+Módulo de citas con asesores humanos e IA: catálogo (`/asesores`), disponibilidad del
+asesor con bandeja de aprobación (`/asesores/[id]/agenda`), reserva **pública** del
+cliente sin shell y mobile-first (`/reservar/[slug]`, reprogramación en
+`/reservar/cita/[token]`), tablero de seguimiento con acción de llamada (`/citas`) y
+marketplace de profundidad de servicio (`/servicios`: quick vs discovery — el brief del
+mini-formulario llega a la bandeja del asesor). Máquina de estados explícita con
+historial auditable, slots UTC-internos con TZ del asesor vía `Intl` (DST correcto),
+notificaciones como cola idempotente (el frontend jamás llama a un canal) y multi-tenant
+desde el día 1. SQL espejo en `businessos/supabase-fase14-agendamiento.sql` (NO aplicado:
+mock-first). Detalle completo en SPEC §19.
 
 ## Arquitectura
 

@@ -269,3 +269,166 @@ test('login: la página pública renderiza el formulario sin el shell', async ({
   await page.goto('/login?error=config')
   await expect(page.getByText('no está configurada')).toBeVisible()
 })
+
+// ─── Agendamiento (SPEC §19) ────────────────────────────────────────────────
+
+test('agendamiento M1: catálogo con humanos e IA, filtro en URL y semáforo derivado', async ({ page }) => {
+  await page.goto('/asesores')
+  await expect(page.getByTestId('catalogo-asesores')).toBeVisible()
+  const tarjetas = page.getByTestId('tarjeta-asesor')
+  await expect(tarjetas.first()).toBeVisible()
+  expect(await tarjetas.count()).toBeGreaterThanOrEqual(6)
+  await expect(page.locator('[data-testid="tarjeta-asesor"][data-tipo="ia"]').first()).toBeVisible()
+  await expect(page.getByTestId('semaforo-disponibilidad').first()).toBeVisible()
+  // Un asesor IA 24/7 siempre da semáforo 'inmediata' (derivado, no almacenado)
+  await expect(page.locator('[data-testid="tarjeta-asesor"][data-tipo="ia"] [data-semaforo="inmediata"]').first()).toBeVisible()
+
+  // El filtro es estado de navegación → vive en la URL y sobrevive al back
+  await page.getByTestId('filtro-tipo-ia').click()
+  await expect(page).toHaveURL(/tipo=ia/)
+  await expect(page.locator('[data-testid="tarjeta-asesor"][data-tipo="humano"]')).toHaveCount(0)
+  await page.goto('/')
+  await page.goBack()
+  await expect(page.getByTestId('filtro-tipo-ia')).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('agendamiento M2: aprobar dispara confirmaciones mock; el pago pendiente es candado visible', async ({ page }) => {
+  await page.goto('/asesores/asesor-ana/agenda')
+  await expect(page.getByTestId('editor-disponibilidad')).toBeVisible()
+  await expect(page.getByText('America/Mexico_City').first()).toBeVisible() // TZ explícita
+
+  // La solicitud demo (discovery) muestra su brief al asesor
+  const bandeja = page.getByTestId('bandeja-solicitudes')
+  await expect(bandeja.getByText('Marta Villa')).toBeVisible()
+  await expect(bandeja.getByTestId('brief-solicitud')).toBeVisible()
+
+  // Aprobar → par [email, whatsapp] registrado (mock declarado) y bandeja vacía
+  await bandeja.getByTestId('boton-aprobar').click()
+  const aviso = page.getByTestId('notificaciones-cita')
+  await expect(aviso).toContainText('email')
+  await expect(aviso).toContainText('whatsapp')
+  await expect(bandeja.getByText('Sin solicitudes pendientes')).toBeVisible()
+
+  // En el tablero quedó CONFIRMADA (la firma el sistema notificador)
+  await page.goto('/citas')
+  await expect(
+    page.locator('[data-testid="fila-cita"]', { hasText: 'Marta Villa' }).locator('[data-estado="confirmada"]')
+  ).toBeVisible()
+
+  // Candado de pago: la solicitud de Luis (auditoría con pago previo) no se puede aprobar
+  await page.goto('/asesores/asesor-luis/agenda')
+  await expect(page.getByTestId('bandeja-solicitudes').getByText('Pago pendiente')).toBeVisible()
+  await expect(page.getByTestId('boton-aprobar')).toBeDisabled()
+})
+
+test('agendamiento M2: reasignar mueve la solicitud a otro asesor conservando la cita viva', async ({ page }) => {
+  await page.goto('/asesores/asesor-ana/agenda')
+  const bandeja = page.getByTestId('bandeja-solicitudes')
+  await bandeja.getByTestId('boton-reasignar').click()
+  await page.getByTestId('reasignar-a-asesor-carla').click()
+  await expect(page.getByTestId('notificaciones-cita')).toContainText('reasignada a Carla')
+  await expect(bandeja.getByText('Sin solicitudes pendientes')).toBeVisible()
+
+  // La solicitud ahora vive en la bandeja de Carla, sigue 'solicitada'
+  await page.goto('/asesores/asesor-carla/agenda')
+  await expect(page.getByTestId('bandeja-solicitudes').getByText('Marta Villa')).toBeVisible()
+})
+
+test('agendamiento M3: el cliente reserva en móvil, sin shell, y la solicitud llega a la bandeja', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/reservar/ana-torres')
+
+  // Superficie pública: sin sidebar y con la demo declarada
+  await expect(page.getByTestId('reserva-cliente')).toBeVisible()
+  await expect(page.getByTestId('sidebar')).toHaveCount(0)
+  await expect(page.getByTestId('banner-demo')).toBeVisible()
+
+  // Paso 1: datos
+  await page.getByTestId('reserva-nombre').fill('Cliente Móvil')
+  await page.getByTestId('reserva-email').fill('cliente@movil.mx')
+  await page.getByTestId('reserva-telefono').fill('5544332211')
+  await page.getByTestId('reserva-continuar').click()
+  await expect(page).toHaveURL(/paso=horario/)
+
+  // Paso 2: día con disponibilidad → SOLO slots libres, hora con TZ explícita
+  await page.locator('[data-testid^="fecha-"]:not([disabled])').first().click()
+  await expect(page.getByTestId('reserva-slots')).toBeVisible()
+  await page.getByTestId('reserva-slot').first().click()
+  await page.getByTestId('reserva-confirmar').click()
+  await expect(page.getByTestId('reserva-exito')).toBeVisible()
+  await expect(page.getByTestId('reserva-exito')).toContainText('solicitada')
+
+  // Mismo navegador (mock declarado): la solicitud aparece en la bandeja de Ana
+  await page.goto('/asesores/asesor-ana/agenda')
+  await expect(page.getByTestId('bandeja-solicitudes').getByText('Cliente Móvil')).toBeVisible()
+})
+
+test('agendamiento M4: tablero con métricas derivadas, transición por máquina, llamar y filtro en URL', async ({ page }) => {
+  await page.goto('/citas')
+  await expect(page.getByTestId('tablero-citas')).toBeVisible()
+  await expect(page.getByText('Aprobación media')).toBeVisible()
+
+  // La fila en_curso ofrece EXACTAMENTE las transiciones de la máquina
+  const enCurso = page.locator('[data-testid="fila-cita"][data-cita="cita-demo-encurso"]')
+  await expect(enCurso.getByTestId('accion-completar')).toBeVisible()
+  await expect(enCurso.getByTestId('accion-iniciar')).toHaveCount(0)
+  await enCurso.getByTestId('accion-completar').click()
+  await expect(enCurso.locator('[data-estado="completada"]')).toBeVisible()
+
+  // Botón Llamar → handoff tel:/wa.me + seam declarado de la herramienta integrada
+  await enCurso.getByTestId('boton-llamar').click()
+  await expect(page.getByTestId('dialog-llamar')).toBeVisible()
+  await expect(page.getByTestId('llamar-tel')).toBeVisible()
+  await expect(page.getByTestId('llamar-whatsapp')).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  // El filtro vive en la URL y sobrevive a un reload
+  await page.getByTestId('filtro-citas-no_show').click()
+  await expect(page).toHaveURL(/estado=no_show/)
+  await expect(page.locator('[data-testid="fila-cita"]')).toHaveCount(1)
+  await page.reload()
+  await expect(page.getByTestId('filtro-citas-no_show')).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('agendamiento M5: la ruta discovery exige brief y lo propaga hasta la bandeja del asesor', async ({ page }) => {
+  await page.goto('/servicios')
+  await expect(page.getByTestId('catalogo-servicios')).toBeVisible()
+
+  // Ruta A (quick): va directo al selector de asesor, sin formulario
+  await page.getByTestId('elegir-diagnostico-express').click()
+  await expect(page.getByTestId('dialog-servicio')).toBeVisible()
+  await expect(page.getByTestId('formulario-discovery')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+
+  // Ruta B (discovery): mini-formulario primero
+  await page.getByTestId('elegir-discovery-profundo').click()
+  await expect(page.getByTestId('formulario-discovery')).toBeVisible()
+  await page.getByTestId('disc-respuesta-0').fill('Manufactura de autopartes')
+  await page.getByTestId('disc-respuesta-1').fill('Automatizar cotizaciones')
+  await page.getByTestId('disc-respuesta-2').fill('Este mes')
+  await page.getByTestId('disc-continuar').click()
+  await page.getByTestId('servicio-asesor-ana-torres').click()
+  await expect(page).toHaveURL(/depth=discovery/)
+
+  // La reserva viaja con el brief; al confirmar llega a la bandeja con él
+  await page.getByTestId('reserva-nombre').fill('Lead Discovery')
+  await page.getByTestId('reserva-email').fill('lead@discovery.mx')
+  await page.getByTestId('reserva-telefono').fill('5599887766')
+  await page.getByTestId('reserva-continuar').click()
+  await page.locator('[data-testid^="fecha-"]:not([disabled])').first().click()
+  await page.getByTestId('reserva-slot').first().click()
+  await page.getByTestId('reserva-confirmar').click()
+  await expect(page.getByTestId('reserva-exito')).toBeVisible()
+
+  await page.goto('/asesores/asesor-ana/agenda')
+  const solicitud = page.locator('[data-testid="solicitud-item"]', { hasText: 'Lead Discovery' })
+  await expect(solicitud.getByText('Discovery', { exact: true })).toBeVisible() // el Chip de profundidad
+  await solicitud.getByTestId('brief-solicitud').locator('summary').click()
+  await expect(solicitud.getByText('Manufactura de autopartes')).toBeVisible()
+
+  // En el tablero, la fila muestra la profundidad correcta
+  await page.goto('/citas')
+  await expect(
+    page.locator('[data-testid="fila-cita"]', { hasText: 'Lead Discovery' }).getByText('Discovery', { exact: true })
+  ).toBeVisible()
+})
