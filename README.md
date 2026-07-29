@@ -80,7 +80,9 @@ Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`
 línea CRM arrancó. En corto:
 
 - **Fases 0–1** ✅ — 3 verticales 24/7 por Telegram (+ Slack interno y grupo del
-  equipo), respaldo nocturno, gasto de tokens controlado ($30/mes, alerta 80%).
+  equipo), respaldo nocturno, gasto de tokens controlado ($30/mes, alerta 80%) y
+  **costeo por tarea** del trío/enjambre (vistas `v_costeo_tarea`/`v_costeo_departamento`
+  + recálculo nocturno de tarifas; 2026-07-29).
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO, contable y
   contractual MX; todo citado), cobros Polar y contratos validados.
 - **Fases 4–5** ✅ — dashboard **Mission Control** (6 vistas: Pantheon, AI Spend,

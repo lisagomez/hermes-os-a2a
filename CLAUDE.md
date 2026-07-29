@@ -1316,4 +1316,28 @@ npm run lint         # ESLint
   fallido REUSA el snapshot de settings del original — para probar un ajuste hay que crear
   deployment fresco (push o `POST /v13/deployments` con `gitSource`).
 
+### 2026-07-29: Costeo por tarea — un ledger con tarifa ajena y un snapshot con ventanas mezcladas MIENTEN
+- **Error(es) (revisita de Fase 1)**: (1) las filas por-tarea de `token_usage` llevaban el
+  costo que tarifica el CLI (precios Anthropic) aunque el motor corriera GLM vía z.ai →
+  ledger inflado ~12× ($27.13 nominales vs $1.83 reales en julio); el recálculo correcto
+  existía pero SOLO en memoria en `cosechar-activos.py` — Mission Control, el corte de
+  presupuesto del enjambre y el total mensual veían el número falso. (2) el snapshot
+  `presupuesto.json` metía el gasto del DÍA en `costo_total_usd` y sus consumidores
+  (alerta 80%, SOUL) lo comparaban contra el presupuesto MENSUAL de $30 → la alerta solo
+  habría disparado con $24 en UN día. Nadie lo vio porque cada pieza era coherente por
+  separado.
+- **Fix**: `ingest-token-usage.py` v3 recalcula y PERSISTE el costo EN LA FUENTE (modelos
+  mal-tarifados → siempre tokens×tarifa OpenRouter; resto solo costo=0; sin precio → se
+  declara, no se inventa) + snapshot mensual real (el día queda aparte en
+  `costo_hoy_usd`) + vistas `v_costeo_tarea`/`v_costeo_departamento`
+  (`supabase-costeo-tarea.sql`; `tarea_raiz` suma la feature padre+hijas). Reglas:
+  una corrección de datos vive en la FUENTE, no en el consumidor que la descubrió; y
+  todo campo agregado de un snapshot declara su VENTANA temporal — mezclar día/mes bajo
+  nombres genéricos es mentirle a todos los consumidores a la vez. Bonus: `mes_rango()`
+  — un filtro `lte.<mes>-31` revienta el parser de fechas de Postgres en meses cortos
+  (bug latente de v2).
+- **Aplicar en**: todo ledger alimentado por un CLI/SDK que tarifica a OTRO proveedor,
+  todo snapshot con agregados temporales, y toda corrección "en memoria" de datos que
+  otros consumidores leen crudos.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
