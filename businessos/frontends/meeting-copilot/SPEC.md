@@ -869,4 +869,7 @@ botón Llamar (tel/wa.me + evento en historial; herramienta integrada declarada 
 9. Marketplace quick vs discovery; el brief viaja hasta la bandeja. ✔ 10. Máquina de
 estados con matriz exhaustiva testeada; slots con 2 TZ + DST; notificaciones
 idempotentes con caso de error. ✔ 11. SQL fase14 entregado sin aplicar. ✔ 12. Smoke
-Playwright (6 escenarios nuevos). ✔
+Playwright (7 escenarios nuevos). ✔ 13. CRUD de asesores en el catálogo: agregar
+(slug único generado, sin franjas = semáforo honesto), visualizar (ficha), editar
+(copy-on-write; el slug público JAMÁS cambia) y borrar con guard (citas activas
+bloquean; el histórico sigue resolviendo el nombre vía asesoresTodos). ✔

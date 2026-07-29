@@ -85,7 +85,8 @@ export function TableroCitas() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const citas = useAgendaStore((s) => s.citas)
-  const asesores = useAgendaStore((s) => s.asesores)
+  // asesoresTodos: las citas históricas de un asesor borrado conservan su nombre.
+  const asesores = useAgendaStore((s) => s.asesoresTodos)
   const servicios = useAgendaStore((s) => s.servicios)
   const transicionar = useAgendaStore((s) => s.transicionar)
   const [llamando, setLlamando] = useState<Cita | null>(null)

@@ -432,3 +432,42 @@ test('agendamiento M5: la ruta discovery exige brief y lo propaga hasta la bande
     page.locator('[data-testid="fila-cita"]', { hasText: 'Lead Discovery' }).getByText('Discovery', { exact: true })
   ).toBeVisible()
 })
+
+test('agendamiento M1: CRUD de asesores — agregar, visualizar, editar y borrar con guard', async ({ page }) => {
+  await page.goto('/asesores')
+
+  // AGREGAR
+  await page.getByTestId('agregar-asesor').click()
+  await page.getByTestId('asesor-nombre').fill('María Prueba')
+  await page.getByTestId('asesor-especialidad').fill('Pruebas end to end')
+  await page.getByTestId('guardar-asesor').click()
+  const tarjeta = page.locator('[data-testid="tarjeta-asesor"][data-slug="maria-prueba"]')
+  await expect(tarjeta).toBeVisible()
+  // Nueva sin franjas → semáforo honesto 'sin agenda'
+  await expect(tarjeta.locator('[data-semaforo="sin_agenda"]')).toBeVisible()
+
+  // VISUALIZAR
+  await tarjeta.getByTestId('ver-maria-prueba').click()
+  await expect(page.getByTestId('ficha-asesor')).toBeVisible()
+  await expect(page.getByTestId('ficha-asesor')).toContainText('/reservar/maria-prueba')
+  await page.keyboard.press('Escape')
+
+  // EDITAR (persiste al recargar: copy-on-write a localStorage)
+  await tarjeta.getByTestId('editar-maria-prueba').click()
+  await page.getByTestId('asesor-especialidad').fill('Especialidad editada')
+  await page.getByTestId('guardar-asesor').click()
+  await expect(tarjeta).toContainText('Especialidad editada')
+  await page.reload()
+  await expect(page.locator('[data-testid="tarjeta-asesor"][data-slug="maria-prueba"]')).toContainText('Especialidad editada')
+
+  // BORRAR con guard: Ana tiene citas activas → bloqueado con motivo
+  await page.getByTestId('borrar-ana-torres').click()
+  await page.getByTestId('confirmar-borrar-asesor').click()
+  await expect(page.getByTestId('borrar-bloqueado')).toContainText('activa')
+  await page.keyboard.press('Escape')
+
+  // BORRAR la nueva (sin citas) → desaparece del catálogo
+  await page.getByTestId('borrar-maria-prueba').click()
+  await page.getByTestId('confirmar-borrar-asesor').click()
+  await expect(page.locator('[data-testid="tarjeta-asesor"][data-slug="maria-prueba"]')).toHaveCount(0)
+})

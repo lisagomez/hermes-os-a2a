@@ -33,6 +33,7 @@ import {
 interface AgendaState {
   // Persistido (solo usuario)
   asesoresUsuario: Asesor[]
+  asesoresOcultos: string[] // tombstones de asesores borrados (demo y usuario)
   disponibilidadUsuario: DisponibilidadSemanal[]
   excepcionesUsuario: Excepcion[]
   excepcionesOcultas: string[] // tombstones de excepciones demo borradas
@@ -42,6 +43,8 @@ interface AgendaState {
 
   // Derivado (demo ∪ usuario) — se recalcula en cada set/merge
   asesores: Asesor[]
+  /** Incluye borrados: para resolver nombres en citas históricas (jamás mostrar un id crudo). */
+  asesoresTodos: Asesor[]
   disponibilidad: DisponibilidadSemanal[]
   excepciones: Excepcion[]
   citas: Cita[]
@@ -50,6 +53,10 @@ interface AgendaState {
   /** Catálogo estático en MVP (sin edición de usuario). */
   servicios: Servicio[]
 
+  crearAsesor: (asesor: Asesor) => void
+  actualizarAsesor: (asesorId: string, cambios: Partial<Asesor>) => void
+  /** Borrado con guard: un asesor con citas activas NO se borra (reasignar/cerrar primero). */
+  borrarAsesor: (asesorId: string) => { ok: true } | { ok: false; motivo: string }
   crearCita: (cita: Cita) => void
   /** Única puerta de cambio de estado. `cambios` se aplica tras validar la
    *  transición (reasignar → asesorId; reprogramar → inicio/fin). */
@@ -73,6 +80,7 @@ interface AgendaState {
 type Persistido = Pick<
   AgendaState,
   | 'asesoresUsuario'
+  | 'asesoresOcultos'
   | 'disponibilidadUsuario'
   | 'excepcionesUsuario'
   | 'excepcionesOcultas'
@@ -87,8 +95,10 @@ function porId<T>(demo: T[], usuario: T[], id: (x: T) => string): T[] {
 }
 
 function derivar(p: Persistido) {
+  const asesoresTodos = porId(ASESORES_DEMO, p.asesoresUsuario, (a) => a.id)
   return {
-    asesores: porId(ASESORES_DEMO, p.asesoresUsuario, (a) => a.id),
+    asesoresTodos,
+    asesores: asesoresTodos.filter((a) => !p.asesoresOcultos.includes(a.id)),
     disponibilidad: porId(DISPONIBILIDAD_DEMO, p.disponibilidadUsuario, (d) => d.asesorId),
     excepciones: [...EXCEPCIONES_DEMO.filter((e) => !p.excepcionesOcultas.includes(e.id)), ...p.excepcionesUsuario],
     citas: porId(CITAS_DEMO, p.citasUsuario, (c) => c.id),
@@ -100,6 +110,7 @@ function derivar(p: Persistido) {
 
 const VACIO: Persistido = {
   asesoresUsuario: [],
+  asesoresOcultos: [],
   disponibilidadUsuario: [],
   excepcionesUsuario: [],
   excepcionesOcultas: [],
@@ -113,6 +124,43 @@ export const useAgendaStore = create<AgendaState>()(
     (set, get) => ({
       ...VACIO,
       ...derivar(VACIO),
+
+      crearAsesor: (asesor) =>
+        set((s) => {
+          const asesoresUsuario = [...s.asesoresUsuario.filter((a) => a.id !== asesor.id), asesor]
+          return { asesoresUsuario, ...derivar({ ...s, asesoresUsuario }) }
+        }),
+
+      actualizarAsesor: (asesorId, cambios) =>
+        set((s) => {
+          const base = s.asesoresTodos.find((a) => a.id === asesorId)
+          if (!base) return s
+          // Copy-on-write: editar una demo la clona a usuario. El slug no cambia
+          // (los enlaces /reservar/[slug] repartidos no deben romperse).
+          const asesoresUsuario = [
+            ...s.asesoresUsuario.filter((a) => a.id !== asesorId),
+            { ...base, ...cambios, slug: base.slug, id: base.id },
+          ]
+          return { asesoresUsuario, ...derivar({ ...s, asesoresUsuario }) }
+        }),
+
+      borrarAsesor: (asesorId) => {
+        const s = get()
+        const activas = s.citas.filter(
+          (c) => c.asesorId === asesorId && ['solicitada', 'aprobada', 'confirmada', 'en_curso'].includes(c.estado)
+        )
+        if (activas.length > 0) {
+          return {
+            ok: false as const,
+            motivo: `Tiene ${activas.length} cita(s) activa(s): reasígnalas o ciérralas antes de borrar.`,
+          }
+        }
+        set((st) => {
+          const asesoresOcultos = [...new Set([...st.asesoresOcultos, asesorId])]
+          return { asesoresOcultos, ...derivar({ ...st, asesoresOcultos }) }
+        })
+        return { ok: true as const }
+      },
 
       crearCita: (cita) =>
         set((s) => {
@@ -194,6 +242,7 @@ export const useAgendaStore = create<AgendaState>()(
       name: 'meeting-copilot-agenda',
       partialize: (s): Persistido => ({
         asesoresUsuario: s.asesoresUsuario,
+        asesoresOcultos: s.asesoresOcultos,
         disponibilidadUsuario: s.disponibilidadUsuario,
         excepcionesUsuario: s.excepcionesUsuario,
         excepcionesOcultas: s.excepcionesOcultas,

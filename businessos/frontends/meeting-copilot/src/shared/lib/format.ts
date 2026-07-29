@@ -28,6 +28,16 @@ export function fmtPrecio(centavos: number, moneda: string): string {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: moneda, maximumFractionDigits: 0 }).format(centavos / 100)
 }
 
+/** kebab-case sin acentos, para slugs de URL (p. ej. /reservar/[slug]). */
+export function slugificar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 let contador = 0
 /** Id único simple (el MVP no necesita ulid; determinista dentro de la sesión). */
 export function nuevoId(prefijo: string): string {
