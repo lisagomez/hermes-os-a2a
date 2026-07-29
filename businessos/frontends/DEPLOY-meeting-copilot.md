@@ -102,6 +102,19 @@ Pre-Discovery con datos de leads reales en camino).
 > (Resend) → habilita plantilla con `{{ .RedirectTo }}` visible Y quita el
 > rate-limit de 2 correos/hora — un solo prerequisito para ambas mejoras.
 
+> ⚠️ **Gotcha de las URLs por-deployment de Vercel (visto en vivo 2026-07-29)**: pedir
+> el magic link navegando en `meeting-copilot-<hash>-….vercel.app` (el enlace que da el
+> dashboard/PR de Vercel) fija la cookie PKCE `code-verifier` en ESE host, pero el
+> correo aterriza en `NEXT_PUBLIC_SITE_URL` (el dominio canónico) → cookies no cruzan
+> hosts → `exchangeCodeForSession` falla y el login muere con "el enlace expiró" aunque
+> en los logs de auth el `/verify` salió 303 (token válido). **Fix estructural**: el
+> middleware redirige 308 todo host no-canónico al canónico cuando
+> `VERCEL_ENV=production` (`src/shared/lib/auth/canonico.ts`; previews y dev intactos).
+> Señal en logs de Vercel: columna HOST distinta entre el `POST /auth/otp` y el
+> `GET /auth/callback`. Recordar además el rate-limit (2 correos/hora): los intentos
+> fallidos queman el cupo y el tercero se traga en silencio (ahora al menos se loguea
+> en `[auth/otp]`).
+
 ## 4. Verificación post-deploy (smoke de TODAS las vistas — doctrina 2026-07-23)
 
 Hecho en el deploy inicial; repetir tras cada `deploy --prod`:

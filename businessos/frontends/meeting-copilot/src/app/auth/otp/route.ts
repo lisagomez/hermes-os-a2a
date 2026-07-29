@@ -32,14 +32,17 @@ export async function POST(request: Request) {
 
   const origin = new URL(request.url).origin
   const supabase = await createClient()
-  // El error se traga a propósito: la respuesta genérica no debe cambiar.
-  await supabase.auth.signInWithOtp({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? origin}/auth/callback`,
       shouldCreateUser: true,
     },
   })
+  // La respuesta sigue genérica (sin oráculo de enumeración), pero el fallo
+  // JAMÁS es invisible (regla 2026-07-13): el rate-limit de Supabase
+  // (2 correos/hora sin SMTP propio) o una config rota se ven en los logs.
+  if (error) console.error(`[auth/otp] signInWithOtp falló: ${error.status ?? '?'} ${error.message}`)
 
   return generico
 }
