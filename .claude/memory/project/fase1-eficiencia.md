@@ -165,3 +165,25 @@ para ese dato/dominio. Antes de cablear un modelo nuevo por precio, la pregunta
 previa al probe es "¿está PROHIBIDO para lo que va a ver?" (retención/ZDR,
 clasificadores, proveedor externo vs dato de cliente). Un descalificador no se
 compensa con caché al 97%.
+
+
+## 2026-07-29: Costeo ENFOCADO POR TAREA (revisita de la fase)
+La fase vigilaba el gasto por vertical/mes; el ledger por-tarea (Fase 7) existía pero
+nadie lo COSTEABA bien. Tres piezas nuevas (PR feat/costeo-por-tarea):
+- **Vistas** `v_costeo_tarea` (una fila por tarea: corridas, tokens, costo, `tarea_raiz`
+  para sumar padre+hijas del enjambre, `filas_sin_costo` declarados) y
+  `v_costeo_departamento` (mes×departamento) — `supabase-costeo-tarea.sql`, aplicadas a
+  prod con security_invoker + revoke anon/authenticated. De pilón se corrigió
+  `v_presupuesto_mensual` (era SECURITY DEFINER, ERROR del advisor).
+- **`ingest-token-usage.py` v3**: recalcula y PERSISTE cada noche el costo del ledger
+  por-tarea del mes (MAL_TARIFADOS=glm → siempre tokens×tarifa OR; resto solo costo=0;
+  sin precio → declarado). Julio: $27.13 nominales → $1.83 (12×). FIX día/mes del
+  snapshot: `costo_total_usd`/`por_vertical` ahora son el MES real desde token_usage
+  (incluye trío); el día vive en `costo_hoy_usd`/`por_modelo`; bloque `por_tarea_mes`
+  (top 8) para responder "qué tarea costó qué" desde el SOUL. `--dry-run` disponible;
+  el recálculo corre aunque el log del día venga vacío. Refactor a funciones puras +
+  10 tests (`tests/test_ingest_token_usage.py`).
+- **Gotcha nuevo**: `lte.<mes>-31` revienta el parser de fechas de Postgres en meses
+  cortos (bug latente de v2 en la reconciliación mensual) → `mes_rango()` usa gte/lt.
+El recálculo en memoria de `cosechar-activos.py` sigue como red de seguridad, pero la
+verdad ya vive en la fuente. Detalle del incidente en CLAUDE.md (2026-07-29).
