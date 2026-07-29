@@ -26,6 +26,20 @@ describe('esRutaPublica', () => {
     expect(esRutaPublica('/loginx')).toBe(false)
     expect(esRutaPublica('/authx')).toBe(false)
   })
+
+  it('la superficie pública de reserva pasa (con sub-rutas), sus vecinos NO', () => {
+    expect(esRutaPublica('/reservar')).toBe(true)
+    expect(esRutaPublica('/reservar/ana-torres')).toBe(true)
+    expect(esRutaPublica('/reservar/cita/cita-demo-confirmada')).toBe(true)
+    expect(esRutaPublica('/api/reservar')).toBe(true)
+    // Frontera del prefijo: parecidos no cuelan
+    expect(esRutaPublica('/reservado')).toBe(false)
+    expect(esRutaPublica('/api/reservado')).toBe(false)
+    // El resto de la agenda (asesores, citas, servicios) sigue tras el login
+    expect(esRutaPublica('/asesores')).toBe(false)
+    expect(esRutaPublica('/citas')).toBe(false)
+    expect(esRutaPublica('/api/agenda')).toBe(false)
+  })
 })
 
 describe('decidirAcceso', () => {

@@ -6,12 +6,14 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { CommandBar } from './CommandBar'
 import { LauncherPopover } from '@/features/launcher/LauncherPopover'
+import { esRutaSinShell } from './rutas-sin-shell'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
-  // /login es pública y de pantalla completa: sin sidebar/topbar/launcher.
-  if (pathname === '/login') return <>{children}</>
+  // Pantalla completa (sin sidebar/topbar/launcher): /login y la superficie
+  // pública /reservar — ver rutas-sin-shell.ts.
+  if (esRutaSinShell(pathname)) return <>{children}</>
 
   return (
     <div className="flex h-dvh overflow-hidden">

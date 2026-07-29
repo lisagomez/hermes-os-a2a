@@ -12,7 +12,11 @@
  *  5. Usuario fuera de la allowlist → 'denegado'.
  *  6. → pasa.
  */
-export const RUTAS_PUBLICAS = ['/login', '/auth/callback', '/auth/otp', '/auth/signout']
+// /reservar y /api/reservar son la superficie PÚBLICA de agendamiento (el
+// cliente agenda sin cuenta). Todo lo que cuelgue de esos prefijos queda sin
+// auth: el endpoint valida su propio payload (zod estricto, límites de tamaño)
+// y el rate-limit real llega con la fase Supabase (documentado en SPEC §19).
+export const RUTAS_PUBLICAS = ['/login', '/auth/callback', '/auth/otp', '/auth/signout', '/reservar', '/api/reservar']
 
 export type DecisionAcceso =
   | { tipo: 'pasar' }

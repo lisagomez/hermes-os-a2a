@@ -18,6 +18,10 @@ export const CATALOGO_HERRAMIENTAS: Herramienta[] = [
   { slug: 'follow-up-writer', nombre: 'Follow-up Writer', descripcion: 'Draft de correo de seguimiento desde la reunión', categoria: 'ejecucion', icono: 'MailPlus', estado: 'active', ruta: '/reuniones/[ultima]/resumen#followup' },
   { slug: 'crm-notes', nombre: 'CRM Notes', descripcion: 'Notas estructuradas listas para el CRM', categoria: 'ejecucion', icono: 'NotebookPen', estado: 'active', ruta: '/reuniones/[ultima]/resumen#crm' },
   { slug: 'tasks', nombre: 'Tasks', descripcion: 'Action items con responsable y fecha', categoria: 'ejecucion', icono: 'ListChecks', estado: 'active', ruta: '/reuniones?vista=acciones' },
+  { slug: 'asesores', nombre: 'Asesores', descripcion: 'Catálogo de asesores humanos e IA con su disponibilidad', categoria: 'agendamiento', icono: 'Users', estado: 'active', ruta: '/asesores' },
+  { slug: 'citas', nombre: 'Citas', descripcion: 'Tablero de seguimiento de citas con estado y acción de llamada', categoria: 'agendamiento', icono: 'CalendarCheck', estado: 'active', ruta: '/citas' },
+  { slug: 'servicios', nombre: 'Servicios', descripcion: 'Marketplace: servicio rápido o sesión parametrizada (discovery)', categoria: 'agendamiento', icono: 'Layers', estado: 'active', ruta: '/servicios' },
+  { slug: 'llamadas', nombre: 'Llamadas', descripcion: 'Herramienta de llamadas integrada (el tablero de citas ya enlaza tel/WhatsApp)', categoria: 'agendamiento', icono: 'Phone', estado: 'soon', ruta: '/citas' },
   { slug: 'pre-discovery-admin', nombre: 'Admin Pre-Discovery', descripcion: 'Costeo, seams, clasificación en origen y auditoría del módulo', categoria: 'configuracion', icono: 'SlidersHorizontal', estado: 'active', ruta: '/pre-discovery/admin' },
   { slug: 'playbooks', nombre: 'Playbooks', descripcion: 'Dimensiones, pesos y banco de preguntas por tipo de reunión', categoria: 'configuracion', icono: 'BookOpenCheck', estado: 'active', ruta: '/playbooks' },
   { slug: 'templates', nombre: 'Templates', descripcion: 'Plantillas de salida: follow-up, CRM notes, resumen', categoria: 'configuracion', icono: 'LayoutTemplate', estado: 'active', ruta: '/playbooks#templates' },
@@ -29,4 +33,5 @@ export const ETIQUETA_CATEGORIA_HERRAMIENTA: Record<Herramienta['categoria'], st
   ejecucion: 'Ejecución',
   supervision: 'Supervisión',
   configuracion: 'Configuración',
+  agendamiento: 'Agendamiento',
 }
