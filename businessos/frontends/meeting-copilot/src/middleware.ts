@@ -7,6 +7,7 @@ import {
   decidirAcceso,
   esRutaPublica,
 } from '@/shared/lib/auth/acceso'
+import { destinoCanonico } from '@/shared/lib/auth/canonico'
 
 /**
  * Puerta de entrada del copiloto. TODA ruta (páginas Y /api/*, salvo las
@@ -19,6 +20,19 @@ import {
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // En producción, TODO host no-canónico (URLs por-deployment de Vercel) se
+  // redirige al canónico ANTES de cualquier otra cosa: las cookies (sesión y
+  // PKCE code-verifier) son por-host y el magic link siempre aterriza en
+  // NEXT_PUBLIC_SITE_URL — ver canonico.ts (incidente 2026-07-29).
+  const canonico = destinoCanonico({
+    host: request.headers.get('x-forwarded-host') ?? request.headers.get('host'),
+    pathname,
+    search: request.nextUrl.search,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    vercelEnv: process.env.VERCEL_ENV,
+  })
+  if (canonico) return NextResponse.redirect(canonico, 308)
 
   // Sin config o deshabilitada, no se puede/debe crear el cliente Supabase.
   const conConfig = authConfigurada()

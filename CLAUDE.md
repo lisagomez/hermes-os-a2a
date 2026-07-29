@@ -1316,4 +1316,24 @@ npm run lint         # ESLint
   fallido REUSA el snapshot de settings del original — para probar un ajuste hay que crear
   deployment fresco (push o `POST /v13/deployments` con `gitSource`).
 
+### 2026-07-29: Magic link "expirado" al minuto — las URLs por-deployment de Vercel rompen PKCE
+- **Error (visto en vivo por la dueña)**: login del copiloto moría con "el enlace expiró
+  o no es válido" a los segundos de pedirlo. El token NUNCA estuvo expirado: en los logs
+  de auth el `/verify` salió 303 con acción `login`. La causa era de COOKIES: la dueña
+  navegaba en la URL por-deployment (`meeting-copilot-<hash>-….vercel.app`, el enlace del
+  dashboard/PR de Vercel), el `POST /auth/otp` fijó la cookie PKCE `code-verifier` en ESE
+  host, y el correo aterrizó en el dominio canónico (`NEXT_PUBLIC_SITE_URL`) → cookies no
+  cruzan hosts → `exchangeCodeForSession` aborta SIN llamar a `/token` (cero rastro en
+  Supabase). Diagnóstico decisivo: en `vercel logs`, la columna HOST del `POST /auth/otp`
+  ≠ la del `GET /auth/callback`. Daño colateral: cada intento quema el rate-limit de
+  correos (2/hora sin SMTP) y el 3º se traga en silencio.
+- **Fix**: middleware redirige 308 TODO host no-canónico al canónico cuando
+  `VERCEL_ENV=production` (función pura `canonico.ts`, testeada; previews con
+  `VERCEL_ENV=preview` y dev local intactos) + el error de `signInWithOtp` se loguea
+  server-side aunque la respuesta siga genérica (regla 2026-07-13: ningún best-effort
+  silencioso).
+- **Aplicar en**: toda app del monorepo con auth por cookie (magic link/PKCE) desplegada
+  en Vercel — el mismo patrón canónico va en Mission Control y cliente-web2 si activan
+  login; y al diagnosticar auth "que expira", mirar HOSTS en los logs antes que el token.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
