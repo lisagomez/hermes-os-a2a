@@ -4,10 +4,12 @@
 const FUENTES_DATOS = ['mock', 'real'] as const
 const PROVIDERS_STT = ['mock', 'transcriptor-local', 'transcripcion-a2a', 'groq-whisper'] as const
 const MOTORES_AGENTE = ['rules', 'llm'] as const
+const NOTIFICADORES_AGENDA = ['mock', 'host-job'] as const
 
 export type FuenteDatos = (typeof FUENTES_DATOS)[number]
 export type ProviderSTT = (typeof PROVIDERS_STT)[number]
 export type MotorAgente = (typeof MOTORES_AGENTE)[number]
+export type NotificadorAgenda = (typeof NOTIFICADORES_AGENDA)[number]
 
 function validar<T extends string>(nombre: string, valor: string | undefined, permitidos: readonly T[], fallback: T): T {
   if (valor === undefined || valor === '') return fallback
@@ -39,8 +41,23 @@ export const MOTOR_AGENTE: MotorAgente = validar(
   'rules'
 )
 
+// Notificador de agendamiento (SPEC §19): 'mock' simula la cola de
+// confirmaciones (email + WhatsApp) dentro del navegador; 'host-job' es el
+// contrato real (cron que lee agenda_notificaciones y envía por
+// enviar-salientes.py / crm-canales) — reservado a la fase Supabase.
+export const NOTIFICADOR_AGENDA: NotificadorAgenda = validar(
+  'NEXT_PUBLIC_AGENDA_NOTIFICADOR',
+  process.env.NEXT_PUBLIC_AGENDA_NOTIFICADOR,
+  NOTIFICADORES_AGENDA,
+  'mock'
+)
+
 if (FUENTE_DATOS === 'real') {
   throw new Error('NEXT_PUBLIC_COPILOT_DATA=real está reservado a la integración Supabase (post-MVP).')
+}
+
+if (NOTIFICADOR_AGENDA === 'host-job') {
+  throw new Error('NEXT_PUBLIC_AGENDA_NOTIFICADOR=host-job está reservado a la integración Supabase + cron (post-MVP).')
 }
 
 // MOTOR_AGENTE='llm': la IA redacta la siguiente mejor pregunta con el contexto

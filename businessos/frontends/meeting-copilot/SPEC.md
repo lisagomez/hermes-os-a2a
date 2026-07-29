@@ -746,3 +746,130 @@ lógica ACT (origen, versiones append-only, costo=SUMA, cosecha real vía host-j
 11. Panel admin coherente. ✔ 12. Salida reutilizada en Grabación/Guided/CRM. ✔
 13. Entrevistas modeladas como activos trazables. ✔ 14. Smoke Playwright (3 escenarios
 nuevos) + tests unitarios del contrato. ✔
+
+---
+
+## 19. Agendamiento (5 vistas + superficie pública)
+
+**Qué es**: el módulo de agendamiento del panel derecho — catálogo de asesores
+(humanos + IA como entidades del mismo tipo), calendario de disponibilidad con bandeja
+de aprobación, página pública de reserva del cliente, tablero de seguimiento con acción
+de llamada, y marketplace de profundidad de servicio. Referencias UX: Calendly
+(disponibilidad/booking), Acuity (bandeja/intake), HubSpot (directorio/pipeline),
+Cal.com Teams. Mock-first: la agenda vive en zustand+localStorage
+(`meeting-copilot-agenda`, demo ∪ usuario con copy-on-write); el contrato Supabase ya
+está diseñado en `businessos/supabase-fase14-agendamiento.sql` (NO aplicado).
+
+Rutas: `/asesores` (M1) · `/asesores/[id]/agenda` (M2) · `/reservar/[slug]` y
+`/reservar/cita/[token]` (M3, PÚBLICAS y sin shell) · `/citas` (M4) · `/servicios` (M5).
+
+**Journey:** el cliente elige servicio (M5: quick directo, discovery con mini-form) →
+reserva en `/reservar/[slug]` viendo SOLO slots libres en su TZ (M3) → el asesor
+aprueba/reasigna/rechaza en su bandeja (M2) → el notificador registra el par
+email+WhatsApp y la cita pasa a `confirmada` → seguimiento y llamada en `/citas` (M4).
+
+### 19.1 Máquina de estados de la cita
+
+`solicitada → aprobada | rechazada | solicitada` (reasignación) ·
+`aprobada → confirmada` (SOLO el notificador: confirmada = "cliente notificado") ·
+`confirmada → en_curso | cancelada | no_show | solicitada` (esta última SOLO vía
+reprogramación) · `en_curso → completada | cancelada`. Terminales: `rechazada`,
+`completada`, `cancelada`, `no_show`. La reasignación y la reprogramación son EVENTOS
+auditables del historial, no estados (una cita reasignada sigue viva esperando al nuevo
+asesor). Regla ortogonal: `pagoEstado='pendiente'` bloquea `aprobar` (el pago es
+dimensión paralela, no ciclo de vida). Toda mutación pasa por `aplicarTransicion`
+(`src/features/agenda/types.ts`) y deja `{de, a, evento, actor, at, detalle}` en el
+historial; los fixtures construyen sus estados aplicando transiciones, jamás a mano.
+Etiquetas de negocio: Agendada (solicitada|aprobada), Confirmada, En curso, Completada,
+Cancelada, No show (+Rechazada).
+
+### 19.2 Tiempo y zonas horarias
+
+`calcularSlots` (`src/features/agenda/slots.ts`) es puro y UTC-interno: las reglas
+(HH:MM) viven en la TZ del asesor y se materializan por instante con `Intl` nativo
+(DST correcto, sin librería de fechas; testeado con 2 TZ + cruce DST de America/New_York).
+El cliente ve horas proyectadas a SU TZ detectada, con la zona escrita explícita. El
+semáforo de disponibilidad (inmediata/próximos días/sin agenda) SIEMPRE se deriva del
+motor — nunca se almacena. Selector manual de TZ del cliente: pendiente anotado.
+
+### 19.3 Notificaciones (cola idempotente, contrato host-job)
+
+El frontend JAMÁS llama a un canal: aprobar/reasignar/rechazar registra un par
+[email, WhatsApp] como `NotificacionPendiente` con clave `(citaId, canal, plantilla)`
+(espejo del unique de `agenda_notificaciones` — reprocesar no duplica). El seam
+`NEXT_PUBLIC_AGENDA_NOTIFICADOR` (`mock` | `host-job`) decide quién procesa: en mock se
+simula el host-job (marca enviadas y confirma la cita); `host-job` es el contrato real
+(cron que envía por `enviar-salientes.py` con gate `aprobaciones_salientes` y
+`crm-canales`), reservado a la fase Supabase. Si un canal falla, la cita se queda en
+`aprobada` con evento `fallo_notificacion` visible (el asesor sabe que el cliente pudo
+no enterarse); reintentos máx 3. Plantillas mínimas: cliente, asesor, fecha/hora CON TZ,
+tipo de sesión y enlace de reprogramar/cancelar.
+
+### 19.4 Superficie pública y seguridad
+
+`/reservar/*` y `/api/reservar` están en `RUTAS_PUBLICAS` y `RUTAS_SIN_SHELL` (el
+cliente no ve la shell; mobile-first). Límites duros en `contratos.ts` (zod): nombre
+120, email 160, teléfono 20, brief ≤4 KB, payload ≤8 KB. El token de `EnlaceReserva` es
+de un solo uso con expiración (en mock, id opaco validado contra el store; en real,
+firmado HMAC server-side). Rate-limit (5/día por email e IP) DISEÑADO y documentado en
+el SQL y en `/api/reservar` — NO simulado en mock (sería seguridad-teatro). Acceso al
+brief (dato sensible): la regla "solo el asesor asignado y servicios IA autorizados" es
+contrato del route handler real; desde ya, toda lectura IA registra `lectura_brief_ia`
+en el historial.
+
+### 19.5 Reprogramación del cliente
+
+`/reservar/cita/[token]`: solo citas `confirmada` y con ≥24 h de antelación
+(`REPROGRAMAR_HORAS_MIN`); el nuevo horario vuelve a `solicitada` (re-aprobación del
+asesor) con evento `reprogramar`. Sin margen → estado con criterio (contactar al asesor).
+
+### 19.6 Seams CRM, pago e IA
+
+- **CRM (host-job futuro)**: el copilot NUNCA escribe `leads` — garantiza los insumos
+  (`leadId`, `tenantId`, historial con actor/timestamp); el mapeo cita→etapa usa SOLO
+  etapas existentes del CHECK (p. ej. aprobada→`descubrimiento`); "cita perdida" no
+  tiene etapa hoy (decisión de negocio pendiente).
+- **Pago (seam Polar)**: `Servicio.requierePago` → la cita nace `pagoEstado='pendiente'`
+  y la aprobación queda bloqueada (candado visible en la bandeja) hasta registrarse.
+- **IA**: `resumenIaBrief` en `Cita` (consumidor: bandeja/PrepAsesor; hoy null);
+  sugerencia de asesor IA cuando un humano está `sin_agenda` e inferencia del
+  `session_depth` por primer mensaje = pendientes anotados (extension point
+  `datos jsonb`, sin seams muertos en config).
+
+### 19.7 Estados con criterio
+
+Filtro sin resultados → EmptyState con instrucción; asesor/slug/token inexistente →
+vacío honesto con salida (catálogo o contacto); día sin slots → "prueba otro día";
+transición inválida → Callout danger con el motivo de la máquina; teléfono inutilizable
+→ el dialog de llamada lo dice en vez de armar un enlace roto; pago pendiente → candado
+explicado, jamás un botón que falla en silencio; enlace inválido → aviso y flujo demo;
+mock mono-navegador → Callout que lo declara en la página pública.
+
+### 19.8 Modelo de datos (resumen)
+
+`Asesor` (tipo humano|ia, TZ, duración/buffer) · `DisponibilidadSemanal`/`ReglaDia` ·
+`Excepcion` · `Servicio` (sessionDepth, requierePago) · `Cita` (tenantId, pagoEstado
+paralelo, brief, resumenIaBrief, participantes, historial de eventos, procedencia) ·
+`NotificacionPendiente` (clave idempotente, intentos) · `EnlaceReserva` (usos/expira) ·
+`Slot`. SQL espejo: `businessos/supabase-fase14-agendamiento.sql` (7 tablas `agenda_*`
+con tenant_id, RLS sin políticas, exclusion constraint anti doble-reserva, escritor
+único por transición en la cabecera). Métricas derivables del historial: tasa no-show
+por asesor/servicio, tiempo medio solicitada→aprobada, distribución quick vs discovery.
+
+### 19.9 Criterios de aceptación de la sección
+
+1. Catálogo con humanos e IA del mismo tipo, semáforo derivado y filtro en URL. ✔
+2. Editor de disponibilidad con franjas por día en la TZ del asesor + duración/buffer. ✔
+3. Bandeja: aprobar dispara el par email+WhatsApp (mock declarado) y confirma;
+reasignar conserva la cita viva; rechazar es terminal. ✔ 4. Candado visible de pago
+pendiente. ✔ 5. Reserva pública sin shell, mobile-first, SOLO slots libres, hora con TZ
+explícita del cliente. ✔ 6. Token de un solo uso. ✔ 7. Reprogramación con margen mínimo
+y re-aprobación. ✔ 8. Tablero con métricas derivadas, acciones espejo de la máquina y
+botón Llamar (tel/wa.me + evento en historial; herramienta integrada declarada 'soon'). ✔
+9. Marketplace quick vs discovery; el brief viaja hasta la bandeja. ✔ 10. Máquina de
+estados con matriz exhaustiva testeada; slots con 2 TZ + DST; notificaciones
+idempotentes con caso de error. ✔ 11. SQL fase14 entregado sin aplicar. ✔ 12. Smoke
+Playwright (7 escenarios nuevos). ✔ 13. CRUD de asesores en el catálogo: agregar
+(slug único generado, sin franjas = semáforo honesto), visualizar (ficha), editar
+(copy-on-write; el slug público JAMÁS cambia) y borrar con guard (citas activas
+bloquean; el histórico sigue resolviendo el nombre vía asesoresTodos). ✔

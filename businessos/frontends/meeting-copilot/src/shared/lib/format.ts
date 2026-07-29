@@ -15,6 +15,29 @@ export function fmtDuracion(segundos: number | null): string {
   return `${m} min`
 }
 
+export function fmtFechaCorta(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+export function fmtHora(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+export function fmtPrecio(centavos: number, moneda: string): string {
+  if (centavos === 0) return 'Sin costo'
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: moneda, maximumFractionDigits: 0 }).format(centavos / 100)
+}
+
+/** kebab-case sin acentos, para slugs de URL (p. ej. /reservar/[slug]). */
+export function slugificar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 let contador = 0
 /** Id único simple (el MVP no necesita ulid; determinista dentro de la sesión). */
 export function nuevoId(prefijo: string): string {

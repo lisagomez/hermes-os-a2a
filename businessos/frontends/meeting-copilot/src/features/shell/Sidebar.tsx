@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BookOpenCheck,
+  CalendarCheck,
   CalendarDays,
   ChevronsLeft,
   ChevronsRight,
@@ -16,6 +17,7 @@ import {
   Radar,
   Telescope,
   Settings,
+  Users,
 } from 'lucide-react'
 import { useUiStore } from '@/shared/stores/ui-store'
 
@@ -23,6 +25,8 @@ const NAV = [
   { href: '/', etiqueta: 'Inicio', Icono: Home, exacto: true },
   { href: '/reuniones', etiqueta: 'Reuniones', Icono: CalendarDays, exacto: false },
   { href: '/pre-discovery', etiqueta: 'Pre-Discovery', Icono: Telescope, exacto: false },
+  { href: '/asesores', etiqueta: 'Asesores', Icono: Users, exacto: false },
+  { href: '/citas', etiqueta: 'Citas', Icono: CalendarCheck, exacto: true },
   { href: '/grabacion', etiqueta: 'Grabación', Icono: Mic, exacto: true },
   { href: '/reuniones?vista=conversaciones', etiqueta: 'Conversaciones', Icono: MessagesSquare, exacto: true },
   { href: '/herramientas', etiqueta: 'Herramientas', Icono: LayoutGrid, exacto: true },
