@@ -1083,6 +1083,23 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   inyectado a Prompter/Guided/CRM, Activos Digitales espejo ACT (casos Y entrevistas)
   con costeo por ledger y cosecha real al ERP (`cosechar-prediscovery.py`), admin del
   módulo y CLIs; entrada `meeting-copilot` en cli-manifest. 15 smoke + 81 unit tests.
+- [x] **Agendamiento M1–M5 (2026-07-29, PR #191)**: catálogo de asesores humanos+IA
+  con CRUD completo (agregar/visualizar/editar/borrar con guard de citas activas),
+  disponibilidad del asesor + bandeja de aprobación (aprobar → par email+WhatsApp
+  como cola idempotente mock declarado → `confirmada` firmada por el notificador),
+  reserva PÚBLICA del cliente sin shell y mobile-first (`/reservar/[slug]`, solo
+  slots libres, TZ del cliente explícita, token de un solo uso, reprogramación
+  ≥24 h con re-aprobación), tablero de citas (métricas derivadas del historial,
+  acciones espejo de la máquina de estados, botón Llamar tel/wa.me) y marketplace
+  quick vs discovery (el brief del mini-form llega a la bandeja). Máquina de
+  estados explícita, slots UTC-internos con TZ del asesor vía Intl (DST testeado),
+  multi-tenant desde día 1. SQL diseñado SIN aplicar:
+  `businessos/supabase-fase14-agendamiento.sql`. 162 unit + 7 smokes. SPEC §19.
+- [ ] Post-merge agendamiento: aplicar fase14 al conectar Supabase (management
+  API), host-job notificador real (enviar-salientes + crm-canales), rate-limit y
+  token HMAC de `/reservar`, mapeo CRM cita→etapa (decisión de negocio: "cita
+  perdida" no existe en el CHECK de `leads.etapa`), checkout Polar para
+  `requiere_pago`, y abrir el preview de Vercel (Deployment Protection).
 - [ ] Gates de la dueña: STT real (faster-whisper/transcripcion-a2a), Supabase prod
   (la auth ya quedó lista como prerequisito), integración Zoom/Meet, diarización ML
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
