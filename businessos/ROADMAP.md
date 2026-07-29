@@ -110,6 +110,25 @@ Activar el ahorro una vez que el cimiento corre. Estado detallado en
 - [x] **Alerta de presupuesto al 80% AUTOMÁTICA (2026-07-08)**: host-job `alerta-presupuesto.sh`
   (cron 08:00 en el server) lee el snapshot y al cruzar 80% manda UN push por Telegram a la dueña
   (`hermes send`, sin LLM; dedupe con flag mensual). Probado con snapshot sintético.
+- [x] **Costeo ENFOCADO POR TAREA (2026-07-29, revisita de la fase)**: vistas
+  `v_costeo_tarea` (ledger `token_usage.task_id` × `tareas`, con `tarea_raiz` para sumar
+  la feature completa padre+hijas del enjambre y huecos DECLARADOS en `filas_sin_costo`)
+  y `v_costeo_departamento` (roll-up mes×departamento) — `supabase-costeo-tarea.sql`,
+  aplicado a prod. `ingest-token-usage.py` **v3**: (a) recalcula y **PERSISTE** cada
+  noche el costo del ledger por-tarea del mes — modelos mal tarifados por el CLI (glm
+  vía z.ai, gotcha 2026-07-04) SIEMPRE de tokens×tarifa OpenRouter; el resto solo si
+  costo=0; sin precio → declarado. En julio el ledger estaba inflado ~12× ($27.13
+  nominales → $1.83 reales); el recálculo existía solo EN MEMORIA en
+  `cosechar-activos.py` y Mission Control / el corte de presupuesto del enjambre veían
+  el número falso. (b) **FIX del bug día/mes del snapshot**: `costo_total_usd` era el
+  gasto de UN DÍA pero la alerta 80% y el SOUL lo comparaban contra el presupuesto
+  MENSUAL de $30 (solo habría disparado con $24 en un solo día) — ahora
+  `costo_total_usd`/`por_vertical` son el MES real desde `token_usage` (incluye trío)
+  y el día queda en `costo_hoy_usd`/`por_modelo`. (c) bloque `por_tarea_mes` (top 8)
+  para que negocio responda "qué tarea costó qué" desde el SOUL. (d) `--dry-run` y el
+  recálculo/snapshot corren aunque el log del día venga vacío. De pilón:
+  `v_presupuesto_mensual` dejó de ser SECURITY DEFINER (ERROR del advisor desde su
+  creación; consumidores en service_role, sin impacto).
 - [ ] (Futuro) Auto-tuner de modelo barato con eval binaria (skill autoresearch) +
   aprobación humana. El cerebro principal nunca se auto-cambia por precio sin eval + OK.
 - **Salida:** gasto mensual controlado. Presupuesto **$30/mes TOTAL** (las 3 verticales),

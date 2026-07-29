@@ -146,9 +146,10 @@ def filas_token_usage(result: Any, modelo_pedido: str | None, task_id: str | Non
 
     GOTCHA (modo GLM-5.2 vía z.ai): el CLI calcula `costUSD`/`total_cost_usd` con
     TARIFAS DE ANTHROPIC → contra el endpoint z.ai el costo puede venir 0 o erróneo.
-    Los TOKENS sí son fiables. Para `token_usage` vertical 'trio' con GLM, recalcular
-    el costo aparte con tarifa z.ai (patrón host-job como ingest-token-usage.py) o
-    aceptar tokens-only. No es un bug del motor: es que el precio no es de Anthropic.
+    Los TOKENS sí son fiables. Desde 2026-07-29 el host-job ingest-token-usage.py v3
+    recalcula y PERSISTE cada noche el costo de estas filas (tokens × tarifa
+    OpenRouter, modelos MAL_TARIFADOS); aquí se escribe el nominal tal cual.
+    No es un bug del motor: es que el precio no es de Anthropic.
     """
     filas: list[dict] = []
     for modelo, u in (getattr(result, "model_usage", None) or {}).items():
