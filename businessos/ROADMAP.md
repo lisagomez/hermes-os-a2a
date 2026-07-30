@@ -856,6 +856,19 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
 
 ---
 
+## Corriente transversal — Ecosistema de frontends: App Launcher + navegación jerárquica ✅ (2026-07-29)
+
+Primer puente cross-app de las superficies: **waffle** (launcher de apps INTERNAS —
+Mission Control, control-interno, meeting-copilot; las públicas excluidas por diseño)
++ **sidebar jerárquico config-driven** (Sección→Página→Subpágina, breadcrumb derivado)
+en las 3 apps. Fuente de verdad: paquete de datos puros `businessos/frontends/
+app-registry/` (consumo vendored + `sync-vendored.mjs --check` cableado a los gates de
+cada app; protocolo de drift y Fase X de unificación en su README). Mission Control
+migró de topbar a shell con sidebar (el SUBMENUS de adquisición es jerarquía real);
+la auth de cada app quedó intacta y `/reservar/*` del copilot sigue sin shell.
+Gate futuro duro: unificar dominios exige smoke de auth/cookies verde ANTES
+(incidente 2026-07-28). Patrón de alta de apps nuevas: `frontends/README.md` §Ecosistema.
+
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
 No es una fase; atraviesa todas. Conforme cada fase suma un servicio nuevo, se

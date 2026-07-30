@@ -53,3 +53,22 @@ Antes de diseñar o escribir UI de Mission Control o Meeting Copilot:
 Si el usuario invoca este skill sin más guía, pregunta sobre cuál de las dos
 superficies va a trabajar y qué quiere construir, y actúa como diseñador experto
 del panel con las reglas de arriba.
+
+## Shell interna: sidebar jerárquico + waffle (2026-07-29)
+
+Anatomía compartida de las apps INTERNAS (Mission Control, control-interno,
+meeting-copilot): sidebar colapsable config-driven (árbol en `nav.config.ts`,
+Sección → Página → Subpágina, máx 3 niveles) + topbar delgada con **waffle**
+(App Launcher del ecosistema, solo apps internas) + **breadcrumb derivado**
+(`rastroDe` del registro vendored `src/shared/app-registry/`). Reglas:
+
+- El árbol es DATA (`NavArbol`); el JSX se pinta por app con SUS tokens:
+  mission = slate+esmeralda con glifos Unicode (sin lucide, vista pura +
+  wrapper por los tests sin navegador); copilot = `.nav-item/.nav-item-active`
+  tema dual; control-interno = Titanium con RBAC (`canAccessRoute` por nodo —
+  sección sin hijos visibles para el rol no se pinta).
+- El activo se deriva SIEMPRE de `rastroDe` (desambigua hermanos por query);
+  las subpáginas con `:id` van `ocultoEnSidebar` (solo breadcrumb).
+- 4 estados de tile del waffle: actual / activa / acceso-especial (nota) /
+  en-construccion. Nunca fingir disponibilidad.
+- Alta de una app nueva: `businessos/frontends/README.md` §Ecosistema.

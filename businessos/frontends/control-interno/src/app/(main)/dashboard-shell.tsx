@@ -11,6 +11,7 @@ import { useAskAgent } from '@/shared/hooks/useAskAgent'
 import { KeyboardShortcutsHelp } from '@/shared/components/KeyboardShortcutsHelp'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { RouteGuard } from '@/shared/components/RouteGuard'
+import { Breadcrumb } from '@/shared/components/Breadcrumb'
 import { KeepAliveRouter } from '@/shared/components/KeepAliveRouter'
 import { RuntimeStatusPill } from '@/shared/components/RuntimeStatusPill'
 import { ZoomController } from '@/shared/components/ZoomController'
@@ -269,14 +270,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {/* Main Content — `relative` so pages can fill it with `absolute inset-0` (reliable scroll).
             El wrapper keyed por sección anima la ENTRADA de cada ruta (transición global premium);
-            es absolute inset-0 para que el transform no rompa el posicionamiento de las páginas. */}
-        <main className="relative flex-1 overflow-hidden min-w-0">
-          <RouteGuard>
-            <div key={pathname?.split('/')[1] ?? ''} className="page-enter absolute inset-0">
-              <KeepAliveRouter>{children}</KeepAliveRouter>
-            </div>
-          </RouteGuard>
-        </main>
+            es absolute inset-0 para que el transform no rompa el posicionamiento de las páginas.
+            Breadcrumb: barra delgada solo-desktop derivada del árbol (nav.config). */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          {!isMobile && <Breadcrumb />}
+          <main className="relative flex-1 overflow-hidden min-w-0">
+            <RouteGuard>
+              <div key={pathname?.split('/')[1] ?? ''} className="page-enter absolute inset-0">
+                <KeepAliveRouter>{children}</KeepAliveRouter>
+              </div>
+            </RouteGuard>
+          </main>
+        </div>
       </div>
 
       {!drawFullscreen && (

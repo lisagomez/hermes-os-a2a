@@ -3,7 +3,6 @@ import { EmbudoCanvas } from '../src/features/dashboard/components/crm/embudo-ca
 import { ConversacionesPanel } from '../src/features/dashboard/components/crm/conversaciones-panel'
 import { EstadoLeadBadge } from '../src/features/dashboard/components/crm/estado-lead-badge'
 import { LeadsTable } from '../src/features/dashboard/components/crm/leads-table'
-import { DepartamentoSubnavView } from '../src/features/dashboard/components/nav/departamento-subnav'
 import { STATUS, conAlpha } from '../src/shared/constants/colors'
 import {
   ETAPAS_EMBUDO,
@@ -127,19 +126,8 @@ test('panel de conversaciones: agrega por estado, canal y desglosa por nivel', (
   expect(text).toContain('telegram: 2')
 })
 
-test('el submenú de adquisición lista Tareas y CRM; otros departamentos no pintan nada', () => {
-  const conSubmenu = render(
-    DepartamentoSubnavView({ departamento: 'adquisicion', seccionActiva: 'crm' })
-  )
-  expect(conSubmenu.text).toContain('Tareas')
-  expect(conSubmenu.text).toContain('CRM')
-
-  const sinSubmenu = render(DepartamentoSubnavView({ departamento: 'software' }))
-  expect(sinSubmenu.text).toBe('')
-
-  const sinDepartamento = render(DepartamentoSubnavView({}))
-  expect(sinDepartamento.text).toBe('')
-})
+// El submenú de adquisición migró al sidebar jerárquico (src/shared/nav.config.ts);
+// su cobertura vive en tests/nav-jerarquico.spec.ts.
 
 // ------------------------------ LeadsTable ------------------------------
 

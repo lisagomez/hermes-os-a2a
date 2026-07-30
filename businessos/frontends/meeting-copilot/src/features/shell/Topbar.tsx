@@ -6,12 +6,15 @@ import { ThemeToggle } from '@/shared/components/ThemeToggle'
 import { Chip } from '@/shared/components/ui'
 import { useUiStore } from '@/shared/stores/ui-store'
 import { FUENTE_DATOS } from '@/shared/lib/config'
+import { Breadcrumb } from './Breadcrumb'
+import { LanzadorEcosistema } from './LanzadorEcosistema'
 
 export function Topbar() {
   const { setCommandBar, setLauncher, launcherAbierto } = useUiStore()
 
   return (
     <header className="flex shrink-0 items-center gap-3 border-b border-line bg-surface px-4 py-2.5">
+      <Breadcrumb />
       <button
         type="button"
         onClick={() => setCommandBar(true)}
@@ -38,6 +41,7 @@ export function Topbar() {
         >
           <LayoutGrid className="h-4 w-4" />
         </button>
+        <LanzadorEcosistema />
         <ThemeToggle />
       </div>
     </header>

@@ -1,15 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
 import {
   BookOpenCheck,
   CalendarCheck,
   CalendarDays,
+  ChevronDown,
+  ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   ClipboardCheck,
   Home,
+  Layers,
   LayoutGrid,
   LogOut,
   MessagesSquare,
@@ -18,30 +22,53 @@ import {
   Telescope,
   Settings,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
 import { useUiStore } from '@/shared/stores/ui-store'
+import { rastroDe, type NavNodo } from '@/shared/app-registry'
+import { NAV_COPILOT } from './nav.config'
 
-const NAV = [
-  { href: '/', etiqueta: 'Inicio', Icono: Home, exacto: true },
-  { href: '/reuniones', etiqueta: 'Reuniones', Icono: CalendarDays, exacto: false },
-  { href: '/pre-discovery', etiqueta: 'Pre-Discovery', Icono: Telescope, exacto: false },
-  { href: '/asesores', etiqueta: 'Asesores', Icono: Users, exacto: false },
-  { href: '/citas', etiqueta: 'Citas', Icono: CalendarCheck, exacto: true },
-  { href: '/grabacion', etiqueta: 'Grabación', Icono: Mic, exacto: true },
-  { href: '/reuniones?vista=conversaciones', etiqueta: 'Conversaciones', Icono: MessagesSquare, exacto: true },
-  { href: '/herramientas', etiqueta: 'Herramientas', Icono: LayoutGrid, exacto: true },
-  { href: '/playbooks', etiqueta: 'Playbooks', Icono: BookOpenCheck, exacto: false },
-  { href: '/manager', etiqueta: 'Manager', Icono: ClipboardCheck, exacto: false },
-]
+// El árbol vive en nav.config.ts (Sección → Página → Subpágina); aquí solo se
+// mapean los iconos y se pinta. El activo sale de rastroDe (desambigua
+// Reuniones vs Conversaciones por query — el matcher viejo la ignoraba).
+const ICONOS_NAV: Record<string, LucideIcon> = {
+  Home,
+  CalendarDays,
+  MessagesSquare,
+  Mic,
+  Telescope,
+  Users,
+  CalendarCheck,
+  Layers,
+  LayoutGrid,
+  BookOpenCheck,
+  ClipboardCheck,
+}
 
-export function Sidebar() {
+function SidebarContenido() {
   const pathname = usePathname()
-  const { sidebarColapsado, toggleSidebar } = useUiStore()
+  const search = useSearchParams().toString()
+  const { sidebarColapsado, toggleSidebar, seccionesCerradas, toggleSeccion } = useUiStore()
 
-  const activo = (href: string, exacto: boolean) => {
-    const base = href.split('?')[0]
-    if (exacto) return pathname === base
-    return pathname === base || pathname.startsWith(`${base}/`)
+  const rastro = rastroDe(NAV_COPILOT, pathname, search)
+  const activos = new Set(rastro.map((n) => n.id))
+
+  const item = (nodo: NavNodo, nivel: 1 | 2) => {
+    if (!nodo.href || nodo.ocultoEnSidebar) return null
+    const Icono = ICONOS_NAV[nodo.iconoLucide ?? ''] ?? LayoutGrid
+    const activo = activos.has(nodo.id)
+    return (
+      <Link
+        key={nodo.id}
+        href={nodo.href}
+        title={nodo.etiqueta}
+        aria-current={activo ? 'page' : undefined}
+        className={`nav-item ${activo ? 'nav-item-active' : ''} ${nivel === 2 && !sidebarColapsado ? 'ml-2' : ''}`}
+      >
+        <Icono className="h-4 w-4 shrink-0" />
+        {!sidebarColapsado && <span className="truncate">{nodo.etiqueta}</span>}
+      </Link>
+    )
   }
 
   return (
@@ -63,18 +90,31 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-2">
-        {NAV.map(({ href, etiqueta, Icono, exacto }) => (
-          <Link
-            key={href}
-            href={href}
-            title={etiqueta}
-            className={`nav-item ${activo(href, exacto) ? 'nav-item-active' : ''}`}
-          >
-            <Icono className="h-4 w-4 shrink-0" />
-            {!sidebarColapsado && <span className="truncate">{etiqueta}</span>}
-          </Link>
-        ))}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-2">
+        {NAV_COPILOT.secciones.map((seccion) => {
+          // Nivel 1 con href y sin hijos visibles: item suelto (Inicio, Pre-Discovery, Manager).
+          if (seccion.href) return item(seccion, 1)
+          const paginas = (seccion.hijos ?? []).filter((h) => !h.ocultoEnSidebar)
+          if (paginas.length === 0) return null
+          const abierta = sidebarColapsado || !seccionesCerradas.includes(seccion.id)
+          return (
+            <div key={seccion.id}>
+              {!sidebarColapsado && (
+                <button
+                  type="button"
+                  onClick={() => toggleSeccion(seccion.id)}
+                  aria-expanded={abierta}
+                  data-testid={`seccion-${seccion.id}`}
+                  className="flex w-full items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted transition-colors hover:text-ink"
+                >
+                  {seccion.etiqueta}
+                  {abierta ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                </button>
+              )}
+              {abierta && <div className="space-y-0.5">{paginas.map((p) => item(p, 2))}</div>}
+            </div>
+          )
+        })}
       </nav>
 
       <div className="space-y-0.5 border-t border-line-subtle px-2 py-2">
@@ -98,5 +138,14 @@ export function Sidebar() {
         ) : null}
       </div>
     </aside>
+  )
+}
+
+export function Sidebar() {
+  // Suspense: el activo lee la query (useSearchParams) — requisito de build Next 16.
+  return (
+    <Suspense fallback={<aside data-testid="sidebar" className="w-56 shrink-0 border-r border-line bg-surface" />}>
+      <SidebarContenido />
+    </Suspense>
   )
 }
