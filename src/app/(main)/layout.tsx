@@ -1,6 +1,7 @@
 import { DepartamentoCombo } from '@/features/dashboard/components/desarrollo/departamento-combo'
 import { dataSourceLabel, getDataSource } from '@/features/dashboard/services'
 import { SignOutButton } from '@/features/auth/components/sign-out-button'
+import { authDeshabilitada } from '@/lib/auth/auth-disabled'
 import { createClient } from '@/lib/supabase/server'
 import { NavMovil, SidebarJerarquico } from '@/shared/components/nav/sidebar-jerarquico'
 import { AppLauncher } from '@/shared/components/nav/app-launcher'
@@ -19,10 +20,11 @@ export default async function MainLayout({
 }) {
   const fuente = dataSourceLabel()
   const departamentos = await getDataSource().departamentos()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Con AUTH_DISABLED no hay Supabase que consultar (dev/smoke mock-first):
+  // user null y el header simplemente no pinta el correo.
+  const user = authDeshabilitada()
+    ? null
+    : (await (await createClient()).auth.getUser()).data.user
   return (
     <div className="flex h-dvh overflow-hidden">
       <SidebarJerarquico />
