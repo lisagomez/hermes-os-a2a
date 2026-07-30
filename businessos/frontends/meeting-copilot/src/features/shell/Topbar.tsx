@@ -6,8 +6,16 @@ import { ThemeToggle } from '@/shared/components/ThemeToggle'
 import { Chip } from '@/shared/components/ui'
 import { useUiStore } from '@/shared/stores/ui-store'
 import { FUENTE_DATOS } from '@/shared/lib/config'
+import dynamic from 'next/dynamic'
 import { Breadcrumb } from './Breadcrumb'
-import { LanzadorEcosistema } from './LanzadorEcosistema'
+
+// Carga diferida SIN SSR: el registro de apps (URLs internas) vive en un chunk
+// que solo se pide cuando la Topbar renderiza — jamás en el first-load de las
+// rutas públicas /reservar/* (hallazgo #3 del ataque adversarial al PR #194).
+const LanzadorEcosistema = dynamic(
+  () => import('./LanzadorEcosistema').then((m) => m.LanzadorEcosistema),
+  { ssr: false }
+)
 
 export function Topbar() {
   const { setCommandBar, setLauncher, launcherAbierto } = useUiStore()

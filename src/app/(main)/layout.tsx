@@ -2,7 +2,7 @@ import { DepartamentoCombo } from '@/features/dashboard/components/desarrollo/de
 import { dataSourceLabel, getDataSource } from '@/features/dashboard/services'
 import { SignOutButton } from '@/features/auth/components/sign-out-button'
 import { createClient } from '@/lib/supabase/server'
-import { SidebarJerarquico } from '@/shared/components/nav/sidebar-jerarquico'
+import { NavMovil, SidebarJerarquico } from '@/shared/components/nav/sidebar-jerarquico'
 import { AppLauncher } from '@/shared/components/nav/app-launcher'
 import { Breadcrumb } from '@/shared/components/nav/breadcrumb'
 
@@ -27,11 +27,15 @@ export default async function MainLayout({
     <div className="flex h-dvh overflow-hidden">
       <SidebarJerarquico />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-2">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-4 py-2">
+          <NavMovil />
           <AppLauncher />
           <Breadcrumb />
-          <div className="ml-auto flex items-center gap-3">
-            <DepartamentoCombo departamentos={departamentos} />
+          <div className="ml-auto flex min-w-0 flex-wrap items-center gap-3">
+            {/* El combo se esconde en pantallas angostas: el drawer móvil cubre la navegación. */}
+            <div className="hidden sm:block">
+              <DepartamentoCombo departamentos={departamentos} />
+            </div>
             <span
               className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
                 fuente === 'mock'

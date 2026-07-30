@@ -3,16 +3,13 @@
 // ocultoEnSidebar (detalles con :id) solo existen para el breadcrumb.
 // Configuración queda en el footer del sidebar, fuera del árbol (como siempre).
 
-import type { NavArbol } from '@/shared/app-registry'
+import type { NavArbol } from '@/shared/app-registry/nav'
 
 export const APP_ID = 'meeting-copilot'
 
-// GOTCHA Next: process.env[dinámico] no se inline-a en cliente → claves literales.
-export const OVERRIDES_URL: Record<string, string | undefined> = {
-  'mission-control': process.env.NEXT_PUBLIC_APP_MISSION_CONTROL_URL,
-  'control-interno': process.env.NEXT_PUBLIC_APP_CONTROL_INTERNO_URL,
-  'meeting-copilot': process.env.NEXT_PUBLIC_APP_MEETING_COPILOT_URL,
-}
+// OVERRIDES_URL vive en LanzadorEcosistema.tsx (chunk lazy), NO aquí: este
+// módulo entra al bundle del layout — que también sirve /reservar/* públicas —
+// y las env NEXT_PUBLIC_* se inline-an con VALOR al compilar (#3 del ataque).
 
 export const NAV_COPILOT: NavArbol = {
   appId: APP_ID,

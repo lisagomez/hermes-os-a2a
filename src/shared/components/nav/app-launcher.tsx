@@ -65,7 +65,7 @@ export function AppLauncherView({
                     {estado === 'en-construccion' && <span className="rounded-full bg-amber-900/60 px-2 text-xs text-amber-300">en construcción</span>}
                   </span>
                   <span className="block truncate text-xs text-slate-400">{app.descripcion}</span>
-                  {estado === 'acceso-especial' && app.nota && <span className="block text-xs text-amber-300">{app.nota}</span>}
+                  {app.nota && estado !== 'actual' && <span className="block text-xs text-amber-300">{app.nota}</span>}
                   {estado === 'en-construccion' && app.docUrl && (
                     <span className="block text-xs text-slate-500">saber más: {app.docUrl}</span>
                   )}
@@ -118,7 +118,11 @@ export function AppLauncher() {
   }, [abierto])
 
   const apps = appsParaLauncher()
-  const urls = Object.fromEntries(apps.map((a) => [a.id, resolverUrlApp(a, { overrides: OVERRIDES_URL })]))
+  // produccion explícito (#7 del ataque): en localhost el waffle apunta a los
+  // dev defaults, no a producción con la sesión real.
+  const urls = Object.fromEntries(
+    apps.map((a) => [a.id, resolverUrlApp(a, { overrides: OVERRIDES_URL, produccion: process.env.NODE_ENV === 'production' })])
+  )
 
   return (
     <div ref={ref}>

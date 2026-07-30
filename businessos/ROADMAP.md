@@ -868,6 +868,14 @@ migró de topbar a shell con sidebar (el SUBMENUS de adquisición es jerarquía 
 la auth de cada app quedó intacta y `/reservar/*` del copilot sigue sin shell.
 Gate futuro duro: unificar dominios exige smoke de auth/cookies verde ANTES
 (incidente 2026-07-28). Patrón de alta de apps nuevas: `frontends/README.md` §Ecosistema.
+**Auditoría adversarial post-merge (2026-07-30)**: el atacante encontró 12 objeciones
+(2 ALTAS: MC recortado en móvil/PWA con "Salir" inalcanzable; CRM degradado a 3er
+nivel invisible) → hotfix en el MISMO día: drawer móvil en MC, CRM a 1 clic, registro
+FUERA del bundle público de /reservar (verificado contra chunks reales), tile de
+control-interno sin URL imposible (127.0.0.1), specs de la raíz cableados al CI de
+GitHub (el gate de drift dejó de ser aspiracional), y urlDevDefault vivo (localhost
+ya no salta a producción). Descartadas con motivo: Tauri sin back (BAJA, documentada)
+y breadcrumb pre-redirect (BAJA, sin datos).
 
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 

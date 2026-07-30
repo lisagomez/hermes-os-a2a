@@ -52,9 +52,11 @@ export function AppLauncher({ compact = false }: { compact?: boolean }) {
         <Grip className="size-5 md:size-[16px]" />
       </button>
       {abierto && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-xl border border-border-subtle bg-surface/95 p-2 shadow-depth-rest-soft backdrop-blur-xl">
+        // fixed (no absolute): el aside móvil es overflow-hidden y recortaba el
+        // popover (#9 del ataque); anclado junto al sidebar funciona en ambos modos.
+        <div className="fixed left-16 top-24 z-50 w-72 rounded-xl border border-border-subtle bg-surface/95 p-2 shadow-depth-rest-soft backdrop-blur-xl">
           {apps.map((app) => {
-            const url = resolverUrlApp(app, { overrides: OVERRIDES_URL })
+            const url = resolverUrlApp(app, { overrides: OVERRIDES_URL, produccion: process.env.NODE_ENV === 'production' })
             const estado = estadoTile(app, url)
             const Icono = ICONOS[app.iconoLucide ?? ''] ?? Grip
             const cuerpo = (
@@ -67,7 +69,7 @@ export function AppLauncher({ compact = false }: { compact?: boolean }) {
                     {estado === 'en-construccion' && <span className="rounded-full bg-card-hover px-2 text-[10px] text-muted">en construcción</span>}
                   </span>
                   <span className="block truncate text-xs text-muted">{app.descripcion}</span>
-                  {estado === 'acceso-especial' && app.nota && <span className="block text-xs text-gold">{app.nota}</span>}
+                  {app.nota && estado !== 'actual' && <span className="block text-xs text-gold">{app.nota}</span>}
                 </span>
               </>
             )
