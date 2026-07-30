@@ -9,7 +9,16 @@ import { Bot, Grip, Radar, Telescope, type LucideIcon } from 'lucide-react'
 import { Chip } from '@/shared/components/ui'
 import type { AppEcosistema } from '@/shared/app-registry'
 import { appsParaLauncher, resolverUrlApp } from '@/shared/app-registry'
-import { APP_ID, OVERRIDES_URL } from './nav.config'
+import { APP_ID } from './nav.config'
+
+// Vive AQUÍ (chunk lazy, jamás en el first-load público de /reservar): las env
+// NEXT_PUBLIC_* se inline-an con valor al compilar. Claves literales (Next no
+// inline-a process.env[dinámico]).
+const OVERRIDES_URL: Record<string, string | undefined> = {
+  'mission-control': process.env.NEXT_PUBLIC_APP_MISSION_CONTROL_URL,
+  'control-interno': process.env.NEXT_PUBLIC_APP_CONTROL_INTERNO_URL,
+  'meeting-copilot': process.env.NEXT_PUBLIC_APP_MEETING_COPILOT_URL,
+}
 
 const ICONOS: Record<string, LucideIcon> = { Radar, Bot, Telescope }
 
@@ -60,7 +69,9 @@ export function LanzadorEcosistema() {
           className="absolute right-0 top-full z-50 mt-2 w-72 rounded-m border border-line bg-surface-raised p-2 shadow-[var(--shadow-2)]"
         >
           {apps.map((app) => {
-            const url = resolverUrlApp(app, { overrides: OVERRIDES_URL })
+            // produccion explícito: sin él, urlDevDefault era código muerto y en
+            // localhost el waffle saltaba a producción con la sesión real (#7).
+            const url = resolverUrlApp(app, { overrides: OVERRIDES_URL, produccion: process.env.NODE_ENV === 'production' })
             const estado = estadoTile(app, url)
             const Icono = ICONOS[app.iconoLucide ?? ''] ?? Grip
             const cuerpo = (
@@ -75,7 +86,7 @@ export function LanzadorEcosistema() {
                     {estado === 'en-construccion' && <Chip tono="warning">en construcción</Chip>}
                   </span>
                   <span className="block truncate text-[11px] text-ink-secondary">{app.descripcion}</span>
-                  {estado === 'acceso-especial' && app.nota && <span className="block text-[11px] text-warning">{app.nota}</span>}
+                  {app.nota && estado !== 'actual' && <span className="block text-[11px] text-warning">{app.nota}</span>}
                 </span>
               </>
             )

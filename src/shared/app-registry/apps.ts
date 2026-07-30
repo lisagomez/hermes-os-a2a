@@ -1,4 +1,4 @@
-// VENDORED-FROM businessos/frontends/app-registry/src/apps.ts (v1, 4d8a3cfcfb98)
+// VENDORED-FROM businessos/frontends/app-registry/src/apps.ts (v2, c1bb9bf2fea4)
 // NO editar aquí: editar el canónico y correr node scripts/sync-vendored.mjs
 // @a2a/app-registry — REGISTRO CANÓNICO de las apps del ecosistema.
 // DATOS PUROS: cero JSX, cero dependencias. Cada app interna consume una copia
@@ -11,7 +11,7 @@
 // + línea en CHANGELOG.md — todo en el MISMO commit.
 
 /** Entero monotónico; el sync lo estampa en la cabecera de cada copia vendored. */
-export const REGISTRY_VERSION = 1
+export const REGISTRY_VERSION = 2
 
 export type AudienciaApp = 'interna' | 'publica'
 
@@ -54,10 +54,13 @@ export const APPS: AppEcosistema[] = [
     glifo: '▣',
     iconoLucide: 'Bot',
     audiencia: 'interna',
-    urlProd: 'http://127.0.0.1:3001',
+    // Sin URL pública: 127.0.0.1 era una URL de producción imposible (clic desde
+    // Vercel = perder la pestaña del panel en un ERR_CONNECTION_REFUSED). El tile
+    // queda 'en construcción' con la nota; se habilita con la env de override.
+    urlProd: '',
     urlDevDefault: 'http://localhost:3001',
     envVarUrl: 'NEXT_PUBLIC_APP_CONTROL_INTERNO_URL',
-    nota: 'vía túnel SSH',
+    nota: 'vía túnel SSH — sin URL pública',
   },
   {
     id: 'meeting-copilot',

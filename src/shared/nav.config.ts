@@ -36,11 +36,11 @@ export const NAV_MC: NavArbol = {
           etiqueta: 'Adquisición',
           href: '/desarrollo?departamento=adquisicion',
           glifo: '◎',
-          hijos: [
-            { id: 'adquisicion-tareas', etiqueta: 'Tareas', href: '/desarrollo?departamento=adquisicion' },
-            { id: 'adquisicion-crm', etiqueta: 'CRM', href: '/crm' },
-          ],
+          hijos: [{ id: 'adquisicion-tareas', etiqueta: 'Tareas', href: '/desarrollo?departamento=adquisicion' }],
         },
+        // CRM es vista clave de la dueña: SIEMPRE a 1 clic, nivel 2 (#2 del
+        // ataque: colgado de Adquisición quedaba invisible salvo en su rama).
+        { id: 'crm', etiqueta: 'CRM', href: '/crm', glifo: '☎' },
       ],
     },
     {

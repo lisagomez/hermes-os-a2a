@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Suspense, useSyncExternalStore } from 'react'
+import { Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { NavArbol, NavNodo } from '@/shared/app-registry'
 import { rastroDe } from '@/shared/app-registry'
@@ -28,12 +28,17 @@ export function SidebarJerarquicoView({
   estado,
   onToggleSeccion,
   onToggleColapso,
+  onNavegar,
+  variante = 'desktop',
 }: {
   arbol: NavArbol
   rastro: NavNodo[]
   estado: EstadoSidebar
   onToggleSeccion?: (id: string) => void
   onToggleColapso?: () => void
+  onNavegar?: () => void
+  /** desktop: oculto bajo md (el móvil usa NavMovil como drawer). */
+  variante?: 'desktop' | 'drawer'
 }) {
   const activos = new Set(rastro.map((n) => n.id))
   const { colapsado } = estado
@@ -46,18 +51,23 @@ export function SidebarJerarquicoView({
       : `flex items-center gap-2 rounded px-3 py-1.5 text-sm ${nivel === 3 ? 'ml-5' : ''}`
     const tinta = activo ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
     return (
-      <Link key={nodo.id} href={nodo.href} title={nodo.etiqueta} className={`${base} ${tinta}`} aria-current={activo ? 'page' : undefined}>
+      <Link key={nodo.id} href={nodo.href} title={nodo.etiqueta} onClick={onNavegar} className={`${base} ${tinta}`} aria-current={activo ? 'page' : undefined}>
         <span className="w-4 shrink-0 text-center text-slate-500">{nodo.glifo ?? nodo.etiqueta[0]}</span>
         {!colapsado && <span className="truncate">{nodo.etiqueta}</span>}
       </Link>
     )
   }
 
+  // Bajo md el aside desktop NO existe (antes: 280px reales por el font-size 20px
+  // dejaban ~50px de contenido y el header quedaba recortado sin scroll — #1 del
+  // ataque al PR #194); el móvil navega con el drawer de NavMovil.
+  const claseVariante =
+    variante === 'drawer'
+      ? 'flex h-full w-64 max-w-[85vw] flex-col border-r border-slate-800 bg-slate-900'
+      : `hidden h-full shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 transition-[width] md:flex ${colapsado ? 'w-14' : 'w-56'}`
+
   return (
-    <aside
-      data-testid="sidebar-mc"
-      className={`flex h-full shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 transition-[width] ${colapsado ? 'w-14' : 'w-56'}`}
-    >
+    <aside data-testid="sidebar-mc" className={claseVariante}>
       <div className="flex items-center gap-2 px-3 py-4">
         <span className="text-lg text-emerald-500">◉</span>
         {!colapsado && (
@@ -130,7 +140,13 @@ function leerEstado(): EstadoSidebar {
   if (crudo === cacheCrudo) return cacheEstado
   cacheCrudo = crudo
   try {
-    cacheEstado = crudo ? (JSON.parse(crudo) as EstadoSidebar) : ESTADO_DEFAULT
+    const parseado = crudo ? (JSON.parse(crudo) as Partial<EstadoSidebar> | null) : null
+    // Guard de forma (#10 del ataque): un valor corrupto en localStorage no debe
+    // reventar el árbol client de (main) de forma persistente.
+    cacheEstado =
+      parseado && typeof parseado.colapsado === 'boolean' && Array.isArray(parseado.seccionesCerradas)
+        ? (parseado as EstadoSidebar)
+        : ESTADO_DEFAULT
   } catch {
     cacheEstado = ESTADO_DEFAULT
   }
@@ -184,6 +200,58 @@ export function SidebarJerarquico() {
       fallback={<SidebarJerarquicoView arbol={NAV_MC} rastro={[]} estado={{ colapsado: false, seccionesCerradas: [] }} />}
     >
       <SidebarConContexto />
+    </Suspense>
+  )
+}
+
+// ─── Navegación móvil (drawer + hamburguesa, solo <md) ─────────────────────
+
+function NavMovilConContexto() {
+  const pathname = usePathname()
+  const search = useSearchParams().toString()
+  const [abierto, setAbierto] = useState(false)
+
+  useEffect(() => {
+    if (!abierto) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [abierto])
+
+  return (
+    <div className="md:hidden">
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        title="Abrir navegación"
+        aria-label="Abrir navegación"
+        data-testid="nav-movil"
+        className="rounded px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-800 hover:text-white"
+      >
+        ☰
+      </button>
+      {abierto && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="h-full" onClick={(e) => e.stopPropagation()}>
+            <SidebarJerarquicoView
+              arbol={NAV_MC}
+              rastro={rastroDe(NAV_MC, pathname, search)}
+              estado={{ colapsado: false, seccionesCerradas: [] }}
+              variante="drawer"
+              onNavegar={() => setAbierto(false)}
+            />
+          </div>
+          <div className="flex-1 bg-black/50" onClick={() => setAbierto(false)} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function NavMovil() {
+  return (
+    <Suspense fallback={null}>
+      <NavMovilConContexto />
     </Suspense>
   )
 }

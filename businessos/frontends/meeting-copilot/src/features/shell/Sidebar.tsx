@@ -25,7 +25,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useUiStore } from '@/shared/stores/ui-store'
-import { rastroDe, type NavNodo } from '@/shared/app-registry'
+// Import del submódulo /nav (NO el barrel): el barrel arrastra apps.ts (URLs
+// internas) al bundle del layout, que también sirve las rutas PÚBLICAS /reservar.
+import { rastroDe, type NavNodo } from '@/shared/app-registry/nav'
 import { NAV_COPILOT } from './nav.config'
 
 // El árbol vive en nav.config.ts (Sección → Página → Subpágina); aquí solo se

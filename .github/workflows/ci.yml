@@ -25,3 +25,9 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+      # Los specs del dashboard corren SIN navegador (componentes puros como
+      # funciones) — baratos en CI. Incluyen tests/app-registry-sync.spec.ts:
+      # sin este paso, el "gate rojo" de drift del registro vendored era
+      # aspiracional (#6 del ataque adversarial al PR #194).
+      - name: Tests (specs sin navegador + paridad app-registry)
+        run: npx playwright test

@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
-import { rastroDe } from '@/shared/app-registry'
+// Submódulo /nav, no el barrel: no arrastrar apps.ts al bundle público (/reservar).
+import { rastroDe } from '@/shared/app-registry/nav'
 import { NAV_COPILOT } from './nav.config'
 
 function BreadcrumbContenido() {

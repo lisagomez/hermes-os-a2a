@@ -273,7 +273,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             es absolute inset-0 para que el transform no rompa el posicionamiento de las páginas.
             Breadcrumb: barra delgada solo-desktop derivada del árbol (nav.config). */}
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          {!isMobile && <Breadcrumb />}
+          {/* En drawFullscreen el breadcrumb NO existe (#5 del ataque: rompía la
+              geometría de --draw-sidebar-height del canvas a pantalla completa). */}
+          {!isMobile && !drawFullscreen && <Breadcrumb />}
           <main className="relative flex-1 overflow-hidden min-w-0">
             <RouteGuard>
               <div key={pathname?.split('/')[1] ?? ''} className="page-enter absolute inset-0">
