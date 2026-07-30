@@ -39,3 +39,31 @@ es el mismo RLS + tarjeta de agente de la fábrica.
 > Cuando lleguen `cliente-web2` y `cliente-a2a-web3`, se integran con el mismo patrón que
 > `control-interno`: copia adoptada (vendored) con su nota de procedencia, o su propio repo,
 > según se decida al momento.
+
+## Ecosistema de apps: registro y navegación (2026-07-29)
+
+Las superficies comparten un **App Launcher (waffle)** y un patrón de **navegación
+jerárquica** (Sección → Página → Subpágina, máx 3 niveles, breadcrumb derivado). La
+fuente de verdad es el paquete de DATOS puros **`app-registry/`** (`@a2a/app-registry`):
+registro de apps + schema `NavArbol` + funciones puras (`esRutaActiva`, `rastroDe`,
+`aplanarNav`, `validarArbol`). Reglas:
+
+1. **Toda app nueva se da de alta en `app-registry/src/apps.ts`** con
+   `audiencia: 'interna' | 'publica'` decidida al nacer. Las **públicas jamás pintan
+   launcher** (`appsParaLauncher()` filtra internas — un waffle con superficies internas
+   en una landing anónima es fuga de superficie).
+2. **Consumo vendored por default** (`node app-registry/scripts/sync-vendored.mjs`, con
+   `--check` cableado a los gates de cada app: el drift es test rojo, no silencio).
+   `file:` + `transpilePackages` solo para apps cuyo deploy ya suba `frontends/`
+   (patrón cliente-web2). Protocolo de drift y Fase X de unificación: `app-registry/README.md`.
+3. **El árbol de navegación es config por app** (`nav.config.ts`, tipado con `NavArbol`,
+   validado con `validarArbol` en sus tests). El JSX (sidebar/waffle/breadcrumb) es
+   SIEMPRE local con los tokens de cada skin — se comparte el DATO, nunca el componente
+   ("aislar, no fundir").
+4. **El launcher no introduce auth**: cada app conserva su puerta; un tile hacia una app
+   sin acceso termina en el rechazo de la destino. ⚠️ Hoy cada app vive en su dominio;
+   **si algún día se unifican dominios, revisar el scope de cookies Supabase ANTES**
+   (incidente 2026-07-28) — gate duro: smoke de auth/cookies verde contra preview
+   (ver `app-registry/README.md` §Auth y cookies).
+
+Integradas: Mission Control (raíz del repo), control-interno y meeting-copilot.
