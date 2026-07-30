@@ -74,7 +74,7 @@ funden: ese es el primer principio del proyecto.
 
 ---
 
-## Estado actual (2026-07-28)
+## Estado actual (2026-07-30)
 
 Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
 línea CRM arrancó. En corto:
@@ -112,6 +112,10 @@ línea CRM arrancó. En corto:
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido, desplegado y con login
   (magic link + allowlist del equipo, 2026-07-28).
+- **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
+  config-driven en las 3 apps internas; auditoría adversarial post-merge con
+  sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,
+  2026-07-30). Detalle en `businessos/ROADMAP.md` §Ecosistema de frontends.
 - **Línea CRM (marca blanca)** ✅ CRM-0/1/2/3 — canales **Telegram + WhatsApp**
   multi-tenant (`crm-canales`), supervisor de salientes (`sup-crm`: gates +
   juez LLM), **muestreo A2 con evidencia** y **expediente de promoción** con
