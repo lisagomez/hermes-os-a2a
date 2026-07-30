@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { isAllowed } from '@/lib/auth/allowlist'
+import { authDeshabilitada } from '@/lib/auth/auth-disabled'
 
 /**
  * Puerta de entrada del panel. TODA ruta (salvo las públicas de login/auth)
@@ -11,6 +12,11 @@ const PUBLIC_PATHS = ['/login', '/auth/callback', '/auth/otp', '/auth/signout']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Escape explícito para dev local / smokes sin Supabase (auth-disabled.ts);
+  // va ANTES de updateSession porque sin env de Supabase ese cliente truena.
+  if (authDeshabilitada()) return NextResponse.next()
+
   const { supabaseResponse, user } = await updateSession(request)
 
   const isPublic = PUBLIC_PATHS.some(
