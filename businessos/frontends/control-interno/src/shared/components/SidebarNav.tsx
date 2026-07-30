@@ -5,17 +5,27 @@ import { usePathname } from 'next/navigation'
 import { useLayoutStore } from '@/shared/stores/layout-store'
 import { useAuth } from '@/hooks/useAuth'
 import {
+  Activity,
   LayoutGrid,
   Settings,
   Bot,
+  ChevronDown,
+  ChevronRight as ChevronRightIcon,
+  Clock,
   LogOut,
+  MessagesSquare,
   Sparkles,
   Search,
   CalendarDays,
   Brain,
   Wallet,
+  Wrench,
+  type LucideIcon,
 } from 'lucide-react'
 import { canAccessRoute } from '@/lib/permissions'
+import { rastroDe, type NavNodo } from '@/shared/app-registry'
+import { NAV_CI } from '@/shared/nav.config'
+import { AppLauncher } from '@/shared/components/AppLauncher'
 import { useIsMobile } from '@/shared/hooks/useMediaQuery'
 import { useDrawStore } from '@/features/draw/stores/draw-store'
 import { useSearchStore } from '@/features/search/components'
@@ -23,16 +33,20 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 import { signout } from '@/actions/auth'
 import type { Profile } from '@/types/database'
 
-const NAV_LINKS = [
-  // Nucleo del producto: el chat con tu agente primero (AI-first), luego las
-  // superficies-espejo (board, calendario, canvas). Ops vive en Settings.
-  { href: '/chat', label: 'Chat', icon: Bot },
-  { href: '/board', label: 'Board', icon: LayoutGrid },
-  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/draw3', label: 'Canvas', icon: Sparkles },
-  { href: '/segundo-cerebro', label: 'Brain', icon: Brain },
-  { href: '/finanzas', label: 'Finanzas', icon: Wallet },
-] as const
+// El árbol de navegación vive en src/shared/nav.config.ts (config-driven,
+// Sección → Página → Subpágina). Aquí solo se mapean los iconos lucide.
+const ICONOS_NAV: Record<string, LucideIcon> = {
+  Bot,
+  MessagesSquare,
+  LayoutGrid,
+  CalendarDays,
+  Sparkles,
+  Brain,
+  Wallet,
+  Wrench,
+  Activity,
+  Clock,
+}
 
 interface SidebarNavProps {
   members?: Profile[]
@@ -45,7 +59,16 @@ export function SidebarNav({ collapsed = false }: SidebarNavProps) {
   const { role, profile } = useAuth()
   const isMobile = useIsMobile()
   const closeLeftSidebar = useLayoutStore((s) => s.closeLeftSidebar)
+  const seccionesCerradas = useLayoutStore((s) => s.seccionesCerradas)
+  const toggleSeccion = useLayoutStore((s) => s.toggleSeccion)
   const lastPageId = useDrawStore((s) => s.lastPageId)
+
+  // Rama activa del árbol (breadcrumb/resaltado); los hrefs de esta app no
+  // llevan query, así que el pathname basta.
+  const rastro = rastroDe(NAV_CI, pathname ?? '/')
+  const activos = new Set(rastro.map((n) => n.id))
+  // RBAC POR NODO: el árbol no manda sobre permissions.ts — lo consume.
+  const visible = (nodo: NavNodo) => canAccessRoute(nodo.permisoRuta ?? nodo.href ?? '', role)
 
   // En móvil el sidebar es un overlay: al elegir cualquier sección debe
   // cerrarse solo (antes quedaba abierto tapando la página elegida). En
@@ -69,8 +92,9 @@ export function SidebarNav({ collapsed = false }: SidebarNavProps) {
         )}
       </div>
 
-      {/* Top row: Search (Miro-style, replaces removed header) */}
+      {/* Top row: Search (Miro-style, replaces removed header) + waffle del ecosistema */}
       <div className={collapsed ? 'flex flex-col items-center gap-2 px-2 pt-2 pb-2' : 'flex items-center gap-1 px-3 pt-2 pb-2'}>
+        <AppLauncher compact={collapsed} />
         <button
           onClick={() => useSearchStore.getState().toggle()}
           className={collapsed ? 'icon-btn size-10' : 'nav-item flex-1 text-sm md:text-xs'}
@@ -89,24 +113,59 @@ export function SidebarNav({ collapsed = false }: SidebarNavProps) {
 
       <div className={collapsed ? 'mx-3 w-10 border-t border-border-subtle' : 'mx-3 border-t border-border-subtle'} />
 
-      {/* Navigation Links (grouped by section) */}
+      {/* Árbol jerárquico (Sección → Página → Subpágina), filtrado por rol.
+          Colapsado: riel de iconos con solo las páginas (nivel 2). */}
       <div className={collapsed ? 'flex w-full flex-col items-center gap-1 px-2 pt-2 pb-2' : 'px-3 pt-2 pb-2 space-y-2'}>
-        {NAV_LINKS.filter(({ href }) => canAccessRoute(href, role)).map(({ href: rawHref, label, icon: Icon }) => {
-          const href =
-            rawHref === '/draw3' && lastPageId ? `${rawHref}/${lastPageId}` : rawHref
-          const isActive = pathname === rawHref || pathname.startsWith(`${rawHref}/`)
+        {NAV_CI.secciones.map((seccion) => {
+          const paginas = (seccion.hijos ?? []).filter((n) => !n.ocultoEnSidebar && visible(n))
+          if (paginas.length === 0) return null // sección sin hijos visibles para el rol → no se pinta
+          const abierta = collapsed || !seccionesCerradas.includes(seccion.id)
+
+          const itemPagina = (nodo: NavNodo, nivel: 2 | 3) => {
+            const rawHref = nodo.href ?? '/'
+            const href = rawHref === '/draw3' && lastPageId ? `${rawHref}/${lastPageId}` : rawHref
+            const Icon = ICONOS_NAV[nodo.iconoLucide ?? '']
+            const isActive = activos.has(nodo.id)
+            return (
+              <Link
+                key={nodo.id}
+                href={href}
+                onClick={handleNavigate}
+                className={`${collapsed ? 'nav-item h-10 w-10 justify-center p-0' : `nav-item text-sm md:text-xs ${nivel === 3 ? 'ml-6' : ''}`} ${isActive ? 'nav-item-active' : ''}`}
+                title={nodo.etiqueta}
+                aria-label={nodo.etiqueta}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {Icon ? <Icon className="size-6 md:size-[15px]" /> : nivel === 3 && !collapsed ? <span className="w-[15px] text-center text-muted">·</span> : null}
+                {!collapsed && nodo.etiqueta}
+              </Link>
+            )
+          }
+
           return (
-            <Link
-              key={rawHref}
-              href={href}
-              onClick={handleNavigate}
-              className={`${collapsed ? 'nav-item h-10 w-10 justify-center p-0' : 'nav-item text-sm md:text-xs'} ${isActive ? 'nav-item-active' : ''}`}
-              title={label}
-              aria-label={label}
-            >
-              <Icon className="size-6 md:size-[15px]" />
-              {!collapsed && label}
-            </Link>
+            <div key={seccion.id} className={collapsed ? 'flex w-full flex-col items-center gap-1' : 'space-y-0.5'}>
+              {!collapsed && (
+                <button
+                  onClick={() => toggleSeccion(seccion.id)}
+                  className="flex w-full items-center justify-between px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted hover:text-foreground"
+                  aria-expanded={abierta}
+                >
+                  {seccion.etiqueta}
+                  {abierta ? <ChevronDown className="size-3" /> : <ChevronRightIcon className="size-3" />}
+                </button>
+              )}
+              {abierta &&
+                paginas.map((pagina) => (
+                  <div key={pagina.id} className={collapsed ? 'contents' : 'space-y-0.5'}>
+                    {itemPagina(pagina, 2)}
+                    {!collapsed &&
+                      activos.has(pagina.id) &&
+                      (pagina.hijos ?? [])
+                        .filter((h) => !h.ocultoEnSidebar && visible(h))
+                        .map((sub) => itemPagina(sub, 3))}
+                  </div>
+                ))}
+            </div>
           )
         })}
       </div>

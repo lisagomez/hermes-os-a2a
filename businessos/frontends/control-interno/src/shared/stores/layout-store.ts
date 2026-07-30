@@ -9,6 +9,9 @@ interface LayoutState {
   chatSessionsPanelOpen: boolean
   drawSidebarOpen: boolean
   drawFullscreen: boolean
+  /** Secciones del sidebar jerárquico plegadas (default: todo abierto). */
+  seccionesCerradas: string[]
+  toggleSeccion: (id: string) => void
   toggleLeftSidebar: () => void
   toggleRightSidebar: () => void
   setSelectedView: (view: ViewType) => void
@@ -29,6 +32,13 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   chatSessionsPanelOpen: false,
   drawSidebarOpen: true,
   drawFullscreen: false,
+  seccionesCerradas: [],
+  toggleSeccion: (id) =>
+    set((s) => ({
+      seccionesCerradas: s.seccionesCerradas.includes(id)
+        ? s.seccionesCerradas.filter((x) => x !== id)
+        : [...s.seccionesCerradas, id],
+    })),
   toggleLeftSidebar: () => set((s) => ({ leftSidebarOpen: !s.leftSidebarOpen })),
   toggleRightSidebar: () => set((s) => ({ rightSidebarOpen: !s.rightSidebarOpen })),
   setSelectedView: (view) => set({ selectedView: view }),

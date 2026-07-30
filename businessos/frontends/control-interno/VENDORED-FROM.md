@@ -39,3 +39,8 @@ deja de necesitar el daemon de referencia y opera contra la fábrica.
   todoist) usan su propio esquema — **coexisten** con nuestro esquema `erp` (contable/fiscal),
   no chocan; la reconciliación de superficies (si algún día se comparten datos) es trabajo aparte.
 - No instalé dependencias ni corrí build: `npm install && npm run dev` cuando se quiera arrancar.
+
+## src/shared/app-registry/ (2026-07-29)
+Vendored desde `businessos/frontends/app-registry/src/` (registro de apps del
+ecosistema + schema de navegación). NO editar aquí: editar el canónico y correr
+`node businessos/frontends/app-registry/scripts/sync-vendored.mjs`.
