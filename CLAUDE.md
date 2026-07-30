@@ -1360,4 +1360,19 @@ npm run lint         # ESLint
   en Vercel — el mismo patrón canónico va en Mission Control y cliente-web2 si activan
   login; y al diagnosticar auth "que expira", mirar HOSTS en los logs antes que el token.
 
+### 2026-07-30: El tip de un PR de colaborador puede moverse DESPUÉS de tu revisión — diffear lo verificado vs lo mergeado
+- **Error(es) (merge del PR #195)**: (1) entre mi fetch de revisión y el merge, Victor empujó
+  un commit más a la rama (el ci.yml del punto #6) → lo mergeado ≠ lo que el QA verificó.
+  Salió bien porque el delta era benigno, pero el patrón es una mina: la revisión de un PR
+  de colaborador vale para un SHA, no para la rama. Antes de mergear: `git fetch` y
+  `git diff <sha-verificado>..origin/<rama>` — si hay delta, revisarlo (o re-gatear) antes
+  del merge. (2) En el procedimiento de bypass, `gh api -f required_approving_review_count=0`
+  manda el valor como STRING y GitHub lo rechaza (422 "is not an integer") → usar **`-F`**
+  (tipado). El fallo dejó la protección intacta (fail-safe), pero costó una ventana en falso.
+  (3) Un TLS timeout a mitad del merge NO es un merge fallido ni exitoso: verificar
+  `gh pr view --json state,mergedAt` antes de reintentar (el reintento ciego puede duplicar
+  la ventana de bypass).
+- **Aplicar en**: todo merge de PR de colaborador (diff del tip contra lo verificado) y todo
+  uso del procedimiento de bypass (`-F` para enteros; verificar estado tras errores de red).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

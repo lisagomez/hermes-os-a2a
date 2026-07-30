@@ -876,6 +876,17 @@ control-interno sin URL imposible (127.0.0.1), specs de la raíz cableados al CI
 GitHub (el gate de drift dejó de ser aspiracional), y urlDevDefault vivo (localhost
 ya no salta a producción). Descartadas con motivo: Tauri sin back (BAJA, documentada)
 y breadcrumb pre-redirect (BAJA, sin datos).
+**Cierre 2026-07-30 — 12/12 resueltas**: hotfix mergeado (PR #195) tras verificación
+QA independiente de los 5 gates declarados (41 specs MC, 178 unit copilot, fuga #3
+re-verificada con centinelas y control positivo sobre los 13 chunks del first-load
+de /reservar); #6 confirmado corriendo en CI real (41 passed). La #1 (drawer móvil)
+ganó su evidencia automática: **`npm run smoke`** en la raíz (PR #196) — 3 smokes con
+navegador real (390×844 y 1280×800) contra server de producción con `AUTH_DISABLED=1`
+(escape patrón copilot, nuevo en MC: `src/lib/auth/auth-disabled.ts`) +
+`DASHBOARD_DATA=mock`; control rojo/verde verificado. Config separada
+(`playwright.e2e.config.ts`): el gate `npx playwright test` del Supervisor/CI sigue
+sin navegador. Matiz del QA: la mitigación de la fuga es "fuera del first-load", no
+"inalcanzable" — defensa en profundidad, correcta para URLs que no son secretos.
 
 ## Corriente transversal — CLIs agente-nativos (Printing Press)
 
