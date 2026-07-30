@@ -471,3 +471,41 @@ test('agendamiento M1: CRUD de asesores — agregar, visualizar, editar y borrar
   await page.getByTestId('confirmar-borrar-asesor').click()
   await expect(page.locator('[data-testid="tarjeta-asesor"][data-slug="maria-prueba"]')).toHaveCount(0)
 })
+
+// ─── Ecosistema: sidebar jerárquico + App Launcher cross-app (SPEC nav) ─────
+
+test('ecosistema: secciones del sidebar, waffle cross-app con la app actual resaltada y breadcrumb', async ({ page }) => {
+  await page.goto('/citas')
+
+  // Sidebar jerárquico: la sección Agendamiento existe y su página activa se marca
+  await expect(page.getByTestId('seccion-sec-agendamiento')).toBeVisible()
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Citas' })).toHaveAttribute('aria-current', 'page')
+
+  // Breadcrumb derivado del árbol
+  await expect(page.getByTestId('breadcrumb')).toContainText('Agendamiento')
+  await expect(page.getByTestId('breadcrumb')).toContainText('Citas')
+
+  // Waffle: SOLO apps internas; la actual resaltada; la nota de acceso visible
+  await page.getByTestId('waffle-ecosistema').click()
+  const lanzador = page.getByTestId('lanzador-ecosistema')
+  await expect(lanzador).toBeVisible()
+  await expect(lanzador.getByTestId('app-meeting-copilot')).toContainText('actual')
+  await expect(lanzador.getByTestId('app-mission-control')).toHaveAttribute('href', /a2abot-mission-control/)
+  await expect(lanzador.getByTestId('app-control-interno')).toContainText('vía túnel SSH')
+  expect(await lanzador.locator('a, div[data-testid^="app-"]').count()).toBe(3) // cero públicas
+  await page.keyboard.press('Escape')
+  await expect(lanzador).toHaveCount(0)
+
+  // Plegar una sección persiste tras reload (ui-store migrado a v1)
+  await page.getByTestId('seccion-sec-agendamiento').click()
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Servicios' })).toHaveCount(0)
+  await page.reload()
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Servicios' })).toHaveCount(0)
+  await page.getByTestId('seccion-sec-agendamiento').click()
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Servicios' })).toBeVisible()
+
+  // Desambiguación por query: Conversaciones activa, Reuniones no
+  await page.goto('/reuniones?vista=conversaciones')
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Conversaciones' })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByTestId('breadcrumb')).toContainText('Conversaciones')
+})
