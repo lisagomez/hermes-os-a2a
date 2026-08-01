@@ -127,3 +127,30 @@ El clon completo queda en cuarentena en OPS (`_Revisar seguridad/houston/`, marc
 SOSPECHOSO, no se usa/instala/ejecuta nada de él) para inspiración de patrones. Este documento
 es el resumen relevante para el equipo de Hermes OS A2A: qué evitar si algún día tomamos
 prestada una idea de arquitectura de Houston.
+
+## Confirmación directa de Houston (2026-08-01, registro nuevo, no reemplaza lo de arriba)
+
+En una llamada, Johann preguntó a Houston cómo protegen la información al conectar las 1000+
+herramientas. Respuesta textual que le dieron: *"Utilizamos Composio como gestor de
+integraciones. Ellos manejan las credenciales con sus políticas de seguridad y datos. El
+agente accede a las herramientas con un token de acceso pero no directamente con tu clave."*
+
+Esto sube el hallazgo #1 de "sospecha por código" a **confirmado por el propio proveedor**:
+Houston sí usa Composio (coincide con lo ya encontrado en `packages/agentstore-*`). Pero la
+respuesta NO resuelve el hallazgo, solo lo esquiva:
+
+- "Token de acceso, no tu clave" es el comportamiento ESTÁNDAR de cualquier OAuth (Google
+  Calendar, HubSpot, todos funcionan así), no una protección especial de Houston. Lo
+  presentaron como diferenciador y no lo es.
+- No explica por qué Houston, además de lo que gestiona Composio, GUARDA su propia copia del
+  payload de Composio (incluye `apiKey`) en su tabla `integration_credentials`, sin RLS ni
+  REVOKE (el hallazgo #1 original, arriba, sigue intacto).
+- No aclara si el PROCESO del agente puede leer ese token en texto plano mientras corre una
+  tarea, que es la diferencia real con nuestro patrón host-job + snapshot (el agente nunca
+  toca ni el token). Esto refuerza la oportunidad de posicionamiento de la sección anterior:
+  no es solo un claim nuestro, es un hueco verbal real que dejó Houston sin resolver.
+
+Verificado también el mismo día: `https://gethouston.ai/privacy/` no nombra a Composio como
+subprocesador, no menciona OAuth ni scopes, y solo promete "credenciales cifradas en sus
+servidores" (plan Cloud) o guardadas localmente (app de escritorio); ninguna garantía técnica
+específica de aislamiento del token frente al agente.
