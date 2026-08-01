@@ -9,6 +9,12 @@ Gate de procedencia (regla de oro: cero afirmacion fiscal sin fuente citada):
 toda regla debe traer fuente_cita, fuente_url (http/https) y vigente_desde; el
 seed completo lleva source_version. Todo tope/monto numerico exige
 parametros.verificar=true (cotejo DOF pendiente hasta produccion).
+
+Bajas explicitas (_bajas): el upsert del seed NUNCA borra — quitar una regla del
+JSON la deja viva en la BD (p. ej. citando una ley abrogada, sin que la bandera
+de contradiccion dispare si comparte veredicto con su reemplazo). Toda regla
+retirada se declara en "_bajas": [claves] al nivel raiz del JSON; el SQL
+generado emite un DELETE idempotente ANTES de los upserts de reglas.
 """
 from __future__ import annotations
 
@@ -151,6 +157,18 @@ def validar(seed: dict) -> list[str]:
                 err(e, f"regla {clave}: impacto duplicado para (categoria,regimen)={llave}")
             vistos_imp.add(llave)
 
+    bajas = seed.get("_bajas", [])
+    if not isinstance(bajas, list) or any(not isinstance(b, str) or not b.strip() for b in bajas):
+        err(e, "_bajas debe ser lista de claves (strings no vacios)")
+    else:
+        vistas_baja: set[str] = set()
+        for b in bajas:
+            if b in claves_regla:
+                err(e, f"clave {b!r} esta en reglas Y en _bajas (contradiccion: o vive o se retira)")
+            if b in vistas_baja:
+                err(e, f"_bajas: clave duplicada {b!r}")
+            vistas_baja.add(b)
+
     return e
 
 
@@ -211,6 +229,15 @@ def generar_sql(seed: dict) -> str:
             "    exclusiones = excluded.exclusiones;"
         )
     out.append("")
+
+    bajas = seed.get("_bajas", [])
+    if bajas:
+        out.append("-- Bajas explicitas: reglas RETIRADAS del seed (el upsert no borra).")
+        out.append("-- Idempotente; on delete cascade en impactos borra los suyos.")
+        out.append(
+            f"delete from reglas where clave = any (array[{', '.join(lit(b) for b in bajas)}]::text[]);"
+        )
+        out.append("")
 
     for r in seed["reglas"]:
         jur = r.get("jurisdiccion", jur_default)

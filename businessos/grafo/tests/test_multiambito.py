@@ -77,7 +77,7 @@ def test_clausula_confidencialidad():
     r = ev([{"descripcion": "Confidencialidad y no divulgacion de informacion"}], dimension="contractual")
     c = r["conceptos"][0]
     assert c["categoria"] == "CLAUSULA_CONFIDENCIALIDAD"
-    assert c["fuente"]["clave"] == "MX-LFPDPPP-21-CONFIDENCIALIDAD"
+    assert c["fuente"]["clave"] == "MX-LFPDPPP2025-20-CONFIDENCIALIDAD"
 
 def test_contractual_checklist_incluye_elementos_del_contrato():
     r = ev([{"descripcion": "Condiciones de pago: 50% anticipo"}], dimension="contractual")
@@ -192,3 +192,50 @@ def test_agente_seguros_checklist_incluye_ramos_y_flag_de_garantia_sin_verificar
         "el checklist debe decir explicitamente que NO se encontro requisito de "
         "garantia/fianza del agente en el texto primario, no inventarlo"
     )
+
+
+# --- Datos personales MX (LFPDPPP 2025) ----------------------------------------
+# Contrato de determinismo con enriquecimiento-a2a: estas descripciones son las
+# CONSTANTES canonicas que envia su gate_grafo; cada una debe caer en exactamente
+# una categoria del ambito. Si un assert de estos se rompe, el gate del waterfall
+# enrichment deja de ser determinista.
+
+def test_dp_fuente_publica_permitido():
+    r = ev([{"descripcion": "consulta a fuente publica oficial"}], dimension="datos-personales")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DATOS_FUENTE_PUBLICA"
+    assert c["estado"] == "permitido"
+    assert c["fuente"]["clave"] == "MX-LFPDPPP2025-9-II-FUENTE-PUBLICA"
+    assert any("NO eliminada" in b for b in c["banderas"])
+
+def test_dp_contacto_corporativo_permitido():
+    r = ev([{"descripcion": "inferencia de correo corporativo por patron de correo de dominio"}],
+           dimension="datos-personales")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DATOS_CONTACTO_CORPORATIVO"
+    assert c["estado"] == "permitido"
+    assert any("aviso de privacidad" in req.lower() for req in c["checklist"])
+
+def test_dp_persona_fisica_dudoso():
+    r = ev([{"descripcion": "dato de persona fisica para prospeccion"}], dimension="datos-personales")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DATOS_CONTACTO_PERSONA_FISICA"
+    assert c["estado"] == "dudoso"
+    assert c["fuente"]["clave"] == "MX-LFPDPPP2025-14-17-CONTACTO-PF"
+
+def test_dp_transferencia_dudoso():
+    r = ev([{"descripcion": "transferencia internacional de datos a proveedor de enriquecimiento"}],
+           dimension="datos-personales")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "DATOS_TRANSFERENCIA_INTL"
+    assert c["estado"] == "dudoso"
+
+def test_dp_sin_regla_aplicable_fail_safe_dudoso():
+    r = ev([{"descripcion": "algo totalmente ajeno al dominio"}], dimension="datos-personales")
+    assert r["conceptos"][0]["estado"] == "dudoso"
+
+def test_dp_no_cruza_a_contractual():
+    # "confidencialidad" es keyword de CLAUSULA_CONFIDENCIALIDAD (contractual):
+    # en el ambito datos-personales NO debe clasificar
+    r = ev([{"descripcion": "Confidencialidad y no divulgacion"}], dimension="datos-personales")
+    assert r["conceptos"][0]["categoria"] is None

@@ -1,10 +1,13 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v3 (Fase 8): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py.",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v2 2026-07 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom/LFPDPPP (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal).",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD.",
     "regimen_default": "PM_TITULO_II"
   },
+  "_bajas": [
+    "MX-LFPDPPP-21-CONFIDENCIALIDAD"
+  ],
   "jurisdicciones": [
     {
       "codigo": "MX",
@@ -31,6 +34,10 @@
     {
       "codigo": "regulatorio",
       "nombre": "Regulatorio (permisos y cumplimiento operativo)"
+    },
+    {
+      "codigo": "datos-personales",
+      "nombre": "Datos personales (licitud de tratamiento y prospeccion B2B)"
     }
   ],
   "categorias": [
@@ -230,6 +237,51 @@
         "intermediacion de seguros",
         "vender seguros",
         "cedula de agente"
+      ]
+    },
+    {
+      "clave": "DATOS_CONTACTO_CORPORATIVO",
+      "nombre": "Datos de contacto corporativo (prospeccion B2B)",
+      "descripcion": "Tratamiento de correo/telefono corporativo de representantes o personal de una empresa para prospeccion B2B, incluida la inferencia de correos por patron del dominio",
+      "keywords": [
+        "correo corporativo",
+        "email corporativo",
+        "contacto corporativo",
+        "patron de correo de dominio",
+        "inferencia de correo"
+      ]
+    },
+    {
+      "clave": "DATOS_CONTACTO_PERSONA_FISICA",
+      "nombre": "Datos de contacto de persona fisica titular",
+      "descripcion": "Tratamiento de correo o telefono PERSONAL de una persona fisica (titular) para prospeccion; tratamiento diferenciado del contacto corporativo",
+      "keywords": [
+        "dato de persona fisica",
+        "correo personal de titular",
+        "telefono personal de titular",
+        "prospeccion a persona fisica"
+      ]
+    },
+    {
+      "clave": "DATOS_TRANSFERENCIA_INTL",
+      "nombre": "Transferencia de datos a terceros (nacional o internacional)",
+      "descripcion": "Comunicacion de datos personales a terceros distintos del encargado, dentro o fuera del territorio nacional (p. ej. proveedores de enriquecimiento o verificacion)",
+      "keywords": [
+        "transferencia internacional de datos",
+        "proveedor extranjero de datos",
+        "encargado en el extranjero"
+      ]
+    },
+    {
+      "clave": "DATOS_FUENTE_PUBLICA",
+      "nombre": "Datos de fuentes de acceso publico oficiales",
+      "descripcion": "Consulta y tratamiento de datos que figuran en fuentes de acceso publico por disposicion de ley (DENUE del INEGI, listados 69-B del SAT, padrones publicos)",
+      "keywords": [
+        "fuente publica oficial",
+        "consulta denue",
+        "lista 69-b",
+        "padron publico oficial",
+        "rfc de fuente publica"
       ]
     }
   ],
@@ -829,14 +881,14 @@
       ]
     },
     {
-      "clave": "MX-LFPDPPP-21-CONFIDENCIALIDAD",
+      "clave": "MX-LFPDPPP2025-20-CONFIDENCIALIDAD",
       "jurisdiccion": "MX",
       "dimension": "contractual",
-      "titulo": "Deber de confidencialidad (datos personales)",
-      "texto_resumen": "Quien trate datos personales debe guardar confidencialidad respecto de ellos; la obligacion subsiste aun despues de terminada la relacion con el titular o el responsable.",
-      "fuente_cita": "LFPDPPP Art. 21",
+      "titulo": "Deber de confidencialidad (datos personales, LFPDPPP 2025)",
+      "texto_resumen": "El responsable o tercero debe establecer controles o mecanismos para que todas las personas que intervengan en cualquier fase del tratamiento de datos personales guarden confidencialidad respecto de estos; la obligacion subsiste aun despues de finalizar sus relaciones con el responsable. Sustituye a la LFPDPPP 2010 (Art. 21), abrogada por el Decreto DOF 20-03-2025 (Transitorio Segundo).",
+      "fuente_cita": "LFPDPPP (nueva ley, DOF 20/03/2025) Art. 20",
       "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
-      "vigente_desde": "2010-07-06",
+      "vigente_desde": "2025-03-21",
       "vigente_hasta": null,
       "impactos": [
         {
@@ -845,7 +897,8 @@
           "veredicto_base": "dudoso",
           "requisitos": [
             "Informacion confidencial delimitada (que incluye y que no)",
-            "Plazo de la obligacion definido; si hay datos personales, la confidencialidad subsiste tras terminar la relacion (LFPDPPP 21)"
+            "Plazo de la obligacion definido; si hay datos personales, la confidencialidad subsiste tras terminar la relacion (LFPDPPP 2025, Art. 20)",
+            "Controles o mecanismos para que toda persona que intervenga en el tratamiento guarde confidencialidad (LFPDPPP 2025, Art. 20)"
           ],
           "banderas": [],
           "parametros": {}
@@ -1015,6 +1068,111 @@
           "parametros": {
             "verificar": false
           }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPDPPP2025-6-14-CONTACTO-CORPORATIVO",
+      "jurisdiccion": "MX",
+      "dimension": "datos-personales",
+      "titulo": "Licitud y aviso de privacidad en datos de contacto corporativo (prospeccion B2B)",
+      "texto_resumen": "El tratamiento de datos de contacto de representantes o personal de una empresa para prospeccion B2B debe ser licito, sin medios enganosos y respetando la expectativa razonable de privacidad (Arts. 5 y 6); el responsable debe informar el tratamiento mediante aviso de privacidad (Art. 14). El dato de contacto corporativo sigue siendo dato personal cuando identifica a una persona fisica.",
+      "fuente_cita": "LFPDPPP (nueva ley, DOF 20/03/2025) Arts. 5, 6 y 14",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+      "vigente_desde": "2025-03-21",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DATOS_CONTACTO_CORPORATIVO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Aviso de privacidad publicado y accesible que cubra la finalidad de prospeccion B2B (Arts. 14 y 15)",
+            "Finalidad B2B informada y acorde con la expectativa razonable de privacidad (Art. 6)",
+            "Mecanismo para que el titular limite el uso o divulgacion de sus datos (Art. 15 fraccion IV)"
+          ],
+          "banderas": [],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPDPPP2025-14-17-CONTACTO-PF",
+      "jurisdiccion": "MX",
+      "dimension": "datos-personales",
+      "titulo": "Datos de contacto de persona fisica para prospeccion: aviso previo y base de licitud",
+      "texto_resumen": "Tratar correo o telefono personal de una persona fisica exige informar el tratamiento mediante aviso de privacidad (Arts. 14 y 16); si los datos no se obtuvieron directamente del titular, el responsable debe darselo a conocer (Art. 17). La base de licitud del tratamiento debe estar documentada (Arts. 5 y 6). Tratamiento diferenciado del contacto corporativo.",
+      "fuente_cita": "LFPDPPP (nueva ley, DOF 20/03/2025) Arts. 14, 16 y 17",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+      "vigente_desde": "2025-03-21",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DATOS_CONTACTO_PERSONA_FISICA",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Aviso de privacidad dado a conocer al titular antes del tratamiento para prospeccion (Arts. 14 y 16)",
+            "Si el dato no se obtuvo directamente del titular, darle a conocer el aviso de privacidad (Art. 17)",
+            "Base de licitud del tratamiento documentada (Arts. 5 y 6)"
+          ],
+          "banderas": [
+            "Sin aviso de privacidad publicado no hay via licita para prospeccion a persona fisica"
+          ],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPDPPP2025-35-36-TRANSFERENCIA-INTL",
+      "jurisdiccion": "MX",
+      "dimension": "datos-personales",
+      "titulo": "Transferencia de datos a terceros nacionales o extranjeros (proveedores de enriquecimiento)",
+      "texto_resumen": "Transferir datos personales a terceros distintos del encargado exige comunicar al receptor el aviso de privacidad y las finalidades del tratamiento; el aviso debe contener una clausula de aceptacion o negativa de la transferencia y el receptor asume las obligaciones del responsable (Art. 35). Solo procede sin consentimiento en los supuestos del Art. 36, que no incluyen la prospeccion comercial.",
+      "fuente_cita": "LFPDPPP (nueva ley, DOF 20/03/2025) Arts. 35 y 36",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+      "vigente_desde": "2025-03-21",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DATOS_TRANSFERENCIA_INTL",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Clausulas contractuales con el receptor que le trasladen las obligaciones del responsable (Art. 35)",
+            "Clausula de aceptacion de la transferencia en el aviso de privacidad O consentimiento del titular, salvo supuestos del Art. 36",
+            "Acuerdo de tratamiento de datos del proveedor receptor verificado antes de transferir"
+          ],
+          "banderas": [
+            "Transferencia a proveedor extranjero sin clausulas ni consentimiento: la prospeccion comercial NO esta en los supuestos de excepcion del Art. 36"
+          ],
+          "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPDPPP2025-9-II-FUENTE-PUBLICA",
+      "jurisdiccion": "MX",
+      "dimension": "datos-personales",
+      "titulo": "Datos de fuentes de acceso publico oficiales (DENUE, listados 69-B del SAT)",
+      "texto_resumen": "No se requiere consentimiento del titular cuando los datos personales figuren en fuentes de acceso publico (Art. 9 fraccion II): bases de datos consultables publicamente por disposicion de ley, sin mas exigencia que en su caso una contraprestacion, y sin procedencia ilicita (Art. 3 fraccion X). La licitud reducida NO elimina los demas principios: licitud, finalidad y proporcionalidad del Art. 5 siguen aplicando al tratamiento posterior.",
+      "fuente_cita": "LFPDPPP (nueva ley, DOF 20/03/2025) Arts. 3 fraccion X y 9 fraccion II",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+      "vigente_desde": "2025-03-21",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DATOS_FUENTE_PUBLICA",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Uso conforme a la finalidad y naturaleza de la fuente publica oficial (DENUE del INEGI, listados 69-B del SAT)",
+            "Registrar la fuente y la fecha de consulta de cada dato obtenido"
+          ],
+          "banderas": [
+            "Licitud reducida, NO eliminada: los principios del Art. 5 (licitud, finalidad, proporcionalidad) siguen aplicando al tratamiento posterior"
+          ],
+          "parametros": {}
         }
       ]
     }
