@@ -1,5 +1,5 @@
-# Piso mecánico de CI: corre en cada PR sobre el dashboard (typecheck + lint).
-# No corre build (turbopack) ni los pytest de los servicios A2A todavía: cablearlos aparte.
+# Piso mecánico de CI: corre en cada PR sobre el dashboard (typecheck + lint + build + tests).
+# No corre los pytest de los servicios A2A todavía: cablearlos aparte.
 name: CI
 
 on:
@@ -25,6 +25,8 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+      - name: Build
+        run: npm run build
       # Los specs del dashboard corren SIN navegador (componentes puros como
       # funciones) — baratos en CI. Incluyen tests/app-registry-sync.spec.ts:
       # sin este paso, el "gate rojo" de drift del registro vendored era
