@@ -6,9 +6,7 @@
   en Postgres efímero); todo va por PR.
 
 ## En curso
-- [ ] Commit + PR
-  - Last checkpoint: TODO implementado y verificado; corpus 62 casos / 0 escapes
-  - Next action: commit por capas → push → PR (NUNCA push directo a master)
+- (nada) — build entregado en PR #208, esperando revisión/merge de la dueña
 
 ## Pendiente (queda para la dueña / despliegue)
 - [ ] Aplicar supabase-buzon.sql y supabase-buzon-leads.sql a producción (management API)
