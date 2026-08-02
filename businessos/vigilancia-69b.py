@@ -13,11 +13,25 @@ Que hace, en orden:
   2. Descarga el listado COMPLETO 69-B del SAT (CSV publico) con UA curl/8.0
      (aprendizaje 2026-07-02) y lo indexa por RFC quedandose con la situacion
      MAS SEVERA si un RFC aparece varias veces (fail-safe).
-  3. UPSERT por RFC (on_conflict=rfc, resolution=merge-duplicates): estatus del
-     listado, o 'no_listado' si no aparece — el dato POSITIVO que abre el gate.
-     Jamas DELETE+INSERT (los overrides anclan con FK restrict). Si un estatus
-     EMPEORA, el trigger de la tabla invalida los overrides vivos: ese es el
-     comportamiento deseado, no un efecto colateral.
+  3. Guardas de plausibilidad ANTES de escribir (QA PR #210): el SAT solo sirve
+     este CSV por HTTP sin TLS (https verificado inalcanzable el 2026-08-02),
+     y 'no_listado' es el dato POSITIVO que ABRE el gate — un CSV truncado o
+     alterado en transito que conserve el encabezado seria fail-open. Por eso:
+     (a) listado con menos de VIGILANCIA_69B_MIN_FILAS RFCs (default 5000; el
+         real trae >10k) = aborta sin escribir;
+     (b) un RFC vigilado con estatus presunto/definitivo que "desaparezca" del
+         listado (→ no_listado) = aborta sin escribir, salvo --permitir-descensos
+         (un RFC no suele salir del listado 69-B: sospechar del CSV, no del SAT).
+  4. UPSERT por RFC (on_conflict=rfc, resolution=merge-duplicates): estatus del
+     listado, o 'no_listado' si no aparece. Jamas DELETE+INSERT (los overrides
+     anclan con FK restrict). Si un estatus EMPEORA, el trigger de la tabla
+     invalida los overrides vivos: ese es el comportamiento deseado, no un
+     efecto colateral.
+
+Las lecturas de objetivos van PAGINADAS (Range): sin eso, el max-rows de
+PostgREST (1000 por default) truncaria los objetivos EN SILENCIO y los
+dictamenes fuera del corte envejecerian sin refresco (el gate ademas ya
+bloquea dictamenes rancios: gate_69b.MAX_EDAD_DIAS_DEFAULT).
 
 Todo fallo IMPRIME y el exit code lo refleja (doctrina 2026-07-13: ningun
 best-effort silencioso). Secretos: solo via env, jamas impresos.
@@ -61,15 +75,28 @@ def http(url: str, *, headers: dict | None = None, data: bytes | None = None,
         return e.code, e.read()
 
 
+PAGINA = 1000
+
+
 def supabase_get(base: str, key: str, ruta: str) -> list:
-    status, cuerpo = http(
-        f"{base}/rest/v1/{ruta}",
-        headers={"apikey": key, "Authorization": f"Bearer {key}"},
-        timeout=60,
-    )
-    if status != 200:
-        raise RuntimeError(f"GET {ruta.split('?')[0]} -> HTTP {status}")
-    return json.loads(cuerpo)
+    """GET paginado por Range: acumula hasta la pagina corta (jamas trunca)."""
+    filas: list = []
+    inicio = 0
+    while True:
+        status, cuerpo = http(
+            f"{base}/rest/v1/{ruta}",
+            headers={"apikey": key, "Authorization": f"Bearer {key}",
+                     "Range-Unit": "items",
+                     "Range": f"{inicio}-{inicio + PAGINA - 1}"},
+            timeout=60,
+        )
+        if status not in (200, 206):
+            raise RuntimeError(f"GET {ruta.split('?')[0]} -> HTTP {status}")
+        pagina = json.loads(cuerpo)
+        filas.extend(pagina)
+        if len(pagina) < PAGINA:
+            return filas
+        inicio += PAGINA
 
 
 def estatus_de(situacion: str) -> str | None:
@@ -122,6 +149,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--rfc", nargs="*", default=[], help="RFCs extra a vigilar")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--permitir-descensos", action="store_true",
+                    help="deja escribir aunque un RFC presunto/definitivo "
+                         "desaparezca del listado (verificar el CSV a mano antes)")
     args = ap.parse_args()
 
     base = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
@@ -140,8 +170,9 @@ def main() -> int:
         )
         objetivos |= {f["valor"].upper() for f in vistos
                       if f.get("valor") and f["valor"] != TOMBSTONE}
-        vigilados = supabase_get(base, key, "contraparte_69b?select=rfc")
+        vigilados = supabase_get(base, key, "contraparte_69b?select=rfc,estatus")
         objetivos |= {f["rfc"] for f in vigilados}
+        estatus_previo = {f["rfc"]: f.get("estatus", "") for f in vigilados}
     except (RuntimeError, ValueError) as exc:
         print(f"vigilancia-69b: no se pudieron leer los RFCs objetivo: {exc}")
         return 1
@@ -164,6 +195,26 @@ def main() -> int:
         return 1
     print(f"vigilancia-69b: listado SAT con {len(listado)} RFCs; "
           f"{len(objetivos)} objetivos a dictaminar")
+
+    # guardas de plausibilidad (canal HTTP sin TLS; 'no_listado' abre el gate)
+    min_filas = int(os.environ.get("VIGILANCIA_69B_MIN_FILAS", "5000"))
+    if len(listado) < min_filas:
+        print(f"vigilancia-69b: listado implausiblemente corto ({len(listado)} "
+              f"RFCs < umbral {min_filas}) — NO se escribe nada (un CSV truncado "
+              "que conserve el encabezado seria fail-open). Si el listado real "
+              "encogio, ajustar VIGILANCIA_69B_MIN_FILAS a conciencia")
+        return 1
+    descensos = sorted(
+        rfc for rfc, previo in estatus_previo.items()
+        if previo in ("presunto", "definitivo")
+        and listado.get(rfc, "no_listado") == "no_listado")
+    if descensos and not args.permitir_descensos:
+        muestra = ", ".join(descensos[:5]) + ("..." if len(descensos) > 5 else "")
+        print(f"vigilancia-69b: {len(descensos)} RFC(s) presunto/definitivo "
+              f"desaparecerian del listado y ABRIRIAN el gate ({muestra}) — NO se "
+              "escribe nada. Un RFC no suele salir del listado 69-B: verificar el "
+              "CSV a mano y re-correr con --permitir-descensos solo si es real")
+        return 1
 
     # 3. upsert (jamas DELETE+INSERT: los overrides anclan con FK restrict).
     # consultado_en explicito: en un upsert el default de la columna no re-aplica.

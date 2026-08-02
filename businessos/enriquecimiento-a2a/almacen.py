@@ -8,7 +8,12 @@ cascada). Sin env (dev/tests) no persiste y lo DICE (persistido: false).
 
 Frontera dura: este modulo LEE public.leads pero JAMAS la escribe — no expone
 ningun metodo de escritura sobre leads (invariante un-escritor-por-origen;
-test_almacen.py lo vigila).
+tests/fakes.py registra toda escritura a /rest/v1/leads y test_cascada +
+test_executor exigen que no haya ninguna).
+
+Todo VALOR que viaja en el query string PostgREST pasa por _q(): sin escapar,
+un lead_id/dominio con '&' reescribe la query efectiva (p. ej. sobrescribe el
+select restringido) y este cliente corre con service_role (QA PR #210).
 
 El refuerzo de dominio_patron va por RPC dominio_patron_reforzar (UPSERT
 atomico en UNA sentencia SQL): jamas GET+PATCH, que pierde incrementos bajo
@@ -20,10 +25,16 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 import httpx
 
 TIMEOUT_S = 10.0
+
+
+def _q(valor: str) -> str:
+    """Escapa un VALOR embebido en el query string (safe='' escapa &, =, +, /)."""
+    return quote(valor, safe="")
 
 
 class AlmacenError(RuntimeError):
@@ -68,7 +79,7 @@ class Almacen:
     # ---- lecturas -----------------------------------------------------------
 
     async def leer_lead(self, lead_id: str) -> dict | None:
-        r = await self._request("GET", f"leads?lead_id=eq.{lead_id}&select=lead_id,empresa,contacto,telefono,datos")
+        r = await self._request("GET", f"leads?lead_id=eq.{_q(lead_id)}&select=lead_id,empresa,contacto,telefono,datos")
         if r.status_code != 200:
             raise AlmacenError(f"no se pudo leer el lead (HTTP {r.status_code})")
         filas = r.json()
@@ -76,13 +87,13 @@ class Almacen:
 
     async def leer_consolidado(self, lead_id: str) -> dict:
         """{campo: fila} de lead_enriquecimiento para saltar lookups ya resueltos."""
-        r = await self._request("GET", f"lead_enriquecimiento?lead_id=eq.{lead_id}")
+        r = await self._request("GET", f"lead_enriquecimiento?lead_id=eq.{_q(lead_id)}")
         if r.status_code != 200:
             raise AlmacenError(f"no se pudo leer el consolidado (HTTP {r.status_code})")
         return {fila["campo"]: fila for fila in r.json()}
 
     async def leer_69b(self, rfc: str) -> dict | None:
-        r = await self._request("GET", f"contraparte_69b?rfc=eq.{rfc}")
+        r = await self._request("GET", f"contraparte_69b?rfc=eq.{_q(rfc)}")
         if r.status_code != 200:
             raise AlmacenError(f"no se pudo leer contraparte_69b (HTTP {r.status_code})")
         filas = r.json()
@@ -92,7 +103,7 @@ class Almacen:
         """Override vivo: not invalidado y vence_en en el futuro (evaluado aqui)."""
         ahora = datetime.now(timezone.utc).isoformat()
         r = await self._request(
-            "GET", f"override_69b?rfc=eq.{rfc}&invalidado=eq.false&vence_en=gt.{ahora}"
+            "GET", f"override_69b?rfc=eq.{_q(rfc)}&invalidado=eq.false&vence_en=gt.{_q(ahora)}"
         )
         if r.status_code != 200:
             raise AlmacenError(f"no se pudo leer override_69b (HTTP {r.status_code})")
@@ -100,7 +111,7 @@ class Almacen:
         return filas[0] if filas else None
 
     async def leer_patron(self, dominio: str) -> dict | None:
-        r = await self._request("GET", f"dominio_patron?dominio=eq.{dominio.lower()}")
+        r = await self._request("GET", f"dominio_patron?dominio=eq.{_q(dominio.lower())}")
         if r.status_code != 200:
             raise AlmacenError(f"no se pudo leer dominio_patron (HTTP {r.status_code})")
         filas = r.json()

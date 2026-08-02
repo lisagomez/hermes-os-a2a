@@ -127,6 +127,18 @@ def test_69b_presunto_con_override_vencido_bloquea():
     assert r["gate_69b"]["pasa"] is False
 
 
+def test_69b_dictamen_rancio_bloquea_fail_closed():
+    # la vigilancia dejo de correr: el no_listado viejo NO abre el gate
+    sb = FakeSupabase()
+    sb.filas_69b[PM] = {"rfc": PM, "estatus": "no_listado",
+                        "consultado_en": "2020-01-01T00:00:00+00:00"}
+    r = correr(sb, FakeDenueAPI(DENUE_ACME), lead_base(), extras={"rfc": PM})
+    assert r["gate_69b"]["pasa"] is False
+    assert "rancio" in r["gate_69b"]["razon"]
+    fila = filas(sb, "sat_69b")[0]
+    assert (fila["resultado"], fila["veredicto"]) == ("hit", "invalido")
+
+
 # ---- persona fisica (LFPDPPP) ------------------------------------------------
 
 def test_pf_bloquea_contacto_pero_corre_69b():

@@ -13,6 +13,8 @@ dictamen 69-B + el disclaimer del grafo.
 """
 from __future__ import annotations
 
+import re
+
 from a2a.helpers import get_data_parts, new_data_part, new_task, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
@@ -29,6 +31,12 @@ class EntradaInvalida(ValueError):
     """El mensaje A2A no forma una peticion de enriquecimiento valida."""
 
 
+# ventas-a2a genera "lead-{uuid4}"; el margen cubre ids legados razonables.
+# Defensa en profundidad contra inyeccion PostgREST (el almacen ademas escapa
+# todo valor con _q(); QA PR #210): jamas separadores de query (&, =, ?, #).
+RE_LEAD_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$")
+
+
 def peticion_desde_mensaje(message) -> dict:
     """DataPart -> {lead_id, campos, forzar, extras}. Solo entrada estructurada."""
     datas = get_data_parts(message.parts)
@@ -43,6 +51,11 @@ def peticion_desde_mensaje(message) -> dict:
     lead_id = d.get("lead_id")
     if not (isinstance(lead_id, str) and lead_id.strip()):
         raise EntradaInvalida('falta "lead_id" (string no vacio)')
+    lead_id = lead_id.strip()
+    if not RE_LEAD_ID.fullmatch(lead_id):
+        raise EntradaInvalida(
+            '"lead_id" invalido: solo letras/digitos/._:- (max 64, empieza alfanumerico)'
+        )
 
     campos = d.get("campos", list(CAMPOS_PRODUCIBLES))
     if not (isinstance(campos, list) and campos
@@ -64,7 +77,7 @@ def peticion_desde_mensaje(message) -> dict:
     if not isinstance(forzar, bool):
         raise EntradaInvalida('"forzar" debe ser booleano')
 
-    return {"lead_id": lead_id.strip(), "campos": campos,
+    return {"lead_id": lead_id, "campos": campos,
             "forzar": forzar, "extras": extras}
 
 

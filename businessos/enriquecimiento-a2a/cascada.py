@@ -22,6 +22,7 @@ Reglas duras:
 """
 from __future__ import annotations
 
+import os
 import re
 
 import gate_69b
@@ -153,7 +154,10 @@ async def enriquecer(lead: dict, extras: dict, campos: list[str], forzar: bool,
         override = None
         if fila_69b is not None and fila_69b.get("estatus") == "presunto":
             override = await almacen.override_activo(rfc_valido)
-        gate = gate_69b.decidir(fila_69b, override)
+        gate = gate_69b.decidir(
+            fila_69b, override,
+            max_edad_dias=int(os.environ.get(
+                "GATE_69B_MAX_EDAD_DIAS", str(gate_69b.MAX_EDAD_DIAS_DEFAULT))))
         if fila_69b is None:
             await registrar("sat_69b", "", "miss", detalle={"razon": gate["razon"]})
         else:
