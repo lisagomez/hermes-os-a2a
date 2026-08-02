@@ -689,8 +689,14 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   validación de lead_id), frescura del dictamen 69-B (rancio = bloqueado),
   y el host-job `vigilancia-69b.py` con paginación + guardas de plausibilidad
   del CSV del SAT (HTTP sin TLS: listado corto o descenso presunto/definitivo
-  → aborta sin escribir). **Pendiente antes de desplegar**: gate de imagen
-  (`docker build` + arranque) en una máquina con daemon.
+  → aborta sin escribir). **DESPLEGADO en Hetzner el 2026-08-02**: gate de
+  imagen (build + arranque efímero) PASS; migraciones
+  `supabase-enriquecimiento{,-refuerzo}.sql` aplicadas a producción por
+  management API (las 5 tablas no existían — verificado 404→200); servicio
+  vivo en hermes-net (perfil `a2a`, healthy) con smoke de protocolo real
+  (SendMessage → fallo honesto "lead no existe", grafo y Supabase reales,
+  ledger en cero); `vigilancia-69b.py` ya cableado en `nightly-jobs.sh`
+  (corre esta noche con las guardas).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
   remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de
