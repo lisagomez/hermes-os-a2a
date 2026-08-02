@@ -347,6 +347,32 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- ENRIQUECIMIENTO-A2A (waterfall enrichment, App A) ----------
+  # Cascada de enriquecimiento de leads por costo: rfc_offline -> DENUE (INEGI,
+  # fuente publica) -> gate 69-B CFF (LEE contraparte_69b, fail-closed: sin
+  # vigilancia = bloqueado; la alimenta vigilancia-69b.py) -> patron de correo
+  # por dominio. Gate LFPDPPP del grafo ANTES de correr (fail-closed si el grafo
+  # no responde); persona fisica bloqueada mientras el grafo diga 'dudoso'.
+  # Todo intento queda en el ledger enriquecimiento_intento con su costo; JAMAS
+  # escribe public.leads. Sin LLM: cero tokens por lead.
+  enriquecimiento-a2a:
+    build: ./enriquecimiento-a2a
+    container_name: enriquecimiento-a2a
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - ENRIQUECIMIENTO_PUBLIC_URL=${ENRIQUECIMIENTO_PUBLIC_URL:-http://enriquecimiento-a2a:5000}
+      - GRAFO_URL=http://grafo:3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DENUE_TOKEN=${DENUE_TOKEN:-}
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
   crm-canales:
     build: ./crm-canales
     container_name: crm-canales

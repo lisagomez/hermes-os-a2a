@@ -23,6 +23,10 @@ mkdir -p /home/hermes/logs
   # única máquina 24/7; lee lo impreso del índice versionado (cli-library-index.json),
   # no de la librería de binarios, que solo existe en la máquina donde se imprime.
   python3 cli-audit.py
+  # vigilancia 69-B CFF (App A): dictamina en contraparte_69b los RFCs que la cascada
+  # de enriquecimiento-a2a ha visto (+ refresco de los ya vigilados). Es EL productor
+  # del gate 69-B: sin esta corrida el gate queda fail-closed para todo RFC.
+  python3 vigilancia-69b.py
   # estado del trio -> tareas.json en el volumen de negocio. El bot NO tiene credenciales
   # (por diseño): sin este snapshot no puede consultar una tarea y ADIVINA (1a corrida real).
   python3 snapshot-tareas.py
