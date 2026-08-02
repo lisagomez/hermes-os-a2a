@@ -29,7 +29,7 @@ name: businessos
 #   ellos):
 #       docker compose --profile verticales up -d   # + personal + clientes
 #       docker compose --profile trio       up -d   # + ejecutor + supervisor
-#       docker compose --profile a2a        up -d   # + grafo-a2a (pares externos)
+#       docker compose --profile a2a        up -d   # + grafo-a2a, ventas, transcripcion, buzon
 #       docker compose --profile dashboard-nativo up -d  # + dashboard 9119 (redundante con a2abot)
 #   Combina: docker compose --profile verticales --profile trio up -d
 #   Al bajar todo:  docker compose --profile "*" down
@@ -313,6 +313,35 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     volumes:
       - adquisicion-audio:/audio:ro   # el puente LEE audio; jamas lo escribe
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  # ---------- BUZON-A2A (correo institucional operado por agentes, HERALDO-6) ----------
+  # SPEC-buzon-a2a: lee hilos SANEADOS y redacta borradores que pasan 11 gates
+  # deterministas; NUNCA envia. Invariante fundacional: ningun componente que
+  # ejecuta un modelo tiene credenciales de correo — la entrada la trae el
+  # host-job ingerir-entrantes.py y la salida es enviar-salientes.py (host),
+  # ambos con las llaves fuera de este contenedor. Toda salida exige firma
+  # humana (A5) en aprobaciones_salientes, fila que este servicio no puede
+  # fabricar. Nunca se publica por el edge: nada de esto es publico.
+  buzon-a2a:
+    build: ./buzon-a2a
+    container_name: buzon-a2a
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4900:4900"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - BUZON_PUBLIC_URL=${BUZON_PUBLIC_URL:-http://buzon-a2a:4900}
+      # Token canario del sistema: si aparece en un saliente = intento de
+      # inyeccion (gate canario_ausente). Sin valor el gate esta ROJO
+      # (fail-closed): el buzon no redacta a ciegas.
+      - BUZON_CANARIO=${BUZON_CANARIO}
+      - BUZON_LEYENDA=${BUZON_LEYENDA:-}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     networks: [hermes-net]
     deploy:
       resources:

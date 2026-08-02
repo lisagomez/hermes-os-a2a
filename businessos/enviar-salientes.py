@@ -12,6 +12,11 @@ Solo envia lo que pasa AMBAS verificaciones, y solo con ENVIAR_REAL=1 (el
 default es dry-run: muestra el plan y no toca nada). Doble candado del
 departamento: gates deterministas + gate humano en lo irreversible.
 
+Gates 3 y 4 (SPEC-buzon-a2a §2.2), SOLO para salientes del buzon (ruta
+'buzon/<correos_salientes.id>'): destinatarios ⊆ participantes del hilo (+ sin
+Bcc) y cuota por buzon/hora y por hilo + interruptor del Guardian. Los
+salientes de EG.CRM no cambian de comportamiento: no llevan ese prefijo.
+
 Uso (host con .env cargado: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY):
     python3 enviar-salientes.py --dir <worktree>            # dry-run (default)
     ENVIAR_REAL=1 SMTP_HOST=... SMTP_PORT=587 SMTP_USER=... SMTP_PASS=... \
@@ -42,6 +47,13 @@ from pathlib import Path
 ROLES_APROBADORES = ("PM", "CEO", "CFO")  # matriz de equipo-y-slack.md
 # Cloudflare 1010: urllib con su UA default es rechazado (aprendizaje 2026-07-02)
 UA = "curl/8.0"
+
+# Salientes del buzon (SPEC-buzon-a2a §2.2): la firma de A5 entra en
+# aprobaciones_salientes con ruta 'buzon/<correos_salientes.id>'. Ese prefijo es
+# lo que activa los gates 3 y 4; el resto de rutas (EG.CRM) no los ve.
+PREFIJO_BUZON = "buzon/"
+CUOTA_HORA_DEFAULT = 10
+CUOTA_HILO_DEFAULT = 5
 
 
 def log(msg: str) -> None:
@@ -80,6 +92,90 @@ class Supabase:
         body = json.dumps({"enviado_at": "now()", "mensaje_id": mensaje_id}).encode()
         http(f"{self.url}/rest/v1/aprobaciones_salientes?{q}", data=body,
              headers={**self.headers, "Prefer": "return=minimal"}, method="PATCH")
+
+    # --- soporte de los gates 3 y 4 del buzon (SPEC-buzon-a2a §2.2) ---
+
+    def saliente_buzon(self, saliente_id: str) -> dict | None:
+        """Fila de correos_salientes para una ruta 'buzon/<uuid>'."""
+        q = urllib.parse.urlencode({"id": f"eq.{saliente_id}", "select": "*"})
+        filas = json.loads(http(f"{self.url}/rest/v1/correos_salientes?{q}",
+                                headers=self.headers))
+        return filas[0] if filas else None
+
+    def participantes_hilo(self, hilo_id: str) -> set[str]:
+        """Direcciones vistas en el hilo (remitentes + to/cc de los entrantes)."""
+        q = urllib.parse.urlencode({"hilo_id": f"eq.{hilo_id}",
+                                    "select": "remitente,destinatarios"})
+        filas = json.loads(http(f"{self.url}/rest/v1/correos_entrantes?{q}",
+                                headers=self.headers))
+        vistos: set[str] = set()
+        for f in filas:
+            if f.get("remitente"):
+                vistos.add(f["remitente"].strip().lower())
+            dest = f.get("destinatarios") or {}
+            for lista in ("to", "cc"):
+                vistos.update(d.strip().lower() for d in (dest.get(lista) or []))
+        return vistos
+
+    def pausa_global(self) -> bool:
+        filas = json.loads(http(
+            f"{self.url}/rest/v1/buzon_control?id=eq.1&select=pausa_global",
+            headers=self.headers))
+        return bool(filas and filas[0].get("pausa_global"))
+
+    def cuotas_buzon(self, buzon_id: str) -> tuple[int, int]:
+        q = urllib.parse.urlencode({"id": f"eq.{buzon_id}",
+                                    "select": "cuota_hora,cuota_hilo"})
+        filas = json.loads(http(f"{self.url}/rest/v1/buzones?{q}", headers=self.headers))
+        if not filas:
+            return CUOTA_HORA_DEFAULT, CUOTA_HILO_DEFAULT
+        return (int(filas[0].get("cuota_hora") or CUOTA_HORA_DEFAULT),
+                int(filas[0].get("cuota_hilo") or CUOTA_HILO_DEFAULT))
+
+    def enviados(self, filtro: str) -> int:
+        filas = json.loads(http(
+            f"{self.url}/rest/v1/correos_salientes?{filtro}&estado=eq.enviado&select=id",
+            headers=self.headers))
+        return len(filas)
+
+
+def saliente_id_de_ruta(ruta: str) -> str | None:
+    """'buzon/<uuid>' → uuid. None si la ruta no es del buzon (EG.CRM sigue igual)."""
+    if not ruta.startswith(PREFIJO_BUZON):
+        return None
+    resto = ruta[len(PREFIJO_BUZON):].strip()
+    return resto or None
+
+
+def gate_destinatarios_del_hilo(sb: Supabase, fila_buzon: dict,
+                                destinatario: str) -> str:
+    """Gate 3 (SPEC §2.2): destinatarios ⊆ participantes del hilo. '' = pasa."""
+    dest = fila_buzon.get("destinatarios") or {}
+    if dest.get("bcc"):
+        return f"Bcc presente ({len(dest['bcc'])}): prohibido en todo saliente"
+    objetivo = {d.strip().lower()
+                for d in (dest.get("to") or []) + (dest.get("cc") or []) if d}
+    objetivo.add(destinatario.strip().lower())
+    participantes = sb.participantes_hilo(fila_buzon["hilo_id"])
+    fuera = sorted(objetivo - participantes)
+    if fuera:
+        return f"{len(fuera)} destinatario(s) fuera del hilo: {', '.join(fuera)}"
+    return ""
+
+
+def gate_cuota_y_pausa(sb: Supabase, fila_buzon: dict) -> str:
+    """Gate 4 (SPEC §2.2): cuota por buzon/hora y por hilo + pausa del Guardian."""
+    if sb.pausa_global():
+        return "pausa global del Guardian activa: nada sale"
+    cuota_hora, cuota_hilo = sb.cuotas_buzon(fila_buzon["buzon_id"])
+    en_hora = sb.enviados(
+        f"buzon_id=eq.{fila_buzon['buzon_id']}&enviado_en=gte.now()-interval'1hour'")
+    if en_hora >= cuota_hora:
+        return f"cuota por hora agotada ({en_hora}/{cuota_hora})"
+    en_hilo = sb.enviados(f"hilo_id=eq.{fila_buzon['hilo_id']}")
+    if en_hilo >= cuota_hilo:
+        return f"cuota por hilo agotada ({en_hilo}/{cuota_hilo})"
+    return ""
 
 
 def verificar_integridad(base: Path, saliente: Path) -> tuple[dict | None, str]:
@@ -165,6 +261,27 @@ def main() -> int:
             saltados += 1
             continue
         destinatario = fila["destinatario"]
+
+        # --- gates 3 y 4: SOLO para salientes del buzon (ruta 'buzon/<id>').
+        # Los salientes de EG.CRM no llevan hilo ni buzon: siguen exactamente
+        # igual que antes (gates 1 y 2 intactos, SPEC-buzon-a2a §2.2).
+        saliente_id = saliente_id_de_ruta(rel)
+        if saliente_id is not None:
+            fila_buzon = sb.saliente_buzon(saliente_id)
+            if fila_buzon is None:
+                log(f"SKIP {rel}: sin fila en correos_salientes (id {saliente_id})")
+                saltados += 1
+                continue
+            if fila_buzon.get("estado") != "aprobado":
+                log(f"SKIP {rel}: estado {fila_buzon.get('estado')!r} != 'aprobado'")
+                saltados += 1
+                continue
+            motivo = (gate_destinatarios_del_hilo(sb, fila_buzon, destinatario)
+                      or gate_cuota_y_pausa(sb, fila_buzon))
+            if motivo:
+                log(f"SKIP {rel}: gate del buzon en rojo — {motivo}")
+                saltados += 1
+                continue
         asunto = f"Propuesta — {fila.get('lead_id') or rel}"
         if not real:
             log(f"PLAN {rel} → {destinatario} (aprobado por {fila['aprobado_por']}, "

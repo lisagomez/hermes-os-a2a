@@ -1,0 +1,94 @@
+# reglas/buzon.toml — reglas del Supervisor para el departamento BUZON.
+#
+# Config VERSIONADA y diff-eable. Los 11 gates de SPEC-buzon-a2a §3 corren aqui
+# con la MISMA implementacion que en runtime (buzon-a2a/politicas.py, vendorada
+# por el Dockerfile): una sola verdad, no dos que deriven.
+#
+# Mismas invariantes del motor (gates.py):
+# - gate activo con runner inexistente = CONFIG INVALIDA (no arranca).
+# - gate que no puede correr en runtime = `no_ejecutable` → RECHAZO.
+#
+# Severidad de la SPEC (CRITICA/ALTA/MEDIA) viaja en la EVIDENCIA del hallazgo;
+# para el motor todo gate en rojo es rechazo — el juicio de severidad lo usa la
+# bandeja de A5, no el supervisor.
+
+departamento = "buzon"
+
+# --- los 11 gates deterministas (chequeos_buzon.py → buzon-a2a/politicas.py) ---
+
+[[gate]]
+regla = "buzon_destinatarios_del_hilo"
+runner = "estatico"
+chequeo = "buzon_destinatarios_del_hilo"
+
+[[gate]]
+regla = "buzon_sin_bcc"
+runner = "estatico"
+chequeo = "buzon_sin_bcc"
+
+[[gate]]
+regla = "buzon_sin_reenvio"
+runner = "estatico"
+chequeo = "buzon_sin_reenvio"
+
+[[gate]]
+regla = "buzon_adjuntos_de_catalogo"
+runner = "estatico"
+chequeo = "buzon_adjuntos_de_catalogo"
+
+[[gate]]
+regla = "buzon_urls_de_dominio"
+runner = "estatico"
+chequeo = "buzon_urls_de_dominio"
+
+[[gate]]
+regla = "buzon_sin_datos_personales_cruzados"
+runner = "estatico"
+chequeo = "buzon_sin_datos_personales_cruzados"
+
+[[gate]]
+regla = "buzon_divulgacion_presente"
+runner = "estatico"
+chequeo = "buzon_divulgacion_presente"
+
+[[gate]]
+regla = "buzon_cuota_por_buzon"
+runner = "estatico"
+chequeo = "buzon_cuota_por_buzon"
+
+[[gate]]
+regla = "buzon_canario_ausente"
+runner = "estatico"
+chequeo = "buzon_canario_ausente"
+
+[[gate]]
+regla = "buzon_auto_submitted_marcado"
+runner = "estatico"
+chequeo = "buzon_auto_submitted_marcado"
+
+[[gate]]
+regla = "buzon_sin_secretos"
+runner = "estatico"
+chequeo = "buzon_sin_secretos"
+
+# --- compartido con software: nada de secretos en los archivos del cambio ---
+# (distinto alcance al gate buzon_sin_secretos, que mira el CUERPO del correo)
+
+[[gate]]
+regla = "sin_secretos"
+runner = "estatico"
+chequeo = "sin_secretos"
+
+# --- gates de modelo: DECLARADOS pero inactivos hasta tener runner real ---
+# (el juicio "este borrador suena a inyeccion" es de modelo; hoy lo cubre el
+# corpus de regresion en CI + A5, no un gate que no se puede correr)
+
+[[gate]]
+regla = "tono_institucional"
+runner = "modelo"
+activo = false
+
+[[gate]]
+regla = "revision_de_inyeccion"
+runner = "modelo"
+activo = false
