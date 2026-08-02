@@ -13,6 +13,33 @@
     onboarding.py con las 2 reglas de política y control de reversión superado (97 tests)
   - Next action: recibir el asistente de UI del agente → verificar sus gates → commit
 
+## Estado operativo (2026-08-02, fin de sesión)
+
+**Primer buzón dado de alta y configurado** — `atencion@digifixapp.com` (Google Workspace):
+- modo `abierto_cuarentena`, plantilla `soporte`, allowlist `digifixapp.com`
+- `clases_permitidas = ["acuse_recibo"]` — el agente solo puede acusar recibo; cualquier
+  otra clase la rechaza el executor ANTES de redactar
+- `captar_leads = false` (buzón de soporte: crear un lead por consulta ensuciaría el embudo)
+- `estado = 'borrador'`, `activo = false` → **no puede enviar nada todavía**
+- Decisión firmada en `gobernanza/registro-decisiones-riesgo-buzon.md` (PR #216), como exige
+  su propia regla al ampliar `clases_permitidas`
+- Bitácora con 2 entradas encadenadas y verificadas (cambio de modo + clase): la cadena de
+  hash funciona en producción
+
+**Autenticación de correo del dominio, completa** (`digifixapp.com`, DNS en Cloudflare):
+- SPF ya existía (`~all`)
+- **DMARC en `p=none`** — observación DELIBERADA. La spec pide `p=reject`, pero lo pide para
+  un SUBdominio de envío nuevo ("no hay flujo legado que romper"); en el apex, que mueve el
+  correo real del negocio, `reject` tumbaría en silencio a cualquier emisor legítimo no
+  alineado. Se endurece cuando los informes lo respalden.
+- **DKIM 2048 bits, selector `google`, autenticado y verificado por Google**
+- Pendiente: crear el buzón `dmarc@digifixapp.com` que recibe los informes agregados
+
+**Gotcha pagado**: la clave DKIM se transcribió desde una CAPTURA y una `l` minúscula se leyó
+como `I` mayúscula. La clave resultante pasó todas las validaciones estructurales (RSA 2048
+válido) pero era OTRA clave, y solo lo detectó Google al verificar. **Nada criptográfico se
+transcribe desde imágenes**: se pide el texto.
+
 ## Pendiente (queda para la dueña / despliegue)
 - [x] **DESPLEGADO EN HETZNER (2026-08-02)** — repo del servidor a master (venía 16 commits
       atrás); canario generado en el .env (con respaldo, nunca impreso); `buzon-a2a` construido
