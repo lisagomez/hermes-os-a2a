@@ -1,7 +1,9 @@
 # PROGRESS — buzon-a2a (HERALDO-6)   (branch: feat/buzon-a2a | últ. checkpoint: 2026-08-02)
 
 ## Objetivo / contexto
-- Implementar `businessos/SPEC-buzon-a2a.md`: gestor de correo institucional operado por agentes.
+- Implementar `SPEC-buzon-a2a.md` (raíz del repo; copia byte a byte de
+  `C:\Users\gomez\Downloads\SPEC-buzon-a2a.md`, sha256 2199ea2d…): gestor de correo
+  institucional operado por agentes.
   Orden de implementación: SPEC §5.2. Frontend: SPEC §6. Nada se aplica a prod (SQL solo validado
   en Postgres efímero); todo va por PR.
 
@@ -19,7 +21,8 @@
 - [ ] Smoke e2e con correo real (§8, tras activar)
 
 ## Completado
-- [x] Rama feat/buzon-a2a creada; SPEC copiada a businessos/SPEC-buzon-a2a.md (2026-08-02)
+- [x] Rama feat/buzon-a2a creada; SPEC copiada de `C:\Users\gomez\Downloads\` (vía /mnt/c)
+      a `SPEC-buzon-a2a.md` en la raíz del repo, verificada idéntica por sha256 (2026-08-02)
 - [x] 1. supabase-buzon.sql — 5 tablas + vista; VALIDADO en Postgres 18 efímero: 2 corridas
       idempotentes, trigger append-only rechaza UPDATE, constraint buzones_abierto_firmado
       rechaza modo abierto sin firma, RLS enable+FORCE en las 5 (2026-08-02)

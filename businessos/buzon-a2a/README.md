@@ -1,7 +1,7 @@
 # buzon-a2a — correo institucional operado por agentes (HERALDO-6)
 
 Servicio A2A del buzón. Lee hilos **saneados** y redacta borradores que pasan 11
-gates deterministas. **Nunca envía.** Spec completa: `businessos/SPEC-buzon-a2a.md`.
+gates deterministas. **Nunca envía.** Spec completa: `SPEC-buzon-a2a.md` (raíz del repo).
 
 ## La frontera, en una línea
 
