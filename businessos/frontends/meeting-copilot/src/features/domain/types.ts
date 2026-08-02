@@ -197,7 +197,7 @@ export interface Herramienta {
   slug: string
   nombre: string
   descripcion: string
-  categoria: 'captura' | 'analisis' | 'ejecucion' | 'supervision' | 'configuracion' | 'agendamiento'
+  categoria: 'captura' | 'analisis' | 'ejecucion' | 'supervision' | 'configuracion' | 'agendamiento' | 'google'
   icono: string
   estado: EstadoHerramienta
   ruta: string
