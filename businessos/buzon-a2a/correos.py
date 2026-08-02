@@ -49,6 +49,13 @@ class BuzonStore:
 
     async def _req(self, metodo: str, ruta: str, cuerpo: dict | None = None,
                    prefer: str | None = None) -> httpx.Response:
+        if not self.activo:
+            # Sin env, la URL quedaria vacia y httpx moriria con
+            # "UnsupportedProtocol", que no le dice nada a quien lee el fallo.
+            # Un error tiene que nombrar su causa (visto en el 1er arranque real).
+            raise BuzonError(
+                "Supabase no configurado (faltan SUPABASE_URL / "
+                "SUPABASE_SERVICE_ROLE_KEY): el buzon no puede leer ni escribir")
         headers = self._headers({"Prefer": prefer} if prefer else None)
         url = f"{self._url}/rest/v1/{ruta}"
         try:

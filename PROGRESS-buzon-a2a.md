@@ -14,9 +14,16 @@
   - Next action: recibir el asistente de UI del agente → verificar sus gates → commit
 
 ## Pendiente (queda para la dueña / despliegue)
-- [ ] Aplicar supabase-buzon.sql y supabase-buzon-leads.sql a producción (management API)
-- [ ] Build real de las imágenes (buzon-a2a y supervisor) — esta máquina no tiene acceso
-      al daemon de Docker; se hizo la simulación del aplanado en su lugar (ver abajo)
+- [ ] Aplicar supabase-buzon.sql, supabase-buzon-leads.sql y supabase-buzon-onboarding.sql
+      a producción (management API)
+- [x] **Build y ARRANQUE REAL verificados (2026-08-02)** — el daemon de Docker local quedó
+      accesible y se cerró el gate de imagen de verdad, no por simulación:
+      imagen construye · contenedor `Up (healthy)` · `/health` 200 · agent-card sirve la
+      skill `mail` · **JSON-RPC de punta a punta** con payload canónico generado por el SDK
+      (crea la tarea, la ejecuta, falla visiblemente sin Supabase) · **opacidad confirmada
+      sobre el servicio VIVO**: /docs /openapi.json /redoc /correos /buzones /gates → 404
+- [ ] Deploy a Hetzner (12 contenedores de producción vivos; la rama no está mergeada —
+      hacer checkout en ~/repo movería el árbol que el trío monta para sus worktrees)
 - [ ] Activar el primer buzón (modo cerrado) — exige firma en el registro de riesgo
 - [ ] Registrar ingerir-entrantes.py en cron: DECISIÓN DE LA DUEÑA (mismo gate que
       enviar-salientes.py); el agente no lo auto-registra
@@ -79,5 +86,12 @@
 - 2026-08-02 El costo de CONSTRUCCIÓN tampoco está instrumentado en token_usage (esta
   sesión no es del trío, no hay task_id) → la ficha ACT tiene dos tramos externos, no
   uno; se anotó en su addendum. La opción C (re-derivar) ya no aplica al código : sesión L0
+- 2026-08-02 El 1er arranque real destapó un fallo que 97 tests no vieron: sin Supabase
+  configurado, las LECTURAS no comprobaban `activo` y morían con "UnsupportedProtocol"
+  (error interno de httpx). Un error debe nombrar su causa → guarda en `_req` + test de
+  regresión. Solo se ve arrancando el servicio de verdad : sesión L0
+- 2026-08-02 La prueba de arranque se hizo en LOCAL, no en Hetzner: el servidor tiene 12
+  contenedores de producción vivos y la rama no está mergeada. Copiar la rama allí para
+  probar arriesgaba el árbol que el trío monta. Mismo gate cerrado, sin exposición : sesión L0
 - 2026-08-02 La spec ES el plan aprobado (goal del usuario); no se re-litiga el diseño : sesión L0
 - 2026-08-02 No se aplica NADA a Supabase prod ni se despliega; entrega = PR verificado : doctrina repo

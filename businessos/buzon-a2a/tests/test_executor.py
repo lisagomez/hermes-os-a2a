@@ -249,3 +249,13 @@ def test_supabase_caido_es_failed_no_borrador_perdido():
     )
     assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
     assert "Supabase" in razon_fallo(cola)
+
+
+def test_sin_supabase_el_fallo_nombra_su_causa():
+    """Regresion del 1er arranque real: sin env decia 'UnsupportedProtocol'."""
+    cola = ejecutar(BuzonExecutor(store=BuzonStore(url="", key="")),
+                    new_data_message({"accion": "leer", "hilo_id": "h1"}))
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    razon = razon_fallo(cola)
+    assert "Supabase no configurado" in razon and "SUPABASE_URL" in razon
+    assert "UnsupportedProtocol" not in razon
