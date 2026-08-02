@@ -74,7 +74,7 @@ funden: ese es el primer principio del proyecto.
 
 ---
 
-## Estado actual (2026-07-30)
+## Estado actual (2026-08-02)
 
 Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
 línea CRM arrancó. En corto:
@@ -111,7 +111,19 @@ línea CRM arrancó. En corto:
 - **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido, desplegado y con login
-  (magic link + allowlist del equipo, 2026-07-28).
+  (magic link + allowlist del equipo, 2026-07-28), con **agendamiento** completo
+  (catálogo de asesores, bandeja de aprobación, reserva pública) y sección
+  **Google Workspace** en `/herramientas` (2026-08-02).
+- **Departamento de Buzón — HERALDO-6** ✅ desplegado e **inerte** (2026-08-02):
+  correo institucional donde el agente lee saneado y **redacta borradores, nunca
+  envía** — la supervisión humana es una fila en `aprobaciones_salientes` que el
+  motor no puede fabricar porque no tiene credenciales. Migraciones en producción
+  con los cuatro candados rechazando de verdad; 0 buzones dados de alta hasta que
+  la dueña firme la gobernanza.
+- **Línea Enriquecimiento** 🟡 — cascada de enriquecimiento de leads ordenada por
+  costo y **sin LLM**, con el grafo (dimensión `datos-personales`, LFPDPPP 2025)
+  como gate de entrada. A1/A2 fusionados; el servicio `enriquecimiento-a2a` está
+  en revisión (PR #210).
 - **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
   config-driven en las 3 apps internas; auditoría adversarial post-merge con
   sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,

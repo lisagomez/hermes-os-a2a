@@ -1375,4 +1375,41 @@ npm run lint         # ESLint
 - **Aplicar en**: todo merge de PR de colaborador (diff del tip contra lo verificado) y todo
   uso del procedimiento de bypass (`-F` para enteros; verificar estado tras errores de red).
 
+### 2026-08-02: Un departamento nuevo del trío obliga a reconstruir el SUPERVISOR, no solo el Ejecutor
+- **Error (cazado al desplegar el buzón, PR #209)**: la imagen viva del `supervisor-a2a`
+  llevaba días con **4 departamentos** y sin `chequeos_buzon` → la primera tarea del
+  departamento `buzon` habría sido **rechazada** por un juez que no conoce sus gates, con
+  el código correcto y desplegado. Es el hermano del gotcha 2026-07-23 (que solo miraba el
+  contrato del Ejecutor): un departamento nuevo toca DOS imágenes, y la del juez es la que
+  nadie recuerda.
+- **Fix**: al dar de alta un departamento, reconstruir Ejecutor **y** Supervisor con el
+  trío OCIOSO, y verificar DENTRO del contenedor qué carga la imagen viva
+  (`docker exec <c> python -c "import executor; ..."` → N departamentos, gates activos,
+  cero chequeos faltantes) ANTES de encolar la primera tarea.
+- **Aplicar en**: toda alta de departamento y todo despliegue que cambie el contrato del trío.
+
+### 2026-08-02: Un corpus adversarial encuentra lo que los tests verdes no ven
+- **Hallazgo (buzón A2A, PR #208)**: con 80 tests verdes del saneador, el **corpus de
+  inyecciones** (62 casos, 10 familias) destapó un hueco real: texto del **mismo color que
+  el fondo** (blanco sobre blanco) sobrevivía al saneado y llegaba al modelo. Ningún test
+  lo cubría porque los tests prueban lo que el autor imaginó; el corpus prueba lo que
+  imagina un atacante.
+- **Fix**: `_oculto_por_color` en `saneado.py` (normaliza `#fff`/`white`/`rgb()`), test con
+  **control de reversión** (rojo sin el fix) y los dos casos incorporados al corpus, que es
+  el artefacto que crece — cada escape encontrado se queda como caso permanente.
+- **Aplicar en**: toda superficie que ingiera contenido de terceros (correo, web, adjuntos,
+  transcripciones). El corpus es parte del entregable, no una prueba más.
+
+### 2026-08-02: `vercel link` para "solo mirar" conecta el proyecto a GitHub — y rompe los deploys
+- **Error (PR #204)**: un `vercel link` corrido únicamente para inspeccionar variables dejó
+  `cliente-web2` **conectado a GitHub** (confirmado por API: `link.createdAt`), cuando el
+  runbook lo declara deliberadamente **solo-CLI** desde 2026-07-18. Consecuencia: check
+  "Vercel – cliente-web2" en rojo en **cada push**, por el choque conocido entre Root
+  Directory y monorepo. Ya conocíamos el daño inverso (2026-07-28: conectar sin fijar Root
+  Directory publicó una app encima de otra); esta es la misma mina por el otro lado.
+- **Fix**: `vercel git disconnect` + redeploy por CLI. Y la regla: `vercel link` **no es
+  una lectura** — muta el proyecto; tras usarlo, verificar el estado de la conexión (y
+  borrar el `.env.local` que deja, mina de 2026-07-17).
+- **Aplicar en**: todo uso de la CLI de Vercel sobre proyectos de este monorepo.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

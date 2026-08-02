@@ -182,6 +182,13 @@ Pasarela de pago tradicional (Polar):
   (scopes products/checkouts) + producto PWYW «Cobro de servicios»; flujo completo
   bandeja → checkout → link → pago con tarjeta de prueba → `--sync` → `pagado` en `cobros`.
   Gotcha corregido en `polar-cobros.py`: Cloudflare bloquea el UA de urllib (error 1010).
+- [x] **Loop de cobros web cerrado (2026-08-02, PR #203)**: el checkout de la landing
+  (`cliente-web2/api/checkout`) ya deja rastro — fila en `cobros` al crearse (estado
+  `link_creado`, `monto: null` porque es pay-what-you-want) — y hay **webhook real** en
+  `api/webhooks/polar` con verificación de firma (`@polar-sh/sdk/webhooks`, evento
+  `checkout.updated`). `polar-cobros.py --sync` pasa de mecanismo primario a respaldo de
+  reconciliación. Migración `supabase-fase3b-cobros-web.sql` (`cobros.monto` nullable)
+  aplicada en producción, idempotente verificada corriéndola dos veces.
 - [ ] **RESIDUAL (producción)** — repetir en Polar producción cuando haya cobros reales:
   quitar `POLAR_API` del `.env` y reemplazar token + product_id por los de prod
 
@@ -752,6 +759,11 @@ el fetch fallaba en silencio y el trío construía sobre un master de 11 commits
 > **Fase 11** (frontends web: cliente-web2 + chat en vivo + control-interno) no tiene
 > sección propia: su estado vive en la corriente "Canales de comunicación" y en
 > `.claude/memory/project/frontend-web2.md`.
+>
+> Nota 2026-08-02 (PR #204): `cliente-web2` volvió a ser **solo-CLI** en Vercel. Un
+> `vercel link` corrido para inspeccionar variables lo conectó a GitHub sin pedirlo, y con
+> Root Directory en el monorepo cada push salía en rojo. Revertido con `vercel git
+> disconnect`; el runbook (`frontends/DEPLOY-web2.md`) ya lo documentaba desde 2026-07-18.
 
 ## FASE 12 — Departamento de Contratos Inteligentes: fábrica de Smart Contracts (Fabric) 🟡 Fases 1-5 verificadas + escrow-v1 FIRMADA + sandbox efímero operativo (2026-07-28); Fase 6 pendiente (ceremonia + e2e)
 
@@ -853,6 +865,54 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
   `revision_metodologica`/`tono_de_marca` (siguen INACTIVOS por diseño).
 - **Sin servicio A2A nuevo ni puerto público**: Procesos es interno, corre por
   el trío existente.
+
+---
+
+## Departamento de Buzón — HERALDO-6: correo institucional operado por agentes ✅ DESPLEGADO e INERTE (2026-08-02)
+
+Quinto departamento del trío. SPEC: `SPEC-buzon-a2a.md` (raíz). Bitácora de
+construcción: `PROGRESS-buzon-a2a.md`. PRs **#208** (build completo, 92 archivos) y
+**#209** (despliegue + migraciones).
+
+La idea en una línea: **el agente lee correo saneado y redacta borradores; nunca
+envía**. La supervisión humana no es una política escrita — es una fila en
+`aprobaciones_salientes` que el motor no puede fabricar porque no tiene credenciales.
+Eso es lo que un auditor puede verificar.
+
+- [x] Servicio `businessos/buzon-a2a/` (perfil `a2a`, `127.0.0.1:4900`, hermes-net):
+  `politicas.py` (11 gates puros), `saneado.py`, `correos.py`, `redactor.py` (motor
+  pluggable determinista), card/app/executor. Opacidad verificada sobre el servicio
+  vivo: `/docs`, `/openapi.json`, `/correos`, `/buzones`, `/gates` → 404.
+- [x] Supervisor extendido: `chequeos_buzon.py` **vendora** `politicas.py` (una sola
+  implementación, no dos que deriven) + `reglas/buzon.toml` (12 gates activos; 2 de
+  modelo quedan inactivos porque no hay runner — regla de Fase 6: un gate sin runner
+  ejecutable es config inválida).
+- [x] Host-jobs: `ingerir-entrantes.py` (3 adaptadores IMAP/Graph/Gmail, saneado, hash
+  de evidencia, lead `origen='correo'`, bitácora encadenada, **dry-run por defecto**) y
+  `enviar-salientes.py` (gates 3 y 4 SOLO para rutas `buzon/<id>`; EG.CRM sin cambio).
+- [x] Frontend en meeting-copilot: 5 vistas (`/buzon`, hilo, aprobaciones, políticas,
+  bitácora) + `/api/buzon/salud` + 16ª herramienta del launcher; 219/219 tests.
+- [x] **Corpus de inyecciones**: 62 casos, 10 familias, 0 escapes contra el saneador
+  real. Destapó un hueco que los tests no vieron — texto del mismo color que el fondo
+  sobrevivía al saneado — cerrado en `saneado.py` con control de reversión.
+- [x] §11 **asistente de configuración del cliente** (`onboarding.py`): modo espejo no
+  saltable y relajamiento progresivo, con tests de límites. Deuda declarada: la política
+  tiene espejo en TS en el frontend mock-first; muere cuando la UI llame al daemon :4900.
+- [x] **Desplegado en Hetzner (2026-08-02)**: `buzon-a2a` `Up (healthy)` con /health y
+  agent-card. Se corrigió una DERIVA en el camino: la imagen viva del supervisor conocía
+  **4 departamentos** y no tenía `chequeos_buzon` → una tarea del departamento `buzon`
+  habría sido rechazada; reconstruida con el trío ocioso, ahora carga los 5 con sus gates.
+- [x] **Migraciones aplicadas a producción (2026-08-02)**, las tres, por management API.
+  Verificación previa (cero colisiones; el constraint vivo de `leads` coincidía con lo
+  esperado) y posterior: 8 tablas con RLS+FORCE, los **cuatro candados rechazando EN
+  PRODUCCIÓN** (abierto sin firma, activo sin firma, espejo sin fecha, origen inventado)
+  y la bitácora append-only probada dentro de una transacción revertida. Advisors: 8
+  alertas INFO `rls_enabled_no_policy` = el diseño buscado, ninguna WARN/ERROR.
+- **Estado real: vivo pero INERTE** — 0 buzones dados de alta, como corresponde.
+- [ ] **Gates de la dueña**: firmar los 3 documentos de gobernanza (§7.3, en
+  `businessos/gobernanza/`), activar el primer buzón en modo cerrado (exige firma en el
+  registro de riesgo), registrar `ingerir-entrantes.py` en cron (el agente no se
+  auto-registra) y el smoke e2e con correo real (§8).
 
 ---
 
@@ -1146,6 +1206,15 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   estados explícita, slots UTC-internos con TZ del asesor vía Intl (DST testeado),
   multi-tenant desde día 1. SQL diseñado SIN aplicar:
   `businessos/supabase-fase14-agendamiento.sql`. 162 unit + 7 smokes. SPEC §19.
+- [x] **Google Workspace en `/herramientas` (2026-08-02, PRs #205/#206/#207)**: la única
+  integración de Google que existe en el repo es el Calendar de `control-interno` (CLI
+  `gog` + tablas `calendar_sources`/`calendar_events`/`calendar_sync_state`, patrón "un
+  mirror, una pluma"). En vez de construir una segunda, la tarjeta **lee el mirror
+  existente** (`/api/calendar/events`) y declara su estado real: el esquema y la RLS están
+  listos, pero la integración **no está activa** (sin `gog` instalado, sin OAuth, 0 filas
+  en producción). Categoría propia `google` en el launcher, de modo que toda herramienta
+  Google futura cae en esa sección sin tocar el grid.
+- [x] **5 vistas del buzón + 16ª herramienta** (PR #208) — ver §Departamento de Buzón.
 - [ ] Post-merge agendamiento: aplicar fase14 al conectar Supabase (management
   API), host-job notificador real (enviar-salientes + crm-canales), rate-limit y
   token HMAC de `/reservar`, mapeo CRM cita→etapa (decisión de negocio: "cita
@@ -1195,6 +1264,39 @@ ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
 - Pendientes estructurales: D-03 (CLI act formal, hoy puente psql interino),
   separación física de repos defendibles (D-12), `act_proteccion` de los
   defendibles ratificados, ERP-1+ según maestro.
+
+## Línea Enriquecimiento (App A — Waterfall Enrichment) 🟡 A1/A2 fusionados, A3 en revisión (2026-08-01/02)
+
+Primera de las 3 apps del encargo; plan aprobado con **ataque adversarial** el
+2026-07-30. Enriquece leads en cascada **ordenada por costo y sin LLM** (cero tokens por
+lead), con el grafo como gate de entrada: ningún dato se toca si la prospección no es
+lícita.
+
+```
+gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → patrón de correo por dominio
+```
+
+- [x] **A1 — PR #198**: dimensión `datos-personales` en el grafo (4 categorías + 4 reglas
+  MX para prospección B2B) **sin tocar el evaluador** — reusa los veredictos
+  `permitido|dudoso|no_permitido`. De paso corrige una deuda real: la LFPDPPP de 2010 fue
+  abrogada (Decreto DOF 20-03-2025, vigente 21-03-2025; autoridad hoy la Secretaría
+  Anticorrupción y Buen Gobierno, INAI extinto) — el seed citaba una ley muerta.
+- [x] **A2 — PR #199**: `businessos/supabase-enriquecimiento.sql` (5 tablas + 2 vistas)
+  con el **gate 69-B como invariante en la tabla**, no como cortesía del código, y
+  `supabase-enriquecimiento.test.sql` (27 pruebas de comportamiento en Postgres efímero).
+- [ ] **A3 — PR #210 (ABIERTO)**: el servicio `businessos/enriquecimiento-a2a/` que las
+  consume + `vigilancia-69b.py` + RPC `dominio_patron_reforzar` + alta en compose en el
+  puerto **5000** (el 4900 lo tomó `buzon-a2a` en el #208). Gate de imagen **cerrado**
+  sobre el tip exacto: 77/77 tests, `docker build`, `Up (healthy)`, agent-card con la
+  skill `enriquecer-lead`, opacidad 7/7 y JSON-RPC e2e donde el fail-closed opera de
+  verdad ("grafo inalcanzable: la cascada no corre sin gate"). CI verde; bloqueado solo
+  por revisión.
+- [ ] **Tras fusionar** (exige credenciales que la máquina de desarrollo no tiene):
+  aplicar a producción los dos SQL (#199 y `supabase-enriquecimiento-refuerzo.sql`) por
+  management API; desplegar con perfil `a2a` + `DENUE_TOKEN` en el `.env`; primera
+  corrida de `vigilancia-69b.py`.
+
+---
 
 ## Descartados (con motivo)
 
