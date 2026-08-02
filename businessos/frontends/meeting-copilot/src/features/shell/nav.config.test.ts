@@ -40,18 +40,19 @@ describe('árbol de navegación del copilot', () => {
     expect(appsParaLauncher().map((a) => a.id)).toEqual(['mission-control', 'control-interno', 'meeting-copilot'])
   })
 
-  it('la sección Buzón está integrada con sus 3 páginas (Bandeja/Aprobaciones/Políticas/Bitácora)', () => {
+  it('la sección Buzón está integrada con sus 5 páginas (Bandeja/Configurar/Aprobaciones/Políticas/Bitácora)', () => {
     const nivel2 = aplanarNav(NAV_COPILOT)
       .filter((p) => p.nivel === 2 && p.rastro[0].id === 'sec-buzon')
       .map((p) => p.nodo.id)
-    expect(nivel2).toEqual(['buzon', 'buzon-aprobaciones', 'buzon-politicas', 'buzon-bitacora'])
+    expect(nivel2).toEqual(['buzon', 'buzon-configurar', 'buzon-aprobaciones', 'buzon-politicas', 'buzon-bitacora'])
   })
 
-  it('el patrón de hilo (/buzon/:hilo) NUNCA se confunde con aprobaciones/políticas/bitácora', () => {
+  it('el patrón de hilo (/buzon/:hilo) NUNCA se confunde con configurar/aprobaciones/políticas/bitácora', () => {
     // Regresión: un patron de 2 segmentos anidado a la misma profundidad (o
     // más) que sus hermanos estáticos de 2 segmentos les gana SIEMPRE en
     // rastroDe (puntúa +5 fijo sin importar especificidad real) — por eso
     // buzon-hilo vive deliberadamente más SOMERO que sec-buzon.
+    expect(ruta('/buzon/configurar')).toEqual(['Buzón', 'Configurar'])
     expect(ruta('/buzon/aprobaciones')).toEqual(['Buzón', 'Aprobaciones'])
     expect(ruta('/buzon/politicas')).toEqual(['Buzón', 'Políticas'])
     expect(ruta('/buzon/bitacora')).toEqual(['Buzón', 'Bitácora'])

@@ -17,6 +17,10 @@ import { GATES_BUZON, aplicarTransicion } from './types'
 export const AHORA_FIJO = '2026-08-01T16:00:00.000Z' // determinista (fixtures estables)
 
 // ─── Buzones ─────────────────────────────────────────────────────────────
+// Los 2 buzones originales quedan `activo` (ya pasaron por todo el onboarding,
+// fechas en el pasado). Se suman 2 más para cubrir §11.8/§11.9 con datos:
+// buzon-soporte en modo espejo (día 5 de 7, 38 borradores) y buzon-ventas
+// arrastra además una propuesta de relajamiento pendiente (ver mockRelajamientos).
 
 export function mockBuzones(): Buzon[] {
   return [
@@ -30,6 +34,14 @@ export function mockBuzones(): Buzon[] {
       cuotaHilo: 5,
       aprobadorRol: 'PM',
       activo: true,
+      estado: 'activo',
+      plantilla: null, // configuración personalizada, no partió de una plantilla
+      espejoDesde: '2026-05-01T09:00:00.000Z',
+      activadoPor: 'Luis Fernández — PM',
+      activadoEn: '2026-05-10T09:00:00.000Z',
+      aprobadorSuplente: null,
+      canalAprobacion: 'panel',
+      captarLeads: false,
     },
     {
       id: 'buzon-ventas',
@@ -41,6 +53,33 @@ export function mockBuzones(): Buzon[] {
       cuotaHilo: 6,
       aprobadorRol: 'CEO',
       activo: true,
+      estado: 'activo',
+      plantilla: 'ventas',
+      espejoDesde: '2026-06-01T09:00:00.000Z',
+      activadoPor: 'Ana Ibarra — CEO',
+      activadoEn: '2026-06-10T09:00:00.000Z',
+      aprobadorSuplente: 'Diego Salas — COO',
+      canalAprobacion: 'telegram',
+      captarLeads: true,
+    },
+    {
+      id: 'buzon-soporte',
+      direccion: 'soporte@a2a.mx',
+      proveedor: 'google',
+      modoContraparte: 'abierto_cuarentena',
+      clasesPermitidas: ['acuse', 'catalogo_publico', 'escalar'],
+      cuotaHora: 12,
+      cuotaHilo: 4,
+      aprobadorRol: 'PM',
+      activo: true,
+      estado: 'espejo',
+      plantilla: 'soporte',
+      espejoDesde: '2026-07-28T16:00:00.000Z', // 4 días antes de AHORA_FIJO → día 5 de 7
+      activadoPor: null,
+      activadoEn: null,
+      aprobadorSuplente: 'Marta Ruiz — PM suplente',
+      canalAprobacion: 'slack',
+      captarLeads: false,
     },
   ]
 }

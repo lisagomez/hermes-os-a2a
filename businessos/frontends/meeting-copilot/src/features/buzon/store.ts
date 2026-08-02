@@ -3,26 +3,63 @@
 // Store del buzón: demo ∪ usuario con copy-on-write (patrón agenda/store.ts).
 // Los entrantes son catálogo estático en el mock (nadie los edita desde la UI,
 // igual que `servicios` en agenda) — solo buzones (políticas), salientes
-// (decisión de A5) y bitácora (append-only) tienen slice de usuario.
+// (decisión de A5), verificaciones/relajamientos/falsos-positivos (§11) y
+// bitácora (append-only) tienen slice de usuario.
+//
+// Las acciones del asistente de configuración (§11) viven en
+// storeOnboarding.ts (slice del MISMO store, no un store aparte) para no
+// pasar el límite de 500 líneas por archivo.
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ActorCorreo, Buzon, CorreoSaliente, EventoBitacora, EventoCorreo, ResultadoTransicion } from './types'
+import type {
+  ActorCorreo,
+  Buzon as BuzonTipo,
+  CanalAprobacion,
+  CorreoSaliente,
+  EventoBitacora as EventoBitacoraTipo,
+  EventoCorreo,
+  PlantillaBuzon,
+  Proveedor,
+  ResultadoTransicion,
+} from './types'
 import { aplicarTransicion, politicaValida } from './types'
-import { BITACORA_DEMO, BUZONES_DEMO, ENTRANTES_DEMO, SALIENTES_DEMO } from './fixtures'
+import { ENTRANTES_DEMO, METRICAS_ESPEJO_DEMO } from './fixtures'
+import type { VerificacionId } from './verificacion'
+import type { Verificacion } from './verificacion'
+import type { FalsoPositivoGate } from './gatesLenguaje'
+import type { Relajamiento } from './relajamiento'
+import type { SaludBuzon } from './salud'
+import { derivar, nuevoIdBitacora, VACIO } from './storeShared'
+import { crearOnboardingSlice } from './storeOnboarding'
 
-interface BuzonState {
+// Reexportados para que storeOnboarding.ts (y otros slices futuros) tipen
+// contra el store sin depender de types.ts directamente en dos sitios.
+export type Buzon = BuzonTipo
+export type EventoBitacora = EventoBitacoraTipo
+
+export interface BuzonState {
   // Persistido (solo usuario)
   buzonesUsuario: Buzon[]
   salientesUsuario: CorreoSaliente[]
   bitacoraUsuario: EventoBitacora[]
+  verificacionesUsuario: Record<string, Verificacion[]>
+  relajamientosUsuario: Relajamiento[]
+  falsosPositivosUsuario: FalsoPositivoGate[]
 
   // Derivado (demo ∪ usuario) — se recalcula en cada set/merge
   buzones: Buzon[]
   salientes: CorreoSaliente[]
   bitacora: EventoBitacora[]
+  verificaciones: Record<string, Verificacion[]>
+  relajamientos: Relajamiento[]
+  falsosPositivos: FalsoPositivoGate[]
   /** Catálogo estático en MVP: lo ingiere ingerir-entrantes.py, la UI solo lee. */
   entrantes: typeof ENTRANTES_DEMO
+  /** Señales del proveedor de correo (§11.11) — catálogo estático, como `entrantes`. */
+  salud: SaludBuzon[]
+  /** Contadores de modo espejo (§11.8) — catálogo estático + los que genera el mock al avanzar. */
+  metricasEspejo: typeof METRICAS_ESPEJO_DEMO
 
   /** Única puerta de política: guard `politicaValida` (modo abierto exige firma
    *  completa). El agente jamás llama esto — es exclusivo de /buzon/politicas. */
@@ -47,35 +84,68 @@ interface BuzonState {
     evento: 'aprobar' | 'rechazar' | 'reportar_inyeccion',
     detalle?: string
   ) => ResultadoTransicion
+
+  // ── §11: asistente de configuración del cliente (implementadas en storeOnboarding.ts) ──
+
+  /** Pantalla 0 (implícita): crea el buzón en `borrador`, plantilla aún sin elegir. */
+  crearBuzonBorrador: (direccion: string, proveedor: Proveedor) => { ok: true; buzonId: string } | { ok: false; motivo: string }
+  /** Pantalla 1 (§11.3): elige plantilla → aplica su modo/clases y dispara `configurando`.
+   *  `politica_buzon` queda verificado de inmediato (es una verificación interna, sin
+   *  dependencia externa). */
+  elegirPlantilla: (
+    buzonId: string,
+    plantilla: PlantillaBuzon,
+    captarLeads: boolean
+  ) => { ok: true } | { ok: false; motivo: string }
+  /** Un paso de "polling" sobre una verificación puntual (§11.2). Si al aplicarlo
+   *  las 7 de configuración quedan verdes, dispara `verificaciones_completas`
+   *  automáticamente — "el sistema se verifica solo" (§11.0). */
+  avanzarVerificacion: (buzonId: string, id: VerificacionId, ahora: string) => void
+  /** Ruta del administrador (§11.4): delega en un tercero. */
+  delegarVerificacion: (buzonId: string, id: VerificacionId, admin: { nombre: string; correo: string }, ahora: string) => void
+  /** El tercero ya autorizó (o el cliente adelanta el aviso). */
+  resolverDelegacionVerificacion: (buzonId: string, id: VerificacionId, ahora: string) => void
+  /** Demo-only: fuerza el camino `fallido` de la prueba de control positivo (§11.4). */
+  simularFugaDeAlcance: (buzonId: string, ahora: string) => void
+  /** Pantalla 5 (§11.7): aprobador+canal obligatorios → verifica `aprobador` de inmediato. */
+  asignarAprobador: (
+    buzonId: string,
+    aprobador: string,
+    canalAprobacion: CanalAprobacion,
+    aprobadorSuplente: string | null,
+    ahora: string
+  ) => void
+  /** §11.8: el botón "Activar envío real" — exige `puedeListo` (onboarding.ts). */
+  solicitarActivacion: (buzonId: string, ahora: string) => { ok: true } | { ok: false; motivo: string }
+  /** §11.1/§11.8: firma de A5 que activa el envío real. */
+  firmarActivacion: (buzonId: string, activadoPor: string, ahora: string) => { ok: true } | { ok: false; motivo: string }
+  /** §11.12: pausar/reanudar/desconectar — siempre los dispara el Guardian. */
+  pausarBuzon: (buzonId: string, ahora: string) => { ok: true } | { ok: false; motivo: string }
+  reanudarBuzon: (buzonId: string, ahora: string) => { ok: true } | { ok: false; motivo: string }
+  desconectarBuzon: (buzonId: string, ahora: string) => { ok: true } | { ok: false; motivo: string }
+  /** §11.9: decisión del cliente sobre una propuesta de relajamiento. */
+  decidirRelajamiento: (
+    id: string,
+    decision: 'aplicar' | 'mantener' | 'recordar_despues',
+    decididoPor: string,
+    ahora: string
+  ) => void
+  /** §11.9: reversión automática (2 rechazos) — la dispara el host-job que lleva la racha; aquí es explícita para el demo. */
+  revertirRelajamiento: (id: string, motivo: string, ahora: string) => void
+  /** §11.10: "Esto es un falso positivo" — registra el caso con correo y gate. */
+  reportarFalsoPositivo: (
+    buzonId: string,
+    gate: string,
+    reportadoPor: string,
+    ahora: string,
+    opciones?: { hiloId?: string; correoId?: string; nota?: string }
+  ) => void
 }
 
-type Persistido = Pick<BuzonState, 'buzonesUsuario' | 'salientesUsuario' | 'bitacoraUsuario'>
-
-function porId<T>(demo: T[], usuario: T[], id: (x: T) => string): T[] {
-  const ids = new Set(usuario.map(id))
-  return [...demo.filter((d) => !ids.has(id(d))), ...usuario]
-}
-
-function derivar(p: Persistido) {
-  return {
-    buzones: porId(BUZONES_DEMO, p.buzonesUsuario, (b) => b.id),
-    salientes: porId(SALIENTES_DEMO, p.salientesUsuario, (s) => s.id),
-    bitacora: [...BITACORA_DEMO, ...p.bitacoraUsuario].sort((a, b) => a.ocurridoEn.localeCompare(b.ocurridoEn)),
-    entrantes: ENTRANTES_DEMO,
-  }
-}
-
-const VACIO: Persistido = {
-  buzonesUsuario: [],
-  salientesUsuario: [],
-  bitacoraUsuario: [],
-}
-
-let contadorBitacora = 0
-function nuevoIdBitacora(): string {
-  contadorBitacora += 1
-  return `bitacora-usuario-${Date.now().toString(36)}-${contadorBitacora}`
-}
+export type Persistido = Pick<
+  BuzonState,
+  'buzonesUsuario' | 'salientesUsuario' | 'bitacoraUsuario' | 'verificacionesUsuario' | 'relajamientosUsuario' | 'falsosPositivosUsuario'
+>
 
 export const useBuzonStore = create<BuzonState>()(
   persist(
@@ -137,6 +207,8 @@ export const useBuzonStore = create<BuzonState>()(
 
       decidirAprobacion: (correoId, evento, detalle) =>
         get().transicionarSaliente(correoId, evento, 'aprobador', new Date().toISOString(), detalle),
+
+      ...crearOnboardingSlice(set, get),
     }),
     {
       name: 'meeting-copilot-buzon',
@@ -144,6 +216,9 @@ export const useBuzonStore = create<BuzonState>()(
         buzonesUsuario: s.buzonesUsuario,
         salientesUsuario: s.salientesUsuario,
         bitacoraUsuario: s.bitacoraUsuario,
+        verificacionesUsuario: s.verificacionesUsuario,
+        relajamientosUsuario: s.relajamientosUsuario,
+        falsosPositivosUsuario: s.falsosPositivosUsuario,
       }),
       merge: (persisted, actual) => {
         const p = { ...VACIO, ...((persisted ?? {}) as Partial<Persistido>) }

@@ -7,6 +7,29 @@ export type Proveedor = 'm365' | 'google' | 'imap'
 export type ModoContraparte = 'cerrado' | 'abierto_cuarentena' | 'abierto'
 export type RolAprobador = 'PM' | 'CEO' | 'CFO'
 
+// ─── Onboarding del cliente (SPEC §11) ──────────────────────────────────────
+
+/** Máquina de estados de la experiencia de configuración (SPEC §11.1). La
+ *  transición borrador→...→activo vive en onboarding.ts (aplicarTransicionBuzon);
+ *  este union es el campo persistido `estado`. */
+export type EstadoBuzon = 'borrador' | 'configurando' | 'espejo' | 'listo' | 'activo' | 'pausado' | 'desconectado'
+
+export type CanalAprobacion = 'telegram' | 'slack' | 'panel'
+
+/** Las 5 plantillas de §11.3 — catálogo completo en plantillas.ts. `null` =
+ *  configuración personalizada ("Personalizar" en texto secundario). */
+export type PlantillaBuzon = 'ventas' | 'reclutamiento' | 'soporte' | 'asesor_humano' | 'legal_finanzas'
+
+export const ETIQUETA_ESTADO_BUZON: Record<EstadoBuzon, string> = {
+  borrador: 'Borrador',
+  configurando: 'Configurando',
+  espejo: 'Modo espejo',
+  listo: 'Listo para activar',
+  activo: 'Activo',
+  pausado: 'Pausado',
+  desconectado: 'Desconectado',
+}
+
 export interface Buzon {
   id: string
   direccion: string
@@ -20,6 +43,21 @@ export interface Buzon {
   /** Obligatorio si modoContraparte === 'abierto' (SGSI): quién asumió el riesgo. */
   riesgoFirmadoPor?: string
   riesgoFirmadoEn?: string
+
+  // ── §11: experiencia de configuración del cliente ──
+  estado: EstadoBuzon
+  /** null = configuración personalizada (no partió de una de las 5 plantillas). */
+  plantilla: PlantillaBuzon | null
+  /** ISO. Se fija al entrar a `espejo`; gate de `puedeListo` (onboarding.ts). */
+  espejoDesde: string | null
+  /** Firma de A5 exigida por la máquina para listo→activo. */
+  activadoPor: string | null
+  activadoEn: string | null
+  /** Opcional pero recomendado (§11.7): sin esto la ausencia del aprobador bloquea la operación. */
+  aprobadorSuplente: string | null
+  canalAprobacion: CanalAprobacion
+  /** Interruptor de captación de leads (§11.3); encendido por defecto en Ventas/Reclutamiento. */
+  captarLeads: boolean
 }
 
 export const ETIQUETA_MODO_CONTRAPARTE: Record<ModoContraparte, string> = {

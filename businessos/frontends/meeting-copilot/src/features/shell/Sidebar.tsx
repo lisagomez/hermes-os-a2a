@@ -26,6 +26,7 @@ import {
   Telescope,
   Settings,
   Users,
+  Wand2,
   type LucideIcon,
 } from 'lucide-react'
 import { useUiStore } from '@/shared/stores/ui-store'
@@ -53,6 +54,7 @@ const ICONOS_NAV: Record<string, LucideIcon> = {
   ShieldCheck,
   Settings2,
   ScrollText,
+  Wand2,
 }
 
 function SidebarContenido() {

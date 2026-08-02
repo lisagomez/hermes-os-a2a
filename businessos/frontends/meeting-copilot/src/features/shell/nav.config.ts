@@ -53,6 +53,7 @@ export const NAV_COPILOT: NavArbol = {
       etiqueta: 'Buzón',
       hijos: [
         { id: 'buzon', etiqueta: 'Bandeja', href: '/buzon', exacto: true, iconoLucide: 'MailCheck' },
+        { id: 'buzon-configurar', etiqueta: 'Configurar', href: '/buzon/configurar', iconoLucide: 'Wand2' },
         { id: 'buzon-aprobaciones', etiqueta: 'Aprobaciones', href: '/buzon/aprobaciones', iconoLucide: 'ShieldCheck' },
         { id: 'buzon-politicas', etiqueta: 'Políticas', href: '/buzon/politicas', iconoLucide: 'Settings2' },
         { id: 'buzon-bitacora', etiqueta: 'Bitácora', href: '/buzon/bitacora', iconoLucide: 'ScrollText' },
