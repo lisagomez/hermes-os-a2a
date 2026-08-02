@@ -522,3 +522,404 @@ Este documento cierra Fase 1 y adelanta Fases 3, 5 y 6. Faltan:
   se puede probar, solo mitigar con control de cambios y bitácora.
 - **Fase 4** — invariantes formales con su enunciado Lean 4, incluidas las 7
   propiedades P-GOV de gobernanza IA.
+
+---
+
+## 11. Experiencia de configuración del cliente
+
+### 11.0 Principio rector
+
+> **El sistema se verifica solo. El cliente nunca tiene que adivinar si algo quedó bien.**
+
+Cada paso del asistente termina en un estado verificado por el backend, no en un
+"guardar" optimista. Un formulario que acepta datos sin comprobarlos traslada al
+cliente el trabajo de diagnosticar, y ese es el punto donde se abandona el
+onboarding.
+
+Corolario operativo: **ningún paso bloquea a los demás salvo dependencia real**.
+DNS, permisos del proveedor y política de buzón se pueden avanzar en paralelo;
+solo la activación de envío exige que los tres estén en verde.
+
+---
+
+### 11.1 Máquina de estados del onboarding
+
+```
+BORRADOR
+   │ el cliente crea el buzón, elige plantilla
+   ▼
+CONFIGURANDO ──────────────┐
+   │                       │ (3 verificaciones en paralelo)
+   ├─ dns:        pendiente │ propagando │ verificado │ fallido
+   ├─ proveedor:  pendiente │ esperando_admin │ verificado │ fallido
+   └─ politica:   pendiente │ verificado
+   │
+   │ las tres en verificado
+   ▼
+MODO ESPEJO  ← estado inicial OBLIGATORIO, no saltable
+   │ el agente lee correo real y redacta. NO envía nada.
+   │ mínimo: 7 días naturales Y ≥ 20 borradores generados
+   ▼
+LISTO PARA ACTIVAR
+   │ requiere: firma de A5 responsable + evidencia mostrada en pantalla
+   ▼
+ACTIVO
+   │
+   ├─→ PAUSADO      (Guardian, un clic, reversible)
+   └─→ DESCONECTADO (revoca credenciales, conserva bitácora)
+```
+
+**`MODO ESPEJO` no se puede saltar.** Ni con flag, ni por soporte, ni para
+demos. Un cliente que activa envío sin haber visto un solo borrador propio es un
+incidente esperando fecha.
+
+Persistencia:
+
+```sql
+ALTER TABLE buzones ADD COLUMN estado text NOT NULL DEFAULT 'borrador'
+  CHECK (estado IN ('borrador','configurando','espejo','listo','activo',
+                    'pausado','desconectado'));
+ALTER TABLE buzones ADD COLUMN espejo_desde timestamptz;
+ALTER TABLE buzones ADD COLUMN activado_por uuid;
+ALTER TABLE buzones ADD COLUMN activado_en  timestamptz;
+```
+
+---
+
+### 11.2 Contrato de verificación
+
+Toda verificación del asistente devuelve la misma forma. Un solo componente de
+UI las renderiza todas.
+
+```ts
+type Verificacion = {
+  id: 'dns_spf' | 'dns_dkim' | 'dns_dmarc' | 'oauth_consent'
+    | 'access_policy' | 'lectura_buzon' | 'politica_buzon' | 'aprobador';
+  estado: 'pendiente' | 'en_curso' | 'verificado' | 'esperando_tercero' | 'fallido';
+  mensaje: string;        // en español, orientado a acción
+  detalle_tecnico?: string; // colapsado por defecto
+  accion?: {
+    etiqueta: string;
+    tipo: 'copiar' | 'abrir_url' | 'reintentar' | 'delegar' | 'omitir';
+    payload: string;
+  };
+  ultima_revision: string;  // ISO
+  reintento_en?: number;    // segundos; el poll es automático
+};
+```
+
+Reglas de renderizado:
+
+- `en_curso` y `esperando_tercero` **hacen polling solos**. El cliente nunca
+  presiona "verificar de nuevo" salvo que quiera adelantarlo.
+- `fallido` siempre trae `accion`. Un error sin siguiente paso es un callejón.
+- `detalle_tecnico` va colapsado. Existe para cuando el cliente reenvía la
+  pantalla a su equipo de TI.
+
+---
+
+### 11.3 Pantalla 1 — Elegir el tipo de buzón
+
+Primera pantalla, antes de pedir cualquier credencial. Empezar por el propósito
+y no por la conexión hace que el cliente entienda qué está construyendo.
+
+| Plantilla | Modo contraparte | Clases que redacta | Adjuntos | Tope de intercambios |
+|---|---|---|---|---|
+| **Ventas** | abierto con cuarentena | acuse, info de catálogo, agendar | no | 3 |
+| **Reclutamiento** | abierto con cuarentena | acuse, siguiente paso, agendar | no | 3 |
+| **Soporte** | abierto con cuarentena | acuse, catálogo público, escalar | no | 3 |
+| **Asesor humano** | cerrado | ninguna — solo clasifica y prioriza | n/a | n/a |
+| **Legal / Finanzas** | cerrado | ninguna — solo clasifica y prioriza | n/a | n/a |
+
+Cada tarjeta muestra en lenguaje llano: *qué hará el agente*, *qué nunca hará*,
+y *quién aprueba*. "Personalizar" existe abajo, en texto secundario.
+
+**Captación de leads**: en las plantillas Ventas y Reclutamiento aparece un
+interruptor encendido por defecto — "Crear un lead cuando escriba alguien
+nuevo" — con nota de que no modifica la etapa si el contacto ya existe.
+
+---
+
+### 11.4 Pantalla 2 — Conectar el proveedor
+
+Detección primero: el cliente escribe `ventas@suempresa.com` y el sistema
+resuelve los MX para proponer Microsoft 365, Google Workspace o IMAP. Ya no
+pregunta lo que puede averiguar.
+
+**Ruta del administrador (el punto crítico).** Si el usuario en sesión no tiene
+permiso de consentimiento, la pantalla no falla: ofrece delegar.
+
+```
+⚠ Este paso lo tiene que autorizar un administrador de Microsoft 365.
+
+   [ Soy administrador — continuar ]
+   [ Enviar instrucciones a mi administrador ]
+```
+
+El correo de delegación contiene, en este orden:
+
+1. Qué se pide y por qué, en tres renglones sin jerga.
+2. Enlace de consentimiento **ya construido** con los scopes exactos.
+3. El comando de `ApplicationAccessPolicy` con el grupo prellenado, en bloque
+   copiable, y la advertencia de que sin él la app vería todos los buzones.
+4. Enlace para responder dudas a una persona nombrada, no a un buzón genérico.
+
+El panel queda en `esperando_tercero` con el nombre y correo del administrador
+visibles, recordatorio automático a las 48 h, y aviso al cliente en cuanto se
+resuelve. Este estado es visible en el semáforo: nadie tiene que preguntar
+"¿en qué quedó?".
+
+**Verificación de la restricción de alcance.** No basta con que el consentimiento
+exista. El sistema hace una prueba de control positivo:
+
+```
+✓ Puedo leer ventas@suempresa.com
+✓ NO puedo leer un buzón fuera del grupo autorizado   ← esta es la importante
+```
+
+Si la segunda prueba pasa cuando debería fallar, el paso queda en `fallido` con
+el comando de corrección. Es el mismo patrón de control positivo de la ceremonia
+de llaves tier 1.
+
+---
+
+### 11.5 Pantalla 3 — Dominio de envío
+
+Nunca se muestra una lista de registros DNS sin contexto. Se muestra un flujo.
+
+```
+Subdominio de envío:  agentes.suempresa.com          [ editar ]
+
+Detectamos que tu dominio está en Cloudflare.
+                                          [ Abrir panel de Cloudflare ↗ ]
+
+┌──────────────────────────────────────────────────────────┐
+│ SPF     TXT   agentes    v=spf1 include:...        [copiar] │  ⏳ propagando
+│ DKIM    TXT   sel._dk    p=MIGfMA0GCS...           [copiar] │  ✓ verificado
+│ DMARC   TXT   _dmarc     v=DMARC1; p=reject; ...   [copiar] │  ⏳ propagando
+└──────────────────────────────────────────────────────────┘
+
+Revisando cada 30 s · última revisión hace 12 s
+Suele tardar entre 5 minutos y 2 horas. Te avisamos por correo al terminar.
+```
+
+Detalles que importan:
+
+- **Botón de copiar por registro**, no uno global. Los paneles de DNS se llenan
+  campo por campo.
+- **Detección del registrador por NS** y enlace directo. Ahorra la búsqueda de
+  "dónde se editan mis DNS".
+- **Rango de tiempo esperado explícito.** La ansiedad de la propagación viene de
+  no saber si son minutos u horas.
+- **Aviso por correo al completar.** El cliente puede cerrar la pestaña. Que el
+  onboarding no exija estar sentado esperando es la mitad de la percepción de
+  fricción.
+- `p=reject` desde el inicio, porque el subdominio es nuevo y no hay flujo
+  legado que romper.
+
+---
+
+### 11.6 Pantalla 4 — Semilla de tono
+
+```
+Pega 3 correos que representen cómo escribe tu equipo.
+No necesitamos acceso a tu bandeja histórica.
+
+[ área de texto ×3 ]
+
+Los usamos solo para calibrar el tono. No se envían a nadie
+ni se guardan más allá de la calibración.
+```
+
+La restricción es deliberada y hay que decirla: importar la bandeja histórica
+sería PII de terceros que no necesitas, y complicaría el 27001 sin beneficio
+proporcional. Convertir esa limitación en promesa de privacidad la vuelve
+argumento.
+
+---
+
+### 11.7 Pantalla 5 — Aprobador y canal
+
+```
+¿Quién aprueba los correos de este buzón?
+   [ selector de personas del equipo ]     ← obligatorio, sin opción "nadie"
+
+¿Dónde quieres aprobarlos?
+   ◉ Telegram    ○ Slack    ○ Solo en el panel
+
+Suplente para vacaciones o ausencias:
+   [ selector ]                            ← opcional pero muy recomendado
+```
+
+Sin suplente, la primera ausencia del aprobador convierte el control en
+bloqueo operativo, y la conversación siguiente es "¿podemos desactivar esto?".
+Anticiparlo en el onboarding es más barato que discutirlo bajo presión.
+
+**Contrato del mensaje de aprobación en canal:**
+
+```
+📧 ventas@suempresa.com · responder a María Solís (Grupo Delta)
+
+"Preguntó por tiempos de entrega a Mérida y pidió cotización
+ de 200 piezas."
+
+Borrador:
+"Hola María, gracias por escribir. El envío a Mérida toma 48 h..."
+
+✓ 11 verificaciones en verde
+Clase: información de catálogo · Contraparte: nueva
+
+[ Aprobar ]  [ Editar en el panel ]  [ Rechazar ]
+```
+
+Token de un solo uso con caducidad, mismo patrón que `/reservar/[slug]`.
+**Aprobar cuesta un toque desde el celular**; editar abre el panel; rechazar
+pide una razón de un renglón que alimenta el corpus de regresión de §8.
+
+---
+
+### 11.8 Modo espejo — la pantalla que vende la activación
+
+Durante los primeros 7 días, el panel principal del buzón muestra:
+
+```
+MODO ESPEJO · día 5 de 7
+
+El agente está leyendo tu correo real y redactando borradores.
+No se ha enviado ningún correo.
+
+   38  borradores generados
+   35  los habrías enviado sin cambios      (92%)
+    3  requirieron edición
+    0  rechazados
+
+   Verificaciones bloqueadas:  2
+     · 1 destinatario fuera de la conversación
+     · 1 adjunto no catalogado
+
+[ Ver los 38 borradores ]        [ Activar envío real → ]
+```
+
+El botón de activar aparece hasta cumplir el mínimo, y al presionarlo abre la
+pantalla de firma con esa misma evidencia. La decisión deja de ser un salto de
+fe y pasa a ser una lectura de datos propios.
+
+---
+
+### 11.9 Relajamiento progresivo por evidencia
+
+Regla determinista, no criterio de modelo:
+
+```
+SI  clase_de_correo C en buzón B acumula ≥ 25 aprobaciones consecutivas
+    sin una sola edición
+    Y  ninguna verificación crítica se disparó en esas 25
+    Y  el buzón lleva ≥ 30 días en ACTIVO
+ENTONCES el sistema PROPONE mover C a envío directo.
+```
+
+Se **propone**, nunca se aplica. La propuesta aparece como tarjeta:
+
+> Los últimos 25 acuses de recibo se aprobaron sin cambios.
+> ¿Quieres que salgan solos? Podrás revertirlo cuando quieras.
+> [ Sí, envío directo ]  [ Mantener aprobación ]  [ Recordarme después ]
+
+Cada relajamiento se registra en `buzon_bitacora` con quién lo autorizó, cuándo,
+sobre qué clase y con qué evidencia. Eso convierte el control humano en algo que
+se gana en vez de un impuesto permanente — y produce exactamente el rastro que
+un auditor de 42001 busca al evaluar supervisión humana.
+
+Reversión automática: si tras el relajamiento aparecen 2 rechazos en la misma
+clase, vuelve sola a requerir aprobación y avisa.
+
+---
+
+### 11.10 Traducción de verificaciones a lenguaje natural
+
+Nunca se muestra el identificador del gate. Cada uno tiene su mensaje y su
+acción.
+
+| Gate | Lo que ve el cliente |
+|---|---|
+| `destinatarios_del_hilo` | "No lo envié porque incluía a **X**, que no está en la conversación. El correo original pedía copiarlo. Puedo enviarlo si lo apruebas." |
+| `adjuntos_de_catalogo` | "El borrador quería adjuntar un archivo que no está en tu catálogo aprobado. [Ver catálogo]" |
+| `sin_datos_personales_cruzados` | "El borrador incluía datos de otro cliente. Lo detuve." |
+| `urls_de_dominio` | "Había un enlace a un sitio externo no autorizado." |
+| `cuota_por_buzon` | "Este buzón llegó a su límite de envíos por hora. Se enviará en X minutos." |
+| `canario_ausente` | "Detecté un intento de manipulación en el correo recibido. Lo aislé y no generé respuesta." |
+
+Todos incluyen **"Esto es un falso positivo"**, que registra el caso con el
+correo y el gate. Los falsos positivos que nadie reporta son los que terminan
+justificando apagar el control.
+
+---
+
+### 11.11 Semáforo de salud
+
+Una sola fila persistente en el encabezado del buzón:
+
+```
+● Entregabilidad 99.2%  ● Rebotes 0  ● DMARC ok  ● Cuota 34%  ● Por aprobar 2
+```
+
+Cada indicador es clicable hacia su detalle. El fallo silencioso es el peor modo
+de falla de un sistema de correo: si los rebotes se acumulan y nadie lee los
+NDR, el cliente cree que opera cuando no. Los rebotes en rojo generan aviso
+proactivo, no esperan a que alguien mire el panel.
+
+---
+
+### 11.12 Enseñar la salida durante la entrada
+
+En la pantalla de activación, antes de la firma, se muestra explícitamente:
+
+```
+Cómo detenerlo, si lo necesitas:
+
+  Pausar        Deja de enviar de inmediato. Sigue leyendo y redactando.
+                Reversible con un clic. Sin pérdida de contexto.
+
+  Desconectar   Revoca las credenciales del buzón. La bitácora se conserva
+                íntegra para tu auditoría.
+
+Ambos están siempre visibles en el encabezado.
+```
+
+Además valida el interruptor del Guardian en el único momento en que todavía no
+hay nada que perder. La gente se compromete más rápido cuando la reversa es
+evidente.
+
+---
+
+### 11.13 Fricción que NO se elimina
+
+Tres puntos donde la fricción es el producto:
+
+1. **Firma de aceptación de riesgo del modo `abierto`** sin cuarentena. Ahí la
+   fricción es lo que hace que la decisión quede con nombre y fecha. Suavizarla
+   ahorra treinta segundos y cuesta el hallazgo en auditoría.
+2. **Modo espejo obligatorio.** Ver §11.1.
+3. **Aprobador nombrado, sin opción "nadie".** A5 es obligatorio por diseño de
+   nivel L3; hacerlo opcional en la UI contradiría la especificación.
+
+En los tres casos, la pantalla explica *por qué* existe la fricción. Una
+restricción justificada se percibe como seriedad; la misma restricción sin
+explicación se percibe como producto mal hecho.
+
+---
+
+### 11.14 Métricas del propio onboarding
+
+Instrumentar desde el día uno, porque son las que dicen dónde se abandona:
+
+| Métrica | Objetivo |
+|---|---|
+| Tiempo hasta primer borrador (TTFV) | < 30 min desde crear el buzón |
+| Tasa de finalización del asistente | > 80% |
+| Tiempo detenido en `esperando_tercero` | mediana < 24 h |
+| Abandono por paso | ninguno > 15% |
+| Días en modo espejo antes de activar | mediana ≤ 10 |
+| % que activa envío real a 30 días | > 60% |
+
+Si `esperando_tercero` domina el tiempo total, el problema no es tu producto: es
+el correo al administrador, y ahí es donde hay que iterar el texto.

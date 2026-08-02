@@ -7,8 +7,11 @@
   Orden de implementación: SPEC §5.2. Frontend: SPEC §6. Nada se aplica a prod (SQL solo validado
   en Postgres efímero); todo va por PR.
 
-## En curso
-- (nada) — build entregado en PR #208, esperando revisión/merge de la dueña
+## En curso — §11 (spec actualizada 2026-08-02: asistente de configuración del cliente)
+- [ ] §11 asistente de onboarding
+  - Last checkpoint: SQL de onboarding validado (4 candados rechazan de verdad) +
+    onboarding.py con las 2 reglas de política y control de reversión superado (97 tests)
+  - Next action: recibir el asistente de UI del agente → verificar sus gates → commit
 
 ## Pendiente (queda para la dueña / despliegue)
 - [ ] Aplicar supabase-buzon.sql y supabase-buzon-leads.sql a producción (management API)
@@ -59,6 +62,22 @@
       gates activos sin chequeos faltantes. Caza el gotcha 2026-07-10/2026-07-23; NO sustituye
       al build real, que queda pendiente
 
+## Deuda declarada
+- La política de §11 (modo espejo no saltable, relajamiento progresivo) tiene DOS
+  implementaciones: `buzon-a2a/onboarding.py` (autoridad, con tests de límites) y su
+  espejo en TS del frontend mock-first. Es duplicación consciente y con fecha de
+  vencimiento: cuando el daemon :4900 quede cableado, la UI llamará a `/api/buzon/*`
+  y la copia TS muere. Mientras tanto, las constantes son contrato de la SPEC §11 y
+  cambiar una exige cambiar la spec. (No se resolvió como con `politicas.py` —vendorar
+  el módulo— porque cruza lenguajes, no servicios.)
+
 ## Decisiones (append-only)
+- 2026-08-02 §11 llegó como adición pura a la spec (401 líneas, secciones 0-10 sin
+  cambios) → lo ya construido y verificado sigue válido; §11 se suma, no rehace : sesión L0
+- 2026-08-02 eje_dei del activo = `desarrollo` (verificado contra activos/CATALOGO.md;
+  capitalizable sujeto a política auditada, y cumple `vendible ⇒ eje ≠ operacion`) : sesión L0
+- 2026-08-02 El costo de CONSTRUCCIÓN tampoco está instrumentado en token_usage (esta
+  sesión no es del trío, no hay task_id) → la ficha ACT tiene dos tramos externos, no
+  uno; se anotó en su addendum. La opción C (re-derivar) ya no aplica al código : sesión L0
 - 2026-08-02 La spec ES el plan aprobado (goal del usuario); no se re-litiga el diseño : sesión L0
 - 2026-08-02 No se aplica NADA a Supabase prod ni se despliega; entrega = PR verificado : doctrina repo

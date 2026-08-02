@@ -8,7 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # COPY explicito archivo por archivo: un modulo nuevo EXIGE su linea aqui
 # (aprendizaje 2026-07-10: los tests de dev no cazan un COPY faltante).
-COPY card.py politicas.py saneado.py correos.py redactor.py executor.py app.py ./
+COPY card.py politicas.py saneado.py onboarding.py correos.py redactor.py executor.py app.py ./
 EXPOSE 4900
 # slim no trae curl: el healthcheck usa urllib de la stdlib
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
