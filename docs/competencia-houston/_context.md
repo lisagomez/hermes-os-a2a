@@ -9,6 +9,7 @@
 | Archivo | Qué es |
 |---|---|
 | `Competencia - Houston (gethouston.ai).md` | Investigación cruzada (4 rondas de agentes en paralelo): modelo de precios/OAuth (corre sobre la suscripción ChatGPT/Claude del usuario, no revende tokens), catálogo de agentes, privacidad y conexión OAuth a Gmail/Calendar vía Composio, posicionamiento/tracción/comunidad, moat competitivo, y comparación de arquitectura de conectores (Composio) contra el patrón host-job real de Hermes. Todas las citas llevan URL de fuente primaria. |
+| `houston-bootcamp.md` | **La fuente primaria más fuerte que tenemos sobre ellos.** Bootcamp abierto de 5 horas del 1 de agosto de 2026: su CEO y su CTO, ante 500+ asistentes, mostrando arquitectura, precios, stack de herramientas, programa de canal y su máquina de adquisición completa. Trae el análisis con lo que implica para a2a (dónde nos ubican, qué fosos reclaman y por qué son atacables, la respuesta a medias del CTO sobre prompt injection, anclas de precio, y la amenaza de Chroma sobre la data del Estado colombiano) **y la transcripción íntegra anexada al final**, para que cualquier cita se verifique sin pedirle la grabación a nadie. Archivo grande (~480 KB, 16.240 líneas): casi todo es el anexo. |
 | `Auditoria de seguridad - Houston (gethouston.ai).md` | Auditoría TÉCNICA de código (distinta de la investigación de mercado de arriba): repo clonado y auditado por OPS el 2026-07-25 con 6 agentes de solo lectura. Veredicto SOSPECHOSO (no malicioso): 2 fallas ALTAS reales de código (traversal de rutas en comandos Tauri que puede encadenar a ejecución con un clic; tablas de Supabase con tokens OAuth/API keys de usuarios sin RLS/REVOKE) + hallazgos menores, con la lección concreta para nosotros en cada uno. Para cuando nos inspiremos en su arquitectura, saber qué NO repetir. |
 
 ## Por qué está en `docs/` y no en un PRP
@@ -32,3 +33,9 @@ consulta futura fuera de este repo.
 Repo compartido (equipo SaaS Factory: Elisa, Víctor, Ricardo, Luis). Es investigación de mercado
 sobre un tercero público (Houston), sin datos personales ni financieros de Johann: contenido de
 negocio compartible sin restricción.
+
+Del material del bootcamp se preparó una versión para este repo: se quitaron rutas de máquinas
+locales y referencias al sistema interno de trabajo, y de los asistentes solo queda el nombre de
+pila con el que intervinieron en público (sin contacto, empresa ni perfil). Los fotogramas de la
+pantalla compartida **no se incluyeron**: contienen nombres, cargos y perfiles de LinkedIn de
+terceros que no tienen por qué viajar a un repo.

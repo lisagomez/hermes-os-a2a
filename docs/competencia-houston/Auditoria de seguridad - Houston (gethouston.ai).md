@@ -154,3 +154,89 @@ Verificado también el mismo día: `https://gethouston.ai/privacy/` no nombra a 
 subprocesador, no menciona OAuth ni scopes, y solo promete "credenciales cifradas en sus
 servidores" (plan Cloud) o guardadas localmente (app de escritorio); ninguna garantía técnica
 específica de aislamiento del token frente al agente.
+
+## Anexo (2026-08-01): su CTO respondió en público la mitad que faltaba
+
+**Fuente:** bootcamp abierto de Houston del 2026-08-01 (sesión en vivo de ~5 horas, con Q&A del
+público), abierto por inscripción y con más de 500 asistentes. **Los cuatro del equipo estuvimos
+conectados**, así que las citas de abajo se pueden contrastar con lo que cada uno oyó en vivo. Las
+citas son de ese evento, con
+la marca de tiempo de la grabación; son declaraciones de los fundadores en su propio evento, no
+material filtrado. No hay transcripción oficial publicada por Houston, así que la evidencia es el
+registro de la sesión, no un documento de ellos. Nada de esto cambia el veredicto del 2026-07-25:
+lo complementa.
+
+### Lo que dijeron, textual
+
+Johann preguntó al micrófono [3:15:19], partiendo del propio aviso de onboarding de Houston ("los
+agentes actúan en tu nombre, pueden ser engañados"), si el token vive en algún proceso que el agente
+pueda leer mientras corre una tarea. El encuadre importa porque es el mismo que usamos al vender:
+
+> *"para nosotros el riesgo no es tanto que me roben la contraseña, sino que el agente manipulado,
+> bien sea por prompt injection o prompt malicioso, termine usando ese token para algo que no pedí."*
+
+**Respuesta de Julian Arango (cofundador y CTO)** [3:16:45], que es justo la duda que la sección
+anterior dejó abierta:
+
+> *"El token tu agente no lo puede ver. En ningún momento el agente va a tener acceso a ese token,
+> todo queda separado del agente."*
+
+Y sobre integraciones personalizadas, donde el usuario pega una clave a mano:
+
+> *"eso lo guardamos nosotros en un secret manager en Google Cloud, que es lo más seguro a nivel de
+> industria. Así nos aseguramos de que su agente nunca vea esos tokens, porque compartirlos por el
+> chat es peligroso."*
+
+**Sobre la tienda de agentes** [3:33:13], al importar un agente publicado por otra persona, Houston
+ofrece revisarlo automáticamente *"para evitar temas de inyecciones de prompt o que les estén
+intentando sacar seguridad"*.
+
+**Sobre los sellos de seguridad** [3:05:06], el otro cofundador aclaró que Composio tiene una versión
+gratuita y una empresarial, que es la que ellos usan: *"la versión gratuita no tiene nada de eso"*.
+O sea, el **SOC 2 e ISO 27001 que Houston promociona son del tier empresarial de Composio, su
+proveedor, no certificaciones de Houston.**
+
+### Qué cierra y qué no
+
+- **Cierra la mitad de CONFIDENCIALIDAD** del hallazgo #1: hay una afirmación explícita y pública del
+  CTO de que el agente no lee la credencial. Sigue siendo un claim verbal, no verificado contra
+  código, y **convive sin explicación con el hallazgo #1**: que el agente no lo lea no dice nada
+  sobre quién más puede leer la tabla `integration_credentials` (sin RLS ni REVOKE). El hallazgo
+  queda intacto.
+- **NO responde la mitad de INTEGRIDAD**, que es la que importa para un comprador regulado: un
+  agente manipulado por prompt injection usando el acceso que **ya tiene autorizado**. Un secret
+  manager no impide que una inyección le diga al agente "manda este documento a tal correo" por la
+  integración de Gmail que el usuario ya conectó. Esa superficie sigue sin respuesta pública.
+- **Su única mitigación anti-injection visible es de SUMINISTRO, no de EJECUCIÓN.** El escaneo al
+  importar un agente de la tienda cubre el marketplace (un agente malicioso publicado); no cubre el
+  contenido que el agente lee mientras trabaja (correos, páginas web, comentarios), que es el vector
+  real en operación. Son dos superficies distintas y solo tienen resuelta la primera.
+- **Pendiente cobrable si el equipo evalúa a Houston:** en el mismo Q&A [3:18:27] Johann pidió el
+  contrato y la política de datos de Composio, con el argumento de que el cliente le da acceso a
+  Houston pero de paso se lo está dando a un tercero. Julian se comprometió: *"te podríamos compartir
+  toda la política de privacidad de data y todos sus certificados."* Al 2026-08-01 no ha llegado ni
+  está publicado. Es lo concreto que hay que exigir antes de meter credenciales de un cliente en esa
+  cadena.
+
+### Qué cambia para nosotros (posicionamiento)
+
+**El diferenciador se mueve, y para bien.** Ya no es "nosotros aislamos la credencial y ellos no":
+ellos ahora afirman en público que la aíslan, y discutir eso nos pone a contradecir un claim que no
+podemos verificar. El diferenciador defendible es el siguiente escalón:
+
+> **"Nosotros contenemos al agente manipulado en tiempo de ejecución."**
+
+Es la pregunta que su CTO recibió en abierto y dejó sin responder, y es exactamente el miedo del
+comprador corporativo: no que le roben la clave, sino que el agente haga algo que nadie pidió con el
+acceso que ya le dieron.
+
+Dos consecuencias prácticas:
+
+1. **[Ingeniería] Antes de usar ese argumento en una venta, hay que poder demostrarlo.** El patrón
+   host-job + snapshot cubre la confidencialidad (el agente nunca toca la credencial). La pregunta
+   abierta para nosotros es la misma que le hicieron a ellos: qué contiene a nuestro agente cuando el
+   contenido que lee intenta manipularlo, y qué de eso está implementado hoy frente a qué es diseño.
+   Vale escribir esa respuesta antes de necesitarla en una reunión.
+2. **[Ventas] Esto es inteligencia interna, no munición pública.** Sigue en pie lo de la sección de
+   posicionamiento: no se atacan hallazgos de un tercero en público, y las citas de arriba no se
+   sacan de contexto en una comparación comercial. Sirven para saber qué preguntar y qué prometer.
