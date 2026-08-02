@@ -158,7 +158,7 @@ específica de aislamiento del token frente al agente.
 ## Anexo (2026-08-01): su CTO respondió en público la mitad que faltaba
 
 **Fuente:** bootcamp abierto de Houston del 2026-08-01 (sesión en vivo de ~5 horas, con Q&A del
-público), al que varios del equipo estuvieron conectados. Las citas de abajo son de ese evento, con
+público), abierto por inscripción y con más de 500 asistentes. Las citas de abajo son de ese evento, con
 la marca de tiempo de la grabación; son declaraciones de los fundadores en su propio evento, no
 material filtrado. No hay transcripción oficial publicada por Houston, así que la evidencia es el
 registro de la sesión, no un documento de ellos. Nada de esto cambia el veredicto del 2026-07-25:
