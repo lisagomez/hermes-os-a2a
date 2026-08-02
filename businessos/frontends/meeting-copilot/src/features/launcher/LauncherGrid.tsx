@@ -88,6 +88,7 @@ export function LauncherGrid({ compacto = false }: { compacto?: boolean }) {
   const fijadas = filtradas.filter((h) => pinned.includes(h.slug))
   const slugsRecientes = recientes.map((r) => r.slug)
   const recientesVisibles = filtradas.filter((h) => slugsRecientes.includes(h.slug) && !pinned.includes(h.slug))
+  const googleTools = filtradas.filter((h) => h.categoria === 'google')
   const cols = compacto ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
 
   return (
@@ -119,6 +120,19 @@ export function LauncherGrid({ compacto = false }: { compacto?: boolean }) {
           <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Recientes</h3>
           <div className={`grid gap-2.5 ${cols}`}>
             {recientesVisibles.map((h) => (
+              <TarjetaHerramienta key={h.slug} h={h} compacta={compacto} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {consulta.trim() === '' && googleTools.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+            {ETIQUETA_CATEGORIA_HERRAMIENTA.google}
+          </h3>
+          <div className={`grid gap-2.5 ${cols}`}>
+            {googleTools.map((h) => (
               <TarjetaHerramienta key={h.slug} h={h} compacta={compacto} />
             ))}
           </div>
