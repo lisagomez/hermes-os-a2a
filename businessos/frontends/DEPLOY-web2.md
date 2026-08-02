@@ -26,6 +26,17 @@
    el merge del PR #63). Publicar = `npx vercel deploy --prod` **desde `frontends/`** (el
    upload root con el `.vercel/` linkeado), como cuenta dueña. Antes de asumir "está
    construyendo", consultar `npx vercel ls cliente-web2`.
+   **Esto es deliberado, no pendiente**: un `vercel link`/`vercel git connect` corrido sin
+   querer (2026-08-02, revisando env vars) conectó el proyecto a GitHub por un rato — el
+   Root Directory quedó bien (`businessos/frontends/cliente-web2`, correcto para un clone del
+   monorepo completo) pero el build reventaba en el paso de "Deploying outputs" con `ENOENT
+   .../cliente-web2/.next/routes-manifest-deterministic.json` (path doubling): es un bug
+   conocido y sin resolver de Turbopack + `outputFileTracingRoot` en monorepos anidados
+   cuando Vercel corre el build con el Root Directory como cwd (vercel/next.js#88579) — no
+   ocurre con el deploy CLI porque ahí el upload root YA es `frontends/`, sin anidamiento que
+   duplique. Se revirtió con `vercel git disconnect`. Si algún día se quiere GitHub-deploy
+   real para esta app, hay que resolver ese bug primero (o esperar a que Vercel/Next lo
+   arregle), no solo reconectar.
 5. **Vercel Hobby bloquea los deploys de colaboradores en repos privados** (2026-07-17):
    un push de cualquiera que no sea la cuenta dueña queda "Blocked" — no es fallo de build
    ni de Root Directory, es restricción del plan. Workaround activo:
