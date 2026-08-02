@@ -74,7 +74,7 @@ funden: ese es el primer principio del proyecto.
 
 ---
 
-## Estado actual (2026-07-30)
+## Estado actual (2026-08-02)
 
 Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
 línea CRM arrancó. En corto:
@@ -97,6 +97,11 @@ línea CRM arrancó. En corto:
   transitorios del proveedor (429/5xx/conexión) — tanto el Ejecutor como el
   Planner del enjambre reintentan con backoff en vez de escalar, con el criterio
   en un módulo compartido.
+- **App A (adquisición)** ✅ — **`enriquecimiento-a2a`** vivo en producción
+  (2026-08-02): waterfall enrichment sin LLM (RFC offline → DENUE → gate 69-B
+  CFF → patrón de dominio) con gate del grafo LFPDPPP fail-closed, ledger por
+  intento y endurecimiento post-QA (anti-inyección, guardas del CSV del SAT,
+  frescura del dictamen); vigilancia 69-B en el cron nocturno.
 - **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
   chat de venta en vivo (`chat-web2`).
 - **Fase 12** 🟡 — **fábrica de Smart Contracts** (Hyperledger Fabric): spec
