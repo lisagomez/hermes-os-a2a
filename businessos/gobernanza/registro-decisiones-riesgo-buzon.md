@@ -41,6 +41,27 @@ destinatarios aprobada explícitamente.
 - **Firmado por**: — (pendiente: la activación del primer buzón requiere firma)
 - **Vigencia**: hasta la primera activación, que exige su propia entrada.
 
+### 2026-08-02 — atencion@digifixapp.com — alta, modo de contraparte y clase permitida
+- **Decisión**: dar de alta el primer buzón (`atencion@digifixapp.com`, Google Workspace),
+  ponerlo en modo `abierto_cuarentena` y habilitarle una única clase: `acuse_recibo`.
+- **Riesgo aceptado**: el buzón recibe correo de remitentes desconocidos (es el buzón de
+  atención al cliente, esa es su función), y el agente puede redactar un acuse de recibo
+  sobre ese correo. El vector real es la inyección de prompt desde un correo entrante.
+- **Mitigaciones vigentes**:
+  - A5 obligatorio: ningún acuse sale sin firma humana; el motor no puede fabricar la fila
+    de aprobación porque no tiene credenciales.
+  - Los 11 gates corren sobre cada borrador; un CRÍTICO en rojo no llega a la bandeja.
+  - Cuarentena para desconocidos: sin adjuntos salientes, sin datos fuera del catálogo
+    público, máximo 2 intercambios antes de escalar a una persona nombrada.
+  - `acuse_recibo` es una plantilla determinista que no incorpora texto del correo entrante:
+    no puede repetir ni obedecer lo que venga dentro.
+  - El buzón sigue en `estado='borrador'` y `activo=false`: hoy no envía nada. El modo
+    espejo exigirá 7 días y 20 borradores antes de que la activación sea siquiera posible.
+  - Autenticación del dominio en su sitio: SPF, DKIM (2048 bits) y DMARC publicados.
+- **Firmado por**: Elisa (dueña) — autorización dada en sesión del 2026-08-02.
+- **Vigencia / próxima revisión**: al término del modo espejo, antes de activar el envío
+  real. Ampliar `clases_permitidas` más allá de `acuse_recibo` exige una entrada nueva.
+
 <!-- Añadir aquí las decisiones siguientes. NO editar las anteriores. -->
 
 ## Decisiones que SIEMPRE requieren entrada firmada
