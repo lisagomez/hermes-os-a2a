@@ -16,12 +16,17 @@
 ## Pendiente (queda para la dueña / despliegue)
 - [ ] Aplicar supabase-buzon.sql, supabase-buzon-leads.sql y supabase-buzon-onboarding.sql
       a producción (management API)
-- [x] **Build y ARRANQUE REAL verificados (2026-08-02)** — el daemon de Docker local quedó
-      accesible y se cerró el gate de imagen de verdad, no por simulación:
-      imagen construye · contenedor `Up (healthy)` · `/health` 200 · agent-card sirve la
-      skill `mail` · **JSON-RPC de punta a punta** con payload canónico generado por el SDK
-      (crea la tarea, la ejecuta, falla visiblemente sin Supabase) · **opacidad confirmada
-      sobre el servicio VIVO**: /docs /openapi.json /redoc /correos /buzones /gates → 404
+- [x] **Build y ARRANQUE REAL verificados en LAS DOS imágenes (2026-08-02)** — el daemon de
+      Docker local quedó accesible y se cerró el gate de imagen de verdad, no por simulación:
+      · `buzon-a2a`: imagen construye · `Up (healthy)` · `/health` 200 · agent-card con la
+        skill `mail` · **JSON-RPC de punta a punta** con payload canónico generado por el SDK
+        (crea la tarea, la ejecuta, falla visiblemente sin Supabase) · **opacidad sobre el
+        servicio VIVO**: /docs /openapi.json /redoc /correos /buzones /gates → 404
+      · `supervisor-a2a` (su Dockerfile cambió): imagen construye · politicas.py,
+        chequeos_buzon.py y reglas/buzon.toml PRESENTES en /app · los 5 departamentos cargan
+        DENTRO del contenedor con 48 gates activos y cero chequeos faltantes · arranca
+        `Up (healthy)` sin rejuvenecer (no hay crash-loop) y con el log limpio
+      Contenedores e imágenes de prueba borrados al terminar.
 - [ ] Deploy a Hetzner (12 contenedores de producción vivos; la rama no está mergeada —
       hacer checkout en ~/repo movería el árbol que el trío monta para sus worktrees)
 - [ ] Activar el primer buzón (modo cerrado) — exige firma en el registro de riesgo
