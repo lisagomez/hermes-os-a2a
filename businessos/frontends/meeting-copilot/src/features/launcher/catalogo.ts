@@ -35,5 +35,5 @@ export const ETIQUETA_CATEGORIA_HERRAMIENTA: Record<Herramienta['categoria'], st
   supervision: 'Supervisión',
   configuracion: 'Configuración',
   agendamiento: 'Agendamiento',
-  google: 'Google Cloud',
+  google: 'Google Workspace',
 }
