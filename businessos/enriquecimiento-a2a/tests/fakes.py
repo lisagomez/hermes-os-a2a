@@ -7,6 +7,7 @@ en `escrituras_leads` (y los tests exigen que este vacia SIEMPRE).
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import httpx
 
@@ -66,6 +67,12 @@ class FakeSupabase:
 
         if path == "/rest/v1/contraparte_69b":
             fila = self.filas_69b.get(_filtro(params, "rfc") or "")
+            if fila is not None and "consultado_en" not in fila:
+                # espejo del runtime: la vigilancia SIEMPRE escribe consultado_en
+                # (y la columna tiene default). Fixture sin el = dictamen fresco;
+                # un test de rancidez lo fija explicito.
+                fila = {**fila,
+                        "consultado_en": datetime.now(timezone.utc).isoformat()}
             return httpx.Response(200, json=[fila] if fila else [])
 
         if path == "/rest/v1/override_69b":

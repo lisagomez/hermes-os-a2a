@@ -115,6 +115,15 @@ def test_sin_lead_id_es_failed():
     assert "lead_id" in razon_de_fallo(cola)
 
 
+def test_lead_id_con_separadores_de_query_es_failed():
+    # defensa en profundidad anti-inyeccion PostgREST (QA PR #210):
+    # el almacen ademas escapa (test_almacen_urls.py), pero esto ni entra
+    cola = ejecutar(armar(None),
+                    new_data_message({"lead_id": "x&select=*&limit=1"}))
+    assert estados(cola)[-1] == TaskState.TASK_STATE_FAILED
+    assert "lead_id" in razon_de_fallo(cola)
+
+
 def test_rfc_como_campo_producible_es_failed():
     # el RFC no es producible: solo se valida el provisto (contrato honesto)
     cola = ejecutar(armar(None), new_data_message({"lead_id": "l", "campos": ["rfc"]}))
