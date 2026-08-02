@@ -153,7 +153,9 @@ export const cobroSchema = z.object({
   id: z.number(),
   cliente: z.string(),
   concepto: z.string(),
-  monto: z.number(),
+  // null = checkout "pay what you want" (landing) aun sin monto confirmado;
+  // el webhook lo completa cuando el cliente paga.
+  monto: z.number().nullable(),
   moneda: z.string(),
   estado: z.enum(['link_creado', 'abierto', 'confirmado', 'pagado', 'expirado', 'fallido']),
   created_at: z.string(),

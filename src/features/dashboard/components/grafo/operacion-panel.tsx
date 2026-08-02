@@ -78,7 +78,7 @@ export function CobrosPanel({ cobros }: { cobros: Cobro[] }) {
             <span className="truncate text-slate-200" title={c.concepto}>
               {c.cliente}
               <span className="ml-2 tabular-nums text-slate-400">
-                ${c.monto.toFixed(2)} {c.moneda}
+                {c.monto === null ? 'monto por definir' : `$${c.monto.toFixed(2)} ${c.moneda}`}
               </span>
             </span>
             <NeutralBadge texto={c.estado.replace('_', ' ')} tono={TONO_COBRO[c.estado]} />
