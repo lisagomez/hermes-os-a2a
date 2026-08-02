@@ -14,8 +14,22 @@
   - Next action: recibir el asistente de UI del agente → verificar sus gates → commit
 
 ## Pendiente (queda para la dueña / despliegue)
-- [ ] Aplicar supabase-buzon.sql, supabase-buzon-leads.sql y supabase-buzon-onboarding.sql
-      a producción (management API)
+- [x] **DESPLEGADO EN HETZNER (2026-08-02)** — repo del servidor a master (venía 16 commits
+      atrás); canario generado en el .env (con respaldo, nunca impreso); `buzon-a2a` construido
+      y `Up (healthy)` con /health y agent-card. Y se corrigió una DERIVA: la imagen viva del
+      supervisor conocía 4 departamentos y no tenía chequeos_buzon (una tarea del depto `buzon`
+      habría sido rechazada) → reconstruido con el trío OCIOSO; ahora 5 departamentos, 12 gates
+      del buzón, cero faltantes, sano y sin crash-loop. Los 17 contenedores siguen arriba.
+- [x] **MIGRACIONES APLICADAS A PRODUCCIÓN (2026-08-02)** — las tres, por management API.
+      Verificación previa: cero colisiones de tablas, ninguna función/vista con mis nombres,
+      y el constraint vivo de `leads` coincidía con lo que la migración esperaba (los 3 leads
+      reales usan orígenes que siguen permitidos → el swap no podía rechazar datos).
+      Verificación posterior: 8 tablas con RLS+FORCE, `leads` ya acepta `correo`, los 3 leads
+      intactos, y los CUATRO candados rechazando EN PRODUCCIÓN (abierto sin firma, activo sin
+      firma, espejo sin fecha, origen inventado) + la bitácora append-only probada dentro de
+      una transacción revertida (no persistió nada: 0 filas). Advisors: 8 alertas nuevas, todas
+      INFO `rls_enabled_no_policy` = el diseño buscado; ninguna WARN/ERROR.
+      Estado: 0 buzones dados de alta. El servicio está vivo pero INERTE, como corresponde.
 - [x] **Build y ARRANQUE REAL verificados en LAS DOS imágenes (2026-08-02)** — el daemon de
       Docker local quedó accesible y se cerró el gate de imagen de verdad, no por simulación:
       · `buzon-a2a`: imagen construye · `Up (healthy)` · `/health` 200 · agent-card con la
