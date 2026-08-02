@@ -86,11 +86,13 @@ def test_config_inexistente_no_arranca(tmp_path):
 
 
 # --- multi-departamento (Fase 9, + contratos_inteligentes Fase 4/PRP-013,
-#     + procesos 2026-07-23) ---
+#     + procesos 2026-07-23, + buzon 2026-08-02/SPEC-buzon-a2a) ---
 
-def test_directorio_real_carga_los_cuatro_departamentos():
+def test_directorio_real_carga_los_departamentos():
     configs = cargar_configs(DIR_REGLAS)
-    assert set(configs) == {"software", "adquisicion", "contratos_inteligentes", "procesos"}
+    assert set(configs) == {
+        "software", "adquisicion", "contratos_inteligentes", "procesos", "buzon",
+    }
     reglas_adq = {g.regla for g in configs["adquisicion"]}
     assert {
         "claims_aprobados", "precio_en_rango", "plantilla_contrato_intacta",

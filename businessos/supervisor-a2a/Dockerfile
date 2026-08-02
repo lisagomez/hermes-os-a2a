@@ -55,9 +55,12 @@ COPY supervisor-a2a/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY trio-contrato/contrato.py .
+# El motor de politicas del buzon se VENDORA (una sola implementacion de los 11
+# gates: la misma que corre en buzon-a2a). chequeos_buzon.py la adapta.
+COPY buzon-a2a/politicas.py .
 COPY supervisor-a2a/card.py supervisor-a2a/executor.py supervisor-a2a/gates.py \
      supervisor-a2a/chequeos_adquisicion.py supervisor-a2a/chequeos_fabric.py \
-     supervisor-a2a/chequeos_procesos.py \
+     supervisor-a2a/chequeos_procesos.py supervisor-a2a/chequeos_buzon.py \
      supervisor-a2a/veredicto.py supervisor-a2a/app.py ./
 COPY supervisor-a2a/reglas ./reglas
 # Plantillas de referencia del catalogo (Fase 4): el gate diff_acotado_plantilla

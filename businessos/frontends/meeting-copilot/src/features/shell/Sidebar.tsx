@@ -16,9 +16,13 @@ import {
   Layers,
   LayoutGrid,
   LogOut,
+  MailCheck,
   MessagesSquare,
   Mic,
   Radar,
+  ScrollText,
+  ShieldCheck,
+  Settings2,
   Telescope,
   Settings,
   Users,
@@ -45,6 +49,10 @@ const ICONOS_NAV: Record<string, LucideIcon> = {
   LayoutGrid,
   BookOpenCheck,
   ClipboardCheck,
+  MailCheck,
+  ShieldCheck,
+  Settings2,
+  ScrollText,
 }
 
 function SidebarContenido() {
