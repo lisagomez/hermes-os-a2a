@@ -1,7 +1,19 @@
 # El app de Mission Control vive en la RAÍZ del repo. En Vercel el Root
 # Directory es "." → excluimos todo lo que no necesita el build para que la
 # subida sea liviana y no arrastre el monorepo entero.
-businessos
+#
+# OJO: este .vercelignore de raíz también rige el deploy de cliente-web2
+# (Root Directory businessos/frontends/cliente-web2), porque Vercel aplica
+# el .vercelignore del repo ANTES de aplicar el Root Directory de cada
+# proyecto. cliente-web2 depende de un paquete hermano fuera de su propio
+# Root Directory (@a2a/design-system vía file:../design-system) — hay que
+# des-ignorarlo explícitamente nivel por nivel (un "businessos" a secas le
+# gana a cualquier "!" mas profundo, git/vercel no descienden a buscarlo).
+businessos/*
+!businessos/frontends
+businessos/frontends/*
+!businessos/frontends/cliente-web2
+!businessos/frontends/design-system
 docs
 tests
 test-results
