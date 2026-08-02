@@ -681,6 +681,16 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   configuración, no a mano. Variantes: `pitch-deck-whitelabel.html` (oferta
   general) y `pitch-deck-insurtech.html` (vertical seguros, B2A + A2C, con
   barrera regulatoria: cero actos con licencia en automático).
+- [x] **`enriquecimiento-a2a` (App A, PR #210 + endurecimiento 2026-08-02)** —
+  waterfall enrichment sin LLM (puerto 5000, perfil `a2a`): RFC offline →
+  DENUE → gate 69-B CFF → patrón de dominio, con gate del grafo (LFPDPPP)
+  fail-closed, ledger por intento y frontera dura NO-escribe-leads. El QA del
+  merge dejó fixes aplicados aparte: anti-inyección PostgREST (`_q()` +
+  validación de lead_id), frescura del dictamen 69-B (rancio = bloqueado),
+  y el host-job `vigilancia-69b.py` con paginación + guardas de plausibilidad
+  del CSV del SAT (HTTP sin TLS: listado corto o descenso presunto/definitivo
+  → aborta sin escribir). **Pendiente antes de desplegar**: gate de imagen
+  (`docker build` + arranque) en una máquina con daemon.
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
   remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de
