@@ -1375,4 +1375,26 @@ npm run lint         # ESLint
 - **Aplicar en**: todo merge de PR de colaborador (diff del tip contra lo verificado) y todo
   uso del procedimiento de bypass (`-F` para enteros; verificar estado tras errores de red).
 
+### 2026-08-02: Una migración mergeada NO es una migración aplicada (despliegue de App A)
+- **Error**: al desplegar `enriquecimiento-a2a`, las 5 tablas del servicio **no existían en el
+  Supabase de producción** (404 en las cinco) aunque `supabase-enriquecimiento.sql` llevaba
+  días mergeado en master — y `nightly-jobs.sh` ya tenía cableado `vigilancia-69b.py`, que esa
+  misma noche habría corrido contra tablas inexistentes. Nadie lo vio porque ningún gate del
+  repo toca la BD de prod (hermano de "el repo no es el runtime" 2026-07-12 y "documentado ≠
+  aplicado"). El QA del servicio tampoco podía verlo (por contrato no toca prod).
+- **Fix (patrón de verificación barato)**: antes de `compose up` de un servicio con tablas
+  nuevas, sondear PostgREST desde el server con su propio `.env`: `GET /rest/v1/<tabla>?select=*`
+  con `Range: 0-0` → 404 = no aplicada, 200 = viva (sin imprimir secretos). Aplicar por
+  management API y re-sondear 404→200. El checklist de deploy de un servicio nuevo es:
+  migraciones verificadas → compose up → smoke de protocolo real → cron.
+- **Datos duros de esta corrida** (para no re-descubrirlos): el SAT sirve el listado 69-B
+  **solo por HTTP** (https://omawww… da timeout, verificado 2026-08-02) → la mitigación es de
+  integridad (umbral + guarda de descensos), no TLS; el listado real trae **~14.055 RFCs**
+  (umbral 5000 con margen 2.8×); la Agent Card en el wire serializa **camelCase**
+  (`supportedInterfaces`, `protocolBinding` — no los nombres snake_case del SDK); y la red del
+  compose se llama `businessos_hermes-net` (prefijo del proyecto) para contenedores efímeros.
+- **Aplicar en**: todo despliegue de servicio con tablas nuevas en el Supabase compartido y
+  todo host-job nuevo cableado a cron (verificar sus insumos en prod ANTES de la primera
+  corrida nocturna).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
