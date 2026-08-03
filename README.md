@@ -97,6 +97,13 @@ línea CRM arrancó. En corto:
   transitorios del proveedor (429/5xx/conexión) — tanto el Ejecutor como el
   Planner del enjambre reintentan con backoff en vez de escalar, con el criterio
   en un módulo compartido.
+- **Buzón agéntico (HERALDO-6)** 🟡 — correo institucional operado por agentes con
+  **aprobación humana obligatoria**: `atencion@digifixapp.com` en **modo espejo**
+  (lee correo real y redacta borradores, **no envía nada**), con 11 gates
+  deterministas y un corpus de 62 inyecciones en CI. El invariante: ningún
+  componente que ejecuta un modelo tiene credenciales de envío — la firma es una
+  fila que el motor no puede fabricar. Dominio con SPF/DKIM/DMARC. Activar el
+  envío exige cumplir 7 días y 20 borradores, y firma con la evidencia delante.
 - **App A (adquisición)** ✅ — **`enriquecimiento-a2a`** vivo en producción
   (2026-08-02): waterfall enrichment sin LLM (RFC offline → DENUE → gate 69-B
   CFF → patrón de dominio) con gate del grafo LFPDPPP fail-closed, ledger por

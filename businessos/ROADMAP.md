@@ -1172,6 +1172,45 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
+## Línea Buzón agéntico (HERALDO-6) — EN MODO ESPEJO (2026-08-02)
+
+Correo institucional operado por agentes con **aprobación humana obligatoria en el camino
+crítico**. Servicio `buzon-a2a` :4900 (perfil `a2a`), dos host-jobs con las credenciales
+fuera del contenedor, 11 gates deterministas, y la 16ª herramienta del launcher de
+meeting-copilot con su asistente de configuración. Spec: `SPEC-buzon-a2a.md` · memoria:
+`.claude/memory/project/buzon-agentico.md` · activo: `businessos/activos/ACT-buzon-a2a-ficha.md`.
+
+**El invariante**: ningún componente que ejecuta un modelo tiene credenciales de envío. La
+supervisión humana no es una política escrita — es una fila en `aprobaciones_salientes` que
+el motor no puede fabricar porque no tiene con qué. Eso es lo que un auditor verifica.
+
+- [x] Spec completa implementada (PR #208): esquema + 2 host-jobs + servicio A2A + gates en
+      el supervisor + 5 vistas de UI + corpus de 62 inyecciones + 3 documentos de gobernanza.
+- [x] §11 asistente de configuración del cliente: modo espejo **no saltable** (7 días Y 20
+      borradores, con control de reversión), relajamiento progresivo determinista que
+      **propone y nunca aplica**, traducción de gates a lenguaje natural.
+- [x] Desplegado en Hetzner + 3 migraciones en prod (RLS enable+FORCE en 8 tablas; los
+      candados verificados **rechazando de verdad**, no solo declarados).
+- [x] Primer buzón: `atencion@digifixapp.com`, modo `abierto_cuarentena`, clase
+      `acuse_recibo`, con decisión firmada en el registro de riesgo (PR #216).
+- [x] Dominio autenticado: SPF + **DKIM 2048** + **DMARC `p=none`** (observación deliberada:
+      `reject` en el apex tumbaría correo legítimo en silencio; la spec lo pedía para un
+      SUBdominio de envío nuevo, que es otra cosa).
+- [x] Google Workspace conectado por **OAuth por buzón, NO delegación de dominio** (PR #218):
+      en Google la delegación concede acceso a TODOS los buzones y no hay equivalente al
+      `ApplicationAccessPolicy` de Microsoft. El control positivo del checklist §8 vive en el
+      código y aborta si el token pudiera leer otro buzón.
+- [x] `redactar-borradores.py` (PR #219): el eslabón que faltaba — nadie pedía los borradores
+      y el mínimo de espejo era inalcanzable. No responde a remitentes automáticos (RFC 3834).
+- [x] **MODO ESPEJO ACTIVO** con cron cada 15 min (2026-08-03T00:14Z). Primera corrida real:
+      17 entrantes, 2 borradores con los 11 gates en verde, 15 automáticos saltados.
+- [ ] Cumplir el mínimo de espejo y decidir la activación (exige firma + evidencia en pantalla).
+- [ ] Guardar el caso "el buzón se responde a sí mismo": hoy nada lo impide (inocuo en espejo).
+- [ ] `dmarc@digifixapp.com` para recibir los informes agregados.
+- [ ] Firmar los 3 documentos de `businessos/gobernanza/`.
+- [ ] Si se quiere credencial estrictamente solo-lectura: re-consentir con `gmail.readonly`
+      (`gmail.modify` incluye enviar, aunque el contenedor no tenga la credencial).
+
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 
 El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `erp`
