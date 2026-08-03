@@ -1265,7 +1265,7 @@ ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
   separación física de repos defendibles (D-12), `act_proteccion` de los
   defendibles ratificados, ERP-1+ según maestro.
 
-## Línea Enriquecimiento (App A — Waterfall Enrichment) 🟡 A1/A2 fusionados, A3 en revisión (2026-08-01/02)
+## Línea Enriquecimiento (App A — Waterfall Enrichment) 🟡 código completo (A1/A2/A3 fusionados, 2026-08-01/02); faltan SQL a producción y despliegue
 
 Primera de las 3 apps del encargo; plan aprobado con **ataque adversarial** el
 2026-07-30. Enriquece leads en cascada **ordenada por costo y sin LLM** (cero tokens por
@@ -1284,13 +1284,12 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
 - [x] **A2 — PR #199**: `businessos/supabase-enriquecimiento.sql` (5 tablas + 2 vistas)
   con el **gate 69-B como invariante en la tabla**, no como cortesía del código, y
   `supabase-enriquecimiento.test.sql` (27 pruebas de comportamiento en Postgres efímero).
-- [ ] **A3 — PR #210 (ABIERTO)**: el servicio `businessos/enriquecimiento-a2a/` que las
-  consume + `vigilancia-69b.py` + RPC `dominio_patron_reforzar` + alta en compose en el
-  puerto **5000** (el 4900 lo tomó `buzon-a2a` en el #208). Gate de imagen **cerrado**
+- [x] **A3 — PR #210 (fusionado 2026-08-02)**: el servicio `businessos/enriquecimiento-a2a/`
+  que las consume + `vigilancia-69b.py` + RPC `dominio_patron_reforzar` + alta en compose en
+  el puerto **5000** (el 4900 lo tomó `buzon-a2a` en el #208). Gate de imagen **cerrado**
   sobre el tip exacto: 77/77 tests, `docker build`, `Up (healthy)`, agent-card con la
   skill `enriquecer-lead`, opacidad 7/7 y JSON-RPC e2e donde el fail-closed opera de
-  verdad ("grafo inalcanzable: la cascada no corre sin gate"). CI verde; bloqueado solo
-  por revisión.
+  verdad ("grafo inalcanzable: la cascada no corre sin gate").
 - [ ] **Tras fusionar** (exige credenciales que la máquina de desarrollo no tiene):
   aplicar a producción los dos SQL (#199 y `supabase-enriquecimiento-refuerzo.sql`) por
   management API; desplegar con perfil `a2a` + `DENUE_TOKEN` en el `.env`; primera

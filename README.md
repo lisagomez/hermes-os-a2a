@@ -122,8 +122,9 @@ línea CRM arrancó. En corto:
   la dueña firme la gobernanza.
 - **Línea Enriquecimiento** 🟡 — cascada de enriquecimiento de leads ordenada por
   costo y **sin LLM**, con el grafo (dimensión `datos-personales`, LFPDPPP 2025)
-  como gate de entrada. A1/A2 fusionados; el servicio `enriquecimiento-a2a` está
-  en revisión (PR #210).
+  como gate de entrada. Código completo en master (A1 #198, A2 #199 y A3 #210, el
+  servicio `enriquecimiento-a2a`, fusionado 2026-08-02); faltan los SQL a
+  producción y el despliegue en el servidor.
 - **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
   config-driven en las 3 apps internas; auditoría adversarial post-merge con
   sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,
