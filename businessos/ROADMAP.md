@@ -1172,6 +1172,33 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
+## Línea Reuniones (App B — Meeting Events / Call Recordings) 🟡 paso 0 completo (2026-08-03)
+
+Segunda de las 3 apps del encargo (2026-07-30; la App A es `enriquecimiento-a2a`, ya
+desplegada — ver FASE 9). Grabación/captura de reuniones con gate de consentimiento
+fail-closed y doctrina ZDR para el audio de cliente. Regla del encargo: el paso 2
+implementa **SOLO lo que quepa según la recomendación del paso 0**.
+
+- [x] **Paso 0 — Evaluación de recursos** (`RECOMENDACION-reuniones-headroom.md`, raíz
+  del repo): la aritmética de techos declarados ya es negativa hoy (≈16.75 GB prometidos
+  sobre 8 GB físicos, ~2× en RAM y ~3.6× en CPU — sobre-suscripción por diseño del
+  compose); el margen real es incógnita hasta un `docker stats` en el servidor (pedido,
+  insumo decisivo del modo stream). Veredictos: stream nativo SÍ con límites austeros
+  (256M/0.5 vCPU) condicionado al snapshot; `transcripcion-a2a` no tiene carga que
+  aguantar (motor STT = mock; falta contrato `reunion_id`/`tenant_id`); modo bot = seam
+  501 SIN escalar máquina (el eje decisivo es CPU). Presupuesto: los $30/mes son de
+  tokens, NO de infra (hosting ~$9/mes aparte, sin techo formal — fijarlo es de Elisa).
+  Puertos: **5100 queda RESERVADO para `flujos-a2a` (App C)** y se propone **5200** para
+  `reuniones-a2a` (el 5000 del encargo lo tomó enriquecimiento en el rebase del #210).
+- [ ] **Paso 1 — SQL** (`businessos/supabase-reuniones.sql`, aditivo): `reuniones`,
+  `consentimiento_grabacion` (sin registro = fail-closed), columnas aditivas sobre lo
+  que ya exista de meeting-copilot; todo con `tenant_id` + RLS.
+- [ ] **Paso 2 — Servicio** `businessos/reuniones-a2a/` (FastAPI + Dockerfile, :5200,
+  perfil `a2a`): gate consentimiento primero; stream nativo según snapshot; STT remoto
+  con ZDR o 503; bot = 501 explicativo; evento a meeting-copilot al cerrar (seam).
+- [ ] **Paso 3 — Tests mínimos**: sin consentimiento → rechaza; sin ZDR → 503; bot →
+  501 con cuerpo, nunca 404.
+
 ## Línea Buzón agéntico (HERALDO-6) — EN MODO ESPEJO (2026-08-02)
 
 Correo institucional operado por agentes con **aprobación humana obligatoria en el camino
