@@ -44,27 +44,11 @@ LOTE_MAX = int(os.environ.get("REDACTAR_LOTE", "25"))
 # (borrador, configurando, pausado, desconectado) este job no toca el buzon.
 ESTADOS_QUE_REDACTAN = ("espejo", "activo")
 
-# No se responde JAMAS a un remitente automatico: es la regla que evita bucles de
-# auto-respuesta entre dos sistemas (RFC 3834). El gate auto_submitted_marcado
-# marca lo que sale; esto decide que ni siquiera se redacte.
-#
-# Dos familias, porque no se comportan igual:
-#  - EN CUALQUIER PARTE del local-part: las variantes de "no reply" nunca son una
-#    persona. Va asi y no anclado al inicio porque `payments-noreply@google.com`
-#    es exactamente el caso que hay que cazar (lo destapo el test de esta funcion).
-#  - SOLO COMO PREFIJO: palabras que si pueden formar parte del nombre de una
-#    persona o area real (`alertas.maria@`, `notificaciones-clientes@` de un
-#    humano); anclarlas evita falsos positivos.
-#
-# Limite honesto: esto es una heuristica sobre la DIRECCION. La señal correcta
-# segun RFC 3834 son las cabeceras (Auto-Submitted, Precedence, List-Unsubscribe),
-# que hoy la ingesta no persiste. Mejora pendiente, mas robusta que adivinar.
-_NO_REPLY_EN_CUALQUIER_PARTE = re.compile(
-    r"no-?reply|do-?not-?reply|noresponder|no-?responder", re.IGNORECASE)
-_AUTOMATICO_COMO_PREFIJO = re.compile(
-    r"^(mailer-daemon|postmaster|bounces?|notifications?|notificaciones?|"
-    r"alerts?|alertas?|automated|automatico|daemon|robot|bot)[.\-_+@]",
-    re.IGNORECASE)
+# El filtro de remitentes automaticos es COMPARTIDO con ingerir-entrantes.py: los
+# dos jobs necesitan la misma respuesta a "¿hay una persona al otro lado?" y en dos
+# copias derivaria. El gate auto_submitted_marcado marca lo que sale; esto decide
+# que ni siquiera se redacte.
+from buzon_comun import remitente_automatico  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -91,15 +75,6 @@ def sb_headers() -> dict:
     key = env("SUPABASE_SERVICE_ROLE_KEY")
     return {"apikey": key, "Authorization": f"Bearer {key}",
             "Content-Type": "application/json"}
-
-
-def remitente_automatico(direccion: str) -> bool:
-    """True si responder a esa direccion seria hablarle a una maquina."""
-    local = (direccion or "").strip().split("@")[0]
-    if not local:
-        return True  # sin remitente no hay a quien responder: fail-safe
-    return bool(_NO_REPLY_EN_CUALQUIER_PARTE.search(local)
-                or _AUTOMATICO_COMO_PREFIJO.match((direccion or "").strip()))
 
 
 def buzones_que_redactan(url: str) -> dict[str, dict]:
