@@ -1211,6 +1211,28 @@ el motor no puede fabricar porque no tiene con qué. Eso es lo que un auditor ve
 - [ ] Si se quiere credencial estrictamente solo-lectura: re-consentir con `gmail.readonly`
       (`gmail.modify` incluye enviar, aunque el contenedor no tenga la credencial).
 
+## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
+
+Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorador visual
++ constructor de flujos de consulta del grafo regulatorio de `businessos/grafo/`
+(jurisdicción → dimensión → regla → impacto). La capa visual pedida por Elisa.
+
+- [x] **Paso 1 — Endpoints de lectura pura en el grafo** (rama
+  `feat/grafo-endpoints-lectura`): `GET /reglas?jurisdiccion=&dimension=&fecha=`
+  (conocimiento completo con impactos y fuente; `vigente` calculado a la fecha pedida —
+  reproducible/auditable — y `Cache-Control: no-store`; filtros que normalizan
+  mayúsculas), `GET /jurisdicciones` y `GET /dimensiones` (catálogos con nombre).
+  Contrato tolerante al seed real (impactos `veredicto_base=null` = solo requisitos;
+  fail 503 honesto sin DB, gotcha PRP-002 intacto: openapi sin postgres). 82/82 tests
+  (9 nuevos) + gate de imagen + e2e efímero con postgres real del seed (33 reglas).
+- [ ] **Paso 2 — Servicio `businessos/flujos-a2a/`** (proxy/orquestador de LECTURA,
+  puerto **5100** — reservado en `RECOMENDACION-reuniones-headroom.md` §5): compone
+  vistas del grafo para la capa visual; JAMÁS escribe reglas.
+- [ ] **Paso 3 — Capa visual en Mission Control** (`/grafo/explorador`): árbol
+  jurisdicción→dimensión→reglas con badge de vigencia y fuente visible, vista de
+  evaluaciones (disclaimer SIEMPRE), constructor de flujos que genera el payload de
+  `POST /evaluar`; auth magic link + allowlist; :5100 nunca expuesto al navegador.
+
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 
 El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `erp`
