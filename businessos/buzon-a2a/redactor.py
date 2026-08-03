@@ -21,7 +21,14 @@ LEYENDA_DEFAULT = (
 
 
 def leyenda() -> str:
-    return os.environ.get("BUZON_LEYENDA", LEYENDA_DEFAULT)
+    """La leyenda de agente automatizado. Nunca vacia.
+
+    `or` y no `os.environ.get(k, default)`: el compose fija BUZON_LEYENDA=${...:-},
+    o sea la clave EXISTE con valor vacio, y entonces el default de .get() jamas
+    se aplica. El resultado era un saliente sin divulgacion — lo cazo el gate
+    divulgacion_presente en la 1a redaccion real, que es exactamente su trabajo.
+    """
+    return os.environ.get("BUZON_LEYENDA") or LEYENDA_DEFAULT
 
 
 class RedactorPlantilla:

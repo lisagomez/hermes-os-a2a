@@ -13,6 +13,53 @@
     onboarding.py con las 2 reglas de política y control de reversión superado (97 tests)
   - Next action: recibir el asistente de UI del agente → verificar sus gates → commit
 
+## Estado operativo (2026-08-02, fin de sesión)
+
+**EN MODO ESPEJO Y CORRIENDO SOLO** — `atencion@digifixapp.com` desde 2026-08-03T00:14Z.
+- Google Workspace conectado (OAuth por buzón; el token NO puede leer otro buzón del
+  dominio, verificado por control positivo en dev y desde Hetzner)
+- `buzon-jobs.sh` en cron cada 15 min (min 3,18,33,48): ingesta + redacción
+- Primera corrida real: 17 entrantes, 2 borradores en `pendiente_aprobacion` con los
+  **11 gates en verde**, 15 remitentes automáticos saltados
+- **No sale ningún correo**: el envío exige `estado='activo'` + firma + mínimo de espejo
+- Decisión firmada en `gobernanza/registro-decisiones-riesgo-buzon.md`
+
+**Cuatro bugs que solo destapó correr el ciclo de verdad** (ninguno lo vieron los 102
+tests ni los dry-runs):
+1. `AdaptadorGmail` con token estático → los de Gmail caducan en 1h (PR #218)
+2. Nadie orquestaba la redacción: la cadena se paraba en `correos_entrantes` (PR #219)
+3. `captar_leads` no se leía → 7 leads basura de direcciones noreply (PR #220, borrados)
+4. `enviados_ultima_hora` mandaba SQL a PostgREST → HTTP 400 (PR #220)
+5. La leyenda de divulgación salía vacía: el compose fija la var vacía y
+   `os.environ.get(k, default)` no aplica el default si la clave existe (PR #221).
+   **Lo cazó el gate `divulgacion_presente`**, que es exactamente su trabajo.
+
+
+**Primer buzón dado de alta y configurado** — `atencion@digifixapp.com` (Google Workspace):
+- modo `abierto_cuarentena`, plantilla `soporte`, allowlist `digifixapp.com`
+- `clases_permitidas = ["acuse_recibo"]` — el agente solo puede acusar recibo; cualquier
+  otra clase la rechaza el executor ANTES de redactar
+- `captar_leads = false` (buzón de soporte: crear un lead por consulta ensuciaría el embudo)
+- `estado = 'borrador'`, `activo = false` → **no puede enviar nada todavía**
+- Decisión firmada en `gobernanza/registro-decisiones-riesgo-buzon.md` (PR #216), como exige
+  su propia regla al ampliar `clases_permitidas`
+- Bitácora con 2 entradas encadenadas y verificadas (cambio de modo + clase): la cadena de
+  hash funciona en producción
+
+**Autenticación de correo del dominio, completa** (`digifixapp.com`, DNS en Cloudflare):
+- SPF ya existía (`~all`)
+- **DMARC en `p=none`** — observación DELIBERADA. La spec pide `p=reject`, pero lo pide para
+  un SUBdominio de envío nuevo ("no hay flujo legado que romper"); en el apex, que mueve el
+  correo real del negocio, `reject` tumbaría en silencio a cualquier emisor legítimo no
+  alineado. Se endurece cuando los informes lo respalden.
+- **DKIM 2048 bits, selector `google`, autenticado y verificado por Google**
+- Pendiente: crear el buzón `dmarc@digifixapp.com` que recibe los informes agregados
+
+**Gotcha pagado**: la clave DKIM se transcribió desde una CAPTURA y una `l` minúscula se leyó
+como `I` mayúscula. La clave resultante pasó todas las validaciones estructurales (RSA 2048
+válido) pero era OTRA clave, y solo lo detectó Google al verificar. **Nada criptográfico se
+transcribe desde imágenes**: se pide el texto.
+
 ## Pendiente (queda para la dueña / despliegue)
 - [x] **DESPLEGADO EN HETZNER (2026-08-02)** — repo del servidor a master (venía 16 commits
       atrás); canario generado en el .env (con respaldo, nunca impreso); `buzon-a2a` construido

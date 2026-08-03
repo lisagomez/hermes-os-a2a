@@ -1,9 +1,10 @@
 # Línea Enriquecimiento (App A — Waterfall Enrichment)
 
-> **Estado (2026-08-02): los tres PRs fusionados — el código de la App A está completo en
-> master** (A3 #210 fusionado el 2026-08-02 con CI verde y gate de imagen cerrado). Faltan
-> los pendientes de credenciales (SQL a producción + despliegue). Primera de las 3 apps del
-> encargo; plan aprobado con **ataque adversarial** el 2026-07-30.
+> **Estado (2026-08-02): los tres PRs fusionados y la App A DESPLEGADA en producción**
+> (migraciones aplicadas, servicio healthy, cron de vigilancia cableado). Este archivo
+> guarda la HISTORIA de la línea (plan + A1/A2/A3); el estado operativo y los fixes del
+> QA viven en [[app-a-enriquecimiento]]. Primera de las 3 apps del encargo; plan aprobado
+> con **ataque adversarial** el 2026-07-30.
 
 ## Qué es
 
@@ -33,9 +34,9 @@ Nota de infra: **el daemon de Docker SÍ responde en la máquina de desarrollo**
 supuesto viejo. Lo que esa máquina sigue sin tener es admin de GitHub, token de Supabase y
 SSH al Hetzner.
 
-## Pendientes tras fusionar (exigen credenciales que dev no tiene)
+## Cierre (2026-08-02, desde la máquina admin)
 
-1. Aplicar a producción los DOS SQL (#199 y `supabase-enriquecimiento-refuerzo.sql`) por
-   management API.
-2. Desplegar en el servidor: perfil `a2a`, `DENUE_TOKEN` en el `.env`, primera corrida de
-   `vigilancia-69b.py`.
+Los pendientes de credenciales se cerraron el mismo día: los DOS SQL aplicados a
+producción por management API (las 5 tablas verificadas 404→200), servicio desplegado
+(perfil `a2a`, healthy, smoke de protocolo real) y `vigilancia-69b.py` cableado en
+`nightly-jobs.sh`. Detalle y fixes del QA (#213) en [[app-a-enriquecimiento]].

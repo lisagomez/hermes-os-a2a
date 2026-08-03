@@ -97,6 +97,18 @@ línea CRM arrancó. En corto:
   transitorios del proveedor (429/5xx/conexión) — tanto el Ejecutor como el
   Planner del enjambre reintentan con backoff en vez de escalar, con el criterio
   en un módulo compartido.
+- **Buzón agéntico (HERALDO-6)** 🟡 — correo institucional operado por agentes con
+  **aprobación humana obligatoria**: `atencion@digifixapp.com` en **modo espejo**
+  (lee correo real y redacta borradores, **no envía nada**), con 11 gates
+  deterministas y un corpus de 62 inyecciones en CI. El invariante: ningún
+  componente que ejecuta un modelo tiene credenciales de envío — la firma es una
+  fila que el motor no puede fabricar. Dominio con SPF/DKIM/DMARC. Activar el
+  envío exige cumplir 7 días y 20 borradores, y firma con la evidencia delante.
+- **App A (adquisición)** ✅ — **`enriquecimiento-a2a`** vivo en producción
+  (2026-08-02): waterfall enrichment sin LLM (RFC offline → DENUE → gate 69-B
+  CFF → patrón de dominio) con gate del grafo LFPDPPP fail-closed, ledger por
+  intento y endurecimiento post-QA (anti-inyección, guardas del CSV del SAT,
+  frescura del dictamen); vigilancia 69-B en el cron nocturno.
 - **Fase 11** 🚧 — frontend **cliente-web2** (Vercel) con cotizador, leads y
   chat de venta en vivo (`chat-web2`).
 - **Fase 12** 🟡 — **fábrica de Smart Contracts** (Hyperledger Fabric): spec
@@ -114,17 +126,6 @@ línea CRM arrancó. En corto:
   (magic link + allowlist del equipo, 2026-07-28), con **agendamiento** completo
   (catálogo de asesores, bandeja de aprobación, reserva pública) y sección
   **Google Workspace** en `/herramientas` (2026-08-02).
-- **Departamento de Buzón — HERALDO-6** ✅ desplegado e **inerte** (2026-08-02):
-  correo institucional donde el agente lee saneado y **redacta borradores, nunca
-  envía** — la supervisión humana es una fila en `aprobaciones_salientes` que el
-  motor no puede fabricar porque no tiene credenciales. Migraciones en producción
-  con los cuatro candados rechazando de verdad; 0 buzones dados de alta hasta que
-  la dueña firme la gobernanza.
-- **Línea Enriquecimiento** 🟡 — cascada de enriquecimiento de leads ordenada por
-  costo y **sin LLM**, con el grafo (dimensión `datos-personales`, LFPDPPP 2025)
-  como gate de entrada. Código completo en master (A1 #198, A2 #199 y A3 #210, el
-  servicio `enriquecimiento-a2a`, fusionado 2026-08-02); faltan los SQL a
-  producción y el despliegue en el servidor.
 - **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
   config-driven en las 3 apps internas; auditoría adversarial post-merge con
   sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,

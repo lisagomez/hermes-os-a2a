@@ -90,3 +90,9 @@ __pycache__/
 # linea 2 esta anclado a la raiz y no los cubre. Un results.json de vitest se
 # colo asi en el PR #154.
 node_modules/
+
+# Credenciales OAuth de Google (nunca al repo; viven en el .env del host)
+credentials.json
+client_secret*.json
+token.json
+*.token.json

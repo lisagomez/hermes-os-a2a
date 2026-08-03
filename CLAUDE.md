@@ -1412,4 +1412,72 @@ npm run lint         # ESLint
   borrar el `.env.local` que deja, mina de 2026-07-17).
 - **Aplicar en**: todo uso de la CLI de Vercel sobre proyectos de este monorepo.
 
+### 2026-08-02: Una migración mergeada NO es una migración aplicada (despliegue de App A)
+- **Error**: al desplegar `enriquecimiento-a2a`, las 5 tablas del servicio **no existían en el
+  Supabase de producción** (404 en las cinco) aunque `supabase-enriquecimiento.sql` llevaba
+  días mergeado en master — y `nightly-jobs.sh` ya tenía cableado `vigilancia-69b.py`, que esa
+  misma noche habría corrido contra tablas inexistentes. Nadie lo vio porque ningún gate del
+  repo toca la BD de prod (hermano de "el repo no es el runtime" 2026-07-12 y "documentado ≠
+  aplicado"). El QA del servicio tampoco podía verlo (por contrato no toca prod).
+- **Fix (patrón de verificación barato)**: antes de `compose up` de un servicio con tablas
+  nuevas, sondear PostgREST desde el server con su propio `.env`: `GET /rest/v1/<tabla>?select=*`
+  con `Range: 0-0` → 404 = no aplicada, 200 = viva (sin imprimir secretos). Aplicar por
+  management API y re-sondear 404→200. El checklist de deploy de un servicio nuevo es:
+  migraciones verificadas → compose up → smoke de protocolo real → cron.
+- **Datos duros de esta corrida** (para no re-descubrirlos): el SAT sirve el listado 69-B
+  **solo por HTTP** (https://omawww… da timeout, verificado 2026-08-02) → la mitigación es de
+  integridad (umbral + guarda de descensos), no TLS; el listado real trae **~14.055 RFCs**
+  (umbral 5000 con margen 2.8×); la Agent Card en el wire serializa **camelCase**
+  (`supportedInterfaces`, `protocolBinding` — no los nombres snake_case del SDK); y la red del
+  compose se llama `businessos_hermes-net` (prefijo del proyecto) para contenedores efímeros.
+- **Aplicar en**: todo despliegue de servicio con tablas nuevas en el Supabase compartido y
+  todo host-job nuevo cableado a cron (verificar sus insumos en prod ANTES de la primera
+  corrida nocturna).
+
+### 2026-08-02: El ciclo REAL destapa lo que los tests verdes no pueden ver (buzón)
+- **Error(es)**: el buzón agéntico pasó a producción con 102 tests verdes y dos dry-runs, y
+  la primera corrida de verdad destapó CINCO defectos: (1) `AdaptadorGmail` con token
+  estático —los de Gmail caducan en 1h—; (2) **nadie orquestaba la redacción**: la cadena
+  moría en `correos_entrantes` y el mínimo de 20 borradores era inalcanzable; (3) la columna
+  `captar_leads` existía y nadie la leía → 7 leads basura de direcciones noreply en prod;
+  (4) `now()-interval'1hour'` mandado **a PostgREST**, que no evalúa SQL en un filtro → 400,
+  invisible para los tests porque `MockTransport` responde 200 a cualquier URL; (5) la
+  leyenda de divulgación salía vacía porque el compose fija `VAR=` y
+  **`os.environ.get(k, default)` NO aplica el default si la clave existe vacía** (usar `or`).
+- **Lo que funcionó**: el defecto (5) lo cazó **un gate**, no un test. Un fallo de
+  configuración que ninguna suite tenía motivo para sospechar quedó detenido antes de llegar
+  a la bandeja de aprobación, con su nombre y su motivo. Los controles deterministas pagan
+  justo donde los tests no llegan.
+- **Regla**: un dry-run prueba que el código no revienta; solo el ciclo real prueba que el
+  sistema hace lo que dice. Antes de dar por viva una cadena de jobs, correrla ENTERA contra
+  datos reales y **leer cada línea de su salida** — cuatro de los cinco se veían ahí.
+- **Aplicar en**: toda cadena de host-jobs nueva, y todo `os.environ.get` cuyo default importe.
+
+### 2026-08-02: OAuth por buzón, no delegación de dominio (Google no acota por buzón)
+- **Error de diseño evitado**: la spec pedía service account con delegación de dominio
+  "restringida a los buzones específicos". **Eso no existe en Google**: la delegación concede
+  los scopes sobre TODOS los usuarios del dominio y no hay equivalente al
+  `ApplicationAccessPolicy` de Microsoft. Montarla para leer un buzón deja en el servidor una
+  credencial capaz de leer el correo de toda la organización.
+- **Fix**: OAuth de escritorio por buzón — el token solo sirve para quien consintió, así que
+  el alcance queda acotado **por construcción**. Y el control positivo del checklist vive en
+  el código (`obtener-token-gmail.py`): antes de guardar el token verifica que lee el suyo Y
+  que **falla** al leer otro; si lo segundo tuviera éxito, aborta sin guardar.
+- **Ojo**: `gmail.modify` INCLUYE enviar (su consentimiento dice "leer, redactar y enviar").
+  Para credencial estrictamente solo-lectura hay que pedir `gmail.readonly`.
+- **Aplicar en**: toda integración con Gmail/Workspace y cualquier credencial que se declare
+  "acotada" — la restricción se demuestra con un control positivo, no se asume.
+
+### 2026-08-02: Nada criptográfico se transcribe desde una imagen
+- **Error**: la clave DKIM se leyó de una captura de pantalla y una `l` minúscula se confundió
+  con una `I` mayúscula. El resultado decodificaba a un RSA de 2048 bits **perfectamente
+  válido** —pasó todas las validaciones estructurales que le hice— pero era OTRA clave. Solo
+  lo detectó Google al verificar, tras un ciclo perdido.
+- **Fix**: pedir el TEXTO. Y cuando ya hay un valor de referencia, comparar carácter por
+  carácter (el diff señaló la posición 215 en un segundo).
+- **Hermano del mismo día**: un token de Cloudflare se filtró al pegarlo en un `curl` que lo
+  imprime, y acabó en el transcript y en el historial. Los secretos se escriben al archivo
+  con `printf ... >> ~/.config/claude/secrets.env`, nunca se muestran.
+- **Aplicar en**: claves, tokens, hashes y cualquier base64 — leer desde imagen es adivinar.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

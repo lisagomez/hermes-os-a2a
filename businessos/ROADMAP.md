@@ -688,6 +688,22 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   configuración, no a mano. Variantes: `pitch-deck-whitelabel.html` (oferta
   general) y `pitch-deck-insurtech.html` (vertical seguros, B2A + A2C, con
   barrera regulatoria: cero actos con licencia en automático).
+- [x] **`enriquecimiento-a2a` (App A, PR #210 + endurecimiento 2026-08-02)** —
+  waterfall enrichment sin LLM (puerto 5000, perfil `a2a`): RFC offline →
+  DENUE → gate 69-B CFF → patrón de dominio, con gate del grafo (LFPDPPP)
+  fail-closed, ledger por intento y frontera dura NO-escribe-leads. El QA del
+  merge dejó fixes aplicados aparte: anti-inyección PostgREST (`_q()` +
+  validación de lead_id), frescura del dictamen 69-B (rancio = bloqueado),
+  y el host-job `vigilancia-69b.py` con paginación + guardas de plausibilidad
+  del CSV del SAT (HTTP sin TLS: listado corto o descenso presunto/definitivo
+  → aborta sin escribir). **DESPLEGADO en Hetzner el 2026-08-02**: gate de
+  imagen (build + arranque efímero) PASS; migraciones
+  `supabase-enriquecimiento{,-refuerzo}.sql` aplicadas a producción por
+  management API (las 5 tablas no existían — verificado 404→200); servicio
+  vivo en hermes-net (perfil `a2a`, healthy) con smoke de protocolo real
+  (SendMessage → fallo honesto "lead no existe", grafo y Supabase reales,
+  ledger en cero); `vigilancia-69b.py` ya cableado en `nightly-jobs.sh`
+  (corre esta noche con las guardas).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
   remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de
@@ -865,54 +881,6 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
   `revision_metodologica`/`tono_de_marca` (siguen INACTIVOS por diseño).
 - **Sin servicio A2A nuevo ni puerto público**: Procesos es interno, corre por
   el trío existente.
-
----
-
-## Departamento de Buzón — HERALDO-6: correo institucional operado por agentes ✅ DESPLEGADO e INERTE (2026-08-02)
-
-Quinto departamento del trío. SPEC: `SPEC-buzon-a2a.md` (raíz). Bitácora de
-construcción: `PROGRESS-buzon-a2a.md`. PRs **#208** (build completo, 92 archivos) y
-**#209** (despliegue + migraciones).
-
-La idea en una línea: **el agente lee correo saneado y redacta borradores; nunca
-envía**. La supervisión humana no es una política escrita — es una fila en
-`aprobaciones_salientes` que el motor no puede fabricar porque no tiene credenciales.
-Eso es lo que un auditor puede verificar.
-
-- [x] Servicio `businessos/buzon-a2a/` (perfil `a2a`, `127.0.0.1:4900`, hermes-net):
-  `politicas.py` (11 gates puros), `saneado.py`, `correos.py`, `redactor.py` (motor
-  pluggable determinista), card/app/executor. Opacidad verificada sobre el servicio
-  vivo: `/docs`, `/openapi.json`, `/correos`, `/buzones`, `/gates` → 404.
-- [x] Supervisor extendido: `chequeos_buzon.py` **vendora** `politicas.py` (una sola
-  implementación, no dos que deriven) + `reglas/buzon.toml` (12 gates activos; 2 de
-  modelo quedan inactivos porque no hay runner — regla de Fase 6: un gate sin runner
-  ejecutable es config inválida).
-- [x] Host-jobs: `ingerir-entrantes.py` (3 adaptadores IMAP/Graph/Gmail, saneado, hash
-  de evidencia, lead `origen='correo'`, bitácora encadenada, **dry-run por defecto**) y
-  `enviar-salientes.py` (gates 3 y 4 SOLO para rutas `buzon/<id>`; EG.CRM sin cambio).
-- [x] Frontend en meeting-copilot: 5 vistas (`/buzon`, hilo, aprobaciones, políticas,
-  bitácora) + `/api/buzon/salud` + 16ª herramienta del launcher; 219/219 tests.
-- [x] **Corpus de inyecciones**: 62 casos, 10 familias, 0 escapes contra el saneador
-  real. Destapó un hueco que los tests no vieron — texto del mismo color que el fondo
-  sobrevivía al saneado — cerrado en `saneado.py` con control de reversión.
-- [x] §11 **asistente de configuración del cliente** (`onboarding.py`): modo espejo no
-  saltable y relajamiento progresivo, con tests de límites. Deuda declarada: la política
-  tiene espejo en TS en el frontend mock-first; muere cuando la UI llame al daemon :4900.
-- [x] **Desplegado en Hetzner (2026-08-02)**: `buzon-a2a` `Up (healthy)` con /health y
-  agent-card. Se corrigió una DERIVA en el camino: la imagen viva del supervisor conocía
-  **4 departamentos** y no tenía `chequeos_buzon` → una tarea del departamento `buzon`
-  habría sido rechazada; reconstruida con el trío ocioso, ahora carga los 5 con sus gates.
-- [x] **Migraciones aplicadas a producción (2026-08-02)**, las tres, por management API.
-  Verificación previa (cero colisiones; el constraint vivo de `leads` coincidía con lo
-  esperado) y posterior: 8 tablas con RLS+FORCE, los **cuatro candados rechazando EN
-  PRODUCCIÓN** (abierto sin firma, activo sin firma, espejo sin fecha, origen inventado)
-  y la bitácora append-only probada dentro de una transacción revertida. Advisors: 8
-  alertas INFO `rls_enabled_no_policy` = el diseño buscado, ninguna WARN/ERROR.
-- **Estado real: vivo pero INERTE** — 0 buzones dados de alta, como corresponde.
-- [ ] **Gates de la dueña**: firmar los 3 documentos de gobernanza (§7.3, en
-  `businessos/gobernanza/`), activar el primer buzón en modo cerrado (exige firma en el
-  registro de riesgo), registrar `ingerir-entrantes.py` en cron (el agente no se
-  auto-registra) y el smoke e2e con correo real (§8).
 
 ---
 
@@ -1225,6 +1193,45 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
+## Línea Buzón agéntico (HERALDO-6) — EN MODO ESPEJO (2026-08-02)
+
+Correo institucional operado por agentes con **aprobación humana obligatoria en el camino
+crítico**. Servicio `buzon-a2a` :4900 (perfil `a2a`), dos host-jobs con las credenciales
+fuera del contenedor, 11 gates deterministas, y la 16ª herramienta del launcher de
+meeting-copilot con su asistente de configuración. Spec: `SPEC-buzon-a2a.md` · memoria:
+`.claude/memory/project/buzon-agentico.md` · activo: `businessos/activos/ACT-buzon-a2a-ficha.md`.
+
+**El invariante**: ningún componente que ejecuta un modelo tiene credenciales de envío. La
+supervisión humana no es una política escrita — es una fila en `aprobaciones_salientes` que
+el motor no puede fabricar porque no tiene con qué. Eso es lo que un auditor verifica.
+
+- [x] Spec completa implementada (PR #208): esquema + 2 host-jobs + servicio A2A + gates en
+      el supervisor + 5 vistas de UI + corpus de 62 inyecciones + 3 documentos de gobernanza.
+- [x] §11 asistente de configuración del cliente: modo espejo **no saltable** (7 días Y 20
+      borradores, con control de reversión), relajamiento progresivo determinista que
+      **propone y nunca aplica**, traducción de gates a lenguaje natural.
+- [x] Desplegado en Hetzner + 3 migraciones en prod (RLS enable+FORCE en 8 tablas; los
+      candados verificados **rechazando de verdad**, no solo declarados).
+- [x] Primer buzón: `atencion@digifixapp.com`, modo `abierto_cuarentena`, clase
+      `acuse_recibo`, con decisión firmada en el registro de riesgo (PR #216).
+- [x] Dominio autenticado: SPF + **DKIM 2048** + **DMARC `p=none`** (observación deliberada:
+      `reject` en el apex tumbaría correo legítimo en silencio; la spec lo pedía para un
+      SUBdominio de envío nuevo, que es otra cosa).
+- [x] Google Workspace conectado por **OAuth por buzón, NO delegación de dominio** (PR #218):
+      en Google la delegación concede acceso a TODOS los buzones y no hay equivalente al
+      `ApplicationAccessPolicy` de Microsoft. El control positivo del checklist §8 vive en el
+      código y aborta si el token pudiera leer otro buzón.
+- [x] `redactar-borradores.py` (PR #219): el eslabón que faltaba — nadie pedía los borradores
+      y el mínimo de espejo era inalcanzable. No responde a remitentes automáticos (RFC 3834).
+- [x] **MODO ESPEJO ACTIVO** con cron cada 15 min (2026-08-03T00:14Z). Primera corrida real:
+      17 entrantes, 2 borradores con los 11 gates en verde, 15 automáticos saltados.
+- [ ] Cumplir el mínimo de espejo y decidir la activación (exige firma + evidencia en pantalla).
+- [ ] Guardar el caso "el buzón se responde a sí mismo": hoy nada lo impide (inocuo en espejo).
+- [ ] `dmarc@digifixapp.com` para recibir los informes agregados.
+- [ ] Firmar los 3 documentos de `businessos/gobernanza/`.
+- [ ] Si se quiere credencial estrictamente solo-lectura: re-consentir con `gmail.readonly`
+      (`gmail.modify` incluye enviar, aunque el contenedor no tenga la credencial).
+
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 
 El ERP dejó de ser solo migraciones: por decisión de la dueña, el esquema `erp`
@@ -1265,7 +1272,7 @@ ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
   separación física de repos defendibles (D-12), `act_proteccion` de los
   defendibles ratificados, ERP-1+ según maestro.
 
-## Línea Enriquecimiento (App A — Waterfall Enrichment) 🟡 código completo (A1/A2/A3 fusionados, 2026-08-01/02); faltan SQL a producción y despliegue
+## Línea Enriquecimiento (App A — Waterfall Enrichment) ✅ fusionada y DESPLEGADA en producción (2026-08-02)
 
 Primera de las 3 apps del encargo; plan aprobado con **ataque adversarial** el
 2026-07-30. Enriquece leads en cascada **ordenada por costo y sin LLM** (cero tokens por
@@ -1290,10 +1297,11 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
   sobre el tip exacto: 77/77 tests, `docker build`, `Up (healthy)`, agent-card con la
   skill `enriquecer-lead`, opacidad 7/7 y JSON-RPC e2e donde el fail-closed opera de
   verdad ("grafo inalcanzable: la cascada no corre sin gate").
-- [ ] **Tras fusionar** (exige credenciales que la máquina de desarrollo no tiene):
-  aplicar a producción los dos SQL (#199 y `supabase-enriquecimiento-refuerzo.sql`) por
-  management API; desplegar con perfil `a2a` + `DENUE_TOKEN` en el `.env`; primera
-  corrida de `vigilancia-69b.py`.
+- [x] **Aplicada y desplegada (2026-08-02)**: los dos SQL en producción por management
+  API (404→200 verificado), servicio vivo en hermes-net (healthy) con smoke de
+  protocolo real, y `vigilancia-69b.py` cableado en `nightly-jobs.sh`. El detalle
+  operativo y los fixes del QA (#213) viven en la entrada `enriquecimiento-a2a` de la
+  Fase 9 (adquisición) y en `.claude/memory/project/app-a-enriquecimiento.md`.
 
 ---
 
