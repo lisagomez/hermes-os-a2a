@@ -45,7 +45,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "buzon-a2a"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import saneado  # noqa: E402
+
+from buzon_comun import remitente_automatico  # noqa: E402
 
 UA = "curl/8.0"  # Cloudflare bloquea el UA de urllib (error 1010)
 DRY = os.environ.get("INGERIR_REAL") != "1"
@@ -385,7 +388,15 @@ def procesar_buzon(url: str, buzon: dict) -> tuple[int, int]:
                                        "dmarc": fila["dmarc_alineado"],
                                        "eliminados": limpio["eliminados"]},
                      buzon_id=buzon["id"], hilo_id=s.hilo_id)
-            if not conocido and buzon.get("modo_contraparte") == "abierto_cuarentena":
+            # Tres condiciones, y las tres importan. `captar_leads` es del buzon
+            # (un buzon de soporte no debe generar leads: ensucia el embudo con
+            # consultas de clientes que ya existen) y el remitente automatico
+            # nunca es un lead — la 1a corrida real creo 7 leads de direcciones
+            # noreply de Google y Facebook por no comprobar ninguna de las dos.
+            if (not conocido
+                    and buzon.get("modo_contraparte") == "abierto_cuarentena"
+                    and buzon.get("captar_leads")
+                    and not remitente_automatico(s.remitente)):
                 capturar_lead(url, buzon, s.remitente)
             try:
                 adaptador.marcar_leido(buzon["direccion"], s.proveedor_id)

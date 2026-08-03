@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import urllib.parse
 
 import httpx
 
@@ -91,9 +92,14 @@ class BuzonStore:
         return bool(filas and filas[0].get("pausa_global"))
 
     async def enviados_ultima_hora(self, buzon_id: str) -> int:
+        # El corte se calcula AQUI y viaja como ISO: PostgREST no evalua SQL en
+        # el valor de un filtro, asi que "now()-interval'1hour'" daba HTTP 400
+        # (lo destapo la 1a corrida real, no los tests con transporte mockeado).
+        from datetime import datetime, timedelta, timezone
+        corte = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
         filas = await self._get_json(
             f"correos_salientes?buzon_id=eq.{buzon_id}&estado=eq.enviado"
-            "&enviado_en=gte.now()-interval'1hour'&select=id")
+            f"&enviado_en=gte.{urllib.parse.quote(corte)}&select=id")
         return len(filas)
 
     async def enviados_en_hilo(self, hilo_id: str) -> int:
