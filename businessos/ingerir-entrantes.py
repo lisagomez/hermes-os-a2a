@@ -21,8 +21,11 @@ Invariantes:
 Uso:
   cd ~/repo/businessos && set -a && . ./.env && set +a && python3 ingerir-entrantes.py
   Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, INGERIR_REAL=1 (para escribir),
-       BUZON_IMAP_HOST/USER/PASS | BUZON_GRAPH_TENANT_ID/CLIENT_ID/CLIENT_SECRET |
-       BUZON_GMAIL_TOKEN (segun buzones.proveedor).
+       y segun buzones.proveedor:
+         imap   → BUZON_IMAP_HOST / BUZON_IMAP_USER / BUZON_IMAP_PASS
+         m365   → BUZON_GRAPH_TENANT_ID / BUZON_GRAPH_CLIENT_ID / BUZON_GRAPH_CLIENT_SECRET
+         google → BUZON_GMAIL_CLIENT_ID / BUZON_GMAIL_CLIENT_SECRET / BUZON_GMAIL_REFRESH_TOKEN
+                  (el refresh_token lo emite obtener-token-gmail.py, una sola vez)
   NO auto-registrar en nightly-jobs.sh: activarlo en cron es decision de la duena
   (mismo gate que enviar-salientes.py, COMO-RETOMAR.md).
 """
@@ -176,14 +179,55 @@ class AdaptadorGraph:
 
 
 class AdaptadorGmail:
-    """Gmail API con token OAuth ya emitido (delegacion de dominio o OAuth de
-    escritorio por buzon, SPEC §5.1). El refresh del token es asunto del .env."""
+    """Gmail API con OAuth de escritorio POR BUZON (SPEC §5.1, alternativa 3).
+
+    Por que esta via y no la delegacion de dominio que propone la SPEC: en Google
+    la delegacion a nivel de dominio NO se puede acotar por buzon — concede los
+    scopes sobre TODOS los usuarios del dominio, y no existe equivalente al
+    ApplicationAccessPolicy de Microsoft. Con OAuth por buzon, el refresh_token
+    solo sirve para la cuenta que consintio: el alcance queda acotado por
+    construccion, no por una politica que haya que acordarse de configurar.
+
+    El access token de Gmail caduca en 1 HORA, asi que aqui se refresca solo a
+    partir del refresh_token (que no caduca salvo revocacion). Guardar un access
+    token estatico en el .env deja de funcionar en 60 minutos.
+
+    Scope: gmail.modify — lo minimo que permite el flujo completo (leer + marcar
+    procesado). Con gmail.readonly a secas no se puede marcar como leido y cada
+    corrida re-procesaria los mismos correos; el insert es idempotente por
+    unique(buzon_id, proveedor_id), asi que no habria duplicados, pero si trabajo
+    repetido. NO se pide gmail.send: la unica salida es enviar-salientes.py.
+    """
+
+    SCOPE = "https://www.googleapis.com/auth/gmail.modify"
+    TOKEN_URL = "https://oauth2.googleapis.com/token"
 
     def __init__(self) -> None:
-        self.token = env("BUZON_GMAIL_TOKEN")
+        self._client_id = env("BUZON_GMAIL_CLIENT_ID")
+        self._client_secret = env("BUZON_GMAIL_CLIENT_SECRET")
+        self._refresh_token = env("BUZON_GMAIL_REFRESH_TOKEN")
+        self._token = ""
+        self._expira = 0.0
+
+    def _access_token(self) -> str:
+        """Devuelve un access token vigente, refrescandolo si toca."""
+        import time
+        if self._token and time.time() < self._expira - 60:  # 60s de margen
+            return self._token
+        datos = urllib.parse.urlencode({
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+            "refresh_token": self._refresh_token,
+            "grant_type": "refresh_token",
+        }).encode()
+        r = json.loads(http(self.TOKEN_URL, data=datos,
+                            headers={"Content-Type": "application/x-www-form-urlencoded"}))
+        self._token = r["access_token"]
+        self._expira = time.time() + float(r.get("expires_in", 3600))
+        return self._token
 
     def _h(self) -> dict:
-        return {"Authorization": f"Bearer {self.token}"}
+        return {"Authorization": f"Bearer {self._access_token()}"}
 
     def listar_nuevos(self, buzon: str, desde: str) -> list[SobreCrudo]:
         base = f"https://gmail.googleapis.com/gmail/v1/users/{urllib.parse.quote(buzon)}"
