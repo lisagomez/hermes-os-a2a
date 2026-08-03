@@ -62,6 +62,29 @@ destinatarios aprobada explícitamente.
 - **Vigencia / próxima revisión**: al término del modo espejo, antes de activar el envío
   real. Ampliar `clases_permitidas` más allá de `acuse_recibo` exige una entrada nueva.
 
+### 2026-08-02 — atencion@digifixapp.com — modo espejo y host-jobs en cron
+- **Decisión**: poner el buzón en `estado='espejo'` con `activo=true`, y registrar
+  `buzon-jobs.sh` en cron cada 15 minutos (ingesta + redacción de borradores).
+- **Riesgo aceptado**: el sistema lee correo real de forma desatendida y genera
+  borradores sin intervención humana previa. Es la exposición que el modo espejo
+  existe para acotar: se observa antes de decidir.
+- **Mitigaciones vigentes**:
+  - **No sale ningún correo.** El envío exige `estado='activo'`, que a su vez exige
+    firma (`buzones_activo_firmado`) y haber cumplido el mínimo de espejo. El job de
+    cron no invoca `enviar-salientes.py` en ningún caso.
+  - Mínimo de espejo verificado en código (`onboarding.py::puede_listo`): ≥7 días
+    naturales **y** ≥20 borradores. No hay flag ni atajo.
+  - Los 11 gates corren sobre cada borrador; un CRÍTICO en rojo lo deja fuera de la
+    bandeja de A5.
+  - No se responde a remitentes automáticos (`buzon_comun.py`), lo que evita bucles
+    de auto-respuesta entre sistemas (RFC 3834).
+  - Credenciales de Gmail solo en el `.env` del host, con alcance verificado por
+    control positivo: el token no puede leer otro buzón del dominio.
+  - Interruptor del Guardian disponible: `buzon_control.pausa_global`.
+- **Firmado por**: Elisa (dueña) — autorización dada en sesión del 2026-08-02.
+- **Vigencia / próxima revisión**: al cumplirse el mínimo de espejo, antes de
+  cualquier activación de envío real.
+
 <!-- Añadir aquí las decisiones siguientes. NO editar las anteriores. -->
 
 ## Decisiones que SIEMPRE requieren entrada firmada
