@@ -15,6 +15,26 @@
 
 ## Estado operativo (2026-08-02, fin de sesión)
 
+**EN MODO ESPEJO Y CORRIENDO SOLO** — `atencion@digifixapp.com` desde 2026-08-03T00:14Z.
+- Google Workspace conectado (OAuth por buzón; el token NO puede leer otro buzón del
+  dominio, verificado por control positivo en dev y desde Hetzner)
+- `buzon-jobs.sh` en cron cada 15 min (min 3,18,33,48): ingesta + redacción
+- Primera corrida real: 17 entrantes, 2 borradores en `pendiente_aprobacion` con los
+  **11 gates en verde**, 15 remitentes automáticos saltados
+- **No sale ningún correo**: el envío exige `estado='activo'` + firma + mínimo de espejo
+- Decisión firmada en `gobernanza/registro-decisiones-riesgo-buzon.md`
+
+**Cuatro bugs que solo destapó correr el ciclo de verdad** (ninguno lo vieron los 102
+tests ni los dry-runs):
+1. `AdaptadorGmail` con token estático → los de Gmail caducan en 1h (PR #218)
+2. Nadie orquestaba la redacción: la cadena se paraba en `correos_entrantes` (PR #219)
+3. `captar_leads` no se leía → 7 leads basura de direcciones noreply (PR #220, borrados)
+4. `enviados_ultima_hora` mandaba SQL a PostgREST → HTTP 400 (PR #220)
+5. La leyenda de divulgación salía vacía: el compose fija la var vacía y
+   `os.environ.get(k, default)` no aplica el default si la clave existe (PR #221).
+   **Lo cazó el gate `divulgacion_presente`**, que es exactamente su trabajo.
+
+
 **Primer buzón dado de alta y configurado** — `atencion@digifixapp.com` (Google Workspace):
 - modo `abierto_cuarentena`, plantilla `soporte`, allowlist `digifixapp.com`
 - `clases_permitidas = ["acuse_recibo"]` — el agente solo puede acusar recibo; cualquier
