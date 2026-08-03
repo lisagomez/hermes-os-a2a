@@ -21,8 +21,11 @@ Invariantes:
 Uso:
   cd ~/repo/businessos && set -a && . ./.env && set +a && python3 ingerir-entrantes.py
   Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, INGERIR_REAL=1 (para escribir),
-       BUZON_IMAP_HOST/USER/PASS | BUZON_GRAPH_TENANT_ID/CLIENT_ID/CLIENT_SECRET |
-       BUZON_GMAIL_TOKEN (segun buzones.proveedor).
+       y segun buzones.proveedor:
+         imap   → BUZON_IMAP_HOST / BUZON_IMAP_USER / BUZON_IMAP_PASS
+         m365   → BUZON_GRAPH_TENANT_ID / BUZON_GRAPH_CLIENT_ID / BUZON_GRAPH_CLIENT_SECRET
+         google → BUZON_GMAIL_CLIENT_ID / BUZON_GMAIL_CLIENT_SECRET / BUZON_GMAIL_REFRESH_TOKEN
+                  (el refresh_token lo emite obtener-token-gmail.py, una sola vez)
   NO auto-registrar en nightly-jobs.sh: activarlo en cron es decision de la duena
   (mismo gate que enviar-salientes.py, COMO-RETOMAR.md).
 """
@@ -42,7 +45,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "buzon-a2a"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import saneado  # noqa: E402
+
+from buzon_comun import remitente_automatico  # noqa: E402
 
 UA = "curl/8.0"  # Cloudflare bloquea el UA de urllib (error 1010)
 DRY = os.environ.get("INGERIR_REAL") != "1"
@@ -176,14 +182,55 @@ class AdaptadorGraph:
 
 
 class AdaptadorGmail:
-    """Gmail API con token OAuth ya emitido (delegacion de dominio o OAuth de
-    escritorio por buzon, SPEC §5.1). El refresh del token es asunto del .env."""
+    """Gmail API con OAuth de escritorio POR BUZON (SPEC §5.1, alternativa 3).
+
+    Por que esta via y no la delegacion de dominio que propone la SPEC: en Google
+    la delegacion a nivel de dominio NO se puede acotar por buzon — concede los
+    scopes sobre TODOS los usuarios del dominio, y no existe equivalente al
+    ApplicationAccessPolicy de Microsoft. Con OAuth por buzon, el refresh_token
+    solo sirve para la cuenta que consintio: el alcance queda acotado por
+    construccion, no por una politica que haya que acordarse de configurar.
+
+    El access token de Gmail caduca en 1 HORA, asi que aqui se refresca solo a
+    partir del refresh_token (que no caduca salvo revocacion). Guardar un access
+    token estatico en el .env deja de funcionar en 60 minutos.
+
+    Scope: gmail.modify — lo minimo que permite el flujo completo (leer + marcar
+    procesado). Con gmail.readonly a secas no se puede marcar como leido y cada
+    corrida re-procesaria los mismos correos; el insert es idempotente por
+    unique(buzon_id, proveedor_id), asi que no habria duplicados, pero si trabajo
+    repetido. NO se pide gmail.send: la unica salida es enviar-salientes.py.
+    """
+
+    SCOPE = "https://www.googleapis.com/auth/gmail.modify"
+    TOKEN_URL = "https://oauth2.googleapis.com/token"
 
     def __init__(self) -> None:
-        self.token = env("BUZON_GMAIL_TOKEN")
+        self._client_id = env("BUZON_GMAIL_CLIENT_ID")
+        self._client_secret = env("BUZON_GMAIL_CLIENT_SECRET")
+        self._refresh_token = env("BUZON_GMAIL_REFRESH_TOKEN")
+        self._token = ""
+        self._expira = 0.0
+
+    def _access_token(self) -> str:
+        """Devuelve un access token vigente, refrescandolo si toca."""
+        import time
+        if self._token and time.time() < self._expira - 60:  # 60s de margen
+            return self._token
+        datos = urllib.parse.urlencode({
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+            "refresh_token": self._refresh_token,
+            "grant_type": "refresh_token",
+        }).encode()
+        r = json.loads(http(self.TOKEN_URL, data=datos,
+                            headers={"Content-Type": "application/x-www-form-urlencoded"}))
+        self._token = r["access_token"]
+        self._expira = time.time() + float(r.get("expires_in", 3600))
+        return self._token
 
     def _h(self) -> dict:
-        return {"Authorization": f"Bearer {self.token}"}
+        return {"Authorization": f"Bearer {self._access_token()}"}
 
     def listar_nuevos(self, buzon: str, desde: str) -> list[SobreCrudo]:
         base = f"https://gmail.googleapis.com/gmail/v1/users/{urllib.parse.quote(buzon)}"
@@ -341,7 +388,15 @@ def procesar_buzon(url: str, buzon: dict) -> tuple[int, int]:
                                        "dmarc": fila["dmarc_alineado"],
                                        "eliminados": limpio["eliminados"]},
                      buzon_id=buzon["id"], hilo_id=s.hilo_id)
-            if not conocido and buzon.get("modo_contraparte") == "abierto_cuarentena":
+            # Tres condiciones, y las tres importan. `captar_leads` es del buzon
+            # (un buzon de soporte no debe generar leads: ensucia el embudo con
+            # consultas de clientes que ya existen) y el remitente automatico
+            # nunca es un lead — la 1a corrida real creo 7 leads de direcciones
+            # noreply de Google y Facebook por no comprobar ninguna de las dos.
+            if (not conocido
+                    and buzon.get("modo_contraparte") == "abierto_cuarentena"
+                    and buzon.get("captar_leads")
+                    and not remitente_automatico(s.remitente)):
                 capturar_lead(url, buzon, s.remitente)
             try:
                 adaptador.marcar_leido(buzon["direccion"], s.proveedor_id)

@@ -1,8 +1,10 @@
 # Departamento de Buzón — HERALDO-6 (correo institucional operado por agentes)
 
-> **Estado (2026-08-02): DESPLEGADO en Hetzner y VIVO, pero INERTE.** 0 buzones dados de
-> alta. Migraciones aplicadas a producción. PRs **#208** (build, 92 archivos) y **#209**
-> (despliegue). SPEC: `SPEC-buzon-a2a.md` (raíz) · bitácora: `PROGRESS-buzon-a2a.md`.
+> **Este archivo guarda la ARQUITECTURA y las lecciones del build** (PRs **#208**, 92
+> archivos, y **#209**, despliegue + migraciones). El **estado operativo vive en
+> [[buzon-agentico]]**: primer buzón `atencion@digifixapp.com` dado de alta y en MODO
+> ESPEJO con cron desde 2026-08-03. SPEC: `SPEC-buzon-a2a.md` (raíz) · bitácora:
+> `PROGRESS-buzon-a2a.md`.
 
 ## Qué es
 
@@ -46,9 +48,10 @@ límites) y su espejo en TS del frontend mock-first. Duplicación consciente **c
 vencimiento**: cuando la UI llame a `/api/buzon/*` contra el daemon :4900, la copia TS muere.
 Cruza lenguajes, por eso no se resolvió vendorando el módulo como con `politicas.py`.
 
-## Gates de la dueña (nada de esto lo hace el agente)
+## Gates de la dueña (estado al 2026-08-03 — ver [[buzon-agentico]])
 
-1. Firmar los 3 documentos de gobernanza (§7.3).
-2. Activar el primer buzón en **modo cerrado** — exige firma en el registro de riesgo.
-3. Registrar `ingerir-entrantes.py` en cron.
-4. Smoke e2e con correo real (§8), después de activar.
+1. Firmar los 3 documentos de gobernanza (§7.3) — **pendiente**.
+2. ~~Activar el primer buzón~~ — hecho: `atencion@digifixapp.com` con firma en el
+   registro de riesgo (PR #216), en modo espejo.
+3. ~~Registrar la ingesta en cron~~ — hecho: cron cada 15 min desde 2026-08-03.
+4. Cumplir el mínimo de espejo (7 días Y 20 borradores) y decidir la activación del envío.
