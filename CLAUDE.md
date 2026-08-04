@@ -1498,4 +1498,25 @@ npm run lint         # ESLint
   con `printf ... >> ~/.config/claude/secrets.env`, nunca se muestran.
 - **Aplicar en**: claves, tokens, hashes y cualquier base64 — leer desde imagen es adivinar.
 
+### 2026-08-04: Un seed mergeado NO es un seed aplicado — y el camino es upsert en vivo, no recrear el volumen
+- **Error (drift cazado por el smoke post-rebuild del grafo)**: el seed de `datos-personales`
+  (PR #198, 2026-08-01) llevaba 3 días mergeado y el runtime seguía sirviendo 29 reglas en 4
+  dimensiones — **citando además la LFPDPPP 2010 abrogada** (peor que no tener la regla: viola
+  la regla de oro del grafo). Causa de diseño, no bug: el seed solo corre al CREAR el volumen
+  de `grafo-db`; un `compose up --build` del servicio jamás re-siembra. Hermano del 2026-08-02
+  ("una migración mergeada no es una migración aplicada") — mismo pecado, capa de datos del grafo.
+- **Fix (procedimiento verificado)**: la doctrina de `db.py` ("reseed real = recrear volumen")
+  NO es la única vía y en producción es la peor (destruye el historial de `evaluaciones`, que
+  vive en la misma BD). El `02-seed.sql` es **idempotente por diseño** (upserts sobre claves
+  naturales en TODAS las tablas, impactos incluidos; `_bajas` con delete+cascade para reglas
+  derogadas; una sola transacción): (1) gate `gen_seed_sql.py --check` en dev; (2)
+  `docker exec -i grafo-db psql -U grafo -d grafo -v ON_ERROR_STOP=1 < seed/02-seed.sql`;
+  (3) `docker restart grafo` — el `lru_cache` de conocimiento/catálogos solo se invalida con
+  restart; (4) smoke: conteos esperados, dimensión nueva presente, regla derogada ausente,
+  `evaluaciones` intactas. Verificado 2026-08-04: 29→33 reglas, 4→5 dimensiones, 17
+  evaluaciones conservadas.
+- **Aplicar en**: todo cambio al seed del grafo (el PR que toca `reglas.json` no está terminado
+  hasta aplicar el seed al runtime) y todo dato-semilla de servicios con BD propia: preguntar
+  siempre "¿esto llega al runtime solo, o alguien tiene que aplicarlo?".
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
