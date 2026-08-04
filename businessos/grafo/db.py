@@ -99,6 +99,27 @@ def conocimiento() -> dict[str, Any]:
     return ensamblar_conocimiento(categorias, reglas, impactos)
 
 
+@lru_cache(maxsize=1)
+def catalogos() -> dict[str, list[dict]]:
+    """Catalogos {jurisdicciones, dimensiones} con (codigo, nombre), para el explorador.
+
+    Cacheado con la MISMA doctrina que conocimiento(): solo cambia con un reseed,
+    y un reseed real implica recrear el volumen y reiniciar el servicio. Un ALTER/
+    INSERT en vivo NO se refleja sin restart — igual que las reglas.
+    """
+    with _conectar() as conn:
+        jur = conn.execute(
+            "select codigo, nombre from jurisdicciones order by codigo"
+        ).fetchall()
+        dim = conn.execute(
+            "select codigo, nombre from dimensiones order by codigo"
+        ).fetchall()
+    return {
+        "jurisdicciones": [{"codigo": f["codigo"], "nombre": f["nombre"]} for f in jur],
+        "dimensiones": [{"codigo": f["codigo"], "nombre": f["nombre"]} for f in dim],
+    }
+
+
 def contar_reglas() -> int:
     with _conectar() as conn:
         fila = conn.execute("select count(*) as n from reglas").fetchone()

@@ -99,6 +99,53 @@ class Salud(BaseModel):
     reglas: int | None = Field(None, description="Reglas cargadas; null si DB no disponible")
 
 
+class CatalogoItem(BaseModel):
+    """Entrada de catalogo (jurisdicciones/dimensiones) para el explorador (App C)."""
+
+    codigo: str = Field(..., description="Codigo corto, ej. 'MX' o 'fiscal'")
+    nombre: str
+
+
+class ImpactoRegla(BaseModel):
+    """Impacto de una regla tal como lo consume el evaluador (lectura pura).
+
+    `veredicto_base` null = la regla no determina veredicto, solo aporta
+    requisitos/banderas (asi existe en el seed real; el contrato lo tolera).
+    """
+
+    categoria: str | None = Field(None, description="null = aplica a todas las categorias")
+    regimen: str = Field("PM_TITULO_II", description="Regimen al que aplica; GENERAL = wildcard")
+    veredicto_base: str | None = Field(
+        None, description="Veredicto que dicta la regla; null = solo requisitos/banderas"
+    )
+    tope_monto: float | None = None
+    tope_pct: float | None = None
+    requisitos: list[str]
+    banderas: list[str]
+    parametros: dict
+
+
+class ReglaListada(BaseModel):
+    """Regla del conocimiento con sus impactos (lectura pura para el explorador).
+
+    `vigente` se calcula contra el parametro `fecha` del request (default: hoy);
+    por eso la respuesta viaja con Cache-Control: no-store.
+    """
+
+    clave: str
+    jurisdiccion: str
+    dimension: str
+    titulo: str
+    texto_resumen: str
+    fuente_cita: str = Field(..., description="Cita legal (regla de oro: nunca sin fuente)")
+    fuente_url: str
+    source_version: str | None = Field(None, description="Procedencia del seed")
+    vigente_desde: date
+    vigente_hasta: date | None = Field(None, description="null = sin fecha de derogacion conocida")
+    vigente: bool = Field(..., description="Evaluada a la `fecha` del request (badge del explorador)")
+    impactos: list[ImpactoRegla]
+
+
 class ReglaVencida(BaseModel):
     clave: str
     vigente_hasta: date
