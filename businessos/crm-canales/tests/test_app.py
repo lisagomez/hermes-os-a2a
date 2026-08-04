@@ -11,6 +11,7 @@ import json
 from starlette.testclient import TestClient
 
 from app import build_app
+from guardia import Decision
 from motor import MotorError
 
 TG_SECRET = "s3cr3t"
@@ -30,11 +31,14 @@ TENANT = {
 class FakeMotor:
     def __init__(self, respuesta="Claro, con gusto.", error=False):
         self.respuesta, self.error, self.calls = respuesta, error, []
+        self.ultimo_uso = None
 
-    async def responder(self, system, historial, mensaje):
-        self.calls.append({"system": system, "historial": historial, "mensaje": mensaje})
+    async def responder(self, system, historial, mensaje, modelo=None):
+        self.calls.append({"system": system, "historial": historial, "mensaje": mensaje, "modelo": modelo})
         if self.error:
             raise MotorError("boom")
+        self.ultimo_uso = {"modelo": modelo or "modelo-fake", "tokens_in": 10,
+                           "tokens_out": 5, "costo_usd": 0.0001}
         return self.respuesta
 
 
@@ -77,14 +81,48 @@ class FakeCanales:
 
 
 class FakeLeads:
-    """Puente al pipeline de adquisición: registra qué se intentó capturar."""
+    """Puente al pipeline de adquisición: registra qué se intentó capturar.
+    ok=True simula lead NUEVO (dispara calificación); ok=False, ya existía/falló."""
 
     def __init__(self, ok=True):
-        self.ok, self.capturados = ok, []
+        self.ok, self.capturados, self.calificados = ok, [], []
 
-    async def capturar(self, tenant_id, canal, canal_uid, nombre, texto):
-        self.capturados.append({"tenant_id": tenant_id, "canal": canal, "canal_uid": canal_uid, "nombre": nombre, "texto": texto})
+    async def capturar(self, tenant_id, canal, canal_uid, nombre, texto, referral=None):
+        self.capturados.append({"tenant_id": tenant_id, "canal": canal, "canal_uid": canal_uid,
+                                "nombre": nombre, "texto": texto, "referral": referral})
         return self.ok
+
+    async def calificar(self, tenant_id, canal, canal_uid, resultado):
+        self.calificados.append({"tenant_id": tenant_id, "canal": canal,
+                                 "canal_uid": canal_uid, "resultado": resultado})
+        return True
+
+
+class FakeGuardia:
+    """Guardia de presupuesto: decisión configurable + espía de registros."""
+
+    def __init__(self, decision=None):
+        self.decision = decision or Decision(True, "ok", "modelo-economico")
+        self.evaluaciones, self.registros = [], []
+
+    async def evaluar(self, tenant_id, clase="basica"):
+        self.evaluaciones.append({"tenant_id": tenant_id, "clase": clase})
+        return self.decision
+
+    async def registrar(self, **fila):
+        self.registros.append(fila)
+        return True
+
+
+class FakeCalificador:
+    def __init__(self, resultado=None):
+        self.resultado = resultado or {"decision": "califica", "senales": ["pide precio"], "confianza": 0.8}
+        self.calls = []
+        self.ultimo_uso = {"modelo": "calificador-fake", "tokens_in": 8, "tokens_out": 4, "costo_usd": 0.00005}
+
+    async def calificar(self, texto):
+        self.calls.append(texto)
+        return self.resultado
 
 
 class FakeSup:
@@ -98,13 +136,16 @@ class FakeSup:
         return self.veredicto
 
 
-def _client(motor=None, store=None, canales=None, sup=None, leads=None, wa_app_secret=WA_APP_SECRET):
+def _client(motor=None, store=None, canales=None, sup=None, leads=None,
+            guardia=None, calificador=None, wa_app_secret=WA_APP_SECRET):
     app = build_app(
         motor=motor or FakeMotor(),
         store=store or FakeStore(),
         canales=canales or FakeCanales(),
         sup=sup or FakeSup(),
         leads=leads or FakeLeads(),
+        guardia=guardia or FakeGuardia(),
+        calificador=calificador or FakeCalificador(),
         tg_secret=TG_SECRET,
         wa_verify=WA_VERIFY,
         wa_app_secret=wa_app_secret,
@@ -333,3 +374,121 @@ def test_canal_sin_token_bitacora_enviado_false():
     c = _client(store=store, canales=FakeCanales(ok=False))
     _wa_post(c, _wa_payload("hola"))
     assert store.mensajes[1]["enviado"] is False  # trazable, jamás silencioso
+
+
+# --- guardia de presupuesto (pieza 1: control ANTES de la llamada) ---------------
+
+def _tg(c, texto="hola"):
+    return c.post("/webhook/telegram/acme", json=_tg_update(texto),
+                  headers={"X-Telegram-Bot-Api-Secret-Token": TG_SECRET})
+
+
+def test_guardia_bloquea_escala_sin_llamar_al_motor():
+    motor, store = FakeMotor(), FakeStore()
+    guardia = FakeGuardia(Decision(False, "tope_mensual", None, gasto_mes=5.5, limite=5.0))
+    c = _client(motor=motor, store=store, guardia=guardia, leads=FakeLeads(ok=False))
+    _tg(c, "¿precio del tour?")
+    assert motor.calls == []                # ni un token después del tope
+    assert store.escaladas == [7]           # estado seguro explícito: humano
+    assert "equipo de Acme Tours" in store.mensajes[1]["texto"]
+    assert guardia.registros == []          # nada que registrar: no hubo llamada
+
+
+def test_guardia_sin_presupuesto_bloquea_fail_closed():
+    motor, store = FakeMotor(), FakeStore()
+    guardia = FakeGuardia(Decision(False, "sin_presupuesto", None))
+    c = _client(motor=motor, store=store, guardia=guardia, leads=FakeLeads(ok=False))
+    _tg(c)
+    assert motor.calls == [] and store.escaladas == [7]
+
+
+def test_guardia_degradar_usa_el_modelo_que_dicta():
+    motor = FakeMotor()
+    guardia = FakeGuardia(Decision(True, "tope_degradar", "modelo-economico",
+                                   degradado=True, aviso=True))
+    c = _client(motor=motor, guardia=guardia, leads=FakeLeads(ok=False))
+    _tg(c)
+    assert motor.calls[0]["modelo"] == "modelo-economico"  # el routing lo decide la guardia
+
+
+def test_respuesta_registra_el_gasto_en_token_usage():
+    guardia = FakeGuardia()
+    c = _client(guardia=guardia, leads=FakeLeads(ok=False))
+    _tg(c)
+    assert len(guardia.registros) == 1
+    reg = guardia.registros[0]
+    assert reg["tenant_id"] == "acme" and reg["clase"] == "basica"
+    assert reg["task_id"] == "crm-acme-7"   # task_id no-nulo: índice único del ledger
+    assert reg["tokens_in"] == 10 and reg["costo_usd"] == 0.0001
+
+
+def test_techo_estructural_no_evalua_guardia_si_no_hay_lead_nuevo():
+    guardia = FakeGuardia()
+    c = _client(guardia=guardia, leads=FakeLeads(ok=False))
+    _tg(c, "quiero hablar con una persona ya")
+    assert guardia.evaluaciones == []       # plantilla de la casa: cero modelo, cero guardia
+
+
+# --- calificador de intención (pieza 2: señal paralela en el lead) ---------------
+
+def test_lead_nuevo_se_califica_y_persiste_senal():
+    leads, calificador, guardia = FakeLeads(ok=True), FakeCalificador(), FakeGuardia()
+    c = _client(leads=leads, calificador=calificador, guardia=guardia)
+    _tg(c, "¿me cotizas un tour para 4?")
+    assert calificador.calls == ["¿me cotizas un tour para 4?"]
+    assert leads.calificados[0]["resultado"]["decision"] == "califica"
+    # el gasto del calificador TAMBIÉN se registra (misma guardia, task propio)
+    assert any(r["task_id"] == "crm-acme-cal-7" for r in guardia.registros)
+
+
+def test_lead_repetido_no_se_recalifica():
+    leads, calificador = FakeLeads(ok=False), FakeCalificador()
+    c = _client(leads=leads, calificador=calificador)
+    _tg(c)
+    assert calificador.calls == [] and leads.calificados == []
+
+
+def test_calificacion_indeterminada_escala_a_humano():
+    store, leads = FakeStore(), FakeLeads(ok=True)
+    calificador = FakeCalificador({"decision": "indeterminado",
+                                   "senales": ["error_calificador: HTTP 500"], "confianza": 0.0})
+    c = _client(store=store, leads=leads, calificador=calificador)
+    _tg(c)
+    assert 7 in store.escaladas            # indeterminado escala, no adivina
+    assert leads.calificados[0]["resultado"]["decision"] == "indeterminado"
+
+
+def test_guardia_bloqueada_omite_calificacion():
+    leads, calificador, store = FakeLeads(ok=True), FakeCalificador(), FakeStore()
+    guardia = FakeGuardia(Decision(False, "tope_mensual", None))
+    c = _client(leads=leads, calificador=calificador, guardia=guardia, store=store)
+    _tg(c)
+    assert calificador.calls == []          # el calificador también es una llamada a modelo
+    assert leads.calificados == []
+
+
+def test_calificacion_no_toca_etapa():
+    leads = FakeLeads(ok=True)
+    c = _client(leads=leads)
+    _tg(c)
+    assert "etapa" not in leads.calificados[0]["resultado"]  # señal paralela
+
+
+# --- atribución de campaña (pieza 6: referral de Meta) ---------------------------
+
+def test_referral_de_meta_viaja_al_lead():
+    leads = FakeLeads()
+    c = _client(leads=leads)
+    payload = _wa_payload("vengo del anuncio")
+    payload["entry"][0]["changes"][0]["value"]["messages"][0]["referral"] = {
+        "source_id": "camp-77", "source_type": "ad", "ctwa_clid": "clid-1",
+    }
+    _wa_post(c, payload)
+    assert leads.capturados[0]["referral"]["source_id"] == "camp-77"
+
+
+def test_sin_referral_el_lead_viaja_sin_atribucion():
+    leads = FakeLeads()
+    c = _client(leads=leads)
+    _wa_post(c, _wa_payload("hola"))
+    assert leads.capturados[0]["referral"] is None

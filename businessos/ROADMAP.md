@@ -1125,6 +1125,56 @@ smoke E2E firmado (200 + lead `origen='crm'`) queda atado al alta del tenant
 (runbook). Pendiente P2: plantillas HSM + ventana 24h (bloquea outbound
 proactivo), media/voz entrante, observabilidad del canal (error 190).
 
+### CRM-4 — Integración marca blanca de CancioBot 🟡 pasos 1-6 construidos (2026-08-04)
+
+Extracción de las 6 piezas genéricas de CancioBot (dictamen pieza-por-pieza en
+`INTEGRACION-whatsapp-marca-blanca.md`; lo de dominio/duplicado se descartó).
+Cierra los dos huecos que el ejercicio destapó: **no había techo de gasto IA en
+runtime** (un tenant de marca blanca dispara consumo escrito por terceros) y
+**no había atribución de campaña en `leads`**.
+
+- [x] **Paso 1 — Migraciones aditivas** (`supabase-guardia-presupuesto.sql` +
+  `supabase-crm4-calificacion.sql`): `token_usage` gana `tenant_id`/`clase_tarea`
+  + vertical `'crm'` (sin tabla `ai_usage`: un solo ledger, `act_costo` intacto);
+  `presupuestos_ia` (límite/umbral/acción por tenant, fail-closed sin fila);
+  `leads` gana calificación (señal PARALELA, jamás etapa), `campana_id`/`utm`;
+  `sla_por_etapa` + vistas `v_nutricion` y `v_semaforo_casos` (semáforo CALCULADO
+  de `crm_mensajes`, jamás almacenado; `sin_sla` se declara, no se finge verde).
+- [x] **Paso 2 — `guardia-presupuesto/`** módulo compartido de PLATAFORMA (patrón
+  trio-contrato, NO dentro del CRM): verifica ANTES de cada llamada; al tope →
+  bloquear (atención humana) / degradar (modelo económico) / avisar; fail-closed
+  visible (`sin_presupuesto`/`guardia_no_disponible` BLOQUEAN); registra en
+  `token_usage` con `task_id` no-nulo (índice único del agregado diario) y costo
+  REAL del proveedor (usage.include de OpenRouter). 14 tests.
+- [x] **Paso 3 — crm-canales cableado** (primer consumidor): guardia antes del
+  motor Y del calificador; registro de gasto de ambos; bloqueo = escalada +
+  plantilla de la casa (sin pasar por sup). Contexto de build ahora `businessos/`
+  (COPY cross-context del módulo compartido).
+- [x] **Pasos 4-6 — Calificador + nutrición + atribución**: calificador de
+  intención con las 3 reglas duras (indeterminado ESCALA, jamás toca etapa, el
+  mensaje es dato delimitado — nunca instrucción); nutrición = vista sobre
+  `calificacion='no_califica'` (reactivación bloqueada por P2/HSM); captura del
+  `referral` de Meta (first-touch por ignore-duplicates) sin traer la Marketing
+  API completa. 52 tests del servicio (17 nuevos) + gate de imagen en dev.
+- [ ] **Paso 7 — Verificación humana de artefacto** (patrón, no código): avance
+  de estado condicionado a verificación humana reusa la doble frontera de
+  `enviar-salientes.py` (sha256 del artefacto exacto + fila de autenticidad que
+  el motor no puede fabricar). El agente JAMÁS decide si un comprobante es
+  válido. Se implementa cuando un tenant real lo pida.
+- [ ] **Paso 8 — Fórmulas financieras (CAC/LTV/ROAS) al Agente Financiero del
+  ERP** como gate determinista: `validar_insumos()` rechaza ANTES de invocar
+  nada; las fórmulas son aritmética que se ejecuta, no se infiere. Requiere
+  datos de campaña acumulados (paso 6 ya captura).
+- [ ] **Paso 9 — Catálogo de promociones + recompra**: BLOQUEADO por P2
+  (plantillas HSM + ventana 24h). No prometer en propuesta comercial antes de
+  resolver P2.
+- **Nota módulo `act`**: `guardia-presupuesto` es la única candidata a
+  defendible de las 6 (control pre-llamada + degradación configurable +
+  estado seguro, cableada al inventario); las otras cinco se catalogan
+  vendibles por la regla 2026-07-28 sin proponerse para ratificación.
+- **Deploy pendiente**: aplicar las 2 migraciones a prod + sembrar
+  `presupuestos_ia` del tenant activo + rebuild de crm-canales (contexto nuevo).
+
 ---
 
 ## Línea Meeting Copilot (marca blanca) — MVP construido (2026-07-25)

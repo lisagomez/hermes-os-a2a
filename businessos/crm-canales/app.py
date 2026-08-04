@@ -26,7 +26,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Route
 
+from calificador import Calificador
 from canales import Canales, _token
+from guardia import GuardiaPresupuesto
 from leads import LeadsCrm
 from motor import MotorError, MotorOpenRouter
 from prompt import requiere_humano, system_prompt
@@ -57,6 +59,8 @@ def build_app(
     canales: Canales | None = None,
     sup: SupervisorClient | None = None,
     leads: LeadsCrm | None = None,
+    guardia: GuardiaPresupuesto | None = None,
+    calificador: Calificador | None = None,
     tg_secret: str | None = None,
     wa_verify: str | None = None,
     wa_app_secret: str | None = None,
@@ -67,6 +71,8 @@ def build_app(
     canales = canales or Canales()
     sup = sup or SupervisorClient()
     leads = leads or LeadsCrm()
+    guardia = guardia or GuardiaPresupuesto()
+    calificador = calificador or Calificador()
     tg_secret = tg_secret if tg_secret is not None else os.environ.get("CRM_TELEGRAM_WEBHOOK_SECRET", "")
     wa_verify = wa_verify if wa_verify is not None else os.environ.get("CRM_WHATSAPP_VERIFY_TOKEN", "")
     wa_app_secret = wa_app_secret if wa_app_secret is not None else os.environ.get("CRM_WHATSAPP_APP_SECRET", "")
@@ -74,7 +80,10 @@ def build_app(
     async def health(_: Request) -> JSONResponse:
         return JSONResponse({"status": "ok", "servicio": "crm-canales"})
 
-    async def atender(tenant_id: str, canal: str, canal_uid: str, nombre: str | None, texto: str) -> None:
+    async def atender(
+        tenant_id: str, canal: str, canal_uid: str, nombre: str | None, texto: str,
+        referral: dict | None = None,
+    ) -> None:
         """El corazón del CRM: un mensaje entrante → una atención trazada."""
         tenant = await store.tenant(tenant_id)
         if tenant is None:
@@ -94,15 +103,65 @@ def build_app(
         await store.mensaje(tenant_id, conv["id"], "entrante", canal, texto, "cliente")
         # Puente al pipeline de adquisición: primer mensaje → lead (origen 'crm').
         # Idempotente (ignore-duplicates): los mensajes siguientes no lo tocan.
-        await leads.capturar(tenant_id, canal, canal_uid, nombre, texto)
+        # True SOLO si el lead nació ahora → dispara la calificación de intención.
+        es_lead_nuevo = await leads.capturar(tenant_id, canal, canal_uid, nombre, texto, referral=referral)
 
-        if requiere_humano(texto):
+        # Guardia de presupuesto: se decide ANTES de cualquier llamada al modelo
+        # (calificador incluido). Bloqueo = estado seguro explícito: escalada a
+        # humano + plantilla de la casa, jamás un fallo silencioso.
+        techo_humano = requiere_humano(texto)
+        decision = None
+        if es_lead_nuevo or not techo_humano:
+            decision = await guardia.evaluar(tenant_id, "basica")
+
+        if es_lead_nuevo:
+            if decision is not None and decision.permitido:
+                resultado = await calificador.calificar(texto)
+                await leads.calificar(tenant_id, canal, canal_uid, resultado)
+                uso_cal = calificador.ultimo_uso
+                if uso_cal:
+                    await guardia.registrar(
+                        tenant_id=tenant_id, clase="basica", modelo=uso_cal["modelo"],
+                        tokens_in=uso_cal["tokens_in"], tokens_out=uso_cal["tokens_out"],
+                        costo_usd=uso_cal["costo_usd"], task_id=f"crm-{tenant_id}-cal-{conv['id']}",
+                    )
+                if resultado["decision"] == "indeterminado":
+                    # Regla dura §4: indeterminado escala a humano, no adivina.
+                    await store.escalar(conv["id"])
+            else:
+                motivo = decision.motivo if decision is not None else "sin_evaluar"
+                log.warning("calificación omitida (guardia: %s) tenant=%s", motivo, tenant_id)
+
+        if techo_humano:
+            await store.escalar(conv["id"])
+            respuesta = RESPUESTA_ESCALADO.format(marca=tenant["marca"])
+        elif decision is None or not decision.permitido:
+            motivo = decision.motivo if decision is not None else "sin_evaluar"
+            log.error(
+                "guardia de presupuesto BLOQUEA respuesta (tenant=%s conv=%s motivo=%s gasto=%s límite=%s)",
+                tenant_id, conv["id"], motivo,
+                getattr(decision, "gasto_mes", None), getattr(decision, "limite", None),
+            )
             await store.escalar(conv["id"])
             respuesta = RESPUESTA_ESCALADO.format(marca=tenant["marca"])
         else:
+            if decision.degradado:
+                log.warning(
+                    "guardia degradó al modelo económico (tenant=%s): tope alcanzado con accion=degradar",
+                    tenant_id,
+                )
             historial = await store.historial(conv["id"])
             try:
-                respuesta = await motor.responder(system_prompt(tenant, canal), historial, texto)
+                respuesta = await motor.responder(
+                    system_prompt(tenant, canal), historial, texto, modelo=decision.modelo
+                )
+                uso = motor.ultimo_uso
+                if uso:
+                    await guardia.registrar(
+                        tenant_id=tenant_id, clase="basica", modelo=uso["modelo"],
+                        tokens_in=uso["tokens_in"], tokens_out=uso["tokens_out"],
+                        costo_usd=uso["costo_usd"], task_id=f"crm-{tenant_id}-{conv['id']}",
+                    )
                 # Plan D-40: sup-crm valida el saliente según el nivel del tenant
                 # (A1 = juez siempre; A2 = gates siempre + juez muestreado, y el
                 # 100% de lo sensible). Fail-closed: rechazo o sup caído →
@@ -186,7 +245,14 @@ def build_app(
                     if m.get("type") == "text" and m.get("from"):
                         texto = (m.get("text") or {}).get("body", "")
                         if texto:
-                            await atender(tenant_id, "whatsapp", m["from"], nombres.get(m["from"]), texto)
+                            # Atribución de campaña (§8): el bloque referral llega
+                            # cuando el contacto entra por anuncio clic-a-WhatsApp.
+                            # Se captura tal cual (first-touch); el módulo de
+                            # Marketing API completo NO se integra a propósito.
+                            await atender(
+                                tenant_id, "whatsapp", m["from"], nombres.get(m["from"]),
+                                texto, referral=m.get("referral"),
+                            )
         return JSONResponse({"ok": True})
 
     return Starlette(
