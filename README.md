@@ -123,7 +123,9 @@ línea CRM arrancó. En corto:
 - **Departamento de Procesos** ✅ (primera corrida real aprobada) · **ERP-0 +
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido, desplegado y con login
-  (magic link + allowlist del equipo, 2026-07-28).
+  (magic link + allowlist del equipo, 2026-07-28), con **agendamiento** completo
+  (catálogo de asesores, bandeja de aprobación, reserva pública) y sección
+  **Google Workspace** en `/herramientas` (2026-08-02).
 - **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
   config-driven en las 3 apps internas; auditoría adversarial post-merge con
   sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,

@@ -37,6 +37,9 @@
 - [Control de clientes/proyectos + GAL MEXICO](project/control-clientes-proyectos.md) — VIVO 2026-07-22 (PR #115): activos-clientes/ multitenant (slug=tenant), catálogo S-01..S-09, GAL con branding ingerido y proyecto rediseno-web en propuesta; snapshot proyectos.json al volumen de clientes (lee origin/master).
 - [CRM-0/1/2/3 — canales + supervisor + muestreo + expediente](project/crm0-canales.md) — VIVOS en runtime 2026-07-21 (PRs #105/#107): `crm-canales` :4600 (edge `/crm/*`, webhooks Telegram/WhatsApp E2E en prod) + `sup-crm` :4700 (A1: valida todo; A2: muestreo con evidencia; CRM-3: expediente de promoción con botón humano vía cron nocturno); 47 tests; conectar tenant real = token BotFather / número Meta (runbook en la memoria).
 
+- [Departamento de Buzón — arquitectura del build](project/buzon-a2a.md) — piezas del build HERALDO-6 (PRs #208/#209): `politicas.py` vendorado en el juez, host-jobs, corpus de 62 inyecciones, §11 onboarding, deuda TS declarada. El ESTADO operativo vive en buzon-agentico.md (modo espejo activo).
+- [Línea Enriquecimiento — historia (App A)](project/linea-enriquecimiento.md) — historia de la línea: plan con ataque adversarial, A1 #198 (dimensión `datos-personales`, LFPDPPP 2025 — la ley de 2010 está abrogada), A2 #199 (SQL con el gate 69-B como invariante en la tabla), A3 #210 y cierre desplegado. El ESTADO operativo vive en app-a-enriquecimiento.md.
+
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
 - [Mantener docs vivas](feedback/mantener-docs-vivas.md) — tras cada cambio importante, actualizar aprendizajes (CLAUDE.md), roadmap, memoria y BUSINESS_LOGIC.md.

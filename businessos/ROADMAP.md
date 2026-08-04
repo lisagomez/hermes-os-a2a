@@ -182,6 +182,13 @@ Pasarela de pago tradicional (Polar):
   (scopes products/checkouts) + producto PWYW «Cobro de servicios»; flujo completo
   bandeja → checkout → link → pago con tarjeta de prueba → `--sync` → `pagado` en `cobros`.
   Gotcha corregido en `polar-cobros.py`: Cloudflare bloquea el UA de urllib (error 1010).
+- [x] **Loop de cobros web cerrado (2026-08-02, PR #203)**: el checkout de la landing
+  (`cliente-web2/api/checkout`) ya deja rastro — fila en `cobros` al crearse (estado
+  `link_creado`, `monto: null` porque es pay-what-you-want) — y hay **webhook real** en
+  `api/webhooks/polar` con verificación de firma (`@polar-sh/sdk/webhooks`, evento
+  `checkout.updated`). `polar-cobros.py --sync` pasa de mecanismo primario a respaldo de
+  reconciliación. Migración `supabase-fase3b-cobros-web.sql` (`cobros.monto` nullable)
+  aplicada en producción, idempotente verificada corriéndola dos veces.
 - [ ] **RESIDUAL (producción)** — repetir en Polar producción cuando haya cobros reales:
   quitar `POLAR_API` del `.env` y reemplazar token + product_id por los de prod
 
@@ -768,6 +775,11 @@ el fetch fallaba en silencio y el trío construía sobre un master de 11 commits
 > **Fase 11** (frontends web: cliente-web2 + chat en vivo + control-interno) no tiene
 > sección propia: su estado vive en la corriente "Canales de comunicación" y en
 > `.claude/memory/project/frontend-web2.md`.
+>
+> Nota 2026-08-02 (PR #204): `cliente-web2` volvió a ser **solo-CLI** en Vercel. Un
+> `vercel link` corrido para inspeccionar variables lo conectó a GitHub sin pedirlo, y con
+> Root Directory en el monorepo cada push salía en rojo. Revertido con `vercel git
+> disconnect`; el runbook (`frontends/DEPLOY-web2.md`) ya lo documentaba desde 2026-07-18.
 
 ## FASE 12 — Departamento de Contratos Inteligentes: fábrica de Smart Contracts (Fabric) 🟡 Fases 1-5 verificadas + escrow-v1 FIRMADA + sandbox efímero operativo (2026-07-28); Fase 6 pendiente (ceremonia + e2e)
 
@@ -1162,6 +1174,15 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   estados explícita, slots UTC-internos con TZ del asesor vía Intl (DST testeado),
   multi-tenant desde día 1. SQL diseñado SIN aplicar:
   `businessos/supabase-fase14-agendamiento.sql`. 162 unit + 7 smokes. SPEC §19.
+- [x] **Google Workspace en `/herramientas` (2026-08-02, PRs #205/#206/#207)**: la única
+  integración de Google que existe en el repo es el Calendar de `control-interno` (CLI
+  `gog` + tablas `calendar_sources`/`calendar_events`/`calendar_sync_state`, patrón "un
+  mirror, una pluma"). En vez de construir una segunda, la tarjeta **lee el mirror
+  existente** (`/api/calendar/events`) y declara su estado real: el esquema y la RLS están
+  listos, pero la integración **no está activa** (sin `gog` instalado, sin OAuth, 0 filas
+  en producción). Categoría propia `google` en el launcher, de modo que toda herramienta
+  Google futura cae en esa sección sin tocar el grid.
+- [x] **5 vistas del buzón + 16ª herramienta** (PR #208) — ver §Departamento de Buzón.
 - [ ] Post-merge agendamiento: aplicar fase14 al conectar Supabase (management
   API), host-job notificador real (enviar-salientes + crm-canales), rate-limit y
   token HMAC de `/reservar`, mapeo CRM cita→etapa (decisión de negocio: "cita
@@ -1250,6 +1271,39 @@ ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
 - Pendientes estructurales: D-03 (CLI act formal, hoy puente psql interino),
   separación física de repos defendibles (D-12), `act_proteccion` de los
   defendibles ratificados, ERP-1+ según maestro.
+
+## Línea Enriquecimiento (App A — Waterfall Enrichment) ✅ fusionada y DESPLEGADA en producción (2026-08-02)
+
+Primera de las 3 apps del encargo; plan aprobado con **ataque adversarial** el
+2026-07-30. Enriquece leads en cascada **ordenada por costo y sin LLM** (cero tokens por
+lead), con el grafo como gate de entrada: ningún dato se toca si la prospección no es
+lícita.
+
+```
+gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → patrón de correo por dominio
+```
+
+- [x] **A1 — PR #198**: dimensión `datos-personales` en el grafo (4 categorías + 4 reglas
+  MX para prospección B2B) **sin tocar el evaluador** — reusa los veredictos
+  `permitido|dudoso|no_permitido`. De paso corrige una deuda real: la LFPDPPP de 2010 fue
+  abrogada (Decreto DOF 20-03-2025, vigente 21-03-2025; autoridad hoy la Secretaría
+  Anticorrupción y Buen Gobierno, INAI extinto) — el seed citaba una ley muerta.
+- [x] **A2 — PR #199**: `businessos/supabase-enriquecimiento.sql` (5 tablas + 2 vistas)
+  con el **gate 69-B como invariante en la tabla**, no como cortesía del código, y
+  `supabase-enriquecimiento.test.sql` (27 pruebas de comportamiento en Postgres efímero).
+- [x] **A3 — PR #210 (fusionado 2026-08-02)**: el servicio `businessos/enriquecimiento-a2a/`
+  que las consume + `vigilancia-69b.py` + RPC `dominio_patron_reforzar` + alta en compose en
+  el puerto **5000** (el 4900 lo tomó `buzon-a2a` en el #208). Gate de imagen **cerrado**
+  sobre el tip exacto: 77/77 tests, `docker build`, `Up (healthy)`, agent-card con la
+  skill `enriquecer-lead`, opacidad 7/7 y JSON-RPC e2e donde el fail-closed opera de
+  verdad ("grafo inalcanzable: la cascada no corre sin gate").
+- [x] **Aplicada y desplegada (2026-08-02)**: los dos SQL en producción por management
+  API (404→200 verificado), servicio vivo en hermes-net (healthy) con smoke de
+  protocolo real, y `vigilancia-69b.py` cableado en `nightly-jobs.sh`. El detalle
+  operativo y los fixes del QA (#213) viven en la entrada `enriquecimiento-a2a` de la
+  Fase 9 (adquisición) y en `.claude/memory/project/app-a-enriquecimiento.md`.
+
+---
 
 ## Descartados (con motivo)
 
