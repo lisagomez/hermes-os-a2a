@@ -22,7 +22,7 @@ name: businessos
 #
 # PROFILES (arranque escalonado, para caber en cajas chicas — CX22/CX32):
 #   El 'docker compose up -d' por DEFAULT levanta SOLO el nucleo minimo:
-#       hermes-negocio + grafo + grafo-db + a2abot   (~3.5 GB de techo)
+#       hermes-negocio + grafo + grafo-db + a2abot + frontend-ci   (~4.5 GB de techo)
 #   Negocio es la vertical de arranque: los dashboards apuntan a ella y lleva el
 #   tracking de presupuesto. Los demas servicios estan bajo profile y se suman a
 #   demanda (Compose tambien los enciende solo si otro servicio activo depende de
