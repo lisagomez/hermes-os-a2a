@@ -238,6 +238,34 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- FLUJOS-A2A (explorador del grafo, App C paso 2) ----------
+  # Proxy de LECTURA sobre el grafo para la capa visual de Mission Control
+  # (paso 3, /grafo/explorador): compone /arbol (jurisdiccion→dimension→
+  # reglas con vigencia y fuente), /constructor (insumos del payload de
+  # POST /evaluaciones) y passthrough de /catalogos y /evaluaciones.
+  # SOLO GETs hacia el grafo — jamas escribe reglas, por construccion.
+  # Nota: pese al sufijo, NO habla el protocolo A2A (es REST plano; el
+  # puente A2A del grafo es grafo-a2a). Puerto 5100 reservado en
+  # RECOMENDACION-reuniones-headroom.md §5; nunca expuesto al navegador
+  # (Mission Control lo consume server-side dentro de hermes-net).
+  # Perfil a2a como su analogo grafo-a2a: no engorda el nucleo siempre-arriba.
+  flujos-a2a:
+    build: ./flujos-a2a
+    container_name: flujos-a2a
+    profiles: ["a2a"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5100:5100"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - GRAFO_URL=http://grafo:3000
+    depends_on:
+      grafo:
+        condition: service_healthy
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.25", memory: 192M }
+
   # ---------- VENTAS-A2A (adquisicion de clientes, Fase 9) ----------
   # La puerta COMERCIAL publica del departamento de adquisicion: Agent Card
   # con fronteras negativas literales (no cierra tratos, no fija precios, no
