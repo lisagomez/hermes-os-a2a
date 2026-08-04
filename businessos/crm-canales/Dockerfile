@@ -2,14 +2,20 @@
 # Escucha en :4600 dentro de hermes-net; expuesto SOLO a 127.0.0.1 (ver compose).
 # El edge Caddy publica /crm/* hacia aquí; nada más de este servicio es público.
 # GOTCHA 2026-07-10: todo módulo nuevo del servicio DEBE añadirse al COPY.
+# CONTEXTO DE BUILD = businessos/ (no este dir): el COPY cross-context trae el
+# módulo compartido guardia-presupuesto (patrón trio-contrato). Ver compose.
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY crm-canales/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY prompt.py motor.py store.py canales.py sup.py leads.py app.py ./
+COPY crm-canales/prompt.py crm-canales/motor.py crm-canales/store.py \
+     crm-canales/canales.py crm-canales/sup.py crm-canales/leads.py \
+     crm-canales/calificador.py crm-canales/app.py ./
+# Módulo compartido de plataforma (guardia de presupuesto IA)
+COPY guardia-presupuesto/guardia.py ./
 
 EXPOSE 4600
 

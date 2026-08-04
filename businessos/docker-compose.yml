@@ -374,7 +374,9 @@ services:
         limits: { cpus: "0.5", memory: 256M }
 
   crm-canales:
-    build: ./crm-canales
+    build:
+      context: .              # businessos/: el Dockerfile copia guardia-presupuesto/
+      dockerfile: crm-canales/Dockerfile
     container_name: crm-canales
     profiles: ["a2a"]
     restart: unless-stopped
