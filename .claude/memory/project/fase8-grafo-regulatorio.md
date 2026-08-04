@@ -324,3 +324,13 @@ logística, más países):**
    fiscal/contable/contractual).
 4. Todo prompt de investigación→seed debe traer el esquema real embebido y validarse
    con `gen_seed_sql.py --check` antes de confiar. Ver [[fuentes-legales-mx]].
+
+## Runtime al día (2026-08-04)
+El grafo de producción quedó sincronizado con el repo: rebuild de la imagen (endpoints
+de lectura App C paso 1, PR #225) + re-seed EN VIVO con `seed/02-seed.sql` (idempotente
+por diseño: upserts sobre claves naturales + `_bajas` con cascade). Estado verificado:
+33 reglas / 5 dimensiones (entró `datos-personales` del PR #198, que llevaba 3 días
+mergeado sin aplicar), LFPDPPP 2010 retirada, 17 `evaluaciones` conservadas. Procedimiento
+canónico del re-seed (gate `--check` → psql `ON_ERROR_STOP` → `docker restart grafo` →
+smoke): CLAUDE.md aprendizaje 2026-08-04. Recrear el volumen queda como último recurso
+(pierde `evaluaciones`).
