@@ -96,3 +96,6 @@ credentials.json
 client_secret*.json
 token.json
 *.token.json
+
+# Paquetes de sistema descargados (apt-get download)
+*.deb
