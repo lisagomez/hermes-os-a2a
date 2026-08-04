@@ -54,6 +54,27 @@ gh pr create --fill --base master
 - Corre los tests del servicio que tocas **antes** de pedir review.
 - ¿Añadiste un módulo Python nuevo a un servicio? Súmalo a su `Dockerfile` (COPY
   explícito) en el MISMO PR, o el runtime crashea (lección viva del repo).
+- **El CI exige que tu PR deje rastro en un documento vivo** (gate `docs-vivos`). Si
+  cambias código, actualiza lo que corresponda en el MISMO PR:
+
+  | Documento | Qué va ahí |
+  |---|---|
+  | `businessos/ROADMAP.md` | el avance de la fase o línea que tocas |
+  | `CLAUDE.md` | el gotcha que costó iteraciones (auto-blindaje) |
+  | `DECISIONES.md` | la decisión cerrada, en una línea (append-only) |
+  | `README.md` | solo si cambia el estado general del proyecto |
+  | `.claude/memory/**` | el estado por iniciativa |
+  | `BUSINESS_LOGIC.md` | si cambia la lógica de negocio |
+
+  ¿De verdad no hay nada que registrar (un renombre, un refactor sin cambio
+  observable)? Dilo explícitamente: etiqueta **`sin-impacto-doc`** en el PR, o una
+  línea en el cuerpo — `sin-impacto-doc: <motivo>`. El gate no busca burocracia; busca
+  que nadie tenga que leer 13 PRs para enterarse de en qué va el proyecto. Puedes
+  correrlo antes de subir:
+
+  ```bash
+  CHANGED_FILES="$(git diff --name-only origin/master...HEAD)" bash scripts/gate-docs-vivos.sh
+  ```
 
 ## 4. Pedirle trabajo a los agentes
 

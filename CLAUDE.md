@@ -1412,6 +1412,24 @@ npm run lint         # ESLint
   borrar el `.env.local` que deja, mina de 2026-07-17).
 - **Aplicar en**: todo uso de la CLI de Vercel sobre proyectos de este monorepo.
 
+### 2026-08-02: Una doctrina sin gate es una costumbre — el mapa de ruta se congeló 13 PRs seguidos
+- **Error**: "mantener docs vivas" era regla del repo desde 2026-06-28 (feedback de Elisa) y
+  estaba escrita en CLAUDE.md, en la skill `session-lifecycle` y en la memoria. Aun así,
+  entre el PR #197 (07-30) y el #209 (08-02) se fusionaron **13 PRs y ninguno tocó
+  ROADMAP/README/CLAUDE.md**: el mapa se leía como si el proyecto se hubiera detenido en la
+  Fase 13, mientras en producción ya vivía un departamento nuevo. Lo detectó Victor leyendo
+  el ROADMAP, no el equipo ni el CI. Es el mismo patrón de 2026-07-12 (rutinas "documentadas"
+  que no existían en `cron list`) y de 2026-07-13 (la garantía serial que era costumbre hasta
+  que hubo `asyncio.Lock`): **si la regla no tiene mecanismo, es una intención**.
+- **Fix**: gate bloqueante `docs-vivos` en el CI (`scripts/gate-docs-vivos.sh`) — un PR con
+  código sustantivo debe tocar un documento vivo, con escapatoria explícita y con motivo
+  (etiqueta `sin-impacto-doc` o línea en el cuerpo). Control de reversión hecho contra los 14
+  PRs reales del periodo: bloquea los 9 que congelaron el mapa y deja pasar los 5 de
+  documentación/CI. Un SPEC o un PROGRESS **no** cuentan como documento vivo: varios de esos
+  13 PRs los tocaron y aun así nadie se enteró del avance.
+- **Aplicar en**: toda regla de proceso que dependa de que alguien se acuerde. Antes de darla
+  por vigente, pregunta qué la haría fallar en rojo — y si nada puede, no está vigente.
+
 ### 2026-08-02: Una migración mergeada NO es una migración aplicada (despliegue de App A)
 - **Error**: al desplegar `enriquecimiento-a2a`, las 5 tablas del servicio **no existían en el
   Supabase de producción** (404 en las cinco) aunque `supabase-enriquecimiento.sql` llevaba

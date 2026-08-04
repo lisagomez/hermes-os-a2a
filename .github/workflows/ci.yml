@@ -33,3 +33,26 @@ jobs:
       # aspiracional (#6 del ataque adversarial al PR #194).
       - name: Tests (specs sin navegador + paridad app-registry)
         run: npx playwright test
+
+  # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
+  # (ROADMAP / CLAUDE.md / DECISIONES / README / memoria / BUSINESS_LOGIC).
+  # Origen: 13 PRs seguidos (2026-07-30 → 08-02) dejaron el mapa de ruta congelado
+  # en la Fase 13. Escapatoria explícita: etiqueta 'sin-impacto-doc' o una línea
+  # 'sin-impacto-doc: <motivo>' en el cuerpo del PR.
+  docs-vivos:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gate documentos vivos
+        env:
+          # Por env, nunca interpolado en el shell: el cuerpo del PR es texto ajeno.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          export CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
+          export PR_LABELS="$(printf '%s' "$LABELS_JSON" | python3 -c 'import sys,json; print("\n".join(json.load(sys.stdin)))')"
+          bash scripts/gate-docs-vivos.sh
