@@ -1265,8 +1265,11 @@ Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorado
 + constructor de flujos de consulta del grafo regulatorio de `businessos/grafo/`
 (jurisdicción → dimensión → regla → impacto). La capa visual pedida por Elisa.
 
-- [x] **Paso 1 — Endpoints de lectura pura en el grafo** (rama
-  `feat/grafo-endpoints-lectura`): `GET /reglas?jurisdiccion=&dimension=&fecha=`
+- [x] **Paso 1 — Endpoints de lectura pura en el grafo** (PR #225, mergeado y
+  **DESPLEGADO en runtime 2026-08-04** — rebuild del grafo en Hetzner + re-seed en vivo
+  del `02-seed.sql` idempotente que cerró el drift del PR #198: 33 reglas / 5 dimensiones
+  con `datos-personales`, LFPDPPP 2010 retirada, `evaluaciones` intactas; procedimiento
+  en CLAUDE.md aprendizaje 2026-08-04): `GET /reglas?jurisdiccion=&dimension=&fecha=`
   (conocimiento completo con impactos y fuente; `vigente` calculado a la fecha pedida —
   reproducible/auditable — y `Cache-Control: no-store`; filtros que normalizan
   mayúsculas), `GET /jurisdicciones` y `GET /dimensiones` (catálogos con nombre).
