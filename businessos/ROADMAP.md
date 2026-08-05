@@ -1434,6 +1434,48 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
 
 ---
 
+## Propuestas en revisión — tenencia B2B, respaldos y endurecimiento A2A 🔵 SIN APLICAR (2026-08-05)
+
+Ocho documentos entregados por la dueña el 2026-08-04, incorporados al repo **tal cual**
+para que queden versionados y visibles. **Nada de esto está aplicado ni ejecutado**: no se
+corrió el SQL, no se creó ningún recurso, no se cambió ningún host-job. Son propuestas
+pendientes de decisiones (cada documento lista las suyas).
+
+| Documento | Dónde quedó | Qué propone |
+|---|---|---|
+| Respaldos 3-2-1-1-0 | `businessos/FASE0-respaldos.md` | Borg → Storage Box + archivo mensual cifrado en B2 con Object Lock; **retira** `backup-verticales.sh` como copia de recuperación |
+| Arquitectura multi-inquilino B2B | `businessos/arquitectura-multitenant-b2b.md` | Doctrina: jerarquía socio→tenant, 5 roles, propagación de contexto, ciclo de vida y baja |
+| Migración de tenencia | `businessos/supabase-organizaciones.sql` | `organizaciones`/`membresias`/`usuarios` + `tenant_id` + RLS real con rol `app_tenant` |
+| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 10 pruebas; T5–T8 son meta-pruebas que se rompen solas ante una regresión futura |
+| Orden de aplicación | `businessos/README-migracion-tenancy.md` | Efímero primero, idempotencia, y los cinco gotchas |
+| Aprovisionamiento de workspace | `.claude/PRPs/prp-workspace-meeting-copilot.md` | El workspace como objeto de primera clase en meeting-copilot; depende de fase 14 (sin aplicar) |
+| Anclas de confianza | `businessos/gobernanza/anclas-de-confianza.md` | Dos anclas independientes (raíz A2A + CAs de Fabric) y guion de ceremonia |
+| Endurecimiento del plano A2A | `.claude/PRPs/prp-endurecimiento-a2a.md` | H1–H4: traza, PKI, mTLS con allowlist por par, firma de cards, frontera de contenido externo |
+
+**Tres cosas que hay que resolver antes de ejecutar nada de esto:**
+
+1. **Choque de tipo en `tenant_id`.** La migración usa `tenant_id uuid` con FK a
+   `organizaciones(id)`, pero el repo ya tiene `tenant_id text` (slug, default `'a2a'`) en
+   `agenda_*` (fase 14), `buzones`/`correos_*` y `crm_*` — desviación **deliberada y
+   documentada** en `supabase-buzon.sql`, más `crm_tenants` con PK de texto. Sobre esas
+   tablas el `add column if not exists` no hace nada, el `update` las llena con el uuid en
+   formato texto sin error, y el bloque 5 revienta al crear la FK. Decidir primero si se
+   unifica a `uuid` (conversión aparte) o si `organizaciones` adopta el slug de texto.
+2. **Solape con la ceremonia ya escrita.** `red-tier1-iac/CEREMONIA.md` cubre las CAs de
+   Fabric; `gobernanza/anclas-de-confianza.md` es un superconjunto que añade el ancla del
+   plano A2A y funde ambas en un solo evento. Hay que reconciliarlos: si la ceremonia se
+   ejecuta con el guion viejo, la decisión de dos anclas se pierde y recuperarla implica
+   repetir la ceremonia y reemitir todos los MSP.
+3. **Ventana de Fase 12.** El documento de anclas es el único de los ocho con fecha límite:
+   se cierra cuando ocurra la ceremonia de Fabric (Fase 12, hoy 🟡 con la ceremonia
+   pendiente). Bloquea el paso 2 del PRP de endurecimiento.
+
+Nota menor: el PRP de endurecimiento habla de "los doce servicios"; el compose actual tiene
+9 con sufijo `-a2a` más candidatos (`chat-web2`, `crm-canales`, `sup-crm`, `edge`). Su propio
+paso 0 pide justamente ese inventario, así que el número está por confirmar.
+
+---
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de
