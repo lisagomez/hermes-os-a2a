@@ -1519,4 +1519,22 @@ npm run lint         # ESLint
   hasta aplicar el seed al runtime) y todo dato-semilla de servicios con BD propia: preguntar
   siempre "¿esto llega al runtime solo, o alguien tiene que aplicarlo?".
 
+### 2026-08-05: Un rebuild puede ACTIVAR código que la imagen vieja nunca corrió (el 500 del panel en Docker)
+- **Error**: al desplegar App C paso 3 se reconstruyó `a2abot` en Hetzner y las 8 rutas del
+  panel salieron en **500**: la imagen nueva incluía el middleware de auth (mergeado el
+  2026-07-24) y el compose **nunca reenvió** `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` — el
+  runbook §5 pedía esas vars desde el mismo día, pero nadie las cableó porque la imagen
+  vieja (pre-auth) seguía corriendo y "todo funcionaba". Documentado ≠ aplicado, otra vez:
+  la deuda quedó invisible 12 días hasta el primer rebuild (hermano del gotcha 2026-07-23
+  "primera reconstrucción tras N días = minas de todo lo integrado en medio").
+- **Fix**: el compose reenvía las 3 vars (PR #234); `NEXT_PUBLIC_SITE_URL` se omite a
+  propósito en Docker — el fallback al `origin` de la petición manda el magic link al host
+  del túnel y evita la mina PKCE de hosts cruzados (2026-07-29). El auth del panel es 100%
+  server-side (nadie importa `lib/supabase/client.ts`) → basta runtime env, el Dockerfile
+  sigue construyendo sin secretos.
+- **Aplicar en**: todo servicio cuyo runtime Docker comparte código con un deploy gestionado
+  (Vercel): al mergear una feature que exige env nuevas, cablearlas en TODOS los runtimes
+  en el MISMO cambio, no solo donde se va a desplegar hoy. Y el smoke post-rebuild va
+  contra el puerto INTERNO real del contenedor (`docker port`), no el que uno recuerda.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
