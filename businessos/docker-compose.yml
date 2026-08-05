@@ -184,6 +184,9 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - GRAFO_URL=http://grafo:3000
+      # Explorador (App C paso 3): resuelve por DNS interno de hermes-net; si el
+      # perfil a2a no esta levantado, la vista degrada a un aviso honesto.
+      - FLUJOS_URL=http://flujos-a2a:5100
     networks: [hermes-net]
     deploy:
       resources:

@@ -37,10 +37,11 @@ function render(node: unknown): string {
 
 test('el árbol de Mission Control cumple los invariantes (ids únicos, ≤3 niveles, sin nodos muertos)', () => {
   expect(validarArbol(NAV_MC)).toEqual([])
-  // 3 secciones, 6 páginas navegables de primer clic + 2 subpáginas
+  // 3 secciones, 6 páginas navegables de primer clic + 2 subpáginas de nivel 3
+  // (Adquisición › Tareas y Grafo › Explorador)
   const planos = aplanarNav(NAV_MC)
   expect(planos.filter((p) => p.nivel === 1)).toHaveLength(3)
-  expect(planos.filter((p) => p.nivel === 3)).toHaveLength(1)
+  expect(planos.filter((p) => p.nivel === 3)).toHaveLength(2)
 })
 
 test('esRutaActiva: exacto, prefijo y query como contrato', () => {

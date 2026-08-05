@@ -1342,12 +1342,24 @@ Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorado
   compose (como grafo-a2a, no engorda el núcleo siempre-arriba); REST plano,
   NO protocolo A2A pese al sufijo (ver `flujos-a2a/README.md`). 18 tests
   propios + 83 del grafo + gate de imagen.
-- [ ] **Paso 3 — Capa visual en Mission Control** (`/grafo/explorador`): árbol
-  jurisdicción→dimensión→reglas con badge de vigencia y fuente visible, vista de
-  evaluaciones (disclaimer SIEMPRE), constructor de flujos que genera el payload de
-  `POST /evaluaciones` del grafo (los insumos ya los da `GET /constructor` de
-  flujos-a2a); auth magic link + allowlist; :5100 nunca expuesto al navegador
-  (Mission Control lo consume server-side; requiere `--profile a2a` levantado).
+- [x] **Paso 3 — Capa visual en Mission Control** (`/grafo/explorador`, 2026-08-05):
+  árbol jurisdicción→dimensión→reglas con badge de vigencia, fuente citada visible
+  y huecos de cobertura declarados; evaluaciones con disclaimer SIEMPRE
+  (`EvaluacionCard`); constructor de flujos que deriva regímenes/categorías y
+  emite el payload de `POST /evaluaciones` (botón copiar — la vista JAMÁS
+  escribe, frontera heredada por construcción de flujos-a2a). Consumo
+  exclusivamente server-side (`FLUJOS_URL` en el compose de a2abot, DNS interno
+  de hermes-net; :5100 jamás llega al navegador) detrás del auth existente del
+  grupo (main). Robustez dictada por el ataque adversarial del plan: schemas
+  espejo TOLERANTES con safeParse POR regla (una regla irreconocible se descarta
+  y se CUENTA en la UI, no tira el árbol), `estadoGrafoSchema` pasó de enum de 3
+  valores a string tolerante — cerraba un bug latente: una evaluación de la
+  dimensión regulatorio (`permitido`/`no_permitido`) vaciaba TODAS las
+  evaluaciones de `/grafo` en silencio (el badge conoce los 5 estados y degrada
+  a neutro) —, `fecha` validada antes de armar URLs (422 del proxy ≠ caída), y
+  degradación por-sección con mensajes distintos (no disponible / forma
+  irreconocible / hueco). 15 tests sin navegador (`tests/explorador.spec.ts`).
+  Superficies fuera de hermes-net (Vercel) degradan a aviso honesto.
 
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 

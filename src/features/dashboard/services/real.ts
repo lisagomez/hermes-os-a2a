@@ -21,9 +21,15 @@ import {
   type EtapaEmbudo,
   verticalPantheonSchema,
   contratoScSchema,
+  validarArbol,
+  catalogosExploradorSchema,
+  constructorExploradorSchema,
+  saludFlujosSchema,
   type AiSpend,
   type ContratosVista,
   type DesarrolloVista,
+  type ExploradorParams,
+  type ExploradorVista,
   type GrafoVista,
   type Pantheon,
 } from '../types'
@@ -74,6 +80,78 @@ async function grafo<T>(path: string, schema: z.ZodType<T>): Promise<T | null> {
   }
 }
 
+const FLUJOS_URL = process.env.FLUJOS_URL ?? 'http://flujos-a2a:5100'
+
+async function flujos(path: string): Promise<unknown | null> {
+  // flujos-a2a inalcanzable (perfil a2a apagado, o superficie sin acceso a
+  // hermes-net como Vercel) → null honesto; la vista lo declara, no revienta.
+  // Timeout 12s: el proxy tiene deadline agregado interno de 10s
+  // (FLUJOS_TIMEOUT_S); cortar antes convertiría un grafo lento en un falso
+  // "no disponible".
+  try {
+    const res = await fetch(`${FLUJOS_URL}${path}`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(12_000),
+    })
+    if (!res.ok) return null
+    return (await res.json()) as unknown
+  } catch {
+    return null
+  }
+}
+
+export async function realGrafoExplorador(params: ExploradorParams): Promise<ExploradorVista> {
+  const { jurisdiccion, dimension, fecha } = params
+  const qFecha = fecha ? `?fecha=${fecha}` : ''
+  const conAmbito = Boolean(jurisdiccion && dimension)
+  const rutaConstructor = conAmbito
+    ? `/constructor?jurisdiccion=${encodeURIComponent(jurisdiccion as string)}` +
+      `&dimension=${encodeURIComponent(dimension as string)}` +
+      (fecha ? `&fecha=${fecha}` : '')
+    : null
+
+  const [arbolCrudo, catalogosCrudo, evalsCrudo, constructorCrudo, saludCruda] =
+    await Promise.all([
+      flujos(`/arbol${qFecha}`),
+      flujos('/catalogos'),
+      flujos('/evaluaciones?limit=10'),
+      rutaConstructor ? flujos(rutaConstructor) : Promise.resolve(null),
+      // /health responde aunque el grafo caiga: distingue "flujos-a2a apagado /
+      // superficie sin red" de "flujos vivo pero grafo caído" (culpa correcta).
+      flujos('/health'),
+    ])
+
+  // Evaluaciones: safeParse POR fila (una evaluación irreconocible no borra
+  // las demás — mismo criterio granular que validarArbol) y el descarte se
+  // CUENTA: nada se pierde en silencio.
+  let evaluaciones: ExploradorVista['evaluaciones'] = null
+  let evaluacionesDescartadas = 0
+  if (Array.isArray(evalsCrudo)) {
+    evaluaciones = []
+    for (const fila of evalsCrudo) {
+      const p = evaluacionListadaSchema.safeParse(fila)
+      if (p.success) evaluaciones.push(aplanarEvaluacion(p.data))
+      else evaluacionesDescartadas += 1
+    }
+  }
+
+  const catalogos = catalogosExploradorSchema.safeParse(catalogosCrudo)
+  const constructorAmbito = constructorExploradorSchema.safeParse(constructorCrudo)
+  const salud = saludFlujosSchema.safeParse(saludCruda)
+  return {
+    disponible:
+      arbolCrudo !== null || catalogosCrudo !== null || evalsCrudo !== null ||
+      constructorCrudo !== null,
+    saludFlujos: salud.success ? salud.data : null,
+    arbol: arbolCrudo === null ? null : validarArbol(arbolCrudo),
+    catalogos: catalogos.success ? catalogos.data : null,
+    constructorAmbito: constructorAmbito.success ? constructorAmbito.data : null,
+    constructorFallo: conAmbito && !constructorAmbito.success,
+    evaluaciones,
+    evaluacionesDescartadas,
+  }
+}
+
 export async function realAiSpend(): Promise<AiSpend> {
   const mes = new Date().toISOString().slice(0, 7)
   const [porVertical, diario, porModelo] = await Promise.all([
@@ -120,8 +198,13 @@ export async function realAiSpend(): Promise<AiSpend> {
 export async function realGrafoVista(): Promise<GrafoVista> {
   const [salud, evaluaciones, facturas, contratos, cobros] = await Promise.all([
     grafo('/salud-conocimiento', saludConocimientoSchema),
-    grafo('/evaluaciones?limit=20', z.array(evaluacionListadaSchema)).then(
-      (e) => (e ?? []).map(aplanarEvaluacion)
+    // safeParse POR fila (mismo criterio granular que el explorador): una
+    // evaluación irreconocible no vacía la lista entera en silencio.
+    grafo('/evaluaciones?limit=20', z.array(z.unknown())).then((filas) =>
+      (filas ?? []).flatMap((fila) => {
+        const p = evaluacionListadaSchema.safeParse(fila)
+        return p.success ? [aplanarEvaluacion(p.data)] : []
+      })
     ),
     sb(
       // El agregado vive en la vista (supabase-fix-vista-facturas.sql): PostgREST

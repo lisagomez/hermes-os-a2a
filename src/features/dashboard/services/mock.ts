@@ -1,5 +1,15 @@
 import 'server-only'
-import type { AiSpend, ContratosVista, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type {
+  AiSpend,
+  ContratosVista,
+  CrmVista,
+  DesarrolloVista,
+  ExploradorParams,
+  ExploradorVista,
+  GrafoVista,
+  Pantheon,
+  ReglaExplorador,
+} from '../types'
 import { ETAPAS_EMBUDO } from '../types'
 
 /**
@@ -137,6 +147,149 @@ export const mockGrafoVista: GrafoVista = {
       created_at: '2026-07-02T21:40:00Z',
     },
   ],
+}
+
+// ---------- Grafo · Explorador (App C paso 3) ----------
+// Fixture chico pero con los casos que la UI debe saber pintar: regla vigente,
+// regla derogada (badge no vigente), impacto veredicto_base null (solo
+// requisitos), dimensión sin reglas (hueco de cobertura visible).
+
+const reglaFixture = (extra: Partial<ReglaExplorador>): ReglaExplorador => ({
+  clave: 'mx-fiscal-viaticos',
+  jurisdiccion: 'MX',
+  dimension: 'fiscal',
+  titulo: 'Viáticos deducibles con comprobante',
+  texto_resumen: 'Viáticos deducibles si son estrictamente indispensables y con CFDI.',
+  fuente_cita: 'LISR Art. 28, fracción V',
+  fuente_url: 'https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf',
+  source_version: 'LISR DOF 2024-12-30',
+  vigente_desde: '2025-01-01',
+  vigente_hasta: null,
+  vigente: true,
+  impactos: [
+    {
+      categoria: 'viaticos',
+      regimen: 'PM_TITULO_II',
+      veredicto_base: 'deducible',
+      tope_monto: null,
+      tope_pct: null,
+      requisitos: ['CFDI vigente', 'Pago con medio rastreable'],
+      banderas: [],
+      parametros: {},
+    },
+  ],
+  ...extra,
+})
+
+export function mockGrafoExplorador(params: ExploradorParams): ExploradorVista {
+  const { jurisdiccion, dimension, fecha } = params
+  const conAmbito = Boolean(jurisdiccion && dimension)
+  return {
+    disponible: true,
+    saludFlujos: { status: 'ok', grafo: 'ok', reglas: 3 },
+    evaluacionesDescartadas: 0,
+    arbol: {
+      fecha: fecha ?? null,
+      total_reglas: 3,
+      descartadas: 0,
+      jurisdicciones: [
+        {
+          codigo: 'MX',
+          nombre: 'México',
+          dimensiones: [
+            {
+              codigo: 'fiscal',
+              nombre: 'Fiscal',
+              reglas: [
+                reglaFixture({}),
+                reglaFixture({
+                  clave: 'mx-fiscal-lfpdppp-2010',
+                  titulo: 'Regla derogada (histórica)',
+                  texto_resumen: 'Derogada: no debe guiar ninguna captura.',
+                  vigente_hasta: '2025-03-20',
+                  vigente: false,
+                }),
+              ],
+            },
+            { codigo: 'contable', nombre: 'Contable', reglas: [] }, // hueco de cobertura
+            {
+              codigo: 'regulatorio',
+              nombre: 'Regulatorio',
+              reglas: [
+                reglaFixture({
+                  clave: 'mx-reg-aviso-privacidad',
+                  dimension: 'regulatorio',
+                  titulo: 'Aviso de privacidad obligatorio',
+                  texto_resumen: 'Todo tratamiento de datos personales exige aviso de privacidad.',
+                  fuente_cita: 'LFPDPPP 2025 Art. 3',
+                  impactos: [
+                    {
+                      categoria: null,
+                      regimen: 'GENERAL',
+                      veredicto_base: null, // solo requisitos/banderas
+                      tope_monto: null,
+                      tope_pct: null,
+                      requisitos: ['Aviso de privacidad publicado'],
+                      banderas: ['Multa por omisión'],
+                      parametros: {},
+                    },
+                  ],
+                }),
+              ],
+            },
+          ],
+        },
+        {
+          codigo: 'CO',
+          nombre: 'Colombia',
+          dimensiones: [
+            { codigo: 'fiscal', nombre: 'Fiscal', reglas: [] },
+            { codigo: 'contable', nombre: 'Contable', reglas: [] },
+            { codigo: 'regulatorio', nombre: 'Regulatorio', reglas: [] },
+          ],
+        },
+      ],
+    },
+    catalogos: {
+      jurisdicciones: [
+        { codigo: 'MX', nombre: 'México' },
+        { codigo: 'CO', nombre: 'Colombia' },
+      ],
+      dimensiones: [
+        { codigo: 'fiscal', nombre: 'Fiscal' },
+        { codigo: 'contable', nombre: 'Contable' },
+        { codigo: 'regulatorio', nombre: 'Regulatorio' },
+      ],
+    },
+    constructorAmbito: conAmbito
+      ? {
+          jurisdiccion: (jurisdiccion as string).toUpperCase(),
+          dimension: (dimension as string).toLowerCase(),
+          fecha: fecha ?? null,
+          regimenes: ['PF_ACTIVIDAD_EMPRESARIAL', 'PM_TITULO_II'],
+          regimen_default: 'PM_TITULO_II',
+          categorias: [
+            {
+              clave: 'servicios_profesionales',
+              nombre: 'Servicios profesionales',
+              descripcion: 'Honorarios y consultoría',
+            },
+            { clave: 'viaticos', nombre: 'Viáticos', descripcion: 'Viajes y hospedaje' },
+          ],
+          plantilla_payload: {
+            contexto: {
+              jurisdiccion: (jurisdiccion as string).toUpperCase(),
+              dimension: (dimension as string).toLowerCase(),
+              regimen: 'PM_TITULO_II',
+              ...(fecha ? { fecha } : {}),
+            },
+            conceptos: [{ descripcion: '', importe: null }],
+          },
+        }
+      : null,
+    constructorFallo: false,
+    evaluaciones: mockGrafoVista.evaluaciones,
+  }
 }
 
 export const mockPantheon: Pantheon = [
