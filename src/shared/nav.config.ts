@@ -23,7 +23,15 @@ export const NAV_MC: NavArbol = {
       hijos: [
         { id: 'pantheon', etiqueta: 'Pantheon', href: '/dashboard', exacto: true, glifo: '✦' },
         { id: 'ai-spend', etiqueta: 'AI Spend', href: '/ai-spend', glifo: '＄' },
-        { id: 'grafo', etiqueta: 'Grafo', href: '/grafo', glifo: '◈' },
+        {
+          id: 'grafo',
+          etiqueta: 'Grafo',
+          href: '/grafo',
+          glifo: '◈',
+          hijos: [
+            { id: 'grafo-explorador', etiqueta: 'Explorador', href: '/grafo/explorador' },
+          ],
+        },
       ],
     },
     {

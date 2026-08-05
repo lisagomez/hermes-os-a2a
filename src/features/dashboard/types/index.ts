@@ -52,8 +52,13 @@ export const UMBRAL_ALERTA = 0.8
 
 // ---------- Grafo ----------
 
-// Forma REAL de grafo/schemas.py (verificada contra el codigo, no supuesta)
-export const estadoGrafoSchema = z.enum(['deducible', 'no_deducible', 'dudoso'])
+// Forma REAL de grafo/schemas.py: Literal['deducible','no_deducible','permitido',
+// 'no_permitido','dudoso'] — el vocabulario es POR DIMENSIÓN (fiscal vs
+// regulatorio) y creció una vez ya. z.string(), no enum: un enum de 3 valores
+// aquí vaciaba TODAS las evaluaciones del panel en cuanto llegara una de la
+// dimensión regulatorio (lección 2026-07-23: el schema no es el eslabón frágil).
+// El badge conoce los 5 estados y degrada a neutro ante uno desconocido.
+export const estadoGrafoSchema = z.string()
 export type EstadoGrafo = z.infer<typeof estadoGrafoSchema>
 
 export const fuenteSchema = z.object({
@@ -161,6 +166,153 @@ export const cobroSchema = z.object({
   created_at: z.string(),
 })
 export type Cobro = z.infer<typeof cobroSchema>
+
+// ---------- Grafo · Explorador (App C paso 3; fuente: flujos-a2a :5100) ----------
+// Espejo TOLERANTE de businessos/flujos-a2a/schemas.py (proxy de solo-lectura).
+// Doctrina: el consumidor jamás más estricto que la fuente. Las reglas viajan
+// del grafo intactas; aquí se valida POR REGLA (safeParse granular): una regla
+// irreconocible se descarta y se CUENTA (visible en la UI), nunca tira el árbol.
+
+export const catalogoItemSchema = z.object({ codigo: z.string(), nombre: z.string() })
+export type CatalogoItem = z.infer<typeof catalogoItemSchema>
+
+export const catalogosExploradorSchema = z.object({
+  jurisdicciones: z.array(catalogoItemSchema),
+  dimensiones: z.array(catalogoItemSchema),
+})
+export type CatalogosExplorador = z.infer<typeof catalogosExploradorSchema>
+
+// veredicto_base: string libre y nullable (null = la regla solo aporta
+// requisitos/banderas — así existe en el seed real y el contrato lo tolera).
+export const impactoExploradorSchema = z.object({
+  categoria: z.string().nullish(),
+  regimen: z.string().catch('PM_TITULO_II'),
+  veredicto_base: z.string().nullish(),
+  tope_monto: z.number().nullish(),
+  tope_pct: z.number().nullish(),
+  requisitos: z.array(z.string()).catch([]),
+  banderas: z.array(z.string()).catch([]),
+  parametros: z.record(z.string(), z.unknown()).catch({}),
+})
+export type ImpactoExplorador = z.infer<typeof impactoExploradorSchema>
+
+export const reglaExploradorSchema = z.object({
+  clave: z.string(),
+  jurisdiccion: z.string(),
+  dimension: z.string(),
+  titulo: z.string(),
+  texto_resumen: z.string().catch(''),
+  fuente_cita: z.string(), // regla de oro: nunca sin fuente (sin cita, la regla se descarta y se cuenta)
+  fuente_url: z.string().catch(''),
+  source_version: z.string().nullish(),
+  vigente_desde: z.string().catch(''),
+  vigente_hasta: z.string().nullish(),
+  vigente: z.boolean(),
+  impactos: z.array(impactoExploradorSchema).catch([]),
+})
+export type ReglaExplorador = z.infer<typeof reglaExploradorSchema>
+
+const arbolCrudoSchema = z.object({
+  fecha: z.string().nullish(),
+  total_reglas: z.number(),
+  jurisdicciones: z.array(
+    z.object({
+      codigo: z.string(),
+      nombre: z.string(),
+      dimensiones: z.array(
+        z.object({ codigo: z.string(), nombre: z.string(), reglas: z.array(z.unknown()) })
+      ),
+    })
+  ),
+})
+
+export interface ArbolDimensionExplorador {
+  codigo: string
+  nombre: string
+  reglas: ReglaExplorador[]
+}
+export interface ArbolJurisdiccionExplorador {
+  codigo: string
+  nombre: string
+  dimensiones: ArbolDimensionExplorador[]
+}
+export interface ArbolExplorador {
+  fecha: string | null
+  total_reglas: number
+  jurisdicciones: ArbolJurisdiccionExplorador[]
+  // Reglas que este espejo no reconoció: se descartan UNA a una y se declaran
+  // en la UI ("no sé leer N reglas" ≠ "no hay reglas" ≠ "el servicio no responde").
+  descartadas: number
+}
+
+export function validarArbol(crudo: unknown): ArbolExplorador | null {
+  const outer = arbolCrudoSchema.safeParse(crudo)
+  if (!outer.success) return null
+  let descartadas = 0
+  const jurisdicciones = outer.data.jurisdicciones.map((j) => ({
+    codigo: j.codigo,
+    nombre: j.nombre,
+    dimensiones: j.dimensiones.map((d) => {
+      const reglas: ReglaExplorador[] = []
+      for (const r of d.reglas) {
+        const p = reglaExploradorSchema.safeParse(r)
+        if (p.success) reglas.push(p.data)
+        else descartadas += 1
+      }
+      return { codigo: d.codigo, nombre: d.nombre, reglas }
+    }),
+  }))
+  return {
+    fecha: outer.data.fecha ?? null,
+    total_reglas: outer.data.total_reglas,
+    jurisdicciones,
+    descartadas,
+  }
+}
+
+export const constructorExploradorSchema = z.object({
+  jurisdiccion: z.string(),
+  dimension: z.string(),
+  fecha: z.string().nullish(),
+  regimenes: z.array(z.string()),
+  regimen_default: z.string(),
+  categorias: z.array(
+    z.object({ clave: z.string(), nombre: z.string().catch(''), descripcion: z.string().nullish() })
+  ),
+  plantilla_payload: z.record(z.string(), z.unknown()),
+})
+export type ConstructorExplorador = z.infer<typeof constructorExploradorSchema>
+
+export interface ExploradorParams {
+  jurisdiccion?: string
+  dimension?: string
+  fecha?: string // ya validada (YYYY-MM-DD) por la página antes de llegar aquí
+}
+
+// /health de flujos-a2a: responde aunque el grafo caiga, y reporta su estado.
+// Es lo que permite NO culpar a la pieza equivocada en el empty state.
+export const saludFlujosSchema = z.object({
+  status: z.string(),
+  grafo: z.string(), // 'ok' o el motivo de no-conexión con el grafo
+  reglas: z.number().nullish(),
+})
+export type SaludFlujos = z.infer<typeof saludFlujosSchema>
+
+export interface ExploradorVista {
+  // false = flujos-a2a no respondió NINGÚN endpoint de datos (con saludFlujos
+  // distinguimos: null además = ni el health → perfil a2a apagado o superficie
+  // sin acceso a hermes-net como Vercel; con salud = el caído es el GRAFO).
+  disponible: boolean
+  saludFlujos: SaludFlujos | null
+  arbol: ArbolExplorador | null // null con disponible=true = forma irreconocible (drift)
+  catalogos: CatalogosExplorador | null
+  constructorAmbito: ConstructorExplorador | null
+  constructorFallo: boolean // se pidió un ámbito y flujos-a2a no lo resolvió
+  evaluaciones: Evaluacion[] | null // null = passthrough caído (≠ lista vacía)
+  // Evaluaciones descartadas por forma irreconocible (mismo criterio granular
+  // y visible que ArbolExplorador.descartadas — nada se pierde en silencio).
+  evaluacionesDescartadas: number
+}
 
 export const grafoVistaSchema = z.object({
   salud: saludConocimientoSchema.nullable(), // null = grafo inalcanzable (se muestra, no revienta)

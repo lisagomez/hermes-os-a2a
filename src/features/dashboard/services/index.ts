@@ -1,7 +1,24 @@
 import 'server-only'
-import type { AiSpend, ContratosVista, CrmVista, DesarrolloVista, GrafoVista, Pantheon } from '../types'
+import type {
+  AiSpend,
+  ContratosVista,
+  CrmVista,
+  DesarrolloVista,
+  ExploradorParams,
+  ExploradorVista,
+  GrafoVista,
+  Pantheon,
+} from '../types'
 import { DEPARTAMENTOS_REGISTRADOS } from '../types'
-import { mockAiSpend, mockContratos, mockCrm, mockDesarrollo, mockGrafoVista, mockPantheon } from './mock'
+import {
+  mockAiSpend,
+  mockContratos,
+  mockCrm,
+  mockDesarrollo,
+  mockGrafoExplorador,
+  mockGrafoVista,
+  mockPantheon,
+} from './mock'
 import {
   realAiSpend,
   realContratos,
@@ -10,6 +27,7 @@ import {
   realDepartamentos,
   realMoverLeadEtapa,
   realDesarrollo,
+  realGrafoExplorador,
   realGrafoVista,
   realPantheon,
 } from './real'
@@ -24,6 +42,7 @@ import {
 export interface DataSource {
   aiSpend(): Promise<AiSpend>
   grafoVista(): Promise<GrafoVista>
+  grafoExplorador(params: ExploradorParams): Promise<ExploradorVista>
   pantheon(): Promise<Pantheon>
   desarrollo(departamento?: string): Promise<DesarrolloVista>
   departamentos(): Promise<string[]>
@@ -41,6 +60,7 @@ export interface DataSource {
 const mockSource: DataSource = {
   aiSpend: async () => mockAiSpend,
   grafoVista: async () => mockGrafoVista,
+  grafoExplorador: async (params) => mockGrafoExplorador(params),
   pantheon: async () => mockPantheon,
   // Las tareas fixture son todas del departamento software: filtrar por otro
   // devuelve lista vacía (mismo comportamiento honesto que la fuente real).
@@ -57,6 +77,7 @@ const mockSource: DataSource = {
 const realSource: DataSource = {
   aiSpend: realAiSpend,
   grafoVista: realGrafoVista,
+  grafoExplorador: realGrafoExplorador,
   pantheon: realPantheon,
   desarrollo: realDesarrollo,
   departamentos: realDepartamentos,

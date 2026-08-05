@@ -6,14 +6,19 @@ import { CHROME, STATUS } from '@/shared/constants/colors'
  * icono + texto siempre (regla de status del sistema de viz).
  */
 
-const ESTADO_GRAFO: Record<EstadoGrafo, { color: string; icono: string }> = {
+// Los 5 estados del grafo (vocabulario por dimensión: fiscal deducible/no_deducible,
+// regulatorio permitido/no_permitido). Un estado que no conozcamos degrada a
+// neutro con su texto visible — jamás revienta la vista (el dominio creció una vez ya).
+const ESTADO_GRAFO: Record<string, { color: string; icono: string }> = {
   deducible: { color: STATUS.good, icono: '✓' },
+  permitido: { color: STATUS.good, icono: '✓' },
   dudoso: { color: STATUS.warning, icono: '▲' },
   no_deducible: { color: STATUS.critical, icono: '✕' },
+  no_permitido: { color: STATUS.critical, icono: '✕' },
 }
 
 export function EstadoBadge({ estado }: { estado: EstadoGrafo }) {
-  const e = ESTADO_GRAFO[estado]
+  const e = ESTADO_GRAFO[estado] ?? { color: CHROME.muted, icono: '•' }
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold"
