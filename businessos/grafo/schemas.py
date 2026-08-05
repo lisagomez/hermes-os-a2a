@@ -106,6 +106,19 @@ class CatalogoItem(BaseModel):
     nombre: str
 
 
+class CategoriaItem(BaseModel):
+    """Categoria de gasto del conocimiento (lectura pura, App C paso 2).
+
+    Solo los campos que necesita el constructor de flujos (clave/nombre/
+    descripcion); keywords y exclusiones son maquinaria interna del
+    clasificador y no viajan.
+    """
+
+    clave: str = Field(..., description="Clave de la categoria, ej. 'VIATICOS'")
+    nombre: str
+    descripcion: str
+
+
 class ImpactoRegla(BaseModel):
     """Impacto de una regla tal como lo consume el evaluador (lectura pura).
 

@@ -35,7 +35,7 @@ def _con_seed():
 def test_openapi_sin_db_incluye_lectura():
     """Gotcha PRP-002: el contrato (con los 3 paths nuevos) se genera sin postgres."""
     spec = app.openapi()
-    for path in ("/reglas", "/dimensiones", "/jurisdicciones"):
+    for path in ("/reglas", "/dimensiones", "/jurisdicciones", "/categorias"):
         assert path in spec["paths"], path
     assert client.get("/openapi.json").status_code == 200
 
@@ -121,6 +121,18 @@ def test_catalogos_happy_path():
     assert all(d["nombre"] for d in dim.json())
 
 
+def test_categorias_con_seed_real():
+    """Catalogo de categorias para el constructor (App C paso 2): clave/nombre/
+    descripcion presentes, y las internas del clasificador NO viajan."""
+    _con_seed()
+    r = client.get("/categorias")
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body) == len(SEED["categorias"])
+    assert all(c["clave"] and c["nombre"] and c["descripcion"] for c in body)
+    assert all("keywords" not in c and "exclusiones" not in c for c in body)
+
+
 def test_lectura_sin_db_es_503():
     """Sin overrides las deps importan db real y aqui no hay postgres: 503, no 500."""
     app.dependency_overrides.pop(dep_conocimiento, None)
@@ -128,6 +140,7 @@ def test_lectura_sin_db_es_503():
     assert client.get("/reglas").status_code == 503
     assert client.get("/jurisdicciones").status_code == 503
     assert client.get("/dimensiones").status_code == 503
+    assert client.get("/categorias").status_code == 503
 
 
 def test_fecha_invalida_es_422():

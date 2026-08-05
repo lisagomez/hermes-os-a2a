@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response
 import evaluador
 from schemas import (
     CatalogoItem,
+    CategoriaItem,
     EvaluacionListada,
     EvaluacionRequest,
     EvaluacionResponse,
@@ -156,6 +157,20 @@ def listar_reglas(
 def listar_jurisdicciones(catalogos: dict = Depends(dep_catalogos)) -> list[CatalogoItem]:
     """Catalogo de jurisdicciones (codigo, nombre) — lectura pura para el explorador."""
     return [CatalogoItem(**c) for c in catalogos["jurisdicciones"]]
+
+
+@app.get("/categorias", response_model=list[CategoriaItem], tags=["conocimiento"])
+def listar_categorias(conocimiento: dict = Depends(dep_conocimiento)) -> list[CategoriaItem]:
+    """Categorias de gasto del conocimiento (lectura pura, App C paso 2).
+
+    Las categorias no tienen dimension propia: el ambito se deriva de que
+    reglas las referencian (evaluador.evaluar). Este catalogo da nombre y
+    descripcion; el cruce por ambito lo compone flujos-a2a.
+    """
+    return [
+        CategoriaItem(clave=c["clave"], nombre=c["nombre"], descripcion=c["descripcion"])
+        for c in conocimiento["categorias"]
+    ]
 
 
 @app.get("/dimensiones", response_model=list[CatalogoItem], tags=["conocimiento"])

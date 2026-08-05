@@ -1326,13 +1326,28 @@ Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorado
   Contrato tolerante al seed real (impactos `veredicto_base=null` = solo requisitos;
   fail 503 honesto sin DB, gotcha PRP-002 intacto: openapi sin postgres). 82/82 tests
   (9 nuevos) + gate de imagen + e2e efímero con postgres real del seed (33 reglas).
-- [ ] **Paso 2 — Servicio `businessos/flujos-a2a/`** (proxy/orquestador de LECTURA,
-  puerto **5100** — reservado en `RECOMENDACION-reuniones-headroom.md` §5): compone
-  vistas del grafo para la capa visual; JAMÁS escribe reglas.
+- [x] **Paso 2 — Servicio `businessos/flujos-a2a/`** (proxy de LECTURA, puerto
+  **5100** — reservado en `RECOMENDACION-reuniones-headroom.md` §5): `GET /arbol`
+  (jurisdicción→dimensión→reglas íntegras con vigencia y fuente; huecos de
+  cobertura visibles; 3 lecturas del grafo en paralelo con deadline único),
+  `GET /constructor?jurisdiccion=&dimension=` (regímenes y categorías del ámbito
+  derivados SOLO de reglas vigentes + plantilla del body de `POST /evaluaciones`,
+  validada en interop contra el `EvaluacionRequest` real del grafo),
+  passthrough `/catalogos` y `/evaluaciones` (salida íntegra con disclaimer).
+  JAMÁS escribe reglas — solo GETs hacia el grafo y un test lo verifica sobre
+  las rutas reales; todo fallo del grafo = 503 honesto y logueado. Para
+  cerrar el hueco del constructor, el grafo ganó `GET /categorias`
+  (clave/nombre/descripción; keywords/exclusiones no viajan) → **el deploy de
+  este paso reconstruye DOS imágenes: grafo y flujos-a2a**. Perfil `a2a` del
+  compose (como grafo-a2a, no engorda el núcleo siempre-arriba); REST plano,
+  NO protocolo A2A pese al sufijo (ver `flujos-a2a/README.md`). 18 tests
+  propios + 83 del grafo + gate de imagen.
 - [ ] **Paso 3 — Capa visual en Mission Control** (`/grafo/explorador`): árbol
   jurisdicción→dimensión→reglas con badge de vigencia y fuente visible, vista de
   evaluaciones (disclaimer SIEMPRE), constructor de flujos que genera el payload de
-  `POST /evaluar`; auth magic link + allowlist; :5100 nunca expuesto al navegador.
+  `POST /evaluaciones` del grafo (los insumos ya los da `GET /constructor` de
+  flujos-a2a); auth magic link + allowlist; :5100 nunca expuesto al navegador
+  (Mission Control lo consume server-side; requiere `--profile a2a` levantado).
 
 ## Línea ERP — ERP-0 APLICADO + módulo act VIVO (2026-07-26)
 
