@@ -183,6 +183,14 @@ services:
       - DASHBOARD_DATA=real
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      # Auth del panel (middleware + magic link, server-side): sin estas vars el
+      # middleware revienta con 500 en TODAS las rutas (visto 2026-08-05 al
+      # reconstruir la imagen post-auth). NEXT_PUBLIC_SITE_URL se omite a
+      # proposito: el fallback al origin de la peticion hace que el magic link
+      # apunte al host del tunel (evita la mina PKCE de hosts cruzados 2026-07-29).
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - PANEL_ALLOWED_EMAILS=${PANEL_ALLOWED_EMAILS}
       - GRAFO_URL=http://grafo:3000
       # Explorador (App C paso 3): resuelve por DNS interno de hermes-net; si el
       # perfil a2a no esta levantado, la vista degrada a un aviso honesto.

@@ -115,10 +115,12 @@ Luego, con un correo de la allowlist: pedir enlace en `/login` → abrir el emai
 recibe el mismo mensaje genérico (sin filtrar) pero **no** recibe enlace, y si
 lograra una sesión, el middleware lo manda a `/login?denied=1`.
 
-Recordatorio de drift (aprendizaje 2026-07-23): haz smoke de **las 7 rutas**
-(`/dashboard /ai-spend /grafo /desarrollo /crm /contratos` + `/`), no solo una: `/grafo`
-(evaluaciones) y el health de gateways en `/dashboard` saldrán degradados en
-Vercel (servicios internos inalcanzables) — es esperado, no un bug.
+Recordatorio de drift (aprendizaje 2026-07-23): haz smoke de **las 8 rutas**
+(`/dashboard /ai-spend /grafo /grafo/explorador /desarrollo /crm /contratos` + `/`),
+no solo una: `/grafo` (evaluaciones) y el health de gateways en `/dashboard` saldrán
+degradados en Vercel (servicios internos inalcanzables) — es esperado, no un bug.
+`/grafo/explorador` en Vercel sale con el aviso de `flujos-a2a` no disponible
+(esperado: :5100 solo existe en hermes-net).
 
 ### Smoke AUTENTICADO sin depender del buzón (lo que se usó el 2026-07-25)
 
@@ -166,8 +168,14 @@ conecta a GitHub, replicar `reauthor-tip-vercel.yml`.
 
 El servicio Docker `a2abot` de Hetzner sigue igual (túnel SSH, red interna con
 grafo/gateways vivos). El middleware de auth **también** aplica ahí: quien acceda
-por el túnel ahora verá `/login`. Añade el correo de la dueña a
-`PANEL_ALLOWED_EMAILS` en el `.env` del compose y pon las 3 vars de auth
-(`NEXT_PUBLIC_SUPABASE_URL/ANON_KEY`, `NEXT_PUBLIC_SITE_URL`) para que el login
-funcione también en el server. (Sin ellas, el middleware no puede validar sesión
-y todo redirige a `/login` sin poder entrar.)
+por el túnel ahora verá `/login`. **Aplicado 2026-08-05** (antes solo estaba
+documentado y el primer rebuild post-auth dejó las 8 rutas en 500: sin las vars,
+el middleware ni siquiera puede crear el cliente): el compose reenvía
+`NEXT_PUBLIC_SUPABASE_URL` (reusa `${SUPABASE_URL}`), `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+(nueva var `SUPABASE_ANON_KEY` en el `.env` del server — es la anon key, pública
+por diseño) y `PANEL_ALLOWED_EMAILS` (correo de la dueña). `NEXT_PUBLIC_SITE_URL`
+se omite a propósito en Docker: el fallback al `origin` de la petición hace que
+el magic link aterrice en el host del túnel (`localhost:9200`), evitando la mina
+PKCE de hosts cruzados (2026-07-29). El auth es 100% server-side (nadie importa
+`lib/supabase/client.ts`), así que basta runtime env — el Dockerfile sigue
+construyendo sin secretos.
