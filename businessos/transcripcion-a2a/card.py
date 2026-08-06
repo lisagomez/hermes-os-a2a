@@ -1,7 +1,9 @@
 """card.py — Agent Card de transcripcion-a2a (EG.CRM Hito 3, depto adquisicion).
 
 Puente determinista de speech-to-text: transcribe la entrevista de
-descubrimiento con hablantes y marcas de tiempo, anclada al lead. La promesa
+descubrimiento con marcas de tiempo, anclada al lead. Hablantes solo si el
+motor diariza — el real (groq/whisper) NO: todo tramo sale como `Voz`, igual
+que declara la descripcion servida de la card mas abajo. La promesa
 incluye sus fronteras negativas LITERALES: no resume, no interpreta, no opina
 y no completa lo inaudible — la transcripcion ES la fuente; el analisis es
 tarea de otros skills. La `url` sale de TRANSCRIPCION_PUBLIC_URL para que la

@@ -178,3 +178,18 @@ def test_groq_audio_gigante_es_fallo_permanente_etiquetado(tmp_path: Path):
     motor = GroqWhisperSTT(api_key="gsk_test", max_bytes=10)
     with pytest.raises(RuntimeError, match="PERMANENTE"):
         motor.transcribir(audio, "es-MX")
+
+
+def test_groq_costo_sin_duration_se_declara_desconocido(capsys):
+    """Sin 'duration' no se inventa $0.0000: se declara DESCONOCIDO (2026-07-29)."""
+    GroqWhisperSTT._declarar_costo({"segments": []})
+    salida = capsys.readouterr().out
+    assert "DESCONOCIDO" in salida
+    assert "$0.0000" not in salida
+
+
+def test_groq_costo_con_duration_se_calcula(capsys):
+    GroqWhisperSTT._declarar_costo({"duration": 3600.0})
+    salida = capsys.readouterr().out
+    assert "3600.0s" in salida
+    assert "DESCONOCIDO" not in salida
