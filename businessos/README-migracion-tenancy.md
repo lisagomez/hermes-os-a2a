@@ -14,7 +14,10 @@ Y tres de andamiaje, en `businessos/tenancy/`:
 
 - `00-prelude.sql` — roles, esquema `auth` y extensiones que Supabase ya trae
 - `orden.txt` — manifiesto: qué `.sql` del repo reconstruyen el esquema y en qué
-  orden (el orden **no** es el de los nombres: ver los comentarios del archivo)
+  orden (el orden **no** es el de los nombres: ver los comentarios del archivo).
+  `replay.sh` **falla** si un `.sql` del repo no está aquí ni declarado como
+  excluido: un manifiesto atrasado deja tablas fuera del efímero y T5 no puede
+  echar en falta lo que no existe
 - `replay.sh` — levanta el efímero, replica, migra dos veces y corre la suite
 - `control-reversion.sh` — rompe la migración a propósito y exige que la suite
   se ponga roja

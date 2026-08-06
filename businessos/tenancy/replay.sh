@@ -50,6 +50,34 @@ fi
 echo "▶ Prelude (roles, auth, extensiones)…"
 psql_f < "$DIR/00-prelude.sql" || { echo "✗ El prelude falló: nada más tiene sentido"; exit 1; }
 
+# ── El manifiesto es el punto por donde entra la deriva ─────────────────────
+# Un .sql que existe en el repo pero NO está en orden.txt no crea sus tablas en
+# el efímero, T5 no puede verlas, y la corrida sale verde con menos cobertura.
+# Es el mismo colapso silencioso que la aserción de siembra evita una capa más
+# abajo. Aquí se caza arriba.
+echo "▶ Comprobando que el manifiesto no se quedó atrás…"
+EXCLUIDOS=("supabase-organizaciones.sql" "supabase-enriquecimiento.test.sql")
+FALTAN=()
+en_manifiesto() { grep -qE "^[[:space:]]*$1[[:space:]]*$" "$DIR/orden.txt"; }
+for f in "$RAIZ"/businessos/supabase-*.sql \
+         "$RAIZ"/businessos/frontends/control-interno/supabase/migrations/*.sql \
+         "$RAIZ"/supabase/migrations/*.sql; do
+  [[ -f "$f" ]] || continue
+  base="$(basename "$f")"
+  omitir=0
+  for e in "${EXCLUIDOS[@]}"; do [[ "$base" == "$e" ]] && omitir=1; done
+  (( omitir )) && continue
+  en_manifiesto "${f#"$RAIZ/"}" || FALTAN+=("${f#"$RAIZ/"}")
+done
+if (( ${#FALTAN[@]} > 0 )); then
+  echo "✗ Estos archivos de esquema NO están en businessos/tenancy/orden.txt:"
+  printf '   - %s\n' "${FALTAN[@]}"
+  echo "  Añádelos (en su posición de dependencia) o decláralos como excluidos"
+  echo "  en EXCLUIDOS. Sin esto, sus tablas no existen en el efímero y la"
+  echo "  prueba T5 no puede saber que faltan por clasificar."
+  exit 1
+fi
+
 echo "▶ Replay del esquema según orden.txt…"
 FALLIDOS=()
 TOTAL=0

@@ -7,16 +7,14 @@
 # (aprendizaje 2026-08-02: una doctrina sin gate es una costumbre).
 name: Tenencia
 
+# SIN filtro de `paths`, a propósito. Un filtro solo cubre los sitios donde
+# nacen tablas HOY; una tabla nueva en una ruta no listada (un servicio nuevo,
+# el frontend siguiente, erp/migrations/006) daría PR verde con una tabla
+# huérfana — justo el fallo que T5 existe para impedir. El job tarda ~40 s:
+# sale más barato correrlo siempre que razonar cada vez si hacía falta.
 on:
   pull_request:
     branches: [master]
-    paths:
-      - 'businessos/supabase-*.sql'
-      - 'businessos/test-aislamiento-tenants.sql'
-      - 'businessos/tenancy/**'
-      - 'businessos/frontends/control-interno/supabase/migrations/**'
-      - 'supabase/migrations/**'
-      - '.github/workflows/tenencia.yml'
   workflow_dispatch: {}
 
 permissions:
