@@ -167,7 +167,17 @@ class GroqWhisperSTT:
     def _declarar_costo(cuerpo: dict) -> None:
         # Groq tarifa por hora de audio, no tokens: no entra a token_usage.
         # Hueco declarado y VISIBLE (regla 2026-07-13: nada best-effort mudo).
-        duracion_s = float(cuerpo.get("duration") or 0.0)
+        bruto = cuerpo.get("duration")
+        if bruto is None:
+            # Sin duracion no se inventa $0.0000: se declara desconocido
+            # (regla 2026-07-29: sin precio -> se declara, no se inventa).
+            print(
+                "[transcripcion-a2a] costo declarado (hueco, fuera de token_usage): "
+                f"DESCONOCIDO — la respuesta no trajo 'duration' (motor groq {GROQ_MODELO})",
+                flush=True,
+            )
+            return
+        duracion_s = float(bruto)
         costo = duracion_s / 3600.0 * GROQ_TARIFA_USD_HORA
         print(
             f"[transcripcion-a2a] costo declarado (hueco, fuera de token_usage): "

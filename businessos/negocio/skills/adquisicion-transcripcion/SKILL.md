@@ -44,12 +44,16 @@ Audio de la entrevista (visita o llamada), `lead_id`, identidad del **asesor** (
 Lead: [lead_id] · Modalidad: [visita|llamada] · Idioma: es-MX
 Confianza global: [alta|media|baja]
 
-[00:00] Asesor: ...
-[00:14] Cliente: ...
-[01:02] Cliente: ... [inaudible]
+[00:00] Voz: ...
+[00:14] Voz: ...
+[01:02] Voz: ... [inaudible]
 
 > Transcripción literal. Sin resumen ni interpretación.
 ```
+
+(`Voz:` es lo que produce el motor real, que no diariza — ver paso 2. Solo el
+mock de desarrollo simula `Asesor:`/`Cliente:`; el ejemplo canónico muestra lo
+que el equipo verá en producción.)
 
 ## Reglas
 
