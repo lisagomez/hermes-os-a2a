@@ -1,0 +1,38 @@
+# Gate de la capa de tenencia: reconstruye el esquema en un Postgres real,
+# aplica la migración dos veces (idempotencia) y corre la suite de aislamiento.
+#
+# Por qué en CI y no "cuando alguien se acuerde": el valor de T5/T6/T11 no está
+# en la primera corrida sino en la número doscientos, cuando alguien agregue una
+# tabla sin clasificarla. Sin este job, esa red de seguridad es una intención
+# (aprendizaje 2026-08-02: una doctrina sin gate es una costumbre).
+name: Tenencia
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'businessos/supabase-*.sql'
+      - 'businessos/test-aislamiento-tenants.sql'
+      - 'businessos/tenancy/**'
+      - 'businessos/frontends/control-interno/supabase/migrations/**'
+      - 'supabase/migrations/**'
+      - '.github/workflows/tenencia.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  aislamiento:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # El runner trae docker; replay.sh levanta y tira su propio contenedor.
+      - name: Esquema + migración ×2 + suite de aislamiento
+        run: businessos/tenancy/replay.sh
+
+      # La prueba de las pruebas: rompe la migración de cuatro maneras y exige
+      # que la suite lo cace. Un verde que nunca se ha visto en rojo no informa.
+      - name: Control de reversión
+        run: businessos/tenancy/control-reversion.sh

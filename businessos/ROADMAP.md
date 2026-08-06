@@ -1454,13 +1454,14 @@ pendientes de decisiones (cada documento lista las suyas).
 
 **Tres cosas que hay que resolver antes de ejecutar nada de esto:**
 
-1. **Choque de tipo en `tenant_id`.** La migración usa `tenant_id uuid` con FK a
-   `organizaciones(id)`, pero el repo ya tiene `tenant_id text` (slug, default `'a2a'`) en
-   `agenda_*` (fase 14), `buzones`/`correos_*` y `crm_*` — desviación **deliberada y
-   documentada** en `supabase-buzon.sql`, más `crm_tenants` con PK de texto. Sobre esas
-   tablas el `add column if not exists` no hace nada, el `update` las llena con el uuid en
-   formato texto sin error, y el bloque 5 revienta al crear la FK. Decidir primero si se
-   unifica a `uuid` (conversión aparte) o si `organizaciones` adopta el slug de texto.
+1. ~~**Choque de tipo en `tenant_id`.**~~ → **RESUELTO el 2026-08-05** (ver la subsección
+   siguiente). El pronóstico era exacto y se quedó corto: no eran solo `agenda_*`,
+   `buzones` y `crm_*` sino **17 tablas** con `tenant_id text`. Resolución: **ni unificar a
+   uuid ni que `organizaciones` adopte el slug** — las 17 tablas conservan su slug y quedan
+   declaradas en un registro nuevo (`app.tablas_tenant_ajeno`), el puente entre los dos
+   mundos es `organizaciones.slug` (probado por T12), y solo las 17 tablas **sin** tenencia
+   previa reciben `tenant_id uuid`. Convertir habría obligado a tocar CancioBot, la guardia
+   de presupuesto, agendamiento y el buzón: esa sigue siendo decisión abierta de Elisa.
 2. **Solape con la ceremonia ya escrita.** `red-tier1-iac/CEREMONIA.md` cubre las CAs de
    Fabric; `gobernanza/anclas-de-confianza.md` es un superconjunto que añade el ancla del
    plano A2A y funde ambas en un solo evento. Hay que reconciliarlos: si la ceremonia se
@@ -1473,6 +1474,41 @@ pendientes de decisiones (cada documento lista las suyas).
 Nota menor: el PRP de endurecimiento habla de "los doce servicios"; el compose actual tiene
 9 con sufijo `-a2a` más candidatos (`chat-web2`, `crm-canales`, `sup-crm`, `edge`). Su propio
 paso 0 pide justamente ese inventario, así que el número está por confirmar.
+
+### Capa de tenencia — VALIDADA en Postgres real, pendiente de aplicar a producción (2026-08-05)
+
+De los ocho documentos, el de tenencia dejó de ser propuesta: está **verificado de punta a
+punta contra Postgres 16**, con todo lo que hacía falta para poder aplicarlo. Lo único que
+falta es el paso que exige el token de management, que esta máquina no tiene.
+
+**Lo que se encontró al enumerar de verdad** (`businessos/tenancy/replay.sh` reconstruye el
+esquema desde 38 archivos del repo, así que el conteo sale de una BD, no de un grep):
+
+- `public` tiene **71 tablas**, no 22. Y **tres modelos de tenencia** conviviendo: 17 con
+  `tenant_id uuid` nuevo, 17 con `tenant_id text` (slug), 32 de la cabina control-interno
+  que aísla por `auth.uid()`, 5 globales. El ERP es un cuarto modelo en su propio esquema.
+- **`buzon_control` no puede ser por-tenant**: tiene `check (id = 1)`, es un singleton.
+- **`profiles` jamás debe llevar `tenant_id NOT NULL`**: la escribe el trigger
+  `handle_new_user` y rompería el alta de usuarios de todo A2ABot.
+- La migración **no era idempotente** (el bloque 5 añadía la FK sin guarda: la 2ª corrida
+  moría con "constraint already exists"). Corregido y verificado.
+- El README afirmaba que una política `FOR ALL` sin `with check` deja escribir en otro
+  tenant. **Es falso** — Postgres reutiliza la expresión de `using`. Corregido en el README.
+
+**Lo que se construyó para poder afirmar todo eso:** `businessos/tenancy/` (prelude,
+manifiesto de orden, `replay.sh`, `control-reversion.sh`), un gate de CI
+(`.github/workflows/tenencia.yml`) y la decisión escrita sobre `service_role`
+(`businessos/gobernanza/decision-service-role.md`): la aplicación lo abandona **antes del
+segundo tenant**, y hasta entonces la migración no compra aislamiento real — compra el
+dato etiquetado, las políticas probadas y un registro que no crece en silencio.
+
+La suite pasó de 10 pruebas a 12 (T5b, T11, T12) y ahora se sabe que **se pone roja cuando
+debe**: 4 sabotajes deliberados, 4 cazados. La siembra cubre las 17 tablas y esa cobertura
+es una aserción, no un aviso.
+
+**Pendiente (Lisa):** aplicar a producción y verificar el backfill — runbook paso a paso en
+`businessos/README-migracion-tenancy.md`. ⚠️ La suite **no se corre contra producción**:
+siembra dos tenants de prueba en tablas append-only que no se pueden retirar.
 
 ---
 

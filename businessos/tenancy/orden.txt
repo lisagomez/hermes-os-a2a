@@ -1,0 +1,78 @@
+# Manifiesto de réplica del esquema — orden de aplicación
+#
+# Rutas relativas a la RAÍZ del repo. Una por línea. `#` comenta.
+# Lo consume `replay.sh` para reconstruir el esquema de producción en un
+# Postgres efímero antes de validar la capa de tenencia.
+#
+# Este archivo es el que hay que actualizar cuando nazca una migración nueva:
+# si no está aquí, su tabla no existe en el efímero y la prueba T5 no puede
+# saber que le falta clasificar. Un manifiesto desactualizado se ve verde.
+#
+# NO incluye (a propósito):
+#   businessos/supabase-organizaciones.sql   — es la migración bajo prueba
+#   businessos/test-aislamiento-tenants.sql  — es la suite
+#   businessos/supabase-enriquecimiento.test.sql — pruebas de datos, no esquema
+#   businessos/erp/migrations/*              — el ERP tiene su propia tenencia
+#                                              (app.cliente_id + rol_exe_fin);
+#                                              fuera del alcance de esta capa
+
+# ── Base y fases del negocio ────────────────────────────────────────────────
+businessos/supabase-init.sql
+businessos/supabase-fase3.sql
+businessos/supabase-fase3b-cobros-web.sql
+businessos/supabase-fase4.sql
+businessos/supabase-fase6.sql
+businessos/supabase-fase7.sql
+businessos/supabase-fase9.sql
+businessos/supabase-fase10.sql
+businessos/supabase-fase10-reuniones.sql
+businessos/supabase-fase11-leads-web2.sql
+businessos/supabase-fase12-contratos-sc.sql
+businessos/supabase-fase13-clasificacion-tareas.sql
+businessos/supabase-fase14-agendamiento.sql
+
+# ── CRM (marca blanca CancioBot) ────────────────────────────────────────────
+businessos/supabase-crm0.sql
+# Estas dos van aquí por CRONOLOGÍA, no por nombre:
+#   - vistas-crm-embudo (07-23) crea v_crm_conversaciones_resumen SIN `canal`
+#   - fase12-leads-crm  (07-24) la dropea y la recrea CON `canal`, y añade
+#     leads.canal, que crm4 necesita.
+# Invertirlas rompe con "cannot drop columns from view".
+businessos/supabase-vistas-crm-embudo.sql
+businessos/supabase-fase12-leads-crm.sql
+businessos/supabase-crm1-sup.sql
+businessos/supabase-crm2-muestreo.sql
+businessos/supabase-crm3-expediente.sql
+businessos/supabase-crm4-calificacion.sql
+
+# ── Buzón agéntico ──────────────────────────────────────────────────────────
+businessos/supabase-buzon.sql
+businessos/supabase-buzon-leads.sql
+businessos/supabase-buzon-onboarding.sql
+
+# ── Enriquecimiento (App A) ─────────────────────────────────────────────────
+businessos/supabase-enriquecimiento.sql
+businessos/supabase-enriquecimiento-refuerzo.sql
+
+# ── Herramientas y guardias ─────────────────────────────────────────────────
+businessos/supabase-egcrm-herramientas.sql
+businessos/supabase-guardia-presupuesto.sql
+
+# ── Correcciones y vistas (dependen de lo anterior) ─────────────────────────
+businessos/supabase-fix-token-ledger.sql
+businessos/supabase-fix-vista-facturas.sql
+businessos/supabase-costeo-tarea.sql
+businessos/supabase-vista-departamentos.sql
+
+# ── Cabina control-interno (comparte el mismo proyecto Supabase desde
+#    2026-07-15; sus tablas viven en el mismo `public` y por tanto la
+#    prueba T5 las ve) ────────────────────────────────────────────────────────
+businessos/frontends/control-interno/supabase/migrations/00000000000000_base_schema.sql
+businessos/frontends/control-interno/supabase/migrations/20260518_canvas_v3.sql
+businessos/frontends/control-interno/supabase/migrations/20260525_calendar_command_center.sql
+businessos/frontends/control-interno/supabase/migrations/20260608_calendar_sources.sql
+businessos/frontends/control-interno/supabase/migrations/20260712000000_todoist_sync.sql
+businessos/frontends/control-interno/supabase/migrations/20260712010000_finances.sql
+
+# ── Endurecimiento del trigger de auth (fusión negocio + control-interno) ────
+supabase/migrations/harden_handle_new_user.sql

@@ -1,62 +1,85 @@
 # Migración de tenencia — orden de aplicación
 
+> **Estado (2026-08-05):** validada de punta a punta contra Postgres real, con
+> las 71 tablas de `public` clasificadas y los 4 sabotajes del control de
+> reversión cazados. **Falta el único paso que no se puede dar desde la máquina
+> de Victor: aplicarla a producción** (ver *Runbook de producción*, al final).
+
 Dos archivos, un orden, cero atajos.
 
 - `supabase-organizaciones.sql` — la migración (aditiva, idempotente)
 - `test-aislamiento-tenants.sql` — la suite que la valida
 
+Y tres de andamiaje, en `businessos/tenancy/`:
+
+- `00-prelude.sql` — roles, esquema `auth` y extensiones que Supabase ya trae
+- `orden.txt` — manifiesto: qué `.sql` del repo reconstruyen el esquema y en qué
+  orden (el orden **no** es el de los nombres: ver los comentarios del archivo)
+- `replay.sh` — levanta el efímero, replica, migra dos veces y corre la suite
+- `control-reversion.sh` — rompe la migración a propósito y exige que la suite
+  se ponga roja
+
 ---
 
-## Antes de correr nada
+## Lo que se encontró al enumerar de verdad
 
-**1. Enumera tus tablas reales.** Los archivos traen nombres de ejemplo. Sustitúyelos:
+`public` tiene **71 tablas**, no 22. Y no hay un modelo de tenencia: hay **tres**
+conviviendo, más el del ERP en su propio esquema.
 
-```sql
-select table_name from information_schema.tables
- where table_schema = 'public' and table_type = 'BASE TABLE'
- order by 1;
-```
-
-Cada tabla del resultado va a **una** de dos listas, sin excepción:
-
-| Lista | Qué va ahí | Ejemplos tuyos |
+| Lista | Cuántas | Qué va ahí |
 |---|---|---|
-| `app.tablas_tenant` | Datos que pertenecen a un cliente | `leads`, `tareas`, `facturas`, `contratos_sc`, `token_usage`, `crm_*`, `erp.*`, agendamiento M1–M5 |
-| `app.tablas_globales` | Referencia compartida, con motivo escrito | `reglas` del grafo, catálogos, `usuarios` |
+| `app.tablas_tenant` | 17 | Dato de cliente **sin** tenencia previa → reciben `tenant_id uuid` + FK + RLS |
+| `app.tablas_globales` | 5 | Referencia compartida o singleton, con motivo escrito |
+| `app.tablas_tenant_ajeno` | 49 | Tienen tenencia, pero por **otro mecanismo** |
+
+El tercer registro es nuevo y existe porque la realidad no cabía en dos listas:
+
+- **`slug_text` (17 tablas)** — agendamiento, buzón, guardia de presupuesto, CRM
+  y `sla_por_etapa` ya llevan `tenant_id text`, casi todas con `default 'a2a'`.
+  No es drift: `supabase-guardia-presupuesto.sql` lo razona explícitamente
+  ("tenant_id TEXT, no uuid como propone el doc origen") y `supabase-buzon.sql`
+  lo sigue "por coherencia". El puente con esta capa es el **slug**.
+- **`auth_uid` (32 tablas)** — la cabina control-interno, que comparte proyecto
+  Supabase desde 2026-07-15 y aísla por usuario, no por organización.
+- El **ERP** (esquema `erp`, 22 tablas) queda fuera: ya tiene su tenencia con
+  `app.cliente_id` + `rol_exe_fin`. Ojo: T5 solo escanea `public`, así que el
+  criterio "todas clasificadas" es, por construcción, de `public`.
 
 Clasificar mal hacia `globales` es una fuga. Clasificar mal hacia `tenant` es un
 error visible que se corrige en minutos. Ante la duda, `tenant`.
 
-**2. `reglas` es global a propósito.** El grafo regulatorio es conocimiento
-jurisdiccional, idéntico para todos los clientes, y además vive en un Postgres
-distinto. Ponerle `tenant_id` sería duplicar la LISR por cliente.
+### Las tres clasificaciones que hay que revisar con nombre y apellido
 
-**3. La siembra de la suite inserta filas con solo `tenant_id`.** Si tus tablas
-tienen otras columnas `NOT NULL`, ajusta esa parte o la suite falla en la siembra —
-que es un fallo legítimo, no un falso positivo.
+1. **`profiles` → `auth_uid`, jamás `tenant`.** La escribe el trigger
+   `handle_new_user` sobre `auth.users`. Añadirle `tenant_id NOT NULL` rompe el
+   alta de usuarios de **todo** A2ABot (es el cuasi-incidente del 2026-07-15).
+2. **`buzon_control` → global.** Tiene `check (id = 1)` y PK sobre `id`: es un
+   singleton, una sola fila en toda la tabla. No puede haber una por tenant.
+3. **`token_usage` → `slug_text`.** Su `tenant_id` es text y nullable a
+   propósito (null = gasto de la casa). Por eso `v_margen_tenant` une por slug.
 
 ---
 
 ## Orden
 
+Todo el ciclo está en un script; no hace falta copiar comandos:
+
 ```bash
-# 1 · Efímero, siempre primero
-docker run -d --name pg-prueba -e POSTGRES_PASSWORD=x -p 5433:5432 postgres:16-alpine
-sleep 8
-URI="postgresql://postgres:x@localhost:5433/postgres"
-
-psql "$URI" -v ON_ERROR_STOP=1 -f esquema-actual.sql          # tu esquema de hoy
-psql "$URI" -v ON_ERROR_STOP=1 -f supabase-organizaciones.sql
-psql "$URI" -v ON_ERROR_STOP=1 -f test-aislamiento-tenants.sql
-
-# 2 · Idempotencia: la segunda corrida debe pasar igual
-psql "$URI" -v ON_ERROR_STOP=1 -f supabase-organizaciones.sql
-
-docker rm -f pg-prueba
+businessos/tenancy/replay.sh          # esquema + migración ×2 + suite
+businessos/tenancy/control-reversion.sh   # y que se ponga roja cuando debe
 ```
 
-Solo cuando las tres corridas pasan limpias se aplica a producción vía la API de
-management, en el mismo patrón que el resto de tus migraciones.
+Lo que hace, por si hay que depurarlo a mano: levanta `postgres:16-alpine`,
+aplica el prelude, replica los 38 archivos de `orden.txt`, corre la migración
+**dos veces** (idempotencia) y luego la suite.
+
+**El orden importa**: la migración va dos veces *antes* de la suite, no
+alternada. La suite siembra tablas append-only (`buzon_bitacora`,
+`enriquecimiento_intento`, que prohíben `DELETE` por disparador) y por tanto
+solo puede correr **una vez por base**. Corriéndola al final se verifica el
+aislamiento sobre una base que ya aguantó la migración dos veces, que es el
+estado real de producción tras un reintento. La suite aborta con un mensaje
+explícito si detecta que ya corrió.
 
 ---
 
@@ -85,11 +108,23 @@ soltar la constraint.
 Con tus volúmenes de hoy da igual. Con datos de clientes, es la diferencia entre una
 migración invisible y una caída.
 
-### 3. Sin `with check`, el aislamiento es de solo lectura
+### 3. `with check` — con un matiz que este documento tenía mal
 
-`using` filtra lo que se lee. `with check` impide escribir en otro tenant. Una
-política con `using` pero sin `with check` deja pasar un `insert` con `tenant_id`
-ajeno sin ningún ruido. La prueba **T2** existe por esto.
+`using` filtra lo que se lee; `with check` decide qué se puede escribir.
+
+La versión anterior de este documento decía que una política con `using` pero
+**sin** `with check` deja pasar un `insert` con `tenant_id` ajeno. **Es falso**, y
+lo demostró el control de reversión: al borrar la línea `with check`, la suite
+siguió en verde — porque en una política `FOR ALL`, Postgres usa la expresión de
+`using` también como check cuando `with check` se omite. El sabotaje no rompía
+nada.
+
+Lo que sí abre el agujero es un `with check` **permisivo** (`(true)`), o una
+política que solo cubra `SELECT`. Eso es lo que ahora saboteamos, y **T2** lo
+caza. Además T2 exige que el rechazo sea `SQLSTATE 42501` (violación de
+política): antes aceptaba *cualquier* excepción como éxito, y en `leads` un
+insert mínimo falla por `lead_id NOT NULL` — la prueba pasaba en verde sin
+ejercitar una sola línea de política.
 
 ### 4. `FORCE` no es redundante
 
@@ -125,16 +160,61 @@ doscientos, cuando alguien que no leyó este documento agregue una tabla.
 
 ## Criterios de aceptación
 
-- [ ] Las 22 tablas clasificadas, ninguna huérfana (T5 en verde)
-- [ ] Migración corre limpia en efímero
-- [ ] Segunda corrida idempotente
-- [ ] Las diez pruebas pasan
-- [ ] T1 falla si se comenta el control positivo (prueba de la prueba)
-- [ ] Rol `app_tenant` creado, sin bypass ni superusuario
-- [ ] **Decisión escrita** sobre cuándo la aplicación deja de usar `service_role`
-- [ ] Suite en CI, corriendo en cada PR
-- [ ] Aplicada a producción con la organización interna sembrada
-- [ ] Datos actuales todos con `tenant_id` de `hermes-interno`, ninguno nulo
+- [x] Las **71** tablas de `public` clasificadas, ninguna huérfana (T5 en verde)
+- [x] Migración corre limpia en efímero (38/38 archivos del esquema replicados)
+- [x] Segunda corrida idempotente
+- [x] Las pruebas pasan — ahora **doce**: T5b (registro sin tablas fantasma),
+      T11 (la tenencia ajena declarada sigue siendo cierta) y T12 (el puente de
+      costo no cruza tenants) son nuevas
+- [x] La suite se pone **roja** cuando debe: 4 sabotajes, 4 cazados
+      (`control-reversion.sh`)
+- [x] La siembra cubre las 17 tablas, y la cobertura es una **aserción**: si una
+      tabla deja de sembrarse, la suite falla en vez de cubrir menos en silencio
+- [x] Rol `app_tenant` creado, sin bypass ni superusuario
+- [x] **Decisión escrita** sobre `service_role` → `businessos/gobernanza/decision-service-role.md`
+- [x] Suite en CI, corriendo en cada PR (`.github/workflows/tenencia.yml`)
+- [ ] **Aplicada a producción con la organización interna sembrada** ← Lisa
+- [ ] **Datos actuales todos con `tenant_id` de `hermes-interno`, ninguno nulo** ← Lisa
+
+---
+
+## Runbook de producción (para la máquina con `SUPABASE_ACCESS_TOKEN`)
+
+Los dos últimos criterios no se pueden cerrar desde la máquina de Victor: no
+tiene el token de management ni SSH al servidor. El resto ya está verificado.
+
+**1 · Enumerar las tablas REALES de producción.** El manifiesto reconstruye el
+esquema desde el repo, y el repo puede no ser idéntico a producción (arreglos
+aplicados a mano que no viven en ningún `.sql`). Antes de migrar:
+
+```sql
+select table_name from information_schema.tables
+ where table_schema = 'public' and table_type = 'BASE TABLE' order by 1;
+```
+
+Si aparece alguna que no esté en las tres listas, **T5 lo detectará y la
+migración de todos modos no la tocará** — pero clasifícala antes, no después.
+
+**2 · Aplicar** por management API (`POST /v1/projects/{ref}/database/query`,
+UA `curl/8.0` por el gotcha de Cloudflare 1010), en este orden:
+`supabase-organizaciones.sql` → verificar → `test-aislamiento-tenants.sql`.
+
+⚠️ **La suite siembra dos tenants de prueba (`acme`, `globex`) y no puede
+retirarlos** (tablas append-only). **No la corras contra producción**: su sitio
+es el efímero y el CI. En producción, la verificación es el paso 3.
+
+**3 · Verificar en producción, sin sembrar nada:**
+
+```sql
+-- ninguna fila sin tenant tras el backfill
+select tabla, migrada_en from app.tablas_tenant order by 1;
+select count(*) from leads where tenant_id is null;   -- debe ser 0
+-- la organización interna existe y es la dueña del dato de hoy
+select id, slug, estado from organizaciones where slug = 'hermes-interno';
+```
+
+**4 · Si algo sale mal**, el bloque de reversión está comentado al final de la
+migración y sigue siendo válido **mientras no exista un segundo tenant**.
 
 ---
 
