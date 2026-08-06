@@ -1,26 +1,35 @@
 # Migración de tenencia — orden de aplicación
 
-> **Estado (2026-08-05):** validada de punta a punta contra Postgres real, con
-> las 71 tablas de `public` clasificadas y los 4 sabotajes del control de
-> reversión cazados. **Falta el único paso que no se puede dar desde la máquina
-> de Victor: aplicarla a producción** (ver *Runbook de producción*, al final).
+> **Estado (2026-08-06):** validada de punta a punta contra Postgres real —
+> ahora también contra una base CON DATOS (el QA del PR #237 demostró que el
+> backfill original abortaba sobre las tablas append-only pobladas; el efímero
+> migraba con todo vacío y no podía verlo). Las 71 tablas de `public`
+> clasificadas y los 6 sabotajes del control de reversión cazados. **Falta el
+> único paso que no se puede dar desde la máquina de Victor: aplicarla a
+> producción** (ver *Runbook de producción*, al final).
 
 Dos archivos, un orden, cero atajos.
 
 - `supabase-organizaciones.sql` — la migración (aditiva, idempotente)
 - `test-aislamiento-tenants.sql` — la suite que la valida
 
-Y tres de andamiaje, en `businessos/tenancy/`:
+Y cuatro de andamiaje, en `businessos/tenancy/`:
 
-- `00-prelude.sql` — roles, esquema `auth` y extensiones que Supabase ya trae
+- `00-prelude.sql` — roles, esquema `auth` y extensiones que Supabase ya trae.
+  Aborta si detecta una plataforma Supabase REAL (hace `create or replace` de
+  `auth.uid()`; un comentario no era guarda suficiente)
+- `01-preseed-produccion.sql` — siembra filas "de producción" en las dos tablas
+  append-only ANTES de migrar: el backfill se prueba contra datos, no contra el
+  vacío (cero filas ⇒ cero triggers ⇒ cero verdad)
 - `orden.txt` — manifiesto: qué `.sql` del repo reconstruyen el esquema y en qué
   orden (el orden **no** es el de los nombres: ver los comentarios del archivo).
   `replay.sh` **falla** si un `.sql` del repo no está aquí ni declarado como
   excluido: un manifiesto atrasado deja tablas fuera del efímero y T5 no puede
   echar en falta lo que no existe
-- `replay.sh` — levanta el efímero, replica, migra dos veces y corre la suite
-- `control-reversion.sh` — rompe la migración a propósito y exige que la suite
-  se ponga roja
+- `replay.sh` — levanta el efímero, replica, pre-siembra, migra dos veces,
+  verifica el backfill sobre las filas pre-sembradas y corre la suite
+- `control-reversion.sh` — rompe la migración a propósito (6 sabotajes) y exige
+  que el ciclo se ponga rojo
 
 ---
 
@@ -73,8 +82,10 @@ businessos/tenancy/control-reversion.sh   # y que se ponga roja cuando debe
 ```
 
 Lo que hace, por si hay que depurarlo a mano: levanta `postgres:16-alpine`,
-aplica el prelude, replica los 38 archivos de `orden.txt`, corre la migración
-**dos veces** (idempotencia) y luego la suite.
+aplica el prelude, replica los 38 archivos de `orden.txt`, **pre-siembra las
+tablas append-only** (simula la base con datos que la migración encontrará en
+producción), corre la migración **dos veces** (idempotencia), verifica que las
+filas pre-sembradas quedaron con `tenant_id` poblado, y luego la suite.
 
 **El orden importa**: la migración va dos veces *antes* de la suite, no
 alternada. La suite siembra tablas append-only (`buzon_bitacora`,
@@ -101,15 +112,31 @@ lado de la aplicación —conectar con ese rol, o `SET ROLE` como ya hace el pue
 Esta es la deuda que el plan de multitenencia fija como límite duro: resolverla
 antes del segundo cliente.
 
-### 2. `NOT NULL` bloquea la tabla
+### 2. `NOT NULL` bloquea la tabla — con la honestidad que faltaba
 
 `alter table ... set not null` directo exige un escaneo completo con bloqueo
 `ACCESS EXCLUSIVE`. El bloque 5 usa el rodeo estándar: constraint `NOT VALID`
 (instantánea) → `validate` (bloqueo suave) → `set not null` (que ya no escanea) →
 soltar la constraint.
 
-Con tus volúmenes de hoy da igual. Con datos de clientes, es la diferencia entre una
-migración invisible y una caída.
+**Matiz que la primera versión vendía mal**: con todo el archivo en UNA
+transacción (que es como está, y es lo correcto hoy — atomicidad, rollback
+limpio verificado), el rodeo **no ahorra bloqueo alguno**: los `ACCESS
+EXCLUSIVE` se retienen hasta el `COMMIT` de todas formas. El rodeo se conserva
+porque permite partir el archivo en transacciones por bloque el día que una
+tabla sea grande de verdad — solo entonces el `validate` paga su bloqueo suave.
+
+### 2b. El backfill no puede ser un `UPDATE` (tablas append-only)
+
+Dos de las 17 tablas (`buzon_bitacora`, `enriquecimiento_intento`) prohíben
+`UPDATE` por trigger (control ISO 27001 5.33). Un backfill
+`update ... set tenant_id` **aborta la migración entera** contra una base con
+datos — y el efímero no lo veía porque migraba con todo vacío (cero filas ⇒
+cero triggers). El bloque 4 puebla con `add column ... default <org>` (en PG11+
+es metadato: las filas existentes leen el default sin UPDATE y sin disparar
+triggers) y suelta el default acto seguido. `replay.sh` pre-siembra esas tablas
+y verifica el backfill; el sabotaje 5 de `control-reversion.sh` mantiene el
+caso en rojo permanente.
 
 ### 3. `with check` — con un matiz que este documento tenía mal
 
@@ -165,12 +192,17 @@ doscientos, cuando alguien que no leyó este documento agregue una tabla.
 
 - [x] Las **71** tablas de `public` clasificadas, ninguna huérfana (T5 en verde)
 - [x] Migración corre limpia en efímero (38/38 archivos del esquema replicados)
+- [x] Migración corre limpia **contra una base con datos**: las append-only se
+      pre-siembran antes de migrar y el backfill se verifica sobre sus filas
 - [x] Segunda corrida idempotente
-- [x] Las pruebas pasan — ahora **doce**: T5b (registro sin tablas fantasma),
-      T11 (la tenencia ajena declarada sigue siendo cierta) y T12 (el puente de
-      costo no cruza tenants) son nuevas
-- [x] La suite se pone **roja** cuando debe: 4 sabotajes, 4 cazados
-      (`control-reversion.sh`)
+- [x] Las pruebas pasan — **trece** bloques (T1–T12 más T5b; T11 son dos):
+      T5b (registro sin tablas fantasma), T11 (la tenencia ajena declarada
+      sigue siendo cierta — reparada: su aserción NOT NULL filtraba por un
+      mecanismo inexistente y recorría 0 filas) y T12 (el puente de costo no
+      cruza tenants) son nuevas
+- [x] La suite se pone **roja** cuando debe: 6 sabotajes, 6 cazados
+      (`control-reversion.sh`), incluidos el backfill-por-UPDATE contra
+      append-only y el NOT NULL retirado que T11 vigila
 - [x] La siembra cubre las 17 tablas, y la cobertura es una **aserción**: si una
       tabla deja de sembrarse, la suite falla en vez de cubrir menos en silencio
 - [x] Rol `app_tenant` creado, sin bypass ni superusuario

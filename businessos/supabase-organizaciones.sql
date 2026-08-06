@@ -203,7 +203,9 @@ end $$;
 
 -- Las 71 tablas de `public` clasificadas (enumeradas contra el esquema real
 -- reconstruido por businessos/tenancy/replay.sh, no a ojo). Reparto:
---   27 tenant · 4 globales · 8 de tenencia ajena · 32 de la cabina interna.
+--   17 tenant · 5 globales · 49 de tenencia ajena (17 slug_text + 32 auth_uid).
+--   (El registro de globales lista 7: `reglas` vive en el Postgres del grafo y
+--   `usuarios` la crea esta misma capa — por eso solo 5 cuentan en las 71.)
 -- La prueba T5 falla si aparece una tabla nueva sin clasificar.
 
 insert into app.tablas_tenant (tabla) values
@@ -338,8 +340,19 @@ insert into organizaciones (tipo, canal, slug, nombre, estado, plan, activado_en
 values ('tenant', 'b2b', 'hermes-interno', 'Hermes OS (interno)', 'activo', 'regulado', now())
 on conflict (lower(slug)) do nothing;
 
--- Agregar la columna NULLABLE y poblarla. Sin default: en PG11+ es instantáneo
--- y no reescribe la tabla.
+-- Agregar la columna y poblarla — SIN un solo UPDATE sobre filas existentes.
+--
+-- ⚠ Por qué el backfill NO es un `update ... set tenant_id`: dos de las 17
+-- tablas (`buzon_bitacora`, `enriquecimiento_intento`) son APPEND-ONLY por
+-- disparador — un UPDATE, aunque solo rellene tenant_id, aborta la migración
+-- entera contra una base con datos (y desactivar esos triggers tocaría un
+-- control declarado ISO 27001 5.33). El camino que no dispara triggers:
+-- `add column ... default <org>` — en PG11+ es un cambio de METADATO (attmissingval):
+-- las filas existentes leen el default sin reescritura ni UPDATE, y por tanto
+-- ningún trigger de fila corre. Acto seguido se suelta el default para que
+-- ningún insert futuro herede un tenant en silencio. El UPDATE queda solo como
+-- red de seguridad para el caso patológico (columna preexistente con NULLs);
+-- sobre 0 filas los triggers `for each row` no disparan.
 do $$
 declare r record; org uuid;
 begin
@@ -347,7 +360,10 @@ begin
 
   for r in select esquema, tabla from app.tablas_tenant loop
     execute format(
-      'alter table %I.%I add column if not exists tenant_id uuid', r.esquema, r.tabla);
+      'alter table %I.%I add column if not exists tenant_id uuid default %L',
+      r.esquema, r.tabla, org);
+    execute format(
+      'alter table %I.%I alter column tenant_id drop default', r.esquema, r.tabla);
     execute format(
       'update %I.%I set tenant_id = %L where tenant_id is null', r.esquema, r.tabla, org);
     execute format(
@@ -357,12 +373,20 @@ begin
 end $$;
 
 -- ============================================================================
--- BLOQUE 5 · tenant_id — PASO 2: NOT NULL sin bloquear la tabla
+-- BLOQUE 5 · tenant_id — PASO 2: NOT NULL
 --
 --  `set not null` directo exige un escaneo completo con bloqueo ACCESS EXCLUSIVE.
---  El rodeo: constraint NOT VALID (instantáneo) → validate (bloqueo suave) →
---  set not null (que reconoce la constraint y ya no escanea) → soltar constraint.
---  Con tus volúmenes actuales da igual; con datos de clientes, no.
+--  El rodeo estándar: constraint NOT VALID (instantáneo) → validate (bloqueo
+--  suave) → set not null (que reconoce la constraint y ya no escanea).
+--
+--  ⚠ HONESTIDAD SOBRE EL BLOQUEO: ejecutado TAL COMO ESTÁ — todo el archivo en
+--  una sola transacción (begin/commit) — el rodeo NO ahorra bloqueo alguno: los
+--  ACCESS EXCLUSIVE de cada `alter table` se retienen hasta el COMMIT de
+--  cualquier forma. Con los volúmenes de hoy es lo correcto (atomicidad > todo:
+--  un fallo hace rollback limpio, verificado en el gate). El rodeo se conserva
+--  porque es el que permite, el día que una tabla sea grande DE VERDAD, partir
+--  este archivo en transacciones por bloque sin reescribir la lógica — solo en
+--  ese formato el `validate` paga su bloqueo suave.
 -- ============================================================================
 
 --  Idempotencia: ni `set not null` ni `add constraint ... foreign key` admiten

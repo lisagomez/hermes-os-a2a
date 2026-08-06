@@ -455,7 +455,10 @@ end $$;
 -- T5b · META — el registro de tenencia ajena no contiene tablas fantasma
 --
 --  Un registro que nombra tablas inexistentes envejece hacia la mentira: da
---  cobertura declarada sin cobertura real. Vale para las tres listas.
+--  cobertura declarada sin cobertura real. Cubre las DOS listas de tablas
+--  locales; app.tablas_globales queda fuera A PROPÓSITO porque declara tablas
+--  de otros Postgres (`reglas` vive en la BD propia del grafo) — incluirla
+--  obligaría a mentir en el registro o a fallar por diseño.
 -- ============================================================================
 
 do $$
@@ -631,10 +634,13 @@ begin
   end loop;
 
   -- token_usage es la única con la columna NULLABLE a propósito (null = gasto
-  -- de la casa). Que el resto del CRM la tenga NOT NULL es su aislamiento.
+  -- de la casa). Que el resto del mundo slug_text la tenga NOT NULL es su
+  -- aislamiento. (La primera versión filtraba por 'crm_slug', un mecanismo que
+  -- el CHECK del registro ni admite: el bucle recorría 0 filas y esta aserción
+  -- era código muerto — lo demostró el control de reversión, no los verdes.)
   for r in select esquema, tabla, columna
              from app.tablas_tenant_ajeno
-            where mecanismo = 'crm_slug' and tabla <> 'token_usage' loop
+            where mecanismo = 'slug_text' and tabla <> 'token_usage' loop
     select is_nullable into nulable
       from information_schema.columns
      where table_schema = r.esquema and table_name = r.tabla

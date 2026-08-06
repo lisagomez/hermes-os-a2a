@@ -11,6 +11,23 @@
 --    - extensiones pgcrypto y btree_gist
 -- ============================================================================
 
+-- ── GUARDA · jamás contra una plataforma real ──────────────────────────────
+-- Este archivo hace `create or replace` de auth.uid()/auth.jwt(): sobre un
+-- Supabase real eso PISA las funciones de la plataforma (la lección del
+-- cuasi-incidente 2026-07-15: `create or replace` no respeta ningún "if not
+-- exists"). Un comentario no es una guarda; esto sí: si la base huele a
+-- Supabase real (roles que solo la plataforma crea), se aborta antes de tocar.
+do $$
+begin
+  if exists (select 1 from pg_roles
+              where rolname in ('supabase_auth_admin','authenticator','supabase_admin')) then
+    raise exception
+      'ABORTADO: esta base parece un Supabase REAL (rol de plataforma presente). '
+      'El prelude es SOLO para el Postgres efimero de tenancy/replay.sh; '
+      'aplicarlo aqui pisaria auth.uid()/auth.jwt() de la plataforma.';
+  end if;
+end $$;
+
 -- ── Roles de la plataforma ──────────────────────────────────────────────────
 do $$
 begin

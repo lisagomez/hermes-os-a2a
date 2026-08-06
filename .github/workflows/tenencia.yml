@@ -30,7 +30,7 @@ jobs:
       - name: Esquema + migración ×2 + suite de aislamiento
         run: businessos/tenancy/replay.sh
 
-      # La prueba de las pruebas: rompe la migración de cuatro maneras y exige
-      # que la suite lo cace. Un verde que nunca se ha visto en rojo no informa.
+      # La prueba de las pruebas: rompe la migración de seis maneras y exige
+      # que el ciclo lo cace. Un verde que nunca se ha visto en rojo no informa.
       - name: Control de reversión
         run: businessos/tenancy/control-reversion.sh

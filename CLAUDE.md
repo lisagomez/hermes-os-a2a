@@ -1574,4 +1574,27 @@ npm run lint         # ESLint
 - **Aplicar en**: toda migración sobre una BD compartida con historia, toda suite de
   invariantes, y cualquier documento de diseño cuyos nombres de tabla vengan de la memoria.
 
+### 2026-08-06: Un efímero que migra VACÍO no prueba el backfill (cero filas ⇒ cero triggers ⇒ cero verdad)
+- **Error(es) (QA adversarial del PR #237, con la suite y los 4 sabotajes EN VERDE)**:
+  (1) el backfill de tenencia hacía `update ... set tenant_id` sobre las 17 tablas, y dos
+  son **append-only por trigger** (`buzon_bitacora`, `enriquecimiento_intento`): contra una
+  base con datos la migración ABORTA entera — y el CI era estructuralmente ciego porque el
+  efímero migraba con las tablas vacías (un trigger `for each row` sobre 0 filas jamás
+  dispara). La propia doc del PR sabía que eran append-only; nadie lo conectó con su UPDATE.
+  (2) La aserción NOT NULL de T11 filtraba `mecanismo = 'crm_slug'`, valor que el CHECK del
+  registro ni admite → recorría **0 filas**: código muerto imposible de poner en rojo, con
+  un comentario que afirmaba lo contrario.
+- **Fix**: (a) backfill sin UPDATE — `add column ... default <org>` (en PG11+ es metadato:
+  las filas existentes leen el default sin disparar triggers) y `drop default` inmediato;
+  (b) el gate ahora **pre-siembra** las append-only ANTES de migrar y verifica el backfill
+  sobre esas filas (`tenancy/01-preseed-produccion.sql` + aserción en `replay.sh`);
+  (c) T11 corregida a `slug_text`; (d) ambos defectos quedaron como sabotajes permanentes
+  (5 y 6) en `control-reversion.sh` — revertir cualquiera de los fixes pone el gate en rojo.
+- **Reglas**: el efímero debe replicar el ESTADO de producción (datos donde los datos
+  importan), no solo el esquema; y todo bucle de aserción que filtre filas necesita o una
+  aserción de "recorrí > 0" o un sabotaje que lo desenmascare — un bucle sobre 0 filas es
+  el gemelo SQL del test que reproduce la lógica que prueba (2026-07-13).
+- **Aplicar en**: todo gate con BD efímera, toda migración con backfill sobre tablas con
+  triggers, y toda meta-prueba registro-contra-realidad.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

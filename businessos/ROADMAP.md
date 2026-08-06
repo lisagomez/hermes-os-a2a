@@ -1446,7 +1446,7 @@ pendientes de decisiones (cada documento lista las suyas).
 | Respaldos 3-2-1-1-0 | `businessos/FASE0-respaldos.md` | Borg → Storage Box + archivo mensual cifrado en B2 con Object Lock; **retira** `backup-verticales.sh` como copia de recuperación |
 | Arquitectura multi-inquilino B2B | `businessos/arquitectura-multitenant-b2b.md` | Doctrina: jerarquía socio→tenant, 5 roles, propagación de contexto, ciclo de vida y baja |
 | Migración de tenencia | `businessos/supabase-organizaciones.sql` | `organizaciones`/`membresias`/`usuarios` + `tenant_id` + RLS real con rol `app_tenant` |
-| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 10 pruebas; T5–T8 son meta-pruebas que se rompen solas ante una regresión futura |
+| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 13 pruebas; T5–T8 y T11 son meta-pruebas que se rompen solas ante una regresión futura |
 | Orden de aplicación | `businessos/README-migracion-tenancy.md` | Efímero primero, idempotencia, y los cinco gotchas |
 | Aprovisionamiento de workspace | `.claude/PRPs/prp-workspace-meeting-copilot.md` | El workspace como objeto de primera clase en meeting-copilot; depende de fase 14 (sin aplicar) |
 | Anclas de confianza | `businessos/gobernanza/anclas-de-confianza.md` | Dos anclas independientes (raíz A2A + CAs de Fabric) y guion de ceremonia |
@@ -1502,9 +1502,13 @@ manifiesto de orden, `replay.sh`, `control-reversion.sh`), un gate de CI
 segundo tenant**, y hasta entonces la migración no compra aislamiento real — compra el
 dato etiquetado, las políticas probadas y un registro que no crece en silencio.
 
-La suite pasó de 10 pruebas a 12 (T5b, T11, T12) y ahora se sabe que **se pone roja cuando
-debe**: 4 sabotajes deliberados, 4 cazados. La siembra cubre las 17 tablas y esa cobertura
-es una aserción, no un aviso.
+La suite pasó de 10 pruebas a 13 (T5b, T11 —dos bloques—, T12) y ahora se sabe que **se
+pone roja cuando debe**: 6 sabotajes deliberados, 6 cazados. La siembra cubre las 17 tablas
+y esa cobertura es una aserción, no un aviso. El QA del PR encontró (y el fix demostró en el
+gate) que el backfill original ABORTABA contra una base con datos —UPDATE sobre tablas
+append-only— y que la aserción NOT NULL de T11 recorría 0 filas: ahora el efímero migra con
+las append-only POBLADAS (pre-siembra + verificación post-backfill en `replay.sh`) y ambos
+defectos tienen su sabotaje permanente en `control-reversion.sh`.
 
 **Pendiente (Lisa):** aplicar a producción y verificar el backfill — runbook paso a paso en
 `businessos/README-migracion-tenancy.md`. ⚠️ La suite **no se corre contra producción**:

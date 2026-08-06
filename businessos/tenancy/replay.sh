@@ -22,7 +22,6 @@ CONTENEDOR="${PG_CONTENEDOR:-pg-tenencia}"
 # corre este mismo ciclo con copias deliberadamente rotas.
 MIGRACION="${MIGRACION:-}"
 SUITE="${SUITE:-}"
-PUERTO="${PG_PUERTO:-5433}"
 IMAGEN="${PG_IMAGEN:-postgres:16-alpine}"
 SOLO_ESQUEMA=0
 [[ "${1:-}" == "--solo-esquema" ]] && SOLO_ESQUEMA=1
@@ -31,7 +30,9 @@ psql_f() { docker exec -i "$CONTENEDOR" psql -U postgres -d postgres -v ON_ERROR
 
 echo "▶ Levantando $IMAGEN como '$CONTENEDOR'…"
 docker rm -f "$CONTENEDOR" >/dev/null 2>&1
-docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=x -p "$PUERTO:5432" "$IMAGEN" >/dev/null || exit 1
+# Sin -p: todo acceso va por `docker exec`. Publicar el puerto dejaba un
+# Postgres con contraseña 'x' escuchando en todas las interfaces del anfitrión.
+docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=x "$IMAGEN" >/dev/null || exit 1
 # La espera corre DENTRO del contenedor: un `sleep` de primer plano en el
 # anfitrión puede estar bloqueado según dónde se ejecute este script, y sin
 # espera real el bucle se agota en milisegundos y declara un arranque fallido
@@ -112,6 +113,13 @@ if (( SOLO_ESQUEMA == 1 )); then
   exit 0
 fi
 
+# La migración se prueba contra una base CON datos, como producción. Sin esto,
+# el backfill del bloque 4 corre sobre 0 filas, ningún trigger dispara, y un
+# backfill que ABORTARÍA en producción (UPDATE sobre tablas append-only) sale
+# verde aquí. Cero filas ⇒ cero verdad.
+echo "▶ Pre-siembra de datos 'de producción' (append-only pobladas ANTES de migrar)…"
+psql_f < "$DIR/01-preseed-produccion.sql" || { echo "✗ La pre-siembra falló"; exit 1; }
+
 # Orden deliberado: las DOS corridas de la migración van ANTES de la suite.
 # La suite siembra tablas append-only (buzon_bitacora, enriquecimiento_intento)
 # cuyos datos no se pueden retirar, así que solo puede correr una vez por base
@@ -124,6 +132,28 @@ psql_f < "${MIGRACION:-$RAIZ/businessos/supabase-organizaciones.sql}" || { echo 
 echo "▶ Migración de tenencia (2ª corrida — idempotencia)…"
 psql_f < "${MIGRACION:-$RAIZ/businessos/supabase-organizaciones.sql}" || { echo "✗ La migración NO es idempotente"; exit 1; }
 
+# La demostración del gate: las filas pre-sembradas en las append-only deben
+# haber quedado con tenant_id poblado SIN que la migración tocara sus triggers.
+echo "▶ Verificando el backfill sobre las filas pre-sembradas…"
+psql_f <<'SQL' || { echo "✗ El backfill no cubrió las tablas append-only pre-sembradas"; exit 1; }
+\set ON_ERROR_STOP on
+do $$
+declare n_filas bigint; n_nulas bigint; t text;
+begin
+  foreach t in array array['buzon_bitacora','enriquecimiento_intento'] loop
+    execute format('select count(*), count(*) filter (where tenant_id is null) from public.%I', t)
+      into n_filas, n_nulas;
+    if n_filas = 0 then
+      raise exception 'GATE CIEGO: % migró VACÍA — la pre-siembra no corrió y este chequeo no prueba nada', t;
+    end if;
+    if n_nulas > 0 then
+      raise exception 'BACKFILL INCOMPLETO: % tiene % filas con tenant_id null tras la migración', t, n_nulas;
+    end if;
+  end loop;
+  raise notice 'BACKFILL verificado sobre filas reales en las 2 tablas append-only.';
+end $$;
+SQL
+
 echo "▶ Suite de aislamiento…"
 psql_f < "${SUITE:-$RAIZ/businessos/test-aislamiento-tenants.sql}" || { echo "✗ La suite falló"; exit 1; }
 
@@ -132,4 +162,5 @@ if (( ${#FALLIDOS[@]} > 0 )); then
   exit 1
 fi
 
-echo "✓ TODO VERDE: esquema completo (38/38), migración idempotente, suite en verde."
+docker rm -f "$CONTENEDOR" >/dev/null 2>&1
+echo "✓ TODO VERDE: esquema completo ($TOTAL/$TOTAL), migración idempotente, backfill sobre datos reales, suite en verde."

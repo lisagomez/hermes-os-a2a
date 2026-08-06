@@ -3,8 +3,8 @@
 #  control-reversion.sh — La prueba de las pruebas.
 #
 #  Una suite en verde no dice nada si nunca se la ha visto en rojo. Aquí se
-#  ROMPE la migración a propósito, de cuatro maneras distintas, y se exige que
-#  la suite lo cace. Si un sabotaje pasa desapercibido, esa prueba es adorno.
+#  ROMPE la migración a propósito, de seis maneras distintas, y se exige que
+#  el ciclo lo cace. Si un sabotaje pasa desapercibido, esa prueba es adorno.
 #
 #  Uso:  businessos/tenancy/control-reversion.sh
 #  Tarda unos minutos: cada sabotaje reconstruye el esquema desde cero.
@@ -17,6 +17,20 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 fallos=0
+total=0
+
+correr_sabotaje() {
+  local nombre="$1" espera="$2" copia="$3"
+  total=$((total+1))
+  if MIGRACION="$copia" PG_CONTENEDOR=pg-reversion \
+     "$RAIZ/businessos/tenancy/replay.sh" >"$TMP/salida.txt" 2>&1; then
+    echo "✗ $nombre — TODO PASÓ EN VERDE con la migración rota. $espera no protege nada."
+    fallos=$((fallos+1))
+  else
+    echo "✓ $nombre — cazado (esperábamos que fallara $espera)"
+    grep -oE "FALLO: [^\"]{0,110}|ERROR: +[^\"]{0,110}" "$TMP/salida.txt" | head -1 | sed 's/^/    /'
+  fi
+}
 
 # saboteo <nombre> <prueba-esperada> <expresión sed sobre la migración>
 saboteo() {
@@ -26,17 +40,21 @@ saboteo() {
 
   if cmp -s "$copia" "$MIG"; then
     echo "✗ $nombre — el sabotaje NO modificó el archivo (la expresión ya no aplica)"
-    fallos=$((fallos+1)); return
+    fallos=$((fallos+1)); total=$((total+1)); return
   fi
 
-  if MIGRACION="$copia" PG_CONTENEDOR=pg-reversion PG_PUERTO=5434 \
-     "$RAIZ/businessos/tenancy/replay.sh" >"$TMP/salida.txt" 2>&1; then
-    echo "✗ $nombre — TODO PASÓ EN VERDE con la migración rota. $espera no protege nada."
-    fallos=$((fallos+1))
-  else
-    echo "✓ $nombre — cazado (esperábamos que fallara $espera)"
-    grep -oE "FALLO: [^\"]{0,110}" "$TMP/salida.txt" | head -1 | sed 's/^/    /'
-  fi
+  correr_sabotaje "$nombre" "$espera" "$copia"
+}
+
+# saboteo_estado <nombre> <prueba-esperada> <SQL que degrada la base tras migrar>
+# Para guardas que vigilan el ESTADO de la base (no el texto de la migración):
+# el SQL se añade al final de la copia y corre después del commit.
+saboteo_estado() {
+  local nombre="$1" espera="$2" sql="$3"
+  local copia="$TMP/mig.sql"
+  cp "$MIG" "$copia"
+  printf '\n%s\n' "$sql" >> "$copia"
+  correr_sabotaje "$nombre" "$espera" "$copia"
 }
 
 echo "▶ Control de reversión: rompiendo la migración a propósito…"
@@ -66,11 +84,27 @@ saboteo "puente de costo sin lower()" "T12" \
 saboteo "sin índice en tenant_id" "T8" \
   "s/^      'create index if not exists %I on %I\.%I \(tenant_id\)',$/      'select %I, %I, %I',/"
 
+# 5 · El bug que este control no vio nacer: backfill por UPDATE sobre tablas
+#     append-only. Se revierte el add-column-con-default al add-column pelado;
+#     con la pre-siembra de replay.sh, el UPDATE de red de seguridad golpea
+#     filas reales de buzon_bitacora y el trigger append-only DEBE abortar la
+#     migración. Si esto sale verde, el gate volvió a migrar con tablas vacías.
+saboteo "backfill por UPDATE contra append-only" "la migración (bloque 4)" \
+  's/add column if not exists tenant_id uuid default %L/add column if not exists tenant_id uuid/; s/^      r\.esquema, r\.tabla, org\);$/      r.esquema, r.tabla);/'
+
+# 6 · T11 vigila que la tenencia ajena declarada siga siendo cierta. Aquí se
+#     degrada el ESTADO (no el texto): un NOT NULL retirado de una tabla
+#     slug_text tras la migración. La primera versión de T11 filtraba por un
+#     mecanismo inexistente y recorría 0 filas: este sabotaje la habría
+#     desenmascarado — por eso queda como control permanente.
+saboteo_estado "NOT NULL retirado de una tabla slug_text" "T11" \
+  "alter table public.crm_contactos alter column tenant_id drop not null;"
+
 docker rm -f pg-reversion >/dev/null 2>&1
 
 echo
 if (( fallos > 0 )); then
-  echo "✗ $fallos sabotaje(s) pasaron sin ser detectados: la suite tiene huecos."
+  echo "✗ $fallos de $total sabotaje(s) pasaron sin ser detectados: la suite tiene huecos."
   exit 1
 fi
-echo "✓ Los 4 sabotajes fueron cazados. La suite se pone roja cuando debe."
+echo "✓ Los $total sabotajes fueron cazados. La suite se pone roja cuando debe."
