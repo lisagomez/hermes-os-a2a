@@ -335,9 +335,13 @@ services:
   # Puente determinista de speech-to-text del depto adquisicion: {card, rpc,
   # /health}, SIN LLM. El audio entra por el volumen adquisicion-audio (los
   # bytes nunca viajan por JSON-RPC); la transcripcion se persiste en la tabla
-  # `transcripciones` anclada al lead. Motor por STT_ENGINE (default mock;
-  # el motor real es eleccion pendiente de la duena — un valor desconocido
-  # impide el arranque, jamas degrada en silencio).
+  # `transcripciones` anclada al lead. Motor por STT_ENGINE (default mock; un
+  # valor desconocido impide el arranque, jamas degrada en silencio). El motor
+  # real `groq` (whisper-large-v3, Adopcion 1 PRP Makeflowia) esta IMPLEMENTADO
+  # pero INACTIVO: activarlo manda el audio a api.groq.com (sale del perimetro)
+  # y es decision de la duena, con verificacion de retencion de datos de Groq
+  # antes del primer audio real. groq exige GROQ_API_KEY o el servicio no
+  # arranca; whisper NO diariza (hablante="voz").
   transcripcion-a2a:
     build: ./transcripcion-a2a
     container_name: transcripcion-a2a
@@ -348,6 +352,7 @@ services:
     environment:
       - TRANSCRIPCION_PUBLIC_URL=${TRANSCRIPCION_PUBLIC_URL:-http://transcripcion-a2a:4800}
       - STT_ENGINE=${STT_ENGINE:-mock}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}   # solo la usa STT_ENGINE=groq; vive en el .env del servicio
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     volumes:
@@ -683,6 +688,8 @@ volumes:
   # recreate y pegarle a los rate limits de Let's Encrypt.
   caddy-data:
   # Audio de entrevistas de descubrimiento (EG.CRM Hito 3): lo deposita un
-  # host-job/humano; transcripcion-a2a lo lee (ro). Privacidad: no sale del
-  # perimetro del volumen.
+  # host-job/humano; transcripcion-a2a lo lee (ro). Privacidad: con el motor
+  # mock (default) no sale del perimetro del volumen; con STT_ENGINE=groq el
+  # audio SI viaja a api.groq.com para transcribirse — activarlo es decision
+  # de la duena (ver comentario del servicio transcripcion-a2a).
   adquisicion-audio:

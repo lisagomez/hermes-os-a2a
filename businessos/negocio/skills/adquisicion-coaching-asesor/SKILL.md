@@ -60,7 +60,7 @@ Agrupadas en dos bloques. Cada dimensión: nivel `logrado`/`parcial`/`oportunida
 
 ## Proceso
 
-1. **Lee el transcript** (con hablantes y tiempos) y ubica momentos clave por dimensión.
+1. **Lee el transcript** (con tiempos; hablantes solo si el motor diarizó — el motor real `groq` no: tramos `Voz`) y ubica momentos clave por dimensión. Sin atribución de hablante, trátala como **no disponible**: no adivines quién dijo qué ni cites "[cita del asesor]" sin certeza.
 2. **Reconoce fortalezas primero** — específicas y con cita. *"No todo desarrollo es reducir defectos; también es amplificar aciertos"* (diio, p. 132). Incluye **coaching por fortalezas** y **preventivo** (patrones de riesgo que aún no fallan).
 3. **Elige máximo 2 comportamientos** a cambiar (los de mayor impacto), no una lista abrumadora.
 4. **Asocia cada uno a una técnica** (SPIN, escucha activa/parafraseo, silencio estratégico, resumen-espejo, interpretar objeción antes de responder) y da un ejemplo **antes → después** tomado del transcript.
