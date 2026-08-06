@@ -1,0 +1,36 @@
+# Gate de la capa de tenencia: reconstruye el esquema en un Postgres real,
+# aplica la migración dos veces (idempotencia) y corre la suite de aislamiento.
+#
+# Por qué en CI y no "cuando alguien se acuerde": el valor de T5/T6/T11 no está
+# en la primera corrida sino en la número doscientos, cuando alguien agregue una
+# tabla sin clasificarla. Sin este job, esa red de seguridad es una intención
+# (aprendizaje 2026-08-02: una doctrina sin gate es una costumbre).
+name: Tenencia
+
+# SIN filtro de `paths`, a propósito. Un filtro solo cubre los sitios donde
+# nacen tablas HOY; una tabla nueva en una ruta no listada (un servicio nuevo,
+# el frontend siguiente, erp/migrations/006) daría PR verde con una tabla
+# huérfana — justo el fallo que T5 existe para impedir. El job tarda ~40 s:
+# sale más barato correrlo siempre que razonar cada vez si hacía falta.
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  aislamiento:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # El runner trae docker; replay.sh levanta y tira su propio contenedor.
+      - name: Esquema + migración ×2 + suite de aislamiento
+        run: businessos/tenancy/replay.sh
+
+      # La prueba de las pruebas: rompe la migración de seis maneras y exige
+      # que el ciclo lo cace. Un verde que nunca se ha visto en rojo no informa.
+      - name: Control de reversión
+        run: businessos/tenancy/control-reversion.sh

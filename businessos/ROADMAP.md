@@ -1455,7 +1455,7 @@ pendientes de decisiones (cada documento lista las suyas).
 | Respaldos 3-2-1-1-0 | `businessos/FASE0-respaldos.md` | Borg → Storage Box + archivo mensual cifrado en B2 con Object Lock; **retira** `backup-verticales.sh` como copia de recuperación |
 | Arquitectura multi-inquilino B2B | `businessos/arquitectura-multitenant-b2b.md` | Doctrina: jerarquía socio→tenant, 5 roles, propagación de contexto, ciclo de vida y baja |
 | Migración de tenencia | `businessos/supabase-organizaciones.sql` | `organizaciones`/`membresias`/`usuarios` + `tenant_id` + RLS real con rol `app_tenant` |
-| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 10 pruebas; T5–T8 son meta-pruebas que se rompen solas ante una regresión futura |
+| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 13 pruebas; T5–T8 y T11 son meta-pruebas que se rompen solas ante una regresión futura |
 | Orden de aplicación | `businessos/README-migracion-tenancy.md` | Efímero primero, idempotencia, y los cinco gotchas |
 | Aprovisionamiento de workspace | `.claude/PRPs/prp-workspace-meeting-copilot.md` | El workspace como objeto de primera clase en meeting-copilot; depende de fase 14 (sin aplicar) |
 | Anclas de confianza | `businessos/gobernanza/anclas-de-confianza.md` | Dos anclas independientes (raíz A2A + CAs de Fabric) y guion de ceremonia |
@@ -1463,13 +1463,14 @@ pendientes de decisiones (cada documento lista las suyas).
 
 **Tres cosas que hay que resolver antes de ejecutar nada de esto:**
 
-1. **Choque de tipo en `tenant_id`.** La migración usa `tenant_id uuid` con FK a
-   `organizaciones(id)`, pero el repo ya tiene `tenant_id text` (slug, default `'a2a'`) en
-   `agenda_*` (fase 14), `buzones`/`correos_*` y `crm_*` — desviación **deliberada y
-   documentada** en `supabase-buzon.sql`, más `crm_tenants` con PK de texto. Sobre esas
-   tablas el `add column if not exists` no hace nada, el `update` las llena con el uuid en
-   formato texto sin error, y el bloque 5 revienta al crear la FK. Decidir primero si se
-   unifica a `uuid` (conversión aparte) o si `organizaciones` adopta el slug de texto.
+1. ~~**Choque de tipo en `tenant_id`.**~~ → **RESUELTO el 2026-08-05** (ver la subsección
+   siguiente). El pronóstico era exacto y se quedó corto: no eran solo `agenda_*`,
+   `buzones` y `crm_*` sino **17 tablas** con `tenant_id text`. Resolución: **ni unificar a
+   uuid ni que `organizaciones` adopte el slug** — las 17 tablas conservan su slug y quedan
+   declaradas en un registro nuevo (`app.tablas_tenant_ajeno`), el puente entre los dos
+   mundos es `organizaciones.slug` (probado por T12), y solo las 17 tablas **sin** tenencia
+   previa reciben `tenant_id uuid`. Convertir habría obligado a tocar CancioBot, la guardia
+   de presupuesto, agendamiento y el buzón: esa sigue siendo decisión abierta de Elisa.
 2. **Solape con la ceremonia ya escrita.** `red-tier1-iac/CEREMONIA.md` cubre las CAs de
    Fabric; `gobernanza/anclas-de-confianza.md` es un superconjunto que añade el ancla del
    plano A2A y funde ambas en un solo evento. Hay que reconciliarlos: si la ceremonia se
@@ -1482,6 +1483,45 @@ pendientes de decisiones (cada documento lista las suyas).
 Nota menor: el PRP de endurecimiento habla de "los doce servicios"; el compose actual tiene
 9 con sufijo `-a2a` más candidatos (`chat-web2`, `crm-canales`, `sup-crm`, `edge`). Su propio
 paso 0 pide justamente ese inventario, así que el número está por confirmar.
+
+### Capa de tenencia — VALIDADA en Postgres real, pendiente de aplicar a producción (2026-08-05)
+
+De los ocho documentos, el de tenencia dejó de ser propuesta: está **verificado de punta a
+punta contra Postgres 16**, con todo lo que hacía falta para poder aplicarlo. Lo único que
+falta es el paso que exige el token de management, que esta máquina no tiene.
+
+**Lo que se encontró al enumerar de verdad** (`businessos/tenancy/replay.sh` reconstruye el
+esquema desde 38 archivos del repo, así que el conteo sale de una BD, no de un grep):
+
+- `public` tiene **71 tablas**, no 22. Y **tres modelos de tenencia** conviviendo: 17 con
+  `tenant_id uuid` nuevo, 17 con `tenant_id text` (slug), 32 de la cabina control-interno
+  que aísla por `auth.uid()`, 5 globales. El ERP es un cuarto modelo en su propio esquema.
+- **`buzon_control` no puede ser por-tenant**: tiene `check (id = 1)`, es un singleton.
+- **`profiles` jamás debe llevar `tenant_id NOT NULL`**: la escribe el trigger
+  `handle_new_user` y rompería el alta de usuarios de todo A2ABot.
+- La migración **no era idempotente** (el bloque 5 añadía la FK sin guarda: la 2ª corrida
+  moría con "constraint already exists"). Corregido y verificado.
+- El README afirmaba que una política `FOR ALL` sin `with check` deja escribir en otro
+  tenant. **Es falso** — Postgres reutiliza la expresión de `using`. Corregido en el README.
+
+**Lo que se construyó para poder afirmar todo eso:** `businessos/tenancy/` (prelude,
+manifiesto de orden, `replay.sh`, `control-reversion.sh`), un gate de CI
+(`.github/workflows/tenencia.yml`) y la decisión escrita sobre `service_role`
+(`businessos/gobernanza/decision-service-role.md`): la aplicación lo abandona **antes del
+segundo tenant**, y hasta entonces la migración no compra aislamiento real — compra el
+dato etiquetado, las políticas probadas y un registro que no crece en silencio.
+
+La suite pasó de 10 pruebas a 13 (T5b, T11 —dos bloques—, T12) y ahora se sabe que **se
+pone roja cuando debe**: 6 sabotajes deliberados, 6 cazados. La siembra cubre las 17 tablas
+y esa cobertura es una aserción, no un aviso. El QA del PR encontró (y el fix demostró en el
+gate) que el backfill original ABORTABA contra una base con datos —UPDATE sobre tablas
+append-only— y que la aserción NOT NULL de T11 recorría 0 filas: ahora el efímero migra con
+las append-only POBLADAS (pre-siembra + verificación post-backfill en `replay.sh`) y ambos
+defectos tienen su sabotaje permanente en `control-reversion.sh`.
+
+**Pendiente (Lisa):** aplicar a producción y verificar el backfill — runbook paso a paso en
+`businessos/README-migracion-tenancy.md`. ⚠️ La suite **no se corre contra producción**:
+siembra dos tenants de prueba en tablas append-only que no se pueden retirar.
 
 ---
 

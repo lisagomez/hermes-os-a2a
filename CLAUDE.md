@@ -1537,4 +1537,64 @@ npm run lint         # ESLint
   en el MISMO cambio, no solo donde se va a desplegar hoy. Y el smoke post-rebuild va
   contra el puerto INTERNO real del contenedor (`docker port`), no el que uno recuerda.
 
+### 2026-08-05: Una migración sobre "22 tablas" que en realidad eran 71 — enumerar contra una BD, nunca contra un grep
+- **Error(es) al validar la capa de tenencia**: (1) el diseño hablaba de 22 tablas y de DOS
+  listas (tenant/global); `public` tenía **71** y **tres** modelos de tenencia conviviendo
+  (`tenant_id uuid` nuevo, `tenant_id text` slug en 17 tablas ya en producción, `auth.uid()`
+  en las 32 de la cabina control-interno) más el ERP en su propio esquema. Un `grep "create
+  table"` daba nombres truncados y se comía un directorio entero por una ruta mal puesta: la
+  única enumeración fiable es `information_schema` de una BD donde el esquema se REPLICÓ.
+  (2) `add column if not exists tenant_id uuid` sobre una tabla que ya tiene `tenant_id text`
+  es un **no-op silencioso**, y el error aparece tres bloques después como un incomprensible
+  "incompatible types: text and uuid" que tumba la transacción entera. (3) La migración **no
+  era idempotente**: `add constraint ... foreign key` no admite `if not exists` y la 2ª
+  corrida moría. (4) La suite jamás se había ejecutado: su siembra (`insert (tenant_id)`)
+  fallaba en 26 de 27 tablas, consultaba el registro ya con el rol restringido (permiso
+  denegado), y su T9 comprobaba un disparador `deferrable initially deferred` que no se
+  pronuncia hasta el COMMIT — daba rojo con el invariante funcionando.
+- **Fix / patrones que quedan**: (a) **guarda de colisión** al inicio de la migración que
+  falla nombrando tabla y tipo, en vez de reventar tres bloques más tarde; (b) andamiaje
+  versionado en `businessos/tenancy/` — prelude (roles, `auth`, extensiones), **manifiesto de
+  orden** (el orden real NO es el de los nombres: `fase12-leads-crm` va después de `crm0`) y
+  `replay.sh` que imprime cada archivo fallido; (c) **sembrador por introspección** que
+  sintetiza las columnas obligatorias, resuelve FK contra el padre del mismo tenant y prueba
+  variantes cuando un CHECK cruza dos columnas — recortar el conjunto de tablas para que la
+  siembra pase convierte el bucle por-tabla en teatro; (d) la **cobertura es una aserción**,
+  no un NOTICE: si una tabla deja de sembrarse, la suite se pone roja en vez de verificar
+  menos en silencio.
+- **Tres verdades que solo aparecen ejecutando**: `buzon_control` tiene `check (id = 1)` →
+  es un singleton y **no puede** ser por-tenant; `buzon_bitacora` y `enriquecimiento_intento`
+  son **append-only por disparador** → sus datos de prueba no se pueden retirar, así que la
+  suite exige base limpia y aborta si detecta que ya corrió; y en una política **`FOR ALL`
+  sin `with check`, Postgres reutiliza la expresión de `using`** → borrar esa línea NO abre
+  ningún agujero (el README del repo afirmaba lo contrario). Lo destapó el control de
+  reversión: el primer sabotaje "pasó en verde" porque la migración rota no lo estaba.
+- **Regla**: un verde que nunca se ha visto en rojo no informa. Todo gate nuevo trae su
+  `control-reversion.sh` — romper a propósito de N maneras y exigir que las cace.
+- **Aplicar en**: toda migración sobre una BD compartida con historia, toda suite de
+  invariantes, y cualquier documento de diseño cuyos nombres de tabla vengan de la memoria.
+
+### 2026-08-06: Un efímero que migra VACÍO no prueba el backfill (cero filas ⇒ cero triggers ⇒ cero verdad)
+- **Error(es) (QA adversarial del PR #237, con la suite y los 4 sabotajes EN VERDE)**:
+  (1) el backfill de tenencia hacía `update ... set tenant_id` sobre las 17 tablas, y dos
+  son **append-only por trigger** (`buzon_bitacora`, `enriquecimiento_intento`): contra una
+  base con datos la migración ABORTA entera — y el CI era estructuralmente ciego porque el
+  efímero migraba con las tablas vacías (un trigger `for each row` sobre 0 filas jamás
+  dispara). La propia doc del PR sabía que eran append-only; nadie lo conectó con su UPDATE.
+  (2) La aserción NOT NULL de T11 filtraba `mecanismo = 'crm_slug'`, valor que el CHECK del
+  registro ni admite → recorría **0 filas**: código muerto imposible de poner en rojo, con
+  un comentario que afirmaba lo contrario.
+- **Fix**: (a) backfill sin UPDATE — `add column ... default <org>` (en PG11+ es metadato:
+  las filas existentes leen el default sin disparar triggers) y `drop default` inmediato;
+  (b) el gate ahora **pre-siembra** las append-only ANTES de migrar y verifica el backfill
+  sobre esas filas (`tenancy/01-preseed-produccion.sql` + aserción en `replay.sh`);
+  (c) T11 corregida a `slug_text`; (d) ambos defectos quedaron como sabotajes permanentes
+  (5 y 6) en `control-reversion.sh` — revertir cualquiera de los fixes pone el gate en rojo.
+- **Reglas**: el efímero debe replicar el ESTADO de producción (datos donde los datos
+  importan), no solo el esquema; y todo bucle de aserción que filtre filas necesita o una
+  aserción de "recorrí > 0" o un sabotaje que lo desenmascare — un bucle sobre 0 filas es
+  el gemelo SQL del test que reproduce la lógica que prueba (2026-07-13).
+- **Aplicar en**: todo gate con BD efímera, toda migración con backfill sobre tablas con
+  triggers, y toda meta-prueba registro-contra-realidad.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
