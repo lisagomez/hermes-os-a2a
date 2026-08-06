@@ -37,9 +37,16 @@ docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=x "$IMAGEN" >/dev/null |
 # anfitrión puede estar bloqueado según dónde se ejecute este script, y sin
 # espera real el bucle se agota en milisegundos y declara un arranque fallido
 # que en realidad iba en camino.
+# ⚠ La sonda va por TCP (-h 127.0.0.1), NO pg_isready por socket: el entrypoint
+# de la imagen levanta un servidor TEMPORAL solo-socket durante el init y lo
+# reinicia después — pg_isready da verde en esa ventana y el prelude pega en el
+# hueco (visto en CI, donde la imagen se baja fría y el timing lo expone). El
+# servidor temporal no escucha TCP; el definitivo sí: la sonda TCP no miente.
 listo=0
-for _ in $(seq 1 60); do
-  if docker exec "$CONTENEDOR" pg_isready -U postgres >/dev/null 2>&1; then listo=1; break; fi
+for _ in $(seq 1 90); do
+  if docker exec -e PGPASSWORD=x "$CONTENEDOR" psql -h 127.0.0.1 -U postgres -d postgres -qAt -c 'select 1' >/dev/null 2>&1; then
+    listo=1; break
+  fi
   docker exec "$CONTENEDOR" sh -c 'sleep 1' >/dev/null 2>&1 || command sleep 1
 done
 if (( listo == 0 )); then
