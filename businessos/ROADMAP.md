@@ -706,8 +706,17 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   (corre esta noche con las guardas).
 - [ ] **Gates de la dueña** (nada corre solo): motor LLM real para tareas
   `adquisicion`; **aprobar/activar `enviar-salientes.py`** (SMTP + dominio +
-  remitente + `ENVIAR_REAL=1`); **elegir el motor STT real** de
-  `transcripcion-a2a` (candidato: faster-whisper) y desplegarlo; negociación
+  remitente + `ENVIAR_REAL=1`); **activar el motor STT real** de
+  `transcripcion-a2a` — el motor `groq` (whisper-large-v3) quedó IMPLEMENTADO
+  e inactivo en la Adopción 1 del PRP Makeflowia
+  (`.claude/PRPs/prp-adopcion-repos-makeflowia.md`); default sigue `mock`;
+  activarlo manda el audio a api.groq.com (sale del perímetro) y exige
+  verificar la retención de datos de Groq + `GROQ_API_KEY` en el .env +
+  deploy + smoke con audio real; whisper NO diariza (alternativa local
+  faster-whisper sigue abierta si la dueña la prefiere); OJO: el costo Groq
+  (por hora de audio, no tokens) queda como hueco DECLARADO solo en
+  `docker logs` — la alerta del 80% NO lo ve; decidir su entrada al
+  presupuesto es parte de este gate; negociación
   A2A externa autónoma (política de límites + auth en la card + revisión
   legal); dominio real para el edge (hoy sslip.io temporal);
   `#dep-adquisicion` en Slack.

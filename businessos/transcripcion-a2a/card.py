@@ -33,11 +33,13 @@ def build_card() -> AgentCard:
         name="Transcribir entrevista de descubrimiento",
         description=(
             "Convierto el audio de una entrevista de descubrimiento (visita o "
-            "llamada) en una transcripcion literal con hablantes (asesor/cliente) "
-            "y marcas de tiempo, anclada a la fila del lead. Lo dudoso queda "
-            "[inaudible], jamas adivinado. Fronteras: NO resumo, NO interpreto, "
-            "NO opino y NO completo lo inaudible — el analisis es tarea de otros "
-            "skills del departamento."
+            "llamada) en una transcripcion literal con marcas de tiempo, anclada "
+            "a la fila del lead. La atribucion de hablantes depende del motor "
+            "configurado: el motor real (groq/whisper) NO diariza y cada tramo "
+            "sale como 'voz'. Lo dudoso queda [inaudible], jamas adivinado. "
+            "Fronteras: NO resumo, NO interpreto, NO opino, NO diarizo lo que el "
+            "motor no distingue y NO completo lo inaudible — el analisis es "
+            "tarea de otros skills del departamento."
         ),
         tags=["transcripcion", "stt", "adquisicion", "descubrimiento", "departamento"],
         examples=[EJEMPLO_PETICION],
@@ -50,8 +52,9 @@ def build_card() -> AgentCard:
         description=(
             "Puente determinista de speech-to-text del departamento de "
             "adquisicion (EG.CRM Hito 3): transcribo entrevistas de "
-            "descubrimiento con hablantes y tiempos, ancladas al lead. Sin LLM "
-            "en la ruta de conversion. No resumo, no interpreto, no opino."
+            "descubrimiento con marcas de tiempo, ancladas al lead. Sin LLM "
+            "en la ruta de conversion y sin diarizacion (no anuncio lo que el "
+            "motor no hace). No resumo, no interpreto, no opino."
         ),
         version="1.0.0",
         supported_interfaces=[

@@ -14,6 +14,7 @@ reintentable (la transcripcion ES el producto; nunca se pierde en silencio).
 """
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 from a2a.helpers import get_data_parts, new_data_part, new_task, new_text_part
@@ -136,7 +137,12 @@ class TranscripcionExecutor(AgentExecutor):
             return
 
         try:
-            segmentos = self._motor.transcribir(audio, peticion["idioma"])
+            # to_thread: un motor sincrono con red (groq) no debe bloquear el
+            # event loop — bloquearlo congela /health y el healthcheck del
+            # contenedor lo mataria a media transcripcion larga.
+            segmentos = await asyncio.to_thread(
+                self._motor.transcribir, audio, peticion["idioma"]
+            )
         except Exception as exc:  # motor STT reventado: fallo VISIBLE, reintentable
             await self._fallar(updater, f"motor STT fallo: {type(exc).__name__}: {exc}")
             return
@@ -186,4 +192,7 @@ class TranscripcionExecutor(AgentExecutor):
 
     @staticmethod
     async def _fallar(updater: TaskUpdater, razon: str) -> None:
+        # Log LOCAL antes de que el error viaje por A2A: si el cliente ya se
+        # fue, el protocolo se lo traga y nadie se entera (regla 2026-07-12).
+        print(f"[transcripcion-a2a] task failed: {razon}", flush=True)
         await updater.failed(updater.new_agent_message(parts=[new_text_part(razon)]))

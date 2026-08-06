@@ -169,7 +169,7 @@ hito → skill:
 |-------------|-------|----------------|
 | 2 — se agenda la 1ª llamada | `adquisicion-pre-descubrimiento` | Ficha de Inteligencia (fuentes públicas, `observado`/`hipótesis`; dolores en 4 cubetas —operativo/documental/regulatorio/comercial—, comité comprador y readiness/urgencia) |
 | 3 — descubrimiento | `adquisicion-entrevista-dinamica` | Guía de entrevista personalizada desde la ficha |
-| 3 — descubrimiento | `adquisicion-transcripcion` | Transcripción STT diarizada (puente determinista, cero LLM) |
+| 3 — descubrimiento | `adquisicion-transcripcion` | Transcripción STT con tiempos (puente determinista, cero LLM; diarización solo si el motor la da — el real `groq` no diariza) |
 | 3 — post-entrevista | `adquisicion-diagnostico-factibilidad` | Evaluación de Factibilidad (FODA, regulatorio vía grafo) |
 | 3 — post-entrevista (interno) | `adquisicion-coaching-asesor` | Coaching del asesor (rúbrica 7 dimensiones; nunca al cliente) |
 | 5 — tras consenso Factible+Prioritario (Hito 4 = votación humana) | `adquisicion-analisis-profundo` | Informe de Análisis (costo-beneficio, contingencias) |
@@ -220,7 +220,7 @@ Cero tokens (MockEngine), igual que el dogfood de software:
 | Card en internet (0.0.0.0/TLS) | dominio + rate limiting; hoy solo hermes-net + túnel SSH |
 | Cobro (Polar producción) | ya definido en Fase 3 |
 | Envío real por `enviar-salientes.py` | el host-job YA EXISTE (2026-07-24: dry-run por defecto, integridad sha256 + autenticidad contra `aprobaciones_salientes`); gate: aprobación de la dueña + SMTP/dominio/remitente + `ENVIAR_REAL=1` |
-| Motor STT real en `transcripcion-a2a` | el servicio YA EXISTE (2026-07-24: puerto 4800, {card, rpc, /health}, motor mock, 21 tests + interop, compose + volumen `adquisicion-audio`); gate: elegir motor STT real (candidato: faster-whisper) + aplicar `supabase-egcrm-herramientas.sql` + deploy |
+| Motor STT real en `transcripcion-a2a` | el servicio YA EXISTE (2026-07-24: puerto 4800, {card, rpc, /health}, compose + volumen `adquisicion-audio`) y el motor real `groq` (whisper-large-v3) quedó IMPLEMENTADO e INACTIVO (Adopción 1 PRP Makeflowia; default sigue mock; sin diarización — tramos `Voz`); gate: OK de la dueña para activarlo (el audio sale a api.groq.com — verificar retención/ZDR de Groq; alternativa local faster-whisper sigue abierta) + `GROQ_API_KEY` en el .env + aplicar `supabase-egcrm-herramientas.sql` + deploy + smoke con audio real |
 | Skills EG.CRM activas en el volumen de Hermes-Negocio (§7.1) | motor real `adquisicion` + sync explícito repo→volumen |
 
 ---

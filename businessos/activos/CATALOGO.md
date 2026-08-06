@@ -267,7 +267,9 @@ Cabina interna (frontend-ci, 31 tablas propias sobre el Supabase compartido, tri
 **A2A-008 · transcripcion-a2a** — `beta`
 Servicio A2A de STT (:4800) con contrato de segmentos (confianza, umbral inaudible
 0.5) espejado en Meeting Copilot y adapter al Flask `transcriptor` externo. Motor
-real (faster-whisper) = gate de la dueña.
+real `groq` (whisper-large-v3, sin diarización) implementado e inactivo (Adopción 1
+PRP Makeflowia); activarlo = gate de la dueña (el audio sale a api.groq.com;
+alternativa local faster-whisper sigue abierta).
 - Construcción: `no_medido`. Operación: $0 (no desplegado con motor real).
 - Réplica: n/a hasta cerrar gate. Reposición: **$5–30 nominal**.
 
