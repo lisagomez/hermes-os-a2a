@@ -1,12 +1,17 @@
 # Migración de tenencia — orden de aplicación
 
-> **Estado (2026-08-06):** validada de punta a punta contra Postgres real —
-> ahora también contra una base CON DATOS (el QA del PR #237 demostró que el
-> backfill original abortaba sobre las tablas append-only pobladas; el efímero
-> migraba con todo vacío y no podía verlo). Las 71 tablas de `public`
-> clasificadas y los 6 sabotajes del control de reversión cazados. **Falta el
-> único paso que no se puede dar desde la máquina de Victor: aplicarla a
-> producción** (ver *Runbook de producción*, al final).
+> **Estado (2026-08-06): APLICADA A PRODUCCIÓN** (autorizada por Elisa, vía
+> management API). El paso 1 del runbook encontró el drift esperado: prod tenía
+> **62** tablas, no 71 — faltaban `supabase-egcrm-herramientas.sql`
+> (transcripciones + aprobaciones_salientes, ambas de la lista TENANT: la
+> migración habría abortado) y `supabase-fase14-agendamiento.sql` (7 agenda_*),
+> mergeadas pero nunca aplicadas. Se aplicaron primero, luego la migración.
+> Verificado: 17/17 migradas, cero `tenant_id` nulos (las 24 filas reales de
+> `buzon_bitacora` backfilleadas SIN disparar el trigger append-only),
+> RLS+FORCE+política en las 17, `app_tenant` sin bypass, `hermes-interno`
+> activa. `get_advisors` cazó 3 hallazgos que el efímero no ve — vista
+> SECURITY DEFINER, `usuarios`/`org_bitacora` sin RLS, funciones sin
+> `search_path` — corregidos en prod Y horneados en este archivo.
 
 Dos archivos, un orden, cero atajos.
 
@@ -208,8 +213,15 @@ doscientos, cuando alguien que no leyó este documento agregue una tabla.
 - [x] Rol `app_tenant` creado, sin bypass ni superusuario
 - [x] **Decisión escrita** sobre `service_role` → `businessos/gobernanza/decision-service-role.md`
 - [x] Suite en CI, corriendo en cada PR (`.github/workflows/tenencia.yml`)
-- [ ] **Aplicada a producción con la organización interna sembrada** ← Lisa
-- [ ] **Datos actuales todos con `tenant_id` de `hermes-interno`, ninguno nulo** ← Lisa
+- [x] **Aplicada a producción con la organización interna sembrada**
+      (2026-08-06, autorizada por Elisa; antes hubo que aplicar
+      egcrm-herramientas y fase14-agendamiento, mergeadas pero nunca aplicadas)
+- [x] **Datos actuales todos con `tenant_id` de `hermes-interno`, ninguno nulo**
+      (verificado tabla por tabla; `buzon_bitacora` con 24 filas reales
+      backfilleadas sin tocar su trigger append-only)
+- [x] **`get_advisors` sin alertas nuevas** tras el apply (los 3 hallazgos que
+      levantó — vista definer, `usuarios`/`org_bitacora` sin RLS, `search_path`
+      — quedaron corregidos en prod y en el archivo)
 
 ---
 

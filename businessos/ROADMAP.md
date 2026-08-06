@@ -679,8 +679,8 @@ el día 1; primer tramo con MockEngine (cero tokens), envíos/motor real gated.
   real; todo skip/fallo se imprime (nada best-effort silencioso).
   (c) `supabase-egcrm-herramientas.sql` (transcripciones +
   aprobaciones_salientes, RLS sin políticas) validado idempotente en Postgres
-  efímero — NO aplicado a producción aún (se aplica al desplegar, management
-  API como siempre). (d) **Pitch decks (2026-07-24)**:
+  efímero — **aplicado a producción el 2026-08-06** (prerequisito de la capa
+  de tenencia: ambas tablas son de la lista TENANT). (d) **Pitch decks (2026-07-24)**:
   `adquisicion/plantillas/pitch-deck-*.html` (System UI de la fábrica, marca
   del cliente parametrizada, claims aprobados textuales fijados por test
   parametrizado) + `personalizar-deck.py --plantilla` (JSON del cliente →
@@ -1242,8 +1242,10 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   en producción). Categoría propia `google` en el launcher, de modo que toda herramienta
   Google futura cae en esa sección sin tocar el grid.
 - [x] **5 vistas del buzón + 16ª herramienta** (PR #208) — ver §Departamento de Buzón.
-- [ ] Post-merge agendamiento: aplicar fase14 al conectar Supabase (management
-  API), host-job notificador real (enviar-salientes + crm-canales), rate-limit y
+- [ ] Post-merge agendamiento: ~~aplicar fase14~~ (**aplicado 2026-08-06** junto
+  con la capa de tenencia: sin él, el registro `app.tablas_tenant_ajeno`
+  declaraba 7 tablas fantasma en prod), host-job notificador real
+  (enviar-salientes + crm-canales), rate-limit y
   token HMAC de `/reservar`, mapeo CRM cita→etapa (decisión de negocio: "cita
   perdida" no existe en el CHECK de `leads.etapa`), checkout Polar para
   `requiere_pago`, y abrir el preview de Vercel (Deployment Protection).
@@ -1519,9 +1521,18 @@ append-only— y que la aserción NOT NULL de T11 recorría 0 filas: ahora el ef
 las append-only POBLADAS (pre-siembra + verificación post-backfill en `replay.sh`) y ambos
 defectos tienen su sabotaje permanente en `control-reversion.sh`.
 
-**Pendiente (Lisa):** aplicar a producción y verificar el backfill — runbook paso a paso en
-`businessos/README-migracion-tenancy.md`. ⚠️ La suite **no se corre contra producción**:
-siembra dos tenants de prueba en tablas append-only que no se pueden retirar.
+**APLICADA A PRODUCCIÓN (2026-08-06, autorizada por Elisa).** El paso 1 del runbook cazó
+el drift: prod tenía 62 tablas, no 71 — `supabase-egcrm-herramientas.sql` y
+`supabase-fase14-agendamiento.sql` estaban mergeadas pero nunca aplicadas (dos de las
+faltantes eran de la lista TENANT: la migración habría abortado). Se aplicaron primero,
+luego la capa. Verificado: 17/17 migradas, cero nulos (24 filas reales de `buzon_bitacora`
+backfilleadas sin disparar su trigger), RLS+FORCE+política en las 17, `hermes-interno`
+activa, y `get_advisors` limpio tras corregir los 3 hallazgos que el efímero no podía ver
+(vista SECURITY DEFINER, `usuarios`/`org_bitacora` sin RLS, `search_path` de las funciones
+de `app`) — corregidos en prod y horneados en el archivo. La suite **no se corrió contra
+producción** (siembra tenants de prueba imborrables); la verificación fue por consultas
+del runbook §3. Sigue pendiente, con fecha límite en el segundo cliente: que la aplicación
+abandone `service_role` y adopte `app_tenant`.
 
 ---
 

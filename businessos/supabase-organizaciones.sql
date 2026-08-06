@@ -83,6 +83,10 @@ create table if not exists usuarios (
   creado_en  timestamptz not null default now()
 );
 create unique index if not exists usuarios_email_uk on usuarios (lower(email));
+-- Sin políticas a propósito (patrón de la casa): PostgREST/anon quedan fuera y
+-- solo service_role/el dueño operan. Sin esto, los grants default de Supabase
+-- dejan la tabla LEGIBLE por anon (lo cazó get_advisors al aplicar a prod).
+alter table usuarios enable row level security;
 
 create table if not exists organizaciones (
   id              uuid primary key default gen_random_uuid(),
@@ -142,10 +146,11 @@ create table if not exists org_bitacora (
   ocurrio_en      timestamptz not null default now()
 );
 create index if not exists org_bitacora_org_ix on org_bitacora (organizacion_id, ocurrio_en desc);
+alter table org_bitacora enable row level security;   -- mismo motivo que usuarios
 
 -- ── Invariante: una organización activa nunca se queda sin propietario ──────
 create or replace function app.exigir_propietario() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 declare n int;
 begin
   select count(*) into n
@@ -176,7 +181,7 @@ create constraint trigger trg_exigir_propietario
 -- ============================================================================
 
 create or replace function app.tenant_actual() returns uuid
-language plpgsql stable as $$
+language plpgsql stable set search_path = public as $$
 declare v text;
 begin
   v := nullif(current_setting('app.tenant_id', true), '');
@@ -515,7 +520,10 @@ grant select on app.tablas_tenant, app.tablas_globales, app.tablas_tenant_ajeno
 --
 -- Las filas con tenant_id null (gasto de la casa: verticales, trío) quedan
 -- fuera por ser un join interno, que es lo correcto: no son de ningún cliente.
-create or replace view v_margen_tenant as
+-- security_invoker + revoke: sin esto la vista nace SECURITY DEFINER (default
+-- de Postgres) y expuesta a anon via PostgREST evadiria RLS — ERROR de
+-- get_advisors al aplicar a prod (mismo patron que v_facturas_resumen, 2026-07-23).
+create or replace view v_margen_tenant with (security_invoker = true) as
 select o.id            as tenant_id,
        o.nombre,
        o.plan,
@@ -524,6 +532,8 @@ select o.id            as tenant_id,
   from organizaciones o
   join token_usage t on lower(t.tenant_id) = lower(o.slug)
  group by 1,2,3,4;
+
+revoke all on v_margen_tenant from anon, authenticated;
 
 commit;
 
