@@ -1597,4 +1597,28 @@ npm run lint         # ESLint
 - **Aplicar en**: todo gate con BD efímera, toda migración con backfill sobre tablas con
   triggers, y toda meta-prueba registro-contra-realidad.
 
+### 2026-08-06: El efímero replica el REPO, no producción — y los advisors ven lo que el efímero no
+- **Hallazgos al aplicar la capa de tenencia a prod** (autorizada por Elisa): (1) el paso
+  "enumerar las tablas REALES antes de migrar" del runbook NO era ceremonia: prod tenía
+  **62 tablas, no 71** — `egcrm-herramientas` y `fase14-agendamiento` llevaban semanas
+  mergeadas sin aplicar, y DOS de las faltantes eran de la lista TENANT (la migración
+  habría abortado con `relation does not exist`). Ningún gate lo ve porque el efímero se
+  construye desde `orden.txt` (el repo), no desde prod. (2) Tras el apply, `get_advisors`
+  levantó 3 hallazgos que el efímero no puede ver: la vista nueva nació **SECURITY
+  DEFINER** (default de Postgres; expuesta a anon via PostgREST evade RLS),
+  `usuarios`/`org_bitacora` quedaron **sin RLS** (los grants default de Supabase las
+  dejaban legibles por anon), y las funciones de `app` sin `search_path` fijado.
+- **Fix**: aplicar los archivos faltantes ANTES de la capa (patrón 2026-08-02: sondear,
+  aplicar por management API, re-sondear); corregir los 3 hallazgos en prod Y hornearlos
+  en `supabase-organizaciones.sql` (security_invoker + revoke, enable RLS, search_path)
+  para que efímero y prod no diverjan; gate local re-corrido en verde (13 pruebas, 6/6
+  sabotajes).
+- **Reglas**: el checklist de toda migración a un Supabase compartido incluye
+  `get_advisors` ANTES y DESPUÉS (la línea base de hoy es la referencia de mañana); toda
+  vista nueva nace con `security_invoker = true` + revoke anon/authenticated salvo
+  decisión escrita; y toda tabla nueva habilita RLS aunque no tenga políticas — sin eso
+  los grants default de la plataforma la exponen.
+- **Aplicar en**: todo apply a producción, toda vista/tabla nueva en el proyecto
+  compartido, y todo runbook con paso "enumera primero" (ejecutarlo, no asumirlo).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
