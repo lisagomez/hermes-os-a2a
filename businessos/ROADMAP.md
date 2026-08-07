@@ -1392,7 +1392,11 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   (categoría `ASESORIA_INVERSIONES`, 62→63 reglas / 40 categorías; banderas de las
   fronteras vecinas más duras: captación LIC, intermediación, Fintech). Gate OK;
   83/83 tests. **Con esto la línea completa del caso Pre-Discovery legal queda cerrada.**
-- [ ] Aplicar el seed de la frontera financiera al runtime (procedimiento 2026-08-04)
+- [x] **Seed de la frontera financiera APLICADO al runtime** (2026-08-07): psql rc=0 +
+  restart + smoke — 63 reglas / 40 categorías vivas; "financial consulting" dictamina
+  por API con fuente LMV 225 y el test de frontera como primer requisito del checklist.
+  **La línea completa del caso Pre-Discovery legal (Fases A-D + frontera) está cerrada
+  y viva en producción.**
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
