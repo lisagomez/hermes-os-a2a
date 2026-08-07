@@ -334,3 +334,24 @@ mergeado sin aplicar), LFPDPPP 2010 retirada, 17 `evaluaciones` conservadas. Pro
 canónico del re-seed (gate `--check` → psql `ON_ERROR_STOP` → `docker restart grafo` →
 smoke): CLAUDE.md aprendizaje 2026-08-04. Recrear el volumen queda como último recurso
 (pierde `evaluaciones`).
+
+## Fase A corporativo-mercantil MX (2026-08-07) — primer ámbito nacido de Pre-Discovery
+Origen: caso Pre-Discovery de un holding de servicios legales; plan de expansión por
+fases (A corporativo → B fiduciario/inmobiliario → C ambiental → D cabildeo; Financial
+Consulting requiere dictamen de frontera LMV/CNBV antes de sembrar). Sembradas 9
+categorías + 12 reglas (dimensión `regulatorio`, régimen GENERAL): LGSM 2/5/6 (constitución
++ irregulares), 10 (poderes, CCF 2554 como frontera civil), 19-20 (utilidades/reserva 5%
+hasta 1/5, SAS exceptuada), 128-129 (registro de acciones + aviso PSM confidencial, reforma
+DOF 14-06-2018), 178-182/186 (asambleas; ordinaria ≤4 meses; convocatoria PSM 15 días),
+222-225 (fusión, 3 meses oposición), 228 Bis (escisión, 45 días naturales), 260-263 (SAS:
+solo personas físicas → NO sirve de vehículo holding; tope $7,678,849.94 por Acuerdo DOF
+26-12-2025); CFF 32-B Ter/84-M (beneficiario controlador, por CADA sociedad del grupo);
+LFCE 86-90 (concentraciones COFECE). **Gotcha que pagó el cotejo primario**: los umbrales
+del Art. 86 LFCE fueron REFORMADOS DOF 16-07-2025 (16M / 30%+16M / 7.4M+40M UMA) — la
+memoria del modelo traía los viejos (18M/48M/8.4M); sembrar de memoria habría metido
+cifras derogadas. Método: bajar el PDF de LeyesBiblio y extraer con pypdf (instalado en
+`businessos/.venv`); scratchpad conserva los .txt de LGSM/CFF/LFCE de esta corrida.
+Los tests del grafo fijan `reglas_total` (test_salud_conocimiento): todo cambio de seed
+debe actualizar ese conteo en el MISMO cambio. Categorías nuevas verificadas contra el
+clasificador real (frontera de palabra, sin colisiones con ARRENDAMIENTO ni
+SERVICIOS_PROFESIONALES).

@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -282,6 +282,137 @@
         "lista 69-b",
         "padron publico oficial",
         "rfc de fuente publica"
+      ]
+    },
+    {
+      "clave": "CONSTITUCION_SOCIEDADES",
+      "nombre": "Constitucion de sociedades mercantiles",
+      "descripcion": "Constituir una sociedad mercantil (SA, S de RL, etc.): escritura o poliza, fedatario, estatutos e inscripcion en el Registro Publico de Comercio",
+      "keywords": [
+        "constitucion de sociedad",
+        "constituir una sociedad",
+        "constituir una empresa",
+        "acta constitutiva",
+        "escritura constitutiva",
+        "estatutos sociales",
+        "sociedad anonima",
+        "sociedad de responsabilidad limitada",
+        "registro publico de comercio"
+      ],
+      "exclusiones": [
+        "sociedad por acciones simplificada"
+      ]
+    },
+    {
+      "clave": "SAS_CONSTITUCION",
+      "nombre": "Sociedad por acciones simplificada (SAS)",
+      "descripcion": "Constitucion y limites de la SAS: via electronica gratuita ante la Secretaria de Economia, solo personas fisicas, tope de ingresos anuales",
+      "keywords": [
+        "sociedad por acciones simplificada",
+        "acciones simplificada",
+        "sas"
+      ]
+    },
+    {
+      "clave": "ASAMBLEAS_SOCIETARIAS",
+      "nombre": "Asambleas y gobierno societario",
+      "descripcion": "Asambleas de socios/accionistas (ordinarias y extraordinarias), convocatorias, actas y organos de administracion y vigilancia",
+      "keywords": [
+        "asamblea de accionistas",
+        "asamblea de socios",
+        "asamblea ordinaria",
+        "asamblea extraordinaria",
+        "convocatoria de asamblea",
+        "acta de asamblea",
+        "consejo de administracion",
+        "comisario"
+      ]
+    },
+    {
+      "clave": "DIVIDENDOS_UTILIDADES",
+      "nombre": "Dividendos, utilidades y reserva legal",
+      "descripcion": "Reparto de utilidades y dividendos a socios/accionistas y constitucion de la reserva legal",
+      "keywords": [
+        "dividendo",
+        "dividendos",
+        "pago de dividendos",
+        "reparto de utilidades",
+        "distribucion de utilidades",
+        "reserva legal"
+      ]
+    },
+    {
+      "clave": "FUSION_ESCISION",
+      "nombre": "Fusion y escision de sociedades",
+      "descripcion": "Fusionar o escindir sociedades mercantiles: acuerdos, publicidad, plazos y derechos de oposicion de acreedores",
+      "keywords": [
+        "fusion",
+        "fusion de sociedades",
+        "fusionar",
+        "escision",
+        "escision de sociedades",
+        "escindir"
+      ]
+    },
+    {
+      "clave": "GRUPOS_HOLDING",
+      "nombre": "Grupos de sociedades y holdings",
+      "descripcion": "Estructuras de sociedad controladora/tenedora con subsidiarias o filiales (holding)",
+      "keywords": [
+        "holding",
+        "sociedad controladora",
+        "controladora",
+        "tenedora de acciones",
+        "subsidiaria",
+        "subsidiarias",
+        "grupo de sociedades",
+        "grupo empresarial",
+        "filial",
+        "filiales"
+      ]
+    },
+    {
+      "clave": "REGISTRO_ACCIONES_BC",
+      "nombre": "Registro de acciones y beneficiario controlador",
+      "descripcion": "Libro de registro de acciones, transmisiones y la obligacion de identificar al beneficiario controlador",
+      "keywords": [
+        "registro de acciones",
+        "libro de registro de acciones",
+        "transmision de acciones",
+        "cesion de acciones",
+        "beneficiario controlador",
+        "beneficiarios controladores"
+      ]
+    },
+    {
+      "clave": "CONCENTRACIONES_COFECE",
+      "nombre": "Concentraciones economicas (COFECE)",
+      "descripcion": "Adquisiciones, fusiones o tomas de control que pueden requerir autorizacion previa de la Comision Federal de Competencia Economica",
+      "keywords": [
+        "concentracion economica",
+        "notificacion de concentracion",
+        "cofece",
+        "adquisicion de empresa",
+        "adquisicion de empresas",
+        "compra de empresa",
+        "comprar una empresa",
+        "adquirir una sociedad",
+        "tomar control de una empresa"
+      ]
+    },
+    {
+      "clave": "PODERES_REPRESENTACION",
+      "nombre": "Representacion y poderes de la sociedad",
+      "descripcion": "Representacion legal de la sociedad y otorgamiento/revocacion de poderes a apoderados",
+      "keywords": [
+        "poder notarial",
+        "poderes notariales",
+        "apoderado",
+        "apoderado legal",
+        "representante legal",
+        "otorgar poderes",
+        "otorgamiento de poderes",
+        "revocacion de poderes"
       ]
     }
   ],
@@ -1173,6 +1304,377 @@
             "Licitud reducida, NO eliminada: los principios del Art. 5 (licitud, finalidad, proporcionalidad) siguen aplicando al tratamiento posterior"
           ],
           "parametros": {}
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-5-6-CONSTITUCION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Constitucion de sociedades mercantiles: fedatario publico, contenido de la escritura e inscripcion en el RPC",
+      "texto_resumen": "Las sociedades se constituyen ante fedatario publico y sus modificaciones se hacen constar en la misma forma (Art. 5o); el fedatario no autoriza estatutos contrarios a la Ley. La escritura o poliza constitutiva debe contener los elementos del Art. 6o (socios, objeto, denominacion, duracion —que puede ser indefinida—, capital, aportaciones, domicilio, administracion, etc.). Las sociedades inscritas en el Registro Publico de Comercio tienen personalidad juridica distinta de los socios (Art. 2o); las NO inscritas que se exterioricen frente a terceros tambien tienen personalidad, pero quienes actuen por una sociedad irregular responden frente a terceros de forma subsidiaria, solidaria e ilimitada. La SAS se constituye por su propio procedimiento (Capitulo XIV).",
+      "fuente_cita": "LGSM, Arts. 2o, 5o y 6o (texto vigente, ultima reforma DOF 20-10-2023; Art. 5 reformado DOF 13-06-2014 y adicionado DOF 14-03-2016)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CONSTITUCION_SOCIEDADES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Constituirse ante fedatario publico (notario o corredor publico) — Art. 5o",
+            "La escritura/poliza debe contener los requisitos del Art. 6o (nombres de socios, objeto, denominacion, duracion, capital y aportaciones, domicilio, forma de administracion y facultades, nombramiento de administradores, reparto de utilidades, fondo de reserva)",
+            "Inscribir la sociedad en el Registro Publico de Comercio para tener personalidad juridica plena y evitar el regimen de sociedad irregular (Art. 2o)"
+          ],
+          "banderas": [
+            "Sociedad irregular (no inscrita): quienes realicen actos juridicos en su nombre responden subsidiaria, solidaria e ilimitadamente frente a terceros",
+            "La SAS NO se constituye por esta via: tiene procedimiento electronico propio (Capitulo XIV, ver categoria SAS_CONSTITUCION)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-260-263-SAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "SAS: constitucion electronica, solo personas fisicas y tope de ingresos anuales",
+      "texto_resumen": "La sociedad por acciones simplificada se constituye con una o mas PERSONAS FISICAS (una persona moral no puede ser accionista), mediante el sistema electronico de la Secretaria de Economia (Art. 263). Los ingresos totales anuales no pueden rebasar $7,678,849.94 (cantidad ACTUALIZADA por Acuerdo DOF 26-12-2025; se actualiza cada 1 de enero); si se rebasa, la SAS debe transformarse en otro regimen societario (Art. 260). Un accionista de SAS no puede ser simultaneamente accionista de control de otra sociedad mercantil (Art. 260 en relacion con el Art. 2 fr. III de la Ley del Mercado de Valores). La SAS esta exceptuada de la reserva legal (Art. 20).",
+      "fuente_cita": "LGSM, Arts. 260 a 263 (SAS adicionada DOF 14-03-2016; tope actualizado por Acuerdo DOF 26-12-2025) y Art. 20",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "2016-03-14",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "SAS_CONSTITUCION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Todos los accionistas deben ser personas fisicas obligadas solo al pago de sus aportaciones (Art. 260)",
+            "Constituirse por el sistema electronico de la Secretaria de Economia conforme a sus reglas generales (Art. 263)",
+            "Vigilar el tope de ingresos totales anuales; al rebasarlo, transformarse en otro tipo societario (Art. 260, segundo parrafo)",
+            "Verificar que ningun accionista tenga control simultaneo de otra sociedad mercantil (Art. 260 primer parrafo)"
+          ],
+          "banderas": [
+            "NO apta como vehiculo de holding: las personas morales no pueden ser accionistas de una SAS",
+            "El tope se actualiza cada 1 de enero (factor de actualizacion): cotejar el Acuerdo vigente en DOF antes de asesorar",
+            "La vacatio legis de la reforma que creo la SAS (DOF 14-03-2016) fue de 6 meses: entrada en vigor operativa posterior a la publicacion — cotejar transitorios"
+          ],
+          "parametros": {
+            "tope_ingresos_anuales_mxn": 7678849.94,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-178-182-ASAMBLEAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Asamblea de accionistas: organo supremo y asamblea ordinaria anual obligatoria",
+      "texto_resumen": "La Asamblea General de Accionistas es el organo supremo de la sociedad (Art. 178); los estatutos pueden prever resoluciones fuera de asamblea por unanimidad con la misma validez. Son ordinarias las asambleas que tratan asuntos distintos de los del Art. 182 (Art. 180). La Asamblea Ordinaria debe reunirse al menos una vez al ano dentro de los CUATRO MESES siguientes a la clausura del ejercicio social, para discutir/aprobar el informe de los administradores (con el informe del comisario), nombrar administradores y comisarios y determinar sus emolumentos (Art. 181). Los asuntos del Art. 182 (reformas de estatutos, fusion, escision, etc.) exigen asamblea extraordinaria.",
+      "fuente_cita": "LGSM, Arts. 178, 180, 181 y 182 (texto vigente, ultima reforma DOF 20-10-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "ASAMBLEAS_SOCIETARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Celebrar la asamblea ordinaria anual dentro de los 4 meses posteriores al cierre del ejercicio (Art. 181)",
+            "En la ordinaria anual: discutir/aprobar/modificar el informe de los administradores tomando en cuenta el del comisario, nombrar administradores y comisarios y fijar emolumentos (Art. 181, fracciones I-III)",
+            "Tratar los asuntos del Art. 182 (reforma de estatutos, fusion, escision, cambio de objeto, etc.) SOLO en asamblea extraordinaria"
+          ],
+          "banderas": [
+            "Resoluciones fuera de asamblea: validas solo si los estatutos lo preven y son por unanimidad de quienes representan la totalidad de las acciones con derecho a voto (Art. 178)"
+          ],
+          "parametros": {
+            "plazo_meses_asamblea_anual": 4,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-186-CONVOCATORIA-PSM",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Convocatoria de asambleas: publicacion en el sistema electronico de la Secretaria de Economia (PSM)",
+      "texto_resumen": "La convocatoria para asambleas generales debe hacerse mediante la publicacion de un aviso en el sistema electronico establecido por la Secretaria de Economia (Publicaciones de Sociedades Mercantiles, PSM), con la anticipacion que fijen los estatutos o, en su defecto, QUINCE DIAS antes de la fecha de la reunion (Art. 186). Durante ese plazo la informacion y documentos relacionados con la orden del dia deben estar a disposicion de los accionistas.",
+      "fuente_cita": "LGSM, Art. 186 (texto vigente, ultima reforma DOF 20-10-2023; publicidad societaria electronica via Art. 50 Bis del Codigo de Comercio)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "2014-06-13",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "ASAMBLEAS_SOCIETARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Publicar el aviso de convocatoria en el PSM (psm.economia.gob.mx) con la anticipacion estatutaria o minimo 15 dias antes de la asamblea (Art. 186)",
+            "Mantener a disposicion de los accionistas la informacion de la orden del dia durante todo el plazo de convocatoria"
+          ],
+          "banderas": [
+            "Una convocatoria mal publicada expone los acuerdos a nulidad; la asamblea totalitaria (100% del capital presente) puede sesionar sin convocatoria previa (Art. 188)"
+          ],
+          "parametros": {
+            "dias_minimos_convocatoria": 15,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-19-20-UTILIDADES-RESERVA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Reparto de utilidades: estados financieros aprobados, perdidas absorbidas y reserva legal del 5%",
+      "texto_resumen": "La distribucion de utilidades solo puede hacerse DESPUES de que la asamblea apruebe los estados financieros que las arrojen, y no puede hacerse mientras las perdidas de ejercicios anteriores no hayan sido restituidas o absorbidas (o reducido el capital); cualquier estipulacion en contrario no produce efecto legal (Art. 19). De las utilidades netas debe separarse anualmente el 5% como minimo para formar el fondo de reserva, hasta que importe la QUINTA PARTE del capital social; el fondo debe reconstituirse si disminuye (Art. 20). La SAS esta exceptuada de la reserva legal.",
+      "fuente_cita": "LGSM, Arts. 19 y 20 (Art. 20 reformado DOF 14-03-2016; texto vigente, ultima reforma DOF 20-10-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DIVIDENDOS_UTILIDADES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Estados financieros del ejercicio aprobados por la asamblea ANTES de decretar el reparto (Art. 19)",
+            "Perdidas de ejercicios anteriores restituidas o absorbidas (o capital reducido) antes de distribuir (Art. 19)",
+            "Separar anualmente al menos el 5% de las utilidades netas a reserva legal hasta alcanzar 1/5 del capital social; reconstituirla si disminuye (Art. 20)"
+          ],
+          "banderas": [
+            "Reparto en contravencion del Art. 19: tanto la sociedad como sus acreedores pueden repetir contra quienes lo recibieron (responsabilidad de accionistas y administradores)",
+            "El tratamiento FISCAL del dividendo (ISR, retencion) es dimension fiscal — no cubierto por esta regla"
+          ],
+          "parametros": {
+            "reserva_legal_pct_anual": 5,
+            "reserva_legal_tope_pct_capital": 20,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-222-225-FUSION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Fusion de sociedades: acuerdo, inscripcion, publicidad y plazo de oposicion de acreedores",
+      "texto_resumen": "La fusion debe ser decidida por cada sociedad en la forma que corresponda a su naturaleza (Art. 222 — en la SA, asamblea extraordinaria conforme al Art. 182). Los acuerdos de fusion se inscriben en el Registro Publico de Comercio y se publican en el sistema electronico de la Secretaria de Economia, junto con el ultimo balance de cada sociedad y, para las que se extinguen, el sistema de extincion de su pasivo (Art. 223). La fusion NO surte efectos sino hasta TRES MESES despues de la inscripcion; en ese plazo cualquier acreedor puede oponerse judicialmente y la fusion se suspende hasta sentencia firme (Art. 224). Surte efectos de inmediato si se pacta el pago de todas las deudas, se deposita su importe en institucion de credito o consta el consentimiento de todos los acreedores (Art. 225).",
+      "fuente_cita": "LGSM, Arts. 222 a 225 (Art. 223 reformado DOF 13-06-2014; texto vigente, ultima reforma DOF 20-10-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FUSION_ESCISION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Acuerdo de fusion adoptado por cada sociedad segun su naturaleza (en SA: asamblea extraordinaria, Arts. 182 y 222)",
+            "Inscribir los acuerdos en el Registro Publico de Comercio y publicarlos en el PSM con el ultimo balance de cada sociedad (Art. 223)",
+            "Respetar el plazo de 3 meses post-inscripcion antes de que surta efectos, salvo pago/deposito/consentimiento de acreedores (Arts. 224-225)"
+          ],
+          "banderas": [
+            "Una fusion entre competidores o que acumule activos puede ademas requerir autorizacion PREVIA de COFECE (ver categoria CONCENTRACIONES_COFECE)",
+            "Los efectos fiscales de la fusion (enajenacion, CFF 14-B) son dimension fiscal — cotejo aparte"
+          ],
+          "parametros": {
+            "plazo_efectos_meses": 3,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-228BIS-ESCISION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Escision de sociedades: resolucion de asamblea, publicidad y oposicion (45 dias)",
+      "texto_resumen": "Hay escision cuando una sociedad (escindente) divide la totalidad o parte de su activo, pasivo y capital en dos o mas partes aportadas en bloque a sociedades de nueva creacion (escindidas), extinguiendose o no (Art. 228 Bis). Solo puede acordarse por resolucion de la asamblea con los requisitos de quorum de reforma estatutaria; la resolucion (con la informacion prescrita) se protocoliza, se inscribe en el RPC y un extracto se publica en el sistema electronico de la Secretaria de Economia, quedando el texto completo a disposicion de socios y acreedores durante 45 DIAS NATURALES desde la inscripcion y publicacion; en ese plazo socios o acreedores que representen los porcentajes de ley pueden oponerse judicialmente.",
+      "fuente_cita": "LGSM, Art. 228 Bis (adicionado DOF 11-06-1992; publicidad electronica reformada DOF 13-06-2014; texto vigente, ultima reforma DOF 20-10-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1992-06-11",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FUSION_ESCISION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Resolucion de asamblea con los requisitos de quorum de una reforma de estatutos (Art. 228 Bis, fr. I-II)",
+            "Protocolizar, inscribir en el RPC y publicar el extracto en el PSM con la informacion de la fr. IV",
+            "Mantener el texto completo a disposicion de socios y acreedores 45 dias naturales desde inscripcion y publicacion (Art. 228 Bis, fr. V)"
+          ],
+          "banderas": [
+            "La escision es tambien un supuesto de enajenacion FISCAL salvo cumplimiento del CFF 14-B — dimension fiscal, cotejo aparte"
+          ],
+          "parametros": {
+            "plazo_disposicion_dias_naturales": 45,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-128-129-REGISTRO-ACCIONES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Registro de acciones: libro obligatorio, titularidad por inscripcion y aviso al PSM",
+      "texto_resumen": "Las sociedades anonimas deben llevar un registro de acciones con nombre, nacionalidad y domicilio del accionista, acciones que le pertenecen, exhibiciones y transmisiones (Art. 128). La sociedad considera dueno de las acciones a quien aparece inscrito en ese registro y debe inscribir, a peticion de cualquier titular, las transmisiones (Art. 129). De cada inscripcion debe publicarse un AVISO en el sistema electronico de la Secretaria de Economia conforme al Art. 50 Bis del Codigo de Comercio (parrafo adicionado DOF 14-06-2018); la Secretaria debe mantener CONFIDENCIALES nombre, nacionalidad y domicilio del accionista del aviso, con acceso solo para autoridades que lo requieran.",
+      "fuente_cita": "LGSM, Arts. 128 y 129 (parrafo de aviso electronico adicionado DOF 14-06-2018; texto vigente, ultima reforma DOF 20-10-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "2018-06-14",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGISTRO_ACCIONES_BC",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Llevar el libro de registro de acciones con el contenido del Art. 128",
+            "Inscribir las transmisiones a peticion del titular; la sociedad solo reconoce como dueno al inscrito (Art. 129)",
+            "Publicar el aviso de cada inscripcion en el PSM (Art. 129, segundo parrafo, en relacion con el Art. 50 Bis del Codigo de Comercio)"
+          ],
+          "banderas": [
+            "El aviso al PSM NO hace publica la identidad del accionista: la Secretaria la mantiene confidencial salvo requerimiento de autoridad",
+            "Obligacion paralela e independiente: identificar al beneficiario controlador (CFF 32-B Ter, ver regla MX-CFF-32BTER-BENEFICIARIO-CONTROLADOR)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CFF-32BTER-BENEFICIARIO-CONTROLADOR",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Beneficiario controlador: obligacion de identificarlo, conservar la informacion y darla al SAT",
+      "texto_resumen": "Todas las personas morales, fiduciarias, fideicomitentes o fideicomisarios y partes de otras figuras juridicas estan obligadas a OBTENER y CONSERVAR, como parte de su contabilidad, la informacion fidedigna, completa y actualizada de sus BENEFICIARIOS CONTROLADORES, y a proporcionarla al SAT cuando la requiera, en la forma y terminos de las reglas de caracter general (Art. 32-B Ter, vigente desde el 1 de enero de 2022). El incumplimiento (no obtener, no conservar, no presentar o presentar incompleta/con errores) es infraccion del Art. 84-M con multas del Art. 84-N. En una estructura de holding la obligacion aplica a CADA sociedad del grupo.",
+      "fuente_cita": "CFF, Arts. 32-B Ter, 32-B Quater, 32-B Quinquies, 84-M y 84-N (adicionados DOF 12-11-2021, vigentes 01-01-2022; texto vigente, ultima reforma DOF 09-04-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+      "vigente_desde": "2022-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGISTRO_ACCIONES_BC",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Identificar al o los beneficiarios controladores de cada persona moral/fideicomiso conforme a los criterios del Art. 32-B Quater",
+            "Obtener y conservar la informacion como parte de la contabilidad, y mantenerla actualizada",
+            "Entregarla al SAT a requerimiento, en la forma y plazos de las reglas generales (RMF) vigentes",
+            "En grupos/holdings: cumplir la obligacion en CADA sociedad del grupo, no solo en la controladora"
+          ],
+          "banderas": [
+            "Las multas por incumplimiento (Art. 84-N) son elevadas y POR beneficiario no identificado: cotejar montos vigentes en el CFF/DOF antes de asesorar",
+            "Los criterios operativos (que informacion, formatos, plazos) viven en la Resolucion Miscelanea Fiscal: cotejar la RMF del ejercicio"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFCE-86-90-CONCENTRACIONES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Concentraciones: autorizacion PREVIA de COFECE al superar los umbrales del Art. 86 (reformados DOF 16-07-2025)",
+      "texto_resumen": "Deben ser AUTORIZADAS por la COFECE antes de llevarse a cabo las concentraciones que superen los umbrales del Art. 86 (REFORMADOS DOF 16-07-2025): (I) operaciones por mas de 16 millones de veces el valor diario de la UMA; (II) acumulacion del 30% o mas de activos/acciones de un agente economico con ventas anuales o activos en Mexico por mas de 16 millones de UMA; (III) acumulacion de activos o capital social por mas de 7.4 millones de UMA cuando en la concentracion participan agentes con ventas o activos conjuntos por mas de 40 millones de UMA. Los actos realizados en contravencion NO producen efectos juridicos, sin perjuicio de las sanciones. Una holding que adquiere subsidiarias o consolida activos puede detonar estos umbrales.",
+      "fuente_cita": "LFCE, Arts. 86 a 90 (fracciones I-III del Art. 86 reformadas DOF 16-07-2025; texto vigente, ultima reforma DOF 14-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFCE.pdf",
+      "vigente_desde": "2025-07-16",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CONCENTRACIONES_COFECE",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Calcular ANTES de cerrar la operacion si se supera algun umbral del Art. 86 (en UMA diaria vigente)",
+            "Si se supera: notificar y obtener la autorizacion de COFECE ANTES de ejecutar la concentracion (Arts. 86 y 90)",
+            "No ejecutar actos de la concentracion (cierre, tomas de control) mientras la autorizacion este pendiente"
+          ],
+          "banderas": [
+            "Los actos en contravencion NO producen efectos juridicos y hay sanciones — el riesgo no es solo multa, es la nulidad de la operacion",
+            "Umbrales RECIEN reformados (DOF 16-07-2025): material anterior a esa fecha cita umbrales viejos (18/48/8.4 millones de UMA) — no usarlo",
+            "El valor de la UMA se actualiza cada ano (INEGI): el umbral en pesos cambia anualmente aunque la Ley no cambie"
+          ],
+          "parametros": {
+            "umbral_operacion_uma": 16000000,
+            "umbral_acumulacion_pct": 30,
+            "umbral_agente_uma": 16000000,
+            "umbral_acumulacion_uma": 7400000,
+            "umbral_participantes_conjuntos_uma": 40000000,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-10-REPRESENTACION-PODERES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Representacion de la sociedad y otorgamiento de poderes",
+      "texto_resumen": "La representacion de toda sociedad mercantil corresponde a su administrador o administradores, quienes pueden realizar todas las operaciones inherentes al objeto social, salvo lo que expresamente establezcan la Ley y el contrato social (Art. 10). Para que surtan efectos los poderes que otorgue la sociedad por acuerdo de asamblea u organo colegiado de administracion, basta la protocolizacion ante notario de la parte del acta donde conste el acuerdo, con los requisitos que el propio articulo detalla. Las clases de poderes (pleitos y cobranzas, actos de administracion, actos de dominio) se rigen por el Art. 2554 del Codigo Civil Federal.",
+      "fuente_cita": "LGSM, Art. 10 (texto vigente, ultima reforma DOF 20-10-2023), en relacion con el Art. 2554 del Codigo Civil Federal",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "PODERES_REPRESENTACION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Los poderes de la sociedad se otorgan por acuerdo de asamblea u organo de administracion; protocolizar ante notario la parte conducente del acta (Art. 10)",
+            "Delimitar la clase de poder conforme al CCF Art. 2554 (pleitos y cobranzas, administracion, dominio) y las limitaciones expresas que se quieran imponer"
+          ],
+          "banderas": [
+            "El detalle de formalidades del poder (CCF Arts. 2554-2555) es legislacion civil federal: cotejar el texto vigente del CCF antes de asesorar un caso concreto"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGSM-HOLDING-TENEDORA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Sociedad controladora/tenedora (holding): permitida bajo el regimen societario general, sin tipo especial en la LGSM",
+      "texto_resumen": "La LGSM no regula un tipo societario especial de 'holding': una controladora/tenedora se constituye bajo cualquiera de los tipos del Art. 1o (tipicamente SA o S de RL) cuyo OBJETO SOCIAL (Art. 6o, fr. II) prevea la tenencia y administracion de acciones o participaciones de otras sociedades. Cada sociedad del grupo conserva personalidad juridica propia (Art. 2o) y sus propias obligaciones societarias (asambleas, registro de acciones, beneficiario controlador). NOTA de frontera: el regimen fiscal OPCIONAL para grupos de sociedades (integradora/integradas, LISR Arts. 59-71) es dimension FISCAL y es opt-in con requisitos propios; las adquisiciones del grupo pueden detonar notificacion de concentracion ante COFECE; la SAS no sirve como vehiculo (solo personas fisicas).",
+      "fuente_cita": "LGSM, Arts. 1o, 2o y 6o (texto vigente, ultima reforma DOF 20-10-2023); frontera fiscal: LISR Arts. 59-71 (no dictaminada aqui)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGSM.pdf",
+      "vigente_desde": "1934-08-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "GRUPOS_HOLDING",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Constituir la controladora bajo un tipo del Art. 1o (SA/S de RL) con objeto social que prevea tenencia y administracion de participaciones (Art. 6o, fr. II)",
+            "Cumplir en CADA sociedad del grupo sus obligaciones societarias propias: asamblea anual, registro de acciones, reserva legal, beneficiario controlador",
+            "Evaluar ANTES de cada adquisicion si se detonan los umbrales de concentracion de la LFCE (ver CONCENTRACIONES_COFECE)"
+          ],
+          "banderas": [
+            "El regimen opcional fiscal de grupos (LISR 59-71: integradora con >80% de participacion) es OPT-IN, dimension fiscal — requiere dictamen aparte, esta regla no lo otorga",
+            "La SAS no puede ser vehiculo de holding ni subsidiaria con socio persona moral (Art. 260)",
+            "Consolidacion CONTABLE (NIF B-8) es dimension contable — no cubierta por esta regla"
+          ],
+          "parametros": {
+            "verificar": false
+          }
         }
       ]
     }
