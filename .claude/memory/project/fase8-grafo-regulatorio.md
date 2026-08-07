@@ -399,3 +399,17 @@ en bandera: el cabildeo ante el EJECUTIVO federal no tiene registro equivalente.
 no_permitido van únicos en su categoría (lección Fase B: sin conflicto de veredictos).
 Con esto el plan A-D del caso Pre-Discovery legal queda sembrado completo; resta el
 dictamen de frontera Financial Consulting (LMV/CNBV) antes de sembrar ese ámbito.
+
+## Dictamen de frontera Financial Consulting (2026-08-07) — cierre de la línea Pre-Discovery legal
+La etiqueta "Financial Consulting" es NO CONCLUYENTE: el tipo regulado (LMV 225, cotejado
+del PDF, últ. reforma DOF 14-11-2025) exige habitual + profesional + sobre VALORES +
+individualizada (asesoría) o administración de cartera con decisión por terceros. Reforma
+DOF 28-12-2023: el asesor persona moral solo puede ser SC/SA/S de RL con objeto específico
+y establecimientos EXCLUSIVOS ⇒ no se "agrega" el servicio a una operativa del holding:
+vehículo dedicado. Finanzas corporativas/valuación/planeación/reestructura sin intermediar
+valores = NO reservado. Fronteras vecinas más duras como banderas: captación (LIC, delito),
+intermediación/fondos, Fintech. Entregables: `grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md`
+(con 3 preguntas de discovery para la llamada) + regla sembrada MX-LMV-225-ASESOR-INVERSIONES
+(categoría ASESORIA_INVERSIONES; keywords incluyen "financial consulting" y "consultoria
+financiera" — más largas que la "consultoria" fiscal, ganan por longitud). El grafo cierra
+en 63 reglas / 40 categorías; TODO el alcance de las notas del caso quedó cubierto.

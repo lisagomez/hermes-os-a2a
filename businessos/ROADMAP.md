@@ -1382,7 +1382,17 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   cabildeo en diputados → permitido (RegDip 263-268), donar a partido desde la empresa →
   no_permitido (LGPP 54) y propaganda electoral en TV → no_permitido (LGIPE 159).
   **El plan A-D del caso Pre-Discovery legal queda completo y vivo.**
-- [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
+- [x] **Dictamen de frontera Financial Consulting** (2026-08-07): la etiqueta es NO
+  CONCLUYENTE por sí sola — la frontera vive en LMV 225 (habitual + profesional +
+  sobre valores + individualizada ⇒ registro CNBV; vehículo DEDICADO SC/SA/S de RL
+  con objeto y establecimientos exclusivos, reforma DOF 28-12-2023); las finanzas
+  corporativas generales quedan libres. Dictamen completo en
+  `grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md` (con preguntas de discovery
+  para la llamada) y frontera SEMBRADA como regla `MX-LMV-225-ASESOR-INVERSIONES`
+  (categoría `ASESORIA_INVERSIONES`, 62→63 reglas / 40 categorías; banderas de las
+  fronteras vecinas más duras: captación LIC, intermediación, Fintech). Gate OK;
+  83/83 tests. **Con esto la línea completa del caso Pre-Discovery legal queda cerrada.**
+- [ ] Aplicar el seed de la frontera financiera al runtime (procedimiento 2026-08-04)
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
