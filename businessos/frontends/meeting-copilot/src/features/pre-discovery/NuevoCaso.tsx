@@ -12,7 +12,9 @@ import { Button, Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
 
-const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
+const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', modeloNegocio: '', giro: '', pais: 'México', notas: '' }
+
+const MODELOS_NEGOCIO = ['Holding', 'B2B', 'B2C', 'Independiente']
 
 const LADAS = [
   { codigo: '+52', etiqueta: 'MX +52' },
@@ -169,6 +171,20 @@ export function NuevoCaso() {
             <select value={intake.tamano} onChange={(e) => setIntake({ ...intake, tamano: e.target.value })} className="input mt-1">
               {['1-10', '11-50', '51-200', '200+'].map((t) => (
                 <option key={t} value={t}>{t} personas</option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-[12px] font-medium text-ink-secondary">
+            Modelo de negocio
+            <select
+              value={intake.modeloNegocio}
+              onChange={(e) => setIntake({ ...intake, modeloNegocio: e.target.value })}
+              className="input mt-1"
+              data-testid="intake-modelo-negocio"
+            >
+              <option value="">— Selecciona el modelo —</option>
+              {MODELOS_NEGOCIO.map((m) => (
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
           </label>
