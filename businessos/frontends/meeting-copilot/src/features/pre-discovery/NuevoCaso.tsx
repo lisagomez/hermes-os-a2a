@@ -12,7 +12,7 @@ import { Button, Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
 
-const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', categoria: '', pais: 'México', notas: '' }
+const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
 
 const CATEGORIAS_PROFESIONALES = [
   'Legal',
@@ -41,6 +41,7 @@ export function NuevoCaso() {
   const [empresa, setEmpresa] = useState('')
   const [contacto, setContacto] = useState('')
   const [intake, setIntake] = useState<IntakeLead>(INTAKE_VACIO)
+  const [giroOtro, setGiroOtro] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [creando, setCreando] = useState(false)
 
@@ -69,7 +70,8 @@ export function NuevoCaso() {
       leadId = nuevoId('lead')
       agregarLead({ leadId, empresa: empresa.trim(), contacto: contacto.trim(), etapa: 'nuevo', origen: 'copilot', creadoAt: new Date().toISOString() })
     }
-    if (!intake.giro.trim()) {
+    const giroFinal = intake.giro === 'Otro' ? giroOtro.trim() : intake.giro
+    if (!giroFinal) {
       setError('El giro (a qué se dedica) es obligatorio: ancla todo el análisis.')
       return
     }
@@ -78,7 +80,7 @@ export function NuevoCaso() {
       return
     }
     setCreando(true)
-    const casoId = crearCaso(leadId, intake)
+    const casoId = crearCaso(leadId, { ...intake, giro: giroFinal })
     useAdminPreDiscovery.getState().log('crear_caso', `caso:${casoId} lead:${leadId} (${intake.giro})`)
     useAdminPreDiscovery.getState().log('analizar', `caso:${casoId} pipeline completo`)
     void correrPipeline(casoId) // corre en background; el workspace muestra el avance por bloque
@@ -130,21 +132,32 @@ export function NuevoCaso() {
               ))}
             </select>
           </label>
-          {campo('giro', 'A qué se dedica (giro)', 'Agencia de carga (freight forwarder)')}
           <label className="block text-[12px] font-medium text-ink-secondary">
-            Categoría profesional
+            A qué se dedica (giro)
             <select
-              value={intake.categoria}
-              onChange={(e) => setIntake({ ...intake, categoria: e.target.value })}
+              value={intake.giro}
+              onChange={(e) => setIntake({ ...intake, giro: e.target.value })}
               className="input mt-1"
-              data-testid="intake-categoria"
+              data-testid="intake-giro"
             >
-              <option value="">— Selecciona una categoría —</option>
+              <option value="">— Selecciona el giro —</option>
               {CATEGORIAS_PROFESIONALES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </label>
+          {intake.giro === 'Otro' && (
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Especifica el giro
+              <input
+                value={giroOtro}
+                onChange={(e) => setGiroOtro(e.target.value)}
+                placeholder="A qué se dedica la empresa"
+                className="input mt-1"
+                data-testid="intake-giro-otro"
+              />
+            </label>
+          )}
           {campo('pais', 'País / región', 'México')}
         </div>
         <label className="block text-[12px] font-medium text-ink-secondary">
