@@ -1340,7 +1340,18 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   rc=0 + `docker restart grafo` + smoke — 45 reglas / 26 categorías vivas, 17
   `evaluaciones` intactas, y dictamen real verificado por API: "constituir un holding
   con subsidiarias" → `GRUPOS_HOLDING` permitido citando LGSM Arts. 1o/2o/6o.
-- [ ] Fase B — fideicomisos/sucesorio + inmobiliario (LGTOC, LIC, Código Civil)
+- [x] **Fase B — fideicomisos/sucesorio + inmobiliario MX** (2026-08-07): 5 categorías +
+  8 reglas — LGTOC (fideicomiso 381-389: fiduciaria autorizada, escrito, inscripción RPP
+  para inmuebles, oponibilidad por tipo de bien; prohibiciones del 394 como impacto
+  `veredicto_base=null` que condiciona sin contradecir — el evaluador degrada a `dudoso`
+  cuando dos veredictos chocan en la misma categoría, gotcha cazado en dev), CCF
+  (testamentos 1295-1511, sucesión legítima 1599/1602, forma de compraventa 2317/2320
+  con umbral 365 salarios pendiente UMA, efectos registrales 3007-3009; bandera
+  transversal: la materia civil es LOCAL) y LIE (zona restringida 2-VI/10-14: extranjeros
+  solo vía fideicomiso con permiso SRE, 50 años prorrogables). Cotejado contra los PDF
+  de Diputados (LGTOC DOF 26-03-2024, CCF DOF 14-11-2025, LIE DOF 27-05-2024).
+  Seed 45→53 reglas / 31 categorías; gate OK; 83/83 tests.
+- [ ] Aplicar el seed de Fase B al runtime (procedimiento 2026-08-04)
 - [ ] Fase C — ambiental (LGEEPA, responsabilidad ambiental)
 - [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
