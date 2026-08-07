@@ -14,6 +14,19 @@ import { MOTOR_AGENTE } from '@/shared/lib/config'
 
 const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
 
+const LADAS = [
+  { codigo: '+52', etiqueta: 'MX +52' },
+  { codigo: '+57', etiqueta: 'CO +57' },
+  { codigo: '+1', etiqueta: 'US/CA +1' },
+  { codigo: '+34', etiqueta: 'ES +34' },
+  { codigo: '+54', etiqueta: 'AR +54' },
+  { codigo: '+56', etiqueta: 'CL +56' },
+  { codigo: '+51', etiqueta: 'PE +51' },
+  { codigo: '+55', etiqueta: 'BR +55' },
+  { codigo: '+502', etiqueta: 'GT +502' },
+  { codigo: '+507', etiqueta: 'PA +507' },
+]
+
 const CATEGORIAS_PROFESIONALES = [
   'Legal',
   'Logística',
@@ -42,6 +55,8 @@ export function NuevoCaso() {
   const [contacto, setContacto] = useState('')
   const [intake, setIntake] = useState<IntakeLead>(INTAKE_VACIO)
   const [giroOtro, setGiroOtro] = useState('')
+  const [lada, setLada] = useState('+52')
+  const [telefonoNum, setTelefonoNum] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [creando, setCreando] = useState(false)
 
@@ -80,7 +95,10 @@ export function NuevoCaso() {
       return
     }
     setCreando(true)
-    const casoId = crearCaso(leadId, { ...intake, giro: giroFinal })
+    const num = telefonoNum.trim()
+    // el número siempre viaja con su código de país; si ya lo trae escrito (+…), se respeta
+    const telefonoFinal = num ? (num.startsWith('+') ? num : `${lada} ${num}`) : ''
+    const casoId = crearCaso(leadId, { ...intake, giro: giroFinal, telefono: telefonoFinal })
     useAdminPreDiscovery.getState().log('crear_caso', `caso:${casoId} lead:${leadId} (${intake.giro})`)
     useAdminPreDiscovery.getState().log('analizar', `caso:${casoId} pipeline completo`)
     void correrPipeline(casoId) // corre en background; el workspace muestra el avance por bloque
@@ -120,7 +138,29 @@ export function NuevoCaso() {
         )}
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {campo('telefono', 'Teléfono', '+52 …')}
+          <label className="block text-[12px] font-medium text-ink-secondary">
+            Teléfono
+            <div className="mt-1 flex gap-2">
+              <select
+                value={lada}
+                onChange={(e) => setLada(e.target.value)}
+                className="input w-28 shrink-0"
+                data-testid="intake-lada"
+                aria-label="Código de país"
+              >
+                {LADAS.map((l) => (
+                  <option key={l.codigo} value={l.codigo}>{l.etiqueta}</option>
+                ))}
+              </select>
+              <input
+                value={telefonoNum}
+                onChange={(e) => setTelefonoNum(e.target.value)}
+                placeholder="777 216 0950"
+                className="input flex-1"
+                data-testid="intake-telefono"
+              />
+            </div>
+          </label>
           {campo('email', 'Correo', 'contacto@empresa.com', 'email')}
           {campo('linkedin', 'LinkedIn del contacto', 'https://linkedin.com/in/contacto')}
           {campo('web', 'Página web', 'https://empresa.com')}
