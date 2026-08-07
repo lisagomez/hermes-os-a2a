@@ -43,6 +43,7 @@
 ## feedback/ — Correcciones y preferencias
 - [Respetar la lógica del proyecto](feedback/respetar-logica-del-proyecto.md) — Hermes envía (no API cruda); servicio persistente con persona, no atajos; verificar antes de confiar.
 - [Mantener docs vivas](feedback/mantener-docs-vivas.md) — tras cada cambio importante, actualizar aprendizajes (CLAUDE.md), roadmap, memoria y BUSINESS_LOGIC.md.
+- [Narrar los pasos técnicos](feedback/narrar-los-pasos-tecnicos.md) — con Victor: qué hago / para qué sirve / qué pasó, en llano y en vivo (no resumen final); por bloque, no por comando.
 - [Selección de modelo y esfuerzo por tarea](feedback/modelo-esfuerzo-por-tarea.md): qué modelo Claude (Haiku/Sonnet/Opus/Fable) y qué esfuerzo (low→xhigh, techo xhigh) conviene según el tipo de tarea (código, escritura, verificación); usado por `orquestar-agentes` y `orquestar-agentes-fable` para el ruteo.
 
 ## reference/ — Donde encontrar cosas

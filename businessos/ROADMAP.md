@@ -1572,11 +1572,11 @@ Nota menor: el PRP de endurecimiento habla de "los doce servicios"; el compose a
 9 con sufijo `-a2a` más candidatos (`chat-web2`, `crm-canales`, `sup-crm`, `edge`). Su propio
 paso 0 pide justamente ese inventario, así que el número está por confirmar.
 
-### Capa de tenencia — VALIDADA en Postgres real, pendiente de aplicar a producción (2026-08-05)
+### Capa de tenencia — ✅ APLICADA A PRODUCCIÓN (2026-08-06)
 
-De los ocho documentos, el de tenencia dejó de ser propuesta: está **verificado de punta a
-punta contra Postgres 16**, con todo lo que hacía falta para poder aplicarlo. Lo único que
-falta es el paso que exige el token de management, que esta máquina no tiene.
+De los ocho documentos, el de tenencia dejó de ser propuesta: se verificó de punta a punta
+contra Postgres 16 (2026-08-05) y se aplicó a producción al día siguiente. El detalle de la
+aplicación y del drift que destapó está más abajo, en negrita.
 
 **Lo que se encontró al enumerar de verdad** (`businessos/tenancy/replay.sh` reconstruye el
 esquema desde 38 archivos del repo, así que el conteo sale de una BD, no de un grep):
