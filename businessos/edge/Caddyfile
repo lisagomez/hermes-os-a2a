@@ -1,7 +1,8 @@
-# Edge publico de BusinessOS. Publica TRES cosas y nada mas:
+# Edge publico de BusinessOS. Publica CUATRO cosas y nada mas:
 #   - /chat/stream  -> chat-web2:4500    (chat de venta de la landing, Fase 11)
 #   - /crm/*        -> crm-canales:4600  (webhooks Telegram/WhatsApp del CRM, CRM-0)
 #   - todo lo demas -> ventas-a2a:4400   (card comercial A2A, Fase 9)
+#   - grafo.<host>  -> grafo-gate:5200   (puente Vercel→grafo, token Bearer; 2026-08-07)
 # Dominio temporal sslip.io (decision de la dueña 2026-07-10, "probar primero");
 # al comprar dominio real: cambiar el site address + VENTAS_PUBLIC_URL y ya.
 {
@@ -65,5 +66,31 @@
 			max_size 64KB
 		}
 		reverse_proxy ventas-a2a:4400
+	}
+}
+
+# --- Puente del grafo regulatorio (meeting-copilot en Vercel) ---
+# El gate valida el token Bearer (fail-closed) y solo proxya POST /evaluaciones;
+# aqui solo se publica ese path + el health del gate. Todo lo demas: 404.
+grafo.167-233-233-56.sslip.io {
+	handle /evaluaciones {
+		rate_limit {
+			zone grafogate {
+				key {remote_host}
+				events 30
+				window 1m
+			}
+		}
+		# Espejo del MAX_BODY del gate: una evaluacion son unos KB de JSON.
+		request_body {
+			max_size 64KB
+		}
+		reverse_proxy grafo-gate:5200
+	}
+	handle /health {
+		reverse_proxy grafo-gate:5200
+	}
+	handle {
+		respond "" 404
 	}
 }

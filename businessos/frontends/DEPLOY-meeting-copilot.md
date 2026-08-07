@@ -71,6 +71,8 @@ Dos gotchas pagados al montarlo (2026-07-28):
 | `NEXT_PUBLIC_SITE_URL` | build+runtime | `https://meeting-copilot-pi.vercel.app` (redirect del magic link) |
 | `PANEL_ALLOWED_EMAILS` | runtime | coma-separado; **vacío = nadie entra** (fail-closed). Cambiarla exige redeploy (las env de runtime se congelan por deployment) |
 | `AUTH_DISABLED` | runtime | **JAMÁS en Vercel** — escape solo para dev local mock-first |
+| `GRAFO_URL` | runtime | `https://grafo.167-233-233-56.sslip.io` — puente al grafo real vía `grafo-gate` (edge Caddy en Hetzner). Sin ella el bloque regulatorio cae al mock fiel (503 declarado) |
+| `GRAFO_TOKEN` | runtime | **sensitive**; el Bearer del `grafo-gate` (vive en `~/repo/businessos/.env` del server como `GRAFO_GATE_TOKEN`). Server-only: jamás toca el navegador |
 
 ## 3. Auth (activa desde 2026-07-28) — patrón Mission Control
 

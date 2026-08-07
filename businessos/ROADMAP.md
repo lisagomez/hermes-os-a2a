@@ -1397,6 +1397,12 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   por API con fuente LMV 225 y el test de frontera como primer requisito del checklist.
   **La línea completa del caso Pre-Discovery legal (Fases A-D + frontera) está cerrada
   y viva en producción.**
+- [ ] **Puente Vercel→grafo** (`grafo-gate`, 2026-08-07): servicio nuevo con token
+  Bearer fail-closed que publica SOLO `POST /evaluaciones` por el edge
+  (`grafo.167-233-233-56.sslip.io`); el copiloto manda `Authorization` server-side
+  (`GRAFO_URL`+`GRAFO_TOKEN` en Vercel) y su bloque regulatorio dictamina con el
+  grafo REAL de 63 reglas en vez del mock. Pendiente: desplegar gate+edge y cablear
+  las env en Vercel.
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
