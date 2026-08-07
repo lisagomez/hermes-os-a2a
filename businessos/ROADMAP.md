@@ -1377,7 +1377,11 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   electoral en radio/TV). Cotejado contra PDF de Diputados (RegDip DOF 07-05-2025,
   RegSen DOF 06-12-2024, LGPP DOF 02-03-2023 + sentencia SCJN, LGIPE DOF 02-06-2026).
   Seed 58→62 reglas / 39 categorías; gate OK; 83/83 tests.
-- [ ] Aplicar el seed de Fase D al runtime (procedimiento 2026-08-04)
+- [x] **Seed de Fase D APLICADO al runtime** (2026-08-07): psql rc=0 + restart + smoke —
+  62 reglas / 39 categorías vivas, evaluaciones intactas; dictámenes reales por API:
+  cabildeo en diputados → permitido (RegDip 263-268), donar a partido desde la empresa →
+  no_permitido (LGPP 54) y propaganda electoral en TV → no_permitido (LGIPE 159).
+  **El plan A-D del caso Pre-Discovery legal queda completo y vivo.**
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
