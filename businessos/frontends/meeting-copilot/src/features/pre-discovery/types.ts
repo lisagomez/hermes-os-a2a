@@ -147,7 +147,6 @@ export interface IntakeLead {
   web: string
   tamano: string // '1-10' | '11-50' | '51-200' | '200+' (texto libre tolerado)
   giro: string
-  categoria?: string // categoría profesional del negocio (Legal, Logística, Marketing, …) — complementa el giro
   pais: string
   notas: string
 }
