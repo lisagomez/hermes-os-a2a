@@ -384,3 +384,18 @@ LFRA 1/10 (responsabilidad objetiva: reparación > compensación; alcanza daño 
 bandera para holdings). Único veredicto `no_permitido` del ámbito: RESPONSABILIDAD_AMBIENTAL
 (ocasionar daño genera responsabilidad) — único en su categoría, sin conflicto. Fuentes:
 LGEEPA/LGPGIR DOF 19-01-2026, LFRA DOF 14-11-2025, leídas del PDF de Diputados.
+
+## Fase D cabildeo/político MX (2026-08-07) — cierra el plan A-D de Pre-Discovery legal
+3 categorías + 4 reglas: RegDip 263-268 (cabildeo con registro público POR LEGISLATURA,
+cupos 20/comisión y 2/persona moral — planear qué personas del grupo se acreditan; veto a
+servidores públicos y parientes hasta 4º grado; los documentos de cabildeo son PÚBLICOS),
+RegSen 298-299 (sin registro formal: control por informes a la Mesa; cero dádivas), LGPP
+54-1-f/g (no_permitido ABSOLUTO: personas morales no aportan a partidos/campañas — cubre
+interpósita persona y especie; las físicas sí con topes → cotejar; ojo: incisos del 54
+tocados por sentencia SCJN DOF 24-11-2023) y LGIPE 159-4/5 (no_permitido: nadie contrata
+propaganda electoral en radio/TV; cubre por-cuenta-de-terceros y lo contratado en el
+extranjero; redes sociales = régimen distinto, dictamen aparte). Hueco normativo declarado
+en bandera: el cabildeo ante el EJECUTIVO federal no tiene registro equivalente. Los dos
+no_permitido van únicos en su categoría (lección Fase B: sin conflicto de veredictos).
+Con esto el plan A-D del caso Pre-Discovery legal queda sembrado completo; resta el
+dictamen de frontera Financial Consulting (LMV/CNBV) antes de sembrar ese ámbito.
