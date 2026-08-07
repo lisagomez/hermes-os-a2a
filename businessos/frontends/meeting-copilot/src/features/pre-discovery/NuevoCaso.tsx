@@ -91,11 +91,11 @@ export function NuevoCaso() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-[12px] font-medium text-ink-secondary">
               Empresa
-              <input value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="GAL MEXICO" className="input mt-1" data-testid="intake-empresa" />
+              <input value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="Empresa" className="input mt-1" data-testid="intake-empresa" />
             </label>
             <label className="block text-[12px] font-medium text-ink-secondary">
               Contacto
-              <input value={contacto} onChange={(e) => setContacto(e.target.value)} placeholder="Alex Gallardo" className="input mt-1" data-testid="intake-contacto" />
+              <input value={contacto} onChange={(e) => setContacto(e.target.value)} placeholder="Contacto" className="input mt-1" data-testid="intake-contacto" />
             </label>
           </div>
         )}
