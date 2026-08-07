@@ -146,6 +146,7 @@ export interface IntakeLead {
   linkedin?: string // URL del perfil de LinkedIn del contacto (opcional)
   web: string
   tamano: string // '1-10' | '11-50' | '51-200' | '200+' (texto libre tolerado)
+  modeloNegocio?: string // 'Holding' | 'B2B' | 'B2C' | 'Independiente' (opcional)
   giro: string
   pais: string
   notas: string
