@@ -167,7 +167,7 @@ export function NuevoCaso() {
               <input
                 value={telefonoNum}
                 onChange={(e) => setTelefonoNum(e.target.value)}
-                placeholder="777 216 0950"
+                placeholder="Teléfono"
                 className="input flex-1"
                 data-testid="intake-telefono"
               />
