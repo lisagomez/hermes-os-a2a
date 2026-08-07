@@ -1320,6 +1320,28 @@ el motor no puede fabricar porque no tiene con qué. Eso es lo que un auditor ve
 - [ ] Si se quiere credencial estrictamente solo-lectura: re-consentir con `gmail.readonly`
       (`gmail.modify` incluye enviar, aunque el contenedor no tenga la credencial).
 
+## Línea Grafo — expansión de ámbitos para Pre-Discovery legal 🟡 Fase A sembrada (2026-08-07)
+
+Origen: caso de Pre-Discovery de un holding de servicios legales (meeting-copilot) cuyas
+notas piden un alcance (corporativo, inmobiliario, fiduciario, ambiental, político) que el
+grafo no cubría. Plan por fases acordado el 2026-08-06: A corporativo-mercantil MX →
+B fideicomisos/sucesorio + inmobiliario → C ambiental → D cabildeo/político; "Financial
+Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES de sembrar.
+
+- [x] **Fase A — corporativo-mercantil MX** (2026-08-07): 9 categorías + 12 reglas en
+  dimensión `regulatorio` — LGSM (constitución 2/5/6, poderes 10, utilidades/reserva
+  19-20, registro de acciones 128-129, asambleas 178-182/186, fusión 222-225, escisión
+  228 Bis, SAS 260-263 con tope $7,678,849.94 del Acuerdo DOF 26-12-2025), CFF 32-B
+  Ter/84-M (beneficiario controlador) y LFCE 86-90 (concentraciones COFECE, umbrales
+  REFORMADOS DOF 16-07-2025: 16M/30%+16M/7.4M+40M UMA — la memoria traía los viejos).
+  Todo cotejado contra los PDF oficiales de Diputados (LeyesBiblio), no de memoria.
+  Seed 33→45 reglas / 26 categorías; gate `--check` OK; 83/83 tests del grafo.
+- [ ] Aplicar el seed al runtime (procedimiento 2026-08-04: psql en vivo + restart + smoke)
+- [ ] Fase B — fideicomisos/sucesorio + inmobiliario (LGTOC, LIC, Código Civil)
+- [ ] Fase C — ambiental (LGEEPA, responsabilidad ambiental)
+- [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
+- [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
+
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
 Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorador visual
