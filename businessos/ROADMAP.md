@@ -1336,7 +1336,10 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   REFORMADOS DOF 16-07-2025: 16M/30%+16M/7.4M+40M UMA — la memoria traía los viejos).
   Todo cotejado contra los PDF oficiales de Diputados (LeyesBiblio), no de memoria.
   Seed 33→45 reglas / 26 categorías; gate `--check` OK; 83/83 tests del grafo.
-- [ ] Aplicar el seed al runtime (procedimiento 2026-08-04: psql en vivo + restart + smoke)
+- [x] **Seed APLICADO al runtime** (2026-08-07, procedimiento 2026-08-04): psql en vivo
+  rc=0 + `docker restart grafo` + smoke — 45 reglas / 26 categorías vivas, 17
+  `evaluaciones` intactas, y dictamen real verificado por API: "constituir un holding
+  con subsidiarias" → `GRUPOS_HOLDING` permitido citando LGSM Arts. 1o/2o/6o.
 - [ ] Fase B — fideicomisos/sucesorio + inmobiliario (LGTOC, LIC, Código Civil)
 - [ ] Fase C — ambiental (LGEEPA, responsabilidad ambiental)
 - [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
