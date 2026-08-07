@@ -112,7 +112,7 @@ export function construirUsuarioBloque(bloque: BloqueLLM, c: ContextoAnalisis): 
   const partes = [
     `TAREA: ${INSTRUCCION_BLOQUE[bloque]}`,
     '',
-    `INTAKE DEL LEAD: empresa/giro: ${c.intake.giro} · modelo de negocio: ${c.intake.modeloNegocio || 'no proporcionado'} · tamaño: ${c.intake.tamano} · país: ${c.intake.pais} · web: ${c.intake.web || 'no proporcionada'} · linkedin del contacto: ${c.intake.linkedin || 'no proporcionado'} · notas: ${c.intake.notas || '—'}`,
+    `INTAKE DEL LEAD: empresa/giro: ${c.intake.giro} · modelo de negocio: ${c.intake.modeloNegocio || 'no proporcionado'} · tamaño: ${c.intake.tamano} · país: ${c.intake.pais} · dirección: ${c.intake.direccion || 'no proporcionada'} · web: ${c.intake.web || 'no proporcionada'} · linkedin del contacto: ${c.intake.linkedin || 'no proporcionado'} · notas: ${c.intake.notas || '—'}`,
   ]
   if (c.textoSitio) partes.push('', `TEXTO DEL SITIO DEL LEAD (extracto):`, c.textoSitio.slice(0, 6000))
   else partes.push('', 'SIN TEXTO DEL SITIO: no marques nada como hecho salvo lo que venga del intake.')

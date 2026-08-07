@@ -149,6 +149,7 @@ export interface IntakeLead {
   modeloNegocio?: string // 'Holding' | 'B2B' | 'B2C' | 'Independiente' (opcional)
   giro: string
   pais: string
+  direccion?: string // dirección física de la empresa (opcional)
   notas: string
 }
 
