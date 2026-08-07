@@ -1364,7 +1364,10 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   responsabilidad por daño INDIRECTO — bandera para holdings). Cotejado contra PDF
   de Diputados (LGEEPA/LGPGIR DOF 19-01-2026, LFRA DOF 14-11-2025). Seed 53→58
   reglas / 36 categorías; gate OK; 83/83 tests.
-- [ ] Aplicar el seed de Fase C al runtime (procedimiento 2026-08-04)
+- [x] **Seed de Fase C APLICADO al runtime** (2026-08-07): psql rc=0 + restart + smoke —
+  58 reglas / 36 categorías vivas, evaluaciones intactas; dictámenes reales por API:
+  MIA de desarrollo costero → `IMPACTO_AMBIENTAL` permitido (LGEEPA 28/30) y daño
+  ambiental de subsidiaria → `RESPONSABILIDAD_AMBIENTAL` no_permitido (LFRA 1/10).
 - [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
 
