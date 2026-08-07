@@ -12,7 +12,7 @@ import { Button, Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
 
-const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', modeloNegocio: '', giro: '', pais: 'México', notas: '' }
+const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', modeloNegocio: '', giro: '', pais: 'México', direccion: '', notas: '' }
 
 const MODELOS_NEGOCIO = ['Holding', 'B2B', 'B2C', 'Independiente']
 
@@ -215,6 +215,7 @@ export function NuevoCaso() {
             </label>
           )}
           {campo('pais', 'País / región', 'México')}
+          {campo('direccion', 'Dirección', 'Calle, número, colonia, ciudad')}
         </div>
         <label className="block text-[12px] font-medium text-ink-secondary">
           Notas iniciales del lead
