@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B).",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -568,6 +568,50 @@
         "autorregulacion ambiental",
         "industria limpia",
         "certificado ambiental"
+      ]
+    },
+    {
+      "clave": "CABILDEO_CONGRESO",
+      "nombre": "Cabildeo ante el Congreso de la Union",
+      "descripcion": "Actividades de cabildeo (lobby) ante diputados, senadores, organos y comisiones del Congreso: registro, limites y prohibiciones",
+      "keywords": [
+        "cabildeo",
+        "cabildero",
+        "cabilderos",
+        "registro de cabilderos",
+        "lobby",
+        "lobbying",
+        "gestion de intereses",
+        "influir en una iniciativa"
+      ]
+    },
+    {
+      "clave": "APORTACIONES_POLITICAS",
+      "nombre": "Aportaciones a partidos y campanas",
+      "descripcion": "Aportaciones y donativos, en dinero o especie, a partidos politicos, aspirantes, precandidatos o candidatos",
+      "keywords": [
+        "aportacion a partido",
+        "aportaciones a partidos",
+        "donativo a partido",
+        "donativos a partidos",
+        "financiamiento de campana",
+        "financiamiento de campanas",
+        "aportacion a campana",
+        "donar a un partido",
+        "apoyar economicamente a un candidato"
+      ]
+    },
+    {
+      "clave": "PROPAGANDA_ELECTORAL",
+      "nombre": "Propaganda electoral en radio y television",
+      "descripcion": "Contratacion o adquisicion de propaganda dirigida a influir en preferencias electorales, a favor o en contra de partidos o candidatos",
+      "keywords": [
+        "propaganda electoral",
+        "propaganda politica",
+        "publicidad electoral",
+        "contratar propaganda",
+        "anuncios de campana",
+        "spots electorales"
       ]
     }
   ],
@@ -2227,6 +2271,125 @@
           "banderas": [
             "Es un instrumento VOLUNTARIO de autorregulacion: no sustituye licencias, autorizaciones ni la EIA obligatoria",
             "Para un despacho, la auditoria es la puerta natural del servicio ambiental preventivo (due diligence de cumplimiento)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-REGDIP-263-268-CABILDEO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Cabildeo en la Camara de Diputados: registro publico obligatorio, cupos y prohibiciones",
+      "texto_resumen": "Cabildeo es toda actividad ante diputados, organos o autoridades de la Camara para obtener una resolucion o acuerdo favorable a intereses propios o de terceros; cabildero es el individuo ajeno a la Camara que representa a una persona fisica u organismo privado/social y obtiene por ello un beneficio material o economico (Art. 263). Quien pretenda cabildear MAS DE UNA VEZ debe inscribirse al inicio de cada legislatura en el registro publico de la Mesa Directiva (difundido semestralmente en la Gaceta); la inscripcion dura la legislatura (Art. 264, num. 1-2). No pueden cabildear los servidores publicos en funciones ni sus conyuges y parientes hasta el cuarto grado (264-3). Cupos: maximo VEINTE cabilderos acreditados por comision y DOS por persona moral inscrita (264-4). Los documentos de cabildeo se integran a un archivo por comision y se publican para consulta (Art. 266); la solicitud de registro exige identificar al representado (Art. 267).",
+      "fuente_cita": "Reglamento de la Camara de Diputados, Arts. 263 a 268 (capitulo de cabildeo: reformas DOF 20-04-2011 y adiciones DOF 18-10-2013; texto vigente, ultima reforma DOF 07-05-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/Reg_Diputados.pdf",
+      "vigente_desde": "2011-04-20",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CABILDEO_CONGRESO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Inscribirse en el registro publico de cabilderos de la Mesa Directiva al inicio de la legislatura si se cabildeara mas de una vez (Art. 264-1)",
+            "Respetar los cupos: hasta 20 acreditados por comision y 2 por persona moral (Art. 264-4) — planear que personas del despacho/holding se acreditan",
+            "Identificar al representado en la solicitud (persona moral: relacion de acreditados por el representante legal, Art. 267)",
+            "Asumir la publicidad: los documentos de cabildeo se archivan por comision y son de consulta publica (Art. 266)"
+          ],
+          "banderas": [
+            "Servidores publicos en funciones, sus conyuges y parientes hasta 4o grado NO pueden cabildear (Art. 264-3) — verificar conflictos en el equipo",
+            "Este regimen aplica a la Camara de Diputados; el Senado tiene el suyo (Arts. 298-299 de su Reglamento) y el cabildeo ante el Ejecutivo NO tiene registro federal equivalente — hueco normativo a declarar"
+          ],
+          "parametros": {
+            "max_acreditados_por_comision": 20,
+            "max_por_persona_moral": 2,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-REGSEN-298-299-CABILDEO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Cabildeo en el Senado: promocion de intereses legitimos con informes a la Mesa y prohibicion de dadivas",
+      "texto_resumen": "En el Senado, cabildeo es la actividad de personas dedicadas a promover intereses LEGITIMOS de particulares ante organos directivos, comisiones o senadores, con el proposito de influir en sus decisiones (Art. 298-1). Las comisiones y senadores INFORMAN por escrito a la Mesa de las actividades realizadas ante ellos por cabilderos (298-2). Los senadores y el personal de apoyo no pueden aceptar dadivas o pagos en efectivo relacionados con esas gestiones (Art. 299).",
+      "fuente_cita": "Reglamento del Senado de la Republica, Arts. 298 y 299 (texto vigente, ultima reforma DOF 06-12-2024)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/Reg_Senado.pdf",
+      "vigente_desde": "2010-06-04",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CABILDEO_CONGRESO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Encuadrar la gestion como promocion de intereses LEGITIMOS (Art. 298-1) y documentarla — las comisiones reportan a la Mesa lo actuado por cabilderos",
+            "Cero dadivas o pagos: ni ofrecerlos ni permitir que el cliente los ofrezca (Art. 299)"
+          ],
+          "banderas": [
+            "El Senado no preve el registro formal con cupos de la Camara de Diputados: el control es por informes — documentar cada gestion protege al despacho"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGPP-54-APORTACIONES-PROHIBIDAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Personas morales: PROHIBIDO aportar o donar a partidos, aspirantes, precandidatos o candidatos",
+      "texto_resumen": "No pueden realizar aportaciones o donativos a partidos politicos ni a aspirantes, precandidatos o candidatos, en dinero o en especie, por si o por INTERPOSITA persona y bajo NINGUNA circunstancia, entre otros: las PERSONAS MORALES (inciso f) y las personas que viven o trabajan en el extranjero (inciso g), ademas de poderes publicos, dependencias, organismos autonomos, partidos y personas no identificadas (Art. 54-1). Para un holding o cualquiera de sus sociedades, aportar a campanas — directamente o via terceros — esta vedado de forma absoluta; hacerlo expone al partido/candidato y al aportante a sanciones electorales y, en su caso, penales.",
+      "fuente_cita": "Ley General de Partidos Politicos, Art. 54, numeral 1, incisos f) y g) (texto vigente, ultima reforma DOF 02-03-2023)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGPP.pdf",
+      "vigente_desde": "2014-05-23",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "APORTACIONES_POLITICAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "no_permitido",
+          "requisitos": [
+            "Politica interna del grupo: ninguna sociedad aporta a partidos/campanas, ni en dinero ni en especie, ni via terceros (la interposita persona esta expresamente cubierta por la prohibicion)",
+            "Cuidado con aportaciones EN ESPECIE encubiertas: prestar personal, oficinas, vehiculos o servicios del despacho a una campana cae en el supuesto"
+          ],
+          "banderas": [
+            "Las personas FISICAS mexicanas si pueden aportar con limites y reglas de fiscalizacion (LGPP Arts. 53-56): el dictamen de esa via requiere sus topes vigentes — cotejar",
+            "Algunos incisos del Art. 54 fueron objeto de sentencia de la SCJN (accion de inconstitucionalidad, efectos publicados DOF 24-11-2023) que restauro texto previo: cotejar el inciso exacto antes de citar en un caso"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGIPE-159-PROPAGANDA-TERCEROS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "PROHIBIDO a cualquier persona fisica o moral contratar propaganda en radio/TV para influir en elecciones",
+      "texto_resumen": "NINGUNA persona fisica o moral, a titulo propio o por cuenta de terceros, puede contratar propaganda en radio y television dirigida a influir en las preferencias electorales, ni a favor o en contra de partidos o candidatos; tambien esta prohibida la transmision en territorio nacional de propaganda de ese tipo contratada en el extranjero (Art. 159, num. 5). Los partidos, precandidatos y candidatos tampoco pueden contratar o adquirir tiempos por si o por terceros (159-4): el acceso a radio/TV es exclusivamente via los tiempos del Estado que administra el INE. Las infracciones se sancionan conforme al Libro Octavo de la LGIPE.",
+      "fuente_cita": "LGIPE, Art. 159, numerales 4 y 5 (texto vigente, ultima reforma DOF 02-06-2026), reglamentario del Art. 41, base III, apartado A de la CPEUM",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGIPE.pdf",
+      "vigente_desde": "2014-05-23",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "PROPAGANDA_ELECTORAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "no_permitido",
+          "requisitos": [
+            "Revisar cualquier campana publicitaria del grupo en periodo electoral: si el contenido puede leerse como dirigido a influir preferencias, detenerla ANTES de contratar",
+            "La prohibicion cubre radio y television; para redes sociales y otros medios aplican reglas distintas de fiscalizacion — dictamen aparte"
+          ],
+          "banderas": [
+            "La prohibicion alcanza la contratacion POR CUENTA DE TERCEROS y la propaganda contratada en el extranjero transmitida en Mexico",
+            "Frontera fina entre publicidad comercial legitima y propaganda con incidencia electoral en tiempos de campana: ante duda, opinion especializada en derecho electoral"
           ],
           "parametros": {
             "verificar": false

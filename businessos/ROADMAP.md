@@ -1368,7 +1368,16 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   58 reglas / 36 categorías vivas, evaluaciones intactas; dictámenes reales por API:
   MIA de desarrollo costero → `IMPACTO_AMBIENTAL` permitido (LGEEPA 28/30) y daño
   ambiental de subsidiaria → `RESPONSABILIDAD_AMBIENTAL` no_permitido (LFRA 1/10).
-- [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
+- [x] **Fase D — cabildeo/político MX** (2026-08-07): 3 categorías + 4 reglas —
+  Reglamento de la Cámara de Diputados 263-268 (registro público por legislatura,
+  cupos 20/comisión y 2/persona moral, veto a servidores públicos y parientes),
+  Reglamento del Senado 298-299 (informes a la Mesa, sin dádivas), LGPP 54-1-f
+  (`no_permitido`: personas morales NO aportan a partidos/campañas, ni en especie ni
+  por interpósita persona) y LGIPE 159-4/5 (`no_permitido`: nadie contrata propaganda
+  electoral en radio/TV). Cotejado contra PDF de Diputados (RegDip DOF 07-05-2025,
+  RegSen DOF 06-12-2024, LGPP DOF 02-03-2023 + sentencia SCJN, LGIPE DOF 02-06-2026).
+  Seed 58→62 reglas / 39 categorías; gate OK; 83/83 tests.
+- [ ] Aplicar el seed de Fase D al runtime (procedimiento 2026-08-04)
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
