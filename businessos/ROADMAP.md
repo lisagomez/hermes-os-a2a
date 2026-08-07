@@ -1351,7 +1351,11 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   solo vía fideicomiso con permiso SRE, 50 años prorrogables). Cotejado contra los PDF
   de Diputados (LGTOC DOF 26-03-2024, CCF DOF 14-11-2025, LIE DOF 27-05-2024).
   Seed 45→53 reglas / 31 categorías; gate OK; 83/83 tests.
-- [ ] Aplicar el seed de Fase B al runtime (procedimiento 2026-08-04)
+- [x] **Seed de Fase B APLICADO al runtime** (2026-08-07): psql rc=0 + restart + smoke —
+  53 reglas / 31 categorías vivas, evaluaciones históricas intactas; dictamen real por
+  API: fideicomiso testamentario → `FIDEICOMISO_CONSTITUCION` permitido (LGTOC 381-388,
+  con las prohibiciones del 394 como bandera) y extranjero en zona restringida →
+  `FIDEICOMISO_ZONA_RESTRINGIDA` permitido (LIE 10-14).
 - [ ] Fase C — ambiental (LGEEPA, responsabilidad ambiental)
 - [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
