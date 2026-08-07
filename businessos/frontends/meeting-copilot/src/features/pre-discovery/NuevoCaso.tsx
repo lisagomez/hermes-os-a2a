@@ -12,7 +12,24 @@ import { Button, Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
 
-const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
+const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', categoria: '', pais: 'México', notas: '' }
+
+const CATEGORIAS_PROFESIONALES = [
+  'Legal',
+  'Logística',
+  'Marketing',
+  'Ingeniería',
+  'Retail / Comercio',
+  'Finanzas / Contabilidad',
+  'Tecnología / Software',
+  'Salud',
+  'Manufactura',
+  'Educación',
+  'Inmobiliario / Construcción',
+  'Turismo / Hospitalidad',
+  'Consultoría / Servicios profesionales',
+  'Otro',
+]
 
 export function NuevoCaso() {
   const router = useRouter()
@@ -114,6 +131,20 @@ export function NuevoCaso() {
             </select>
           </label>
           {campo('giro', 'A qué se dedica (giro)', 'Agencia de carga (freight forwarder)')}
+          <label className="block text-[12px] font-medium text-ink-secondary">
+            Categoría profesional
+            <select
+              value={intake.categoria}
+              onChange={(e) => setIntake({ ...intake, categoria: e.target.value })}
+              className="input mt-1"
+              data-testid="intake-categoria"
+            >
+              <option value="">— Selecciona una categoría —</option>
+              {CATEGORIAS_PROFESIONALES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
           {campo('pais', 'País / región', 'México')}
         </div>
         <label className="block text-[12px] font-medium text-ink-secondary">
