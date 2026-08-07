@@ -413,3 +413,17 @@ intermediación/fondos, Fintech. Entregables: `grafo/DICTAMEN-FRONTERA-FINANCIAL
 (categoría ASESORIA_INVERSIONES; keywords incluyen "financial consulting" y "consultoria
 financiera" — más largas que la "consultoria" fiscal, ganan por longitud). El grafo cierra
 en 63 reglas / 40 categorías; TODO el alcance de las notas del caso quedó cubierto.
+
+## Puente Vercel→grafo (grafo-gate, 2026-08-07)
+El bloque regulatorio del meeting-copilot (Vercel) caía al mock fiel porque el grafo vive
+en hermes-net sin exposición. Puente construido SIN abrir el grafo crudo: servicio
+`businessos/grafo-gate/` (FastAPI ~70 líneas) con token Bearer en comparación de tiempo
+constante, fail-closed (sin GRAFO_GATE_TOKEN ≥32 chars NO arranca — verificado con la
+imagen real), mínimo privilegio (solo POST /evaluaciones; /reglas y /salud-conocimiento
+NO se publican), MAX_BODY 64KB espejado con el request_body del edge, y 502 logueado
+(regla best-effort-no-silencioso). Publicado por el edge Caddy existente con site block
+`grafo.167-233-233-56.sslip.io` (TLS automático; el 443 ya estaba abierto para ventas).
+Los consumidores internos siguen en grafo:3000 sin token. Vercel: GRAFO_URL + GRAFO_TOKEN
+(sensitive, server-only — /api/grafo/* además queda detrás del login del copiloto). El
+token se genera EN el server (`openssl rand` → .env) y viaja a Vercel por pipe ssh→vercel
+env add, sin tocar el transcript. 10 tests del gate + gates del copiloto verdes.

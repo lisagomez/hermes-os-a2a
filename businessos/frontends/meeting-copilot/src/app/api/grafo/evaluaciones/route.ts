@@ -32,11 +32,16 @@ export async function POST(req: Request) {
 
   const controlador = new AbortController()
   const timeout = setTimeout(() => controlador.abort(), 6000)
+  // El puente público (grafo-gate) exige token Bearer; server-side only — el
+  // token jamás toca el navegador. Sin GRAFO_TOKEN se habla sin header (grafo
+  // directo en despliegues dentro de hermes-net).
+  const encabezados: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (process.env.GRAFO_TOKEN) encabezados.Authorization = `Bearer ${process.env.GRAFO_TOKEN}`
   try {
     const respuesta = await fetch(`${grafoUrl.replace(/\/$/, '')}/evaluaciones`, {
       method: 'POST',
       signal: controlador.signal,
-      headers: { 'Content-Type': 'application/json' },
+      headers: encabezados,
       body: JSON.stringify(parsed.data),
     })
     if (!respuesta.ok) {

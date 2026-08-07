@@ -485,6 +485,27 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # ---------- GRAFO-GATE (puerta publica del grafo — puente Vercel→grafo) ----------
+  # Publica SOLO POST /evaluaciones del grafo detras de token Bearer, para que el
+  # bloque regulatorio del meeting-copilot (Vercel) dictamine con el grafo REAL.
+  # Fail-closed: sin GRAFO_GATE_TOKEN (>=32 chars) el servicio NO arranca. El
+  # publico entra por el edge (grafo.167-233-233-56.sslip.io); los consumidores
+  # internos de hermes-net siguen en grafo:3000 directo y sin token.
+  grafo-gate:
+    build: ./grafo-gate
+    container_name: grafo-gate
+    profiles: ["edge"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5200:5200"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - GRAFO_GATE_TOKEN=${GRAFO_GATE_TOKEN}
+      - GRAFO_UPSTREAM=http://grafo:3000
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.25", memory: 128M }
+
   # ---------- EJECUTOR-A2A (trio, Fase 6) ----------
   # Recibe UNA tarea con criterios de aceptacion (via Hermes-Negocio, skill
   # trio-software), la hace en worktree/<task_id> del volumen trio-workspace
