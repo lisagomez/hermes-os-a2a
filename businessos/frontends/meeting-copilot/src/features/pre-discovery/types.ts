@@ -143,6 +143,7 @@ export interface DatosBrief {
 export interface IntakeLead {
   telefono: string
   email: string
+  linkedin?: string // URL del perfil de LinkedIn del contacto (opcional)
   web: string
   tamano: string // '1-10' | '11-50' | '51-200' | '200+' (texto libre tolerado)
   giro: string
