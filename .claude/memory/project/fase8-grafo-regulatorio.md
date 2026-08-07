@@ -355,3 +355,20 @@ Los tests del grafo fijan `reglas_total` (test_salud_conocimiento): todo cambio 
 debe actualizar ese conteo en el MISMO cambio. Categorías nuevas verificadas contra el
 clasificador real (frontera de palabra, sin colisiones con ARRENDAMIENTO ni
 SERVICIOS_PROFESIONALES).
+
+## Fase B fiduciario/sucesorio/inmobiliario MX (2026-08-07)
+5 categorías + 8 reglas: LGTOC 381-389 (fideicomiso; fiduciaria AUTORIZADA — un despacho
+no puede serlo; inscripción RPP si hay inmuebles; oponibilidad por tipo de bien en muebles),
+LGTOC 394 (prohibiciones: secreto, sustituciones por muerte, >50 años con PM privada), CCF
+(testamentos 1295-1511; sucesión legítima 1599/1602; compraventa 2317/2320 — umbral en
+salarios mínimos pendiente de conversión UMA; registro 3007-3009) y LIE 2-VI/10-14 (zona
+restringida 100/50 km: extranjeros solo vía fideicomiso bancario con permiso SRE, 50 años
+prorrogables). **Gotcha estructural cazado en dev**: dos impactos con veredictos DISTINTOS
+sobre la misma (categoría, régimen) hacen que el evaluador degrade TODO a `dudoso` con
+bandera de conflicto — una regla de prohibiciones NO debe llevar `no_permitido` junto al
+`permitido` general de su categoría; el patrón correcto es `veredicto_base: null` (aporta
+requisitos/banderas sin pelear el veredicto, mismo contrato que ya toleraba el paso 1 de
+App C). También: los `regimen` inventados (PROHIBIDOS/INTESTADO/MUEBLES) son impactos
+MUERTOS — el evaluador solo casa el régimen del contexto o el wildcard GENERAL; en
+dimensión regulatorio todo va en GENERAL. Bandera transversal sembrada: la materia civil
+es LOCAL (CCF = referencia federal; cotejar código del estado).

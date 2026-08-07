@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -413,6 +413,94 @@
         "otorgar poderes",
         "otorgamiento de poderes",
         "revocacion de poderes"
+      ]
+    },
+    {
+      "clave": "FIDEICOMISO_CONSTITUCION",
+      "nombre": "Fideicomisos: constitucion y operacion",
+      "descripcion": "Constituir y operar un fideicomiso (fideicomitente, fiduciaria, fideicomisario), incluido el fideicomiso testamentario y sus prohibiciones",
+      "keywords": [
+        "fideicomiso",
+        "fideicomisos",
+        "fideicomitente",
+        "fideicomisario",
+        "fiduciaria",
+        "constituir un fideicomiso",
+        "contrato de fideicomiso",
+        "patrimonio fideicomitido",
+        "fideicomiso testamentario"
+      ]
+    },
+    {
+      "clave": "FIDEICOMISO_ZONA_RESTRINGIDA",
+      "nombre": "Fideicomiso de zona restringida (extranjeros)",
+      "descripcion": "Adquisicion de derechos sobre inmuebles en zona restringida (100 km de fronteras / 50 km de playas) por extranjeros via fideicomiso con permiso de la SRE",
+      "keywords": [
+        "zona restringida",
+        "fideicomiso de zona restringida",
+        "inmueble en zona restringida",
+        "extranjeros en zona restringida",
+        "adquisicion por extranjeros",
+        "extranjero comprar inmueble"
+      ]
+    },
+    {
+      "clave": "TESTAMENTOS_SUCESIONES",
+      "nombre": "Testamentos y sucesiones",
+      "descripcion": "Testamentos (otorgamiento y clases), sucesion testamentaria y legitima (intestado), herederos, legados y albaceas",
+      "keywords": [
+        "testamento",
+        "testamentos",
+        "testamentario",
+        "sucesion",
+        "sucesiones",
+        "herencia",
+        "heredero",
+        "herederos",
+        "legado",
+        "legatario",
+        "albacea",
+        "intestado",
+        "sucesion legitima",
+        "juicio sucesorio"
+      ],
+      "exclusiones": [
+        "fideicomiso"
+      ]
+    },
+    {
+      "clave": "COMPRAVENTA_INMUEBLES",
+      "nombre": "Compraventa de inmuebles: forma",
+      "descripcion": "Adquisicion y enajenacion de bienes inmuebles: forma del contrato (documento privado vs escritura publica) segun el valor del bien",
+      "keywords": [
+        "compraventa de inmueble",
+        "compraventa de inmuebles",
+        "compra de inmueble",
+        "venta de inmueble",
+        "adquirir un inmueble",
+        "enajenacion de inmueble",
+        "bien inmueble",
+        "bienes inmuebles",
+        "predio",
+        "terreno"
+      ],
+      "exclusiones": [
+        "zona restringida",
+        "fideicomiso"
+      ]
+    },
+    {
+      "clave": "REGISTRO_PROPIEDAD",
+      "nombre": "Registro Publico de la Propiedad",
+      "descripcion": "Inscripcion de titulos y gravamenes sobre inmuebles en el Registro Publico de la Propiedad y sus efectos frente a terceros",
+      "keywords": [
+        "registro publico de la propiedad",
+        "inscripcion registral",
+        "folio real",
+        "certificado de libertad de gravamen",
+        "certificado de gravamenes",
+        "gravamen inmobiliario",
+        "inscribir la escritura"
       ]
     }
   ],
@@ -1671,6 +1759,253 @@
             "El regimen opcional fiscal de grupos (LISR 59-71: integradora con >80% de participacion) es OPT-IN, dimension fiscal — requiere dictamen aparte, esta regla no lo otorga",
             "La SAS no puede ser vehiculo de holding ni subsidiaria con socio persona moral (Art. 260)",
             "Consolidacion CONTABLE (NIF B-8) es dimension contable — no cubierta por esta regla"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGTOC-381-388-FIDEICOMISO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Fideicomiso: constitucion por escrito, fiduciaria autorizada e inscripcion si hay inmuebles",
+      "texto_resumen": "Por el fideicomiso, el fideicomitente transmite a una institucion fiduciaria la propiedad o titularidad de bienes o derechos para fines licitos y determinados (Art. 381). Solo pueden ser fiduciarias las instituciones expresamente AUTORIZADAS conforme a la ley — bancos y demas entidades habilitadas; un despacho o una persona fisica NO pueden fungir como fiduciaria (Art. 385). La constitucion debe constar SIEMPRE por escrito (Art. 387). Si el objeto recae en inmuebles, el fideicomiso debe inscribirse en la Seccion de la Propiedad del Registro Publico del lugar del bien, y surte efectos contra terceros desde la inscripcion (Art. 388). Es valido sin fideicomisario determinado si el fin es licito y determinado y la fiduciaria acepta (Art. 382).",
+      "fuente_cita": "LGTOC, Arts. 381, 382, 385, 387 y 388 (texto vigente, ultima reforma DOF 26-03-2024)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGTOC.pdf",
+      "vigente_desde": "1932-08-27",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FIDEICOMISO_CONSTITUCION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Contratar como fiduciaria a una institucion expresamente autorizada (Art. 385) — el asesor estructura, la fiduciaria ejecuta",
+            "Constancia por escrito de la constitucion (Art. 387)",
+            "Con bienes inmuebles: inscribir el fideicomiso en la Seccion de la Propiedad del Registro Publico del lugar del bien para que surta efectos contra terceros (Art. 388)",
+            "Definir fines licitos y determinados; el fideicomisario puede designarse despues o no existir aun (Arts. 381-382)"
+          ],
+          "banderas": [
+            "El fideicomiso de GARANTIA tiene seccion propia (LGTOC Arts. 395 y ss.) con reglas adicionales — no dictaminado por esta regla",
+            "Obligacion paralela: la fiduciaria y las partes del fideicomiso tienen deberes de beneficiario controlador (CFF 32-B Ter, ver REGISTRO_ACCIONES_BC)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGTOC-394-FIDEICOMISOS-PROHIBIDOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Fideicomisos prohibidos: secretos, sucesivos por muerte y de duracion mayor a 50 anos",
+      "texto_resumen": "Quedan PROHIBIDOS (Art. 394): (I) los fideicomisos secretos; (II) aquellos en que el beneficio se conceda a diversas personas sucesivamente que deban sustituirse por muerte de la anterior, SALVO que la sustitucion sea en favor de personas vivas o ya concebidas a la muerte del fideicomitente; y (III) los de duracion mayor a CINCUENTA anos cuando el beneficiario sea una persona moral que no sea de derecho publico o institucion de beneficencia (con excepcion para fines de mantenimiento de museos cientificos o artisticos sin fines de lucro). Directamente relevante para estructuras patrimoniales/sucesorias multigeneracionales de un holding familiar.",
+      "fuente_cita": "LGTOC, Art. 394 (texto vigente, ultima reforma DOF 26-03-2024)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGTOC.pdf",
+      "vigente_desde": "1932-08-27",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FIDEICOMISO_CONSTITUCION",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Verificar que la estructura NO sea fideicomiso secreto (fr. I)",
+            "En sustituciones sucesivas de beneficiarios por muerte: solo en favor de personas vivas o concebidas a la muerte del fideicomitente (fr. II)",
+            "Con beneficiario persona moral privada: duracion maxima 50 anos, salvo la excepcion de museos (fr. III)"
+          ],
+          "banderas": [
+            "PROHIBICIONES del Art. 394: fideicomiso secreto, sustituciones sucesivas por muerte fuera de la salvedad, y duracion >50 anos con beneficiario persona moral privada — una estructura que caiga en ellas es NULA; esta regla no revierte el veredicto general de la categoria, lo condiciona",
+            "Las cadenas multigeneracionales tipo 'dynasty trust' anglosajon chocan con la fr. II: disenar la sucesion de beneficiarios con personas vivas/concebidas o via testamento",
+            "El fideicomiso de zona restringida tiene SU PROPIO plazo de 50 anos prorrogable (LIE Art. 13) — regla aparte"
+          ],
+          "parametros": {
+            "duracion_maxima_anos_pm_privada": 50,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LIE-10-14-ZONA-RESTRINGIDA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Inmuebles en zona restringida: extranjeros solo via fideicomiso con permiso SRE (50 anos prorrogables)",
+      "texto_resumen": "La zona restringida es la faja de 100 km a lo largo de las fronteras y 50 km a lo largo de las playas (LIE Art. 2-VI; CPEUM Art. 27-I). Dentro de ella, personas fisicas o morales EXTRANJERAS y sociedades mexicanas SIN clausula de exclusion de extranjeros solo pueden obtener la utilizacion y aprovechamiento de inmuebles (uso, goce, frutos — sin derechos reales) a traves de un FIDEICOMISO en que una institucion de credito adquiere como fiduciaria los derechos, previo PERMISO de la Secretaria de Relaciones Exteriores (Arts. 11-12). La duracion maxima es de 50 anos, prorrogable a solicitud del interesado; la SRE puede verificar el cumplimiento en cualquier tiempo (Art. 13). Fuera de zona restringida, las sociedades mexicanas con convenio del Art. 27-I pueden adquirir dominio directo (Art. 10).",
+      "fuente_cita": "LIE, Arts. 2o fr. VI, 10, 11, 12, 13 y 14 (texto vigente, ultima reforma DOF 27-05-2024), en relacion con el Art. 27 fr. I de la CPEUM",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LIE.pdf",
+      "vigente_desde": "1993-12-27",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FIDEICOMISO_ZONA_RESTRINGIDA",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Estructurar via fideicomiso con institucion de credito como fiduciaria (LIE Art. 11)",
+            "Obtener el permiso de la Secretaria de Relaciones Exteriores ANTES de la adquisicion de derechos (Arts. 11 y 14)",
+            "Respetar el alcance: utilizacion y aprovechamiento (uso/goce/frutos), sin constituir derechos reales a favor del extranjero (Art. 12)",
+            "Vigilar la duracion del fideicomiso (maximo 50 anos) y tramitar la prorroga oportunamente (Art. 13)"
+          ],
+          "banderas": [
+            "El dominio DIRECTO de inmuebles en zona restringida por extranjeros esta vedado por el Art. 27-I constitucional: el fideicomiso es la unica via para uso residencial",
+            "Sociedades mexicanas CON clausula de exclusion de extranjeros si pueden adquirir dominio en zona restringida (Art. 10)",
+            "Los avisos y renuncias del Art. 27-I (clausula Calvo) aplican al convenio con la SRE"
+          ],
+          "parametros": {
+            "zona_frontera_km": 100,
+            "zona_playa_km": 50,
+            "duracion_maxima_anos": 50,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-1295-1511-TESTAMENTO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Testamento: acto personalisimo, revocable y libre; clases y forma notarial",
+      "texto_resumen": "El testamento es un acto personalisimo, revocable y libre por el cual una persona capaz dispone de sus bienes y derechos para despues de su muerte (Art. 1295). No pueden testar dos o mas personas en el mismo acto (Art. 1296). Los testamentos ordinarios son: publico abierto, publico cerrado, publico simplificado y olografo (Art. 1500, con clases especiales del Art. 1501). El publico abierto se otorga ante NOTARIO, quien redacta y da fe conforme a las formalidades del capitulo (Arts. 1511 y ss.).",
+      "fuente_cita": "CCF, Arts. 1295, 1296, 1500, 1501 y 1511 (texto vigente, ultima reforma DOF 14-11-2025; fracciones del 1500 reformadas DOF 06-01-1994)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1928-08-31",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TESTAMENTOS_SUCESIONES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Otorgamiento individual: nunca dos personas en el mismo acto, ni en provecho reciproco (Art. 1296)",
+            "Elegir la clase de testamento adecuada (Art. 1500); el publico abierto exige notario y sus formalidades (Arts. 1511 y ss.)",
+            "Capacidad del testador conforme al propio Codigo"
+          ],
+          "banderas": [
+            "La materia civil (sucesiones e inmuebles) es competencia LOCAL: el CCF es la referencia federal; cotejar el codigo civil y la ley registral del estado donde este el bien o se abra la sucesion",
+            "El fideicomiso TESTAMENTARIO combina esta materia con la LGTOC (ver FIDEICOMISO_CONSTITUCION y sus prohibiciones del Art. 394)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-1599-1602-SUCESION-LEGITIMA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Sucesion legitima (intestado): cuando se abre y quienes heredan",
+      "texto_resumen": "La herencia legitima se abre cuando no hay testamento (o es nulo o perdio validez), cuando el testador no dispuso de todos sus bienes, cuando no se cumple la condicion impuesta al heredero, o cuando el heredero muere antes del testador, repudia o es incapaz, sin substituto (Art. 1599). Tienen derecho a heredar por sucesion legitima los descendientes, conyuge, ascendientes, parientes colaterales hasta el cuarto grado y la concubina o concubinario (con los requisitos del Art. 1635); a falta de todos, la beneficencia publica (Art. 1602).",
+      "fuente_cita": "CCF, Arts. 1599 y 1602 (texto vigente, ultima reforma DOF 14-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1928-08-31",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TESTAMENTOS_SUCESIONES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Verificar el supuesto de apertura de la sucesion legitima (Art. 1599) antes de tramitar el intestado",
+            "Determinar el orden de herederos aplicable (Art. 1602 y reglas del titulo respectivo)",
+            "Concubina/concubinario: acreditar los requisitos del Art. 1635"
+          ],
+          "banderas": [
+            "La materia civil (sucesiones e inmuebles) es competencia LOCAL: el CCF es la referencia federal; cotejar el codigo civil y la ley registral del estado donde este el bien o se abra la sucesion",
+            "En patrimonios con sociedades (holding familiar): la transmision de acciones por herencia detona ademas registro de acciones (LGSM 128-129) y beneficiario controlador (CFF 32-B Ter)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-2317-2320-FORMA-COMPRAVENTA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Compraventa de inmuebles: documento privado solo bajo el umbral; arriba, escritura publica",
+      "texto_resumen": "Las enajenaciones de inmuebles cuyo valor de avaluo NO exceda el equivalente a 365 veces el salario minimo general diario vigente en el Distrito Federal al momento de la operacion (y la constitucion/transmision de derechos reales hasta esa cantidad) pueden otorgarse en documento privado firmado ante dos testigos, con ratificacion de firmas (Art. 2317). Si el valor de avaluo EXCEDE ese umbral, la venta debe hacerse en ESCRITURA PUBLICA (Art. 2320). Tras la desindexacion del salario minimo (reforma constitucional 2016), el calculo del umbral debe cotejarse con la UMA y el criterio local aplicable.",
+      "fuente_cita": "CCF, Arts. 2317 y 2320 (texto vigente, ultima reforma DOF 14-11-2025; Art. 2320 reformado DOF 07-01-1988)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1928-08-31",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "COMPRAVENTA_INMUEBLES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Avaluar el inmueble para determinar la forma exigida (Arts. 2317/2320)",
+            "Sobre el umbral: otorgar la venta en escritura publica ante notario (Art. 2320)",
+            "Bajo el umbral: documento privado ante dos testigos con ratificacion de firmas ante notario, juez o Registro (Art. 2317)"
+          ],
+          "banderas": [
+            "La materia civil (sucesiones e inmuebles) es competencia LOCAL: el CCF es la referencia federal; cotejar el codigo civil y la ley registral del estado donde este el bien o se abra la sucesion",
+            "El umbral esta expresado en salario minimo del DF: tras la desindexacion (UMA, 2016) el equivalente vigente debe cotejarse antes de asesorar",
+            "La forma es ademas requisito de inscribibilidad en el Registro Publico (ver REGISTRO_PROPIEDAD)"
+          ],
+          "parametros": {
+            "umbral_veces_salario_minimo": 365,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-CCF-3007-3009-REGISTRO-EFECTOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Registro Publico de la Propiedad: sin inscripcion no hay efectos contra terceros",
+      "texto_resumen": "Los documentos registrables que NO se registren no producen efectos en perjuicio de tercero (Art. 3007). La inscripcion tiene efectos DECLARATIVOS, no constitutivos (Art. 3008), y el Registro protege los derechos adquiridos por tercero de buena fe conforme a sus asientos (Art. 3009). Para una cartera inmobiliaria (propia o de clientes) la inscripcion oportuna de titulos y gravamenes es la defensa frente a dobles ventas y cargas ocultas.",
+      "fuente_cita": "CCF, Arts. 3007, 3008 y 3009 (reformados DOF 03-01-1979; texto vigente, ultima reforma DOF 14-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCF.pdf",
+      "vigente_desde": "1928-08-31",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGISTRO_PROPIEDAD",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Inscribir los titulos de propiedad y gravamenes en el Registro Publico de la Propiedad del lugar del inmueble (Art. 3007)",
+            "Antes de adquirir: obtener certificado de libertad o existencia de gravamenes y verificar la cadena registral (Arts. 3008-3009)"
+          ],
+          "banderas": [
+            "La materia civil (sucesiones e inmuebles) es competencia LOCAL: el CCF es la referencia federal; cotejar el codigo civil y la ley registral del estado donde este el bien o se abra la sucesion",
+            "El fideicomiso sobre inmuebles tiene su propia obligacion de inscripcion (LGTOC Art. 388)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGTOC-389-FIDEICOMISO-MUEBLES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Fideicomiso sobre bienes muebles y derechos: efectos contra terceros por tipo de bien",
+      "texto_resumen": "El fideicomiso cuyo objeto recae en bienes MUEBLES surte efectos contra terceros desde la fecha en que se cumplen los requisitos que el Art. 389 fija por tipo de bien (credito no negociable: notificacion al deudor; titulo nominativo: endoso y registro; y demas supuestos del propio articulo). Relevante para fideicomisos sobre acciones y participaciones de un holding: el efecto frente a terceros exige cumplir el requisito del tipo de bien, no basta el contrato.",
+      "fuente_cita": "LGTOC, Art. 389 (texto vigente, ultima reforma DOF 26-03-2024)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGTOC.pdf",
+      "vigente_desde": "1932-08-27",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "FIDEICOMISO_CONSTITUCION",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Identificar el tipo de bien fideicomitido y cumplir SU requisito de oponibilidad (Art. 389)",
+            "Acciones nominativas fideicomitidas: endoso, inscripcion en el libro de registro de acciones de la emisora (LGSM 128-129) y aviso correspondiente"
+          ],
+          "banderas": [
+            "Un fideicomiso de acciones mal perfeccionado deja la titularidad fiduciaria inoponible frente a terceros — riesgo tipico en reestructuras de holding"
           ],
           "parametros": {
             "verificar": false
