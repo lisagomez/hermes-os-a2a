@@ -1356,7 +1356,15 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   API: fideicomiso testamentario → `FIDEICOMISO_CONSTITUCION` permitido (LGTOC 381-388,
   con las prohibiciones del 394 como bandera) y extranjero en zona restringida →
   `FIDEICOMISO_ZONA_RESTRINGIDA` permitido (LIE 10-14).
-- [ ] Fase C — ambiental (LGEEPA, responsabilidad ambiental)
+- [x] **Fase C — ambiental MX** (2026-08-07): 5 categorías + 5 reglas — LGEEPA (EIA
+  Arts. 28/30 con las 10 fracciones; fuentes fijas federales 111 Bis con su lista de
+  industrias; auditoría voluntaria 38/38 Bis), LGPGIR (categorías de generador micro/
+  pequeño/gran por volumen anual, registro+plan+bitácora del Art. 46) y LFRA (daño
+  ambiental → `no_permitido`: reparación prioritaria, compensación subsidiaria,
+  responsabilidad por daño INDIRECTO — bandera para holdings). Cotejado contra PDF
+  de Diputados (LGEEPA/LGPGIR DOF 19-01-2026, LFRA DOF 14-11-2025). Seed 53→58
+  reglas / 36 categorías; gate OK; 83/83 tests.
+- [ ] Aplicar el seed de Fase C al runtime (procedimiento 2026-08-04)
 - [ ] Fase D — cabildeo/político (reglamentos de Cámaras, LGIPE)
 - [ ] Dictamen de frontera: Financial Consulting vs LMV/CNBV (¿asesor de inversiones regulado?)
 
