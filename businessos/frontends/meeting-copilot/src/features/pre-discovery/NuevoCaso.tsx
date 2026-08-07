@@ -12,7 +12,7 @@ import { Button, Card, Chip, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
 
-const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
+const INTAKE_VACIO: IntakeLead = { telefono: '', email: '', linkedin: '', web: '', tamano: '11-50', giro: '', pais: 'México', notas: '' }
 
 export function NuevoCaso() {
   const router = useRouter()
@@ -103,6 +103,7 @@ export function NuevoCaso() {
         <div className="grid gap-3 sm:grid-cols-2">
           {campo('telefono', 'Teléfono', '+52 …')}
           {campo('email', 'Correo', 'contacto@empresa.com', 'email')}
+          {campo('linkedin', 'LinkedIn del contacto', 'https://linkedin.com/in/contacto')}
           {campo('web', 'Página web', 'https://empresa.com')}
           <label className="block text-[12px] font-medium text-ink-secondary">
             Tamaño de la empresa
