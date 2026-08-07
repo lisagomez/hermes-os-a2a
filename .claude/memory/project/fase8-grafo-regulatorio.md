@@ -372,3 +372,15 @@ App C). También: los `regimen` inventados (PROHIBIDOS/INTESTADO/MUEBLES) son im
 MUERTOS — el evaluador solo casa el régimen del contexto o el wildcard GENERAL; en
 dimensión regulatorio todo va en GENERAL. Bandera transversal sembrada: la materia civil
 es LOCAL (CCF = referencia federal; cotejar código del estado).
+
+## Fase C ambiental MX (2026-08-07)
+5 categorías + 5 reglas: LGEEPA 28/30 (EIA: autorización PREVIA SEMARNAT, 10 fracciones —
+inmobiliario costero y humedales son los supuestos que la due diligence pasa por alto),
+111 Bis (fuentes fijas federales: lista cerrada de industrias; lo no federal es licencia
+LOCAL), 38/38 Bis (auditoría ambiental voluntaria — puerta del servicio preventivo del
+despacho), LGPGIR 5/42/44/46 (generadores por volumen: micro ≤400 kg/año, pequeño <10 t,
+gran ≥10 t con registro+plan+bitácora+informe; manejo solo con gestores autorizados) y
+LFRA 1/10 (responsabilidad objetiva: reparación > compensación; alcanza daño INDIRECTO →
+bandera para holdings). Único veredicto `no_permitido` del ámbito: RESPONSABILIDAD_AMBIENTAL
+(ocasionar daño genera responsabilidad) — único en su categoría, sin conflicto. Fuentes:
+LGEEPA/LGPGIR DOF 19-01-2026, LFRA DOF 14-11-2025, leídas del PDF de Diputados.

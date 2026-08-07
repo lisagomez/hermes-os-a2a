@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -501,6 +501,73 @@
         "certificado de gravamenes",
         "gravamen inmobiliario",
         "inscribir la escritura"
+      ]
+    },
+    {
+      "clave": "IMPACTO_AMBIENTAL",
+      "nombre": "Evaluacion de impacto ambiental (SEMARNAT)",
+      "descripcion": "Obras y actividades que requieren autorizacion previa de SEMARNAT en materia de impacto ambiental y la manifestacion de impacto ambiental (MIA)",
+      "keywords": [
+        "impacto ambiental",
+        "manifestacion de impacto ambiental",
+        "evaluacion de impacto ambiental",
+        "autorizacion de impacto ambiental",
+        "mia",
+        "semarnat"
+      ]
+    },
+    {
+      "clave": "EMISIONES_ATMOSFERA",
+      "nombre": "Emisiones a la atmosfera: fuentes fijas",
+      "descripcion": "Operacion de fuentes fijas que emiten a la atmosfera y su licencia/autorizacion ambiental (federal o local segun la industria)",
+      "keywords": [
+        "licencia ambiental",
+        "licencia ambiental unica",
+        "emisiones a la atmosfera",
+        "fuente fija",
+        "fuentes fijas",
+        "emision de gases",
+        "contaminacion atmosferica"
+      ]
+    },
+    {
+      "clave": "RESIDUOS_PELIGROSOS",
+      "nombre": "Residuos peligrosos: generadores y manejo",
+      "descripcion": "Generacion y manejo de residuos peligrosos: categorias de generador por volumen, registro, plan de manejo y bitacoras",
+      "keywords": [
+        "residuos peligrosos",
+        "residuo peligroso",
+        "generador de residuos",
+        "generadores de residuos",
+        "plan de manejo de residuos",
+        "manejo de residuos",
+        "bitacora de residuos"
+      ]
+    },
+    {
+      "clave": "RESPONSABILIDAD_AMBIENTAL",
+      "nombre": "Responsabilidad por dano ambiental",
+      "descripcion": "Responsabilidad, reparacion y compensacion por danos al ambiente (LFRA), via judicial federal y sanciones",
+      "keywords": [
+        "responsabilidad ambiental",
+        "dano ambiental",
+        "danos ambientales",
+        "reparacion del dano ambiental",
+        "compensacion ambiental",
+        "delito ambiental",
+        "delitos ambientales",
+        "profepa"
+      ]
+    },
+    {
+      "clave": "AUDITORIA_AMBIENTAL",
+      "nombre": "Auditoria ambiental voluntaria",
+      "descripcion": "Autorregulacion y auditorias ambientales voluntarias (examen de operaciones, cumplimiento y certificacion)",
+      "keywords": [
+        "auditoria ambiental",
+        "autorregulacion ambiental",
+        "industria limpia",
+        "certificado ambiental"
       ]
     }
   ],
@@ -2006,6 +2073,160 @@
           ],
           "banderas": [
             "Un fideicomiso de acciones mal perfeccionado deja la titularidad fiduciaria inoponible frente a terceros — riesgo tipico en reestructuras de holding"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGEEPA-28-30-IMPACTO-AMBIENTAL",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Impacto ambiental: autorizacion PREVIA de SEMARNAT para las obras y actividades del Art. 28",
+      "texto_resumen": "La evaluacion del impacto ambiental es el procedimiento por el que SEMARNAT fija las condiciones para obras/actividades que puedan causar desequilibrio ecologico. Requieren autorizacion PREVIA (en los casos que determina el Reglamento): obras hidraulicas y vias generales de comunicacion; oleoductos/gasoductos; industria del petroleo, petroquimica, quimica, siderurgica, papelera, azucarera, cementera y electrica; mineria; instalaciones de residuos peligrosos; aprovechamientos forestales en selvas; cambios de uso de suelo forestal; parques industriales con actividades altamente riesgosas; desarrollos inmobiliarios que afecten ecosistemas costeros; y obras en humedales, lagunas, rios y litorales (Art. 28, fr. I-X). Para obtenerla se presenta una manifestacion de impacto ambiental (MIA) con los posibles efectos en los ecosistemas (Art. 30).",
+      "fuente_cita": "LGEEPA, Arts. 28 y 30 (texto vigente, ultima reforma DOF 19-01-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGEEPA.pdf",
+      "vigente_desde": "1988-01-28",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "IMPACTO_AMBIENTAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Verificar si la obra/actividad cae en las fracciones del Art. 28 Y en los supuestos del Reglamento de la LGEEPA en materia de EIA (el Reglamento determina los casos concretos)",
+            "Presentar la MIA ante SEMARNAT y obtener la autorizacion ANTES de iniciar la obra o actividad (Arts. 28 y 30)",
+            "Los desarrollos inmobiliarios en costa (fr. IX) y las obras en humedales/litorales (fr. X) son supuestos tipicos que se pasan por alto en due diligence inmobiliaria"
+          ],
+          "banderas": [
+            "Lo NO reservado a la Federacion puede exigir evaluacion de impacto ESTATAL: cotejar la ley ambiental del estado",
+            "Iniciar sin autorizacion expone a clausura, multas y responsabilidad ambiental (ver RESPONSABILIDAD_AMBIENTAL)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGEEPA-111BIS-EMISIONES-FUENTES-FIJAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Fuentes fijas de jurisdiccion federal: autorizacion de SEMARNAT para emitir a la atmosfera",
+      "texto_resumen": "La operacion y funcionamiento de fuentes fijas de jurisdiccion FEDERAL que emitan o puedan emitir olores, gases o particulas a la atmosfera requiere autorizacion de SEMARNAT (Art. 111 Bis). Son fuentes fijas federales las industrias quimica, del petroleo y petroquimica, de pinturas y tintas, automotriz, de celulosa y papel, metalurgica, del vidrio, de generacion de energia electrica, del asbesto, cementera y calera, y de tratamiento de residuos peligrosos. En la practica administrativa la autorizacion se gestiona como Licencia Ambiental Unica (LAU) conforme al reglamento aplicable.",
+      "fuente_cita": "LGEEPA, Art. 111 Bis (texto vigente, ultima reforma DOF 19-01-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGEEPA.pdf",
+      "vigente_desde": "1996-12-13",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "EMISIONES_ATMOSFERA",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Determinar si la industria del cliente esta en la lista de fuentes fijas de jurisdiccion federal (Art. 111 Bis, segundo parrafo)",
+            "Federal: tramitar la autorizacion/licencia ambiental (LAU) ante SEMARNAT antes de operar",
+            "No federal: la licencia de funcionamiento en materia atmosferica es ESTATAL o municipal — cotejar la ley local"
+          ],
+          "banderas": [
+            "La vigencia del parrafo especifico y el detalle operativo de la LAU viven en el reglamento de la LGEEPA en materia de atmosfera: cotejar antes de asesorar el tramite",
+            "Operar sin licencia expone a medidas de seguridad (clausura parcial o total) y sanciones de la propia LGEEPA"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGPGIR-44-46-GENERADORES-RP",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Generadores de residuos peligrosos: categorias por volumen y obligaciones de registro/plan/bitacora",
+      "texto_resumen": "Los generadores de residuos peligrosos se clasifican en tres categorias (Art. 44): GRAN generador (>= 10 toneladas en peso bruto al ano), PEQUENO generador (>= 400 kg y < 10 toneladas al ano) y MICROGENERADOR (hasta 400 kg al ano) — definiciones del Art. 5, fr. XII, XIX y XX. Los GRANDES generadores estan obligados a registrarse ante SEMARNAT, someter su Plan de Manejo de Residuos Peligrosos, llevar bitacora y presentar informe anual de generacion y modalidades de manejo (Art. 46). El manejo puede contratarse solo con empresas o gestores AUTORIZADOS por la Secretaria (Art. 42).",
+      "fuente_cita": "LGPGIR, Arts. 5o (fr. XII, XIX y XX), 42, 44 y 46 (texto vigente, ultima reforma DOF 19-01-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGPGIR.pdf",
+      "vigente_desde": "2003-10-08",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "RESIDUOS_PELIGROSOS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Determinar la categoria de generador por volumen anual (Arts. 5 y 44) — define el paquete de obligaciones",
+            "Gran generador: registro ante SEMARNAT + Plan de Manejo + bitacora + informe anual (Art. 46)",
+            "Contratar el manejo/transporte/disposicion SOLO con gestores autorizados por SEMARNAT (Art. 42)"
+          ],
+          "banderas": [
+            "Las obligaciones de pequenos generadores y microgeneradores tienen su propio regimen (Arts. 45-48 y reglamento): cotejar antes de asesorar esas categorias",
+            "Los umbrales son de peso bruto total ANUAL: un cliente que crece puede cambiar de categoria sin darse cuenta"
+          ],
+          "parametros": {
+            "micro_max_kg_ano": 400,
+            "pequeno_min_kg_ano": 400,
+            "pequeno_max_ton_ano": 10,
+            "gran_min_ton_ano": 10,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFRA-1-10-RESPONSABILIDAD-AMBIENTAL",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Dano ambiental: responsabilidad objetiva de reparar o compensar (LFRA)",
+      "texto_resumen": "Toda persona fisica o moral que con su accion u omision ocasione directa o INDIRECTAMENTE un dano al ambiente es responsable y esta obligada a la REPARACION de los danos o, cuando no sea posible, a la COMPENSACION ambiental, ademas de realizar las acciones necesarias para evitar su recurrencia (Art. 10). La responsabilidad ambiental se exige por procesos judiciales federales, mecanismos alternativos, procedimientos administrativos y los penales por delitos contra el ambiente; es reglamentaria del Art. 4o constitucional y opera SIN PERJUICIO de las responsabilidades civil, penal y administrativa (Art. 1o).",
+      "fuente_cita": "LFRA, Arts. 1o y 10 (texto vigente, ultima reforma DOF 14-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFRA.pdf",
+      "vigente_desde": "2013-06-07",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "RESPONSABILIDAD_AMBIENTAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "no_permitido",
+          "requisitos": [
+            "Ante un dano ambiental: evaluar reparacion prioritaria y, solo si es imposible, compensacion (Art. 10)",
+            "Mapear las CUATRO vias que pueden correr en paralelo: judicial federal (LFRA), administrativa (PROFEPA), penal (delitos ambientales) y civil",
+            "Documentar las acciones para evitar recurrencia — son parte de la obligacion, no cortesia"
+          ],
+          "banderas": [
+            "La responsabilidad alcanza el dano ocasionado INDIRECTAMENTE — relevante para holdings: la conducta de una subsidiaria puede arrastrar a quien dirige u ordena",
+            "La LFRA preve sancion economica ademas de la reparacion: montos y agravantes en sus articulos especificos, cotejar antes de cuantificar"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LGEEPA-38BIS-AUDITORIA-AMBIENTAL",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Auditoria ambiental voluntaria: autorregulacion con examen metodologico y certificacion",
+      "texto_resumen": "Los responsables del funcionamiento de una empresa pueden, en forma VOLUNTARIA, realizar mediante auditoria ambiental el examen metodologico de sus operaciones respecto de la contaminacion y el riesgo que generan y el grado de cumplimiento de la normatividad ambiental, parametros internacionales y buenas practicas, con el objeto de definir las medidas preventivas y correctivas necesarias (Art. 38 Bis). El esquema de autorregulacion permite acceder a reconocimientos/certificados del programa correspondiente (p. ej. industria limpia) ante la autoridad.",
+      "fuente_cita": "LGEEPA, Arts. 38 y 38 Bis (texto vigente, ultima reforma DOF 19-01-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LGEEPA.pdf",
+      "vigente_desde": "1996-12-13",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "AUDITORIA_AMBIENTAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Definir el alcance del examen: contaminacion y riesgo generados + grado de cumplimiento normativo y de buenas practicas (Art. 38 Bis)",
+            "Traducir los hallazgos en medidas preventivas y correctivas con plan de accion",
+            "Si se busca certificacion: seguir el programa de auditoria ambiental de la autoridad (PROFEPA) y sus terminos de referencia"
+          ],
+          "banderas": [
+            "Es un instrumento VOLUNTARIO de autorregulacion: no sustituye licencias, autorizaciones ni la EIA obligatoria",
+            "Para un despacho, la auditoria es la puerta natural del servicio ambiental preventivo (due diligence de cumplimiento)"
           ],
           "parametros": {
             "verificar": false
