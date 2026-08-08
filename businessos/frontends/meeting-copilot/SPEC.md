@@ -825,10 +825,17 @@ asesor) con evento `reprogramar`. Sin margen → estado con criterio (contactar 
 
 ### 19.6 Seams CRM, pago e IA
 
-- **CRM (host-job futuro)**: el copilot NUNCA escribe `leads` — garantiza los insumos
-  (`leadId`, `tenantId`, historial con actor/timestamp); el mapeo cita→etapa usa SOLO
-  etapas existentes del CHECK (p. ej. aprobada→`descubrimiento`); "cita perdida" no
-  tiene etapa hoy (decisión de negocio pendiente).
+- **CRM**: desde 2026-08-08 el workspace `/crm` (port del panel de Mission Control) vive
+  aquí y la doctrina pasa de "NUNCA escribe `leads`" a: el copilot **solo escribe la
+  ETAPA** de `leads`, vía una única server action (`features/crm/actions.ts`) detrás del
+  login+allowlist; jamás inserta ni borra leads. Lecturas por PostgREST con service_role
+  server-only (`features/crm/data.ts` — las vistas del embudo están revocadas para
+  anon/authenticated) y FUERA del seam `NEXT_PUBLIC_COPILOT_DATA`: el CRM es real-source
+  por diseño y lo declara con su chip propio ("datos: supabase" / "sin conexión").
+  Los flujos automáticos siguen la regla de siempre: garantizan los insumos (`leadId`,
+  `tenantId`, historial con actor/timestamp); el mapeo cita→etapa usa SOLO etapas
+  existentes del CHECK (p. ej. aprobada→`descubrimiento`); "cita perdida" no tiene
+  etapa hoy (decisión de negocio pendiente).
 - **Pago (seam Polar)**: `Servicio.requierePago` → la cita nace `pagoEstado='pendiente'`
   y la aprobación queda bloqueada (candado visible en la bandeja) hasta registrarse.
 - **IA**: `resumenIaBrief` en `Cita` (consumidor: bandeja/PrepAsesor; hoy null);

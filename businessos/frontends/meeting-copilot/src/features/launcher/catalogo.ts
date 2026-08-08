@@ -17,6 +17,7 @@ export const CATALOGO_HERRAMIENTAS: Herramienta[] = [
   { slug: 'guided-meeting', nombre: 'Guided Meeting', descripcion: 'Conduce la reunión con el coach en vivo', categoria: 'ejecucion', icono: 'Compass', estado: 'active', ruta: '/reuniones/[ultima]/guiada' },
   { slug: 'follow-up-writer', nombre: 'Follow-up Writer', descripcion: 'Draft de correo de seguimiento desde la reunión', categoria: 'ejecucion', icono: 'MailPlus', estado: 'active', ruta: '/reuniones/[ultima]/resumen#followup' },
   { slug: 'crm-notes', nombre: 'CRM Notes', descripcion: 'Notas estructuradas listas para el CRM', categoria: 'ejecucion', icono: 'NotebookPen', estado: 'active', ruta: '/reuniones/[ultima]/resumen#crm' },
+  { slug: 'crm', nombre: 'CRM', descripcion: 'Embudo de leads: etapas, conversaciones y mover de etapa', categoria: 'ejecucion', icono: 'Funnel', estado: 'active', ruta: '/crm' },
   { slug: 'tasks', nombre: 'Tasks', descripcion: 'Action items con responsable y fecha', categoria: 'ejecucion', icono: 'ListChecks', estado: 'active', ruta: '/reuniones?vista=acciones' },
   { slug: 'asesores', nombre: 'Asesores', descripcion: 'Catálogo de asesores humanos e IA con su disponibilidad', categoria: 'agendamiento', icono: 'Users', estado: 'active', ruta: '/asesores' },
   { slug: 'citas', nombre: 'Citas', descripcion: 'Tablero de seguimiento de citas con estado y acción de llamada', categoria: 'agendamiento', icono: 'CalendarCheck', estado: 'active', ruta: '/citas' },

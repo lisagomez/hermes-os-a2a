@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Compass, Mail, Mic, ScanSearch, Sparkles } from 'lucide-react'
 import { useAppStore } from '@/features/domain/store'
@@ -10,7 +10,9 @@ import { ETIQUETA_DIMENSION, ETIQUETA_TIPO_REUNION } from '@/features/domain/typ
 import { Card, Chip, ScoreChip, Stat, Table, TBody, TCell, TRow, tonoScore } from '@/shared/components/ui'
 import { fmtFecha } from '@/shared/lib/format'
 
-export function HomeView() {
+// `crmCard` llega renderizada desde el server (CrmResumenCard lee Supabase
+// server-side): la home client no toca credenciales.
+export function HomeView({ crmCard }: { crmCard?: ReactNode }) {
   const { reuniones, transcripciones, playbooks, accionesEstado } = useAppStore()
 
   const filas = useMemo(
@@ -136,6 +138,8 @@ export function HomeView() {
               </ul>
             )}
           </Card>
+
+          {crmCard}
 
           <Card className="p-4">
             <h2 className="mb-2 text-[13px] font-semibold text-ink">Agentes</h2>

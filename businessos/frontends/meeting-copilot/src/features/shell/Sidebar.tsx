@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardCheck,
+  Funnel,
   Home,
   Layers,
   LayoutGrid,
@@ -39,6 +40,7 @@ import { NAV_COPILOT } from './nav.config'
 // mapean los iconos y se pinta. El activo sale de rastroDe (desambigua
 // Reuniones vs Conversaciones por query — el matcher viejo la ignoraba).
 const ICONOS_NAV: Record<string, LucideIcon> = {
+  Funnel,
   Home,
   CalendarDays,
   MessagesSquare,

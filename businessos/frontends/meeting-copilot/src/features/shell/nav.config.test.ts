@@ -30,6 +30,12 @@ describe('árbol de navegación del copilot', () => {
     expect(nivel2).toEqual(['asesores', 'citas', 'servicios'])
   })
 
+  it('el workspace CRM es un item top-level con su ruta', () => {
+    expect(ruta('/crm')).toEqual(['CRM'])
+    // exacto:true — nada más matchea /crm de refilón
+    expect(ruta('/crm-notes')).toEqual([])
+  })
+
   it('las rutas públicas y el footer quedan FUERA del árbol (sin breadcrumb)', () => {
     expect(ruta('/reservar/ana-torres')).toEqual([])
     expect(ruta('/login')).toEqual([])
