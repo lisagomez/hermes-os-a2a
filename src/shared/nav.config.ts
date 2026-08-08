@@ -1,7 +1,8 @@
 // Árbol de navegación de Mission Control (config, no JSX) + identidad de la
 // app en el ecosistema. Schema y funciones: src/shared/app-registry (vendored).
 // El antiguo SUBMENUS de adquisición (departamento-subnav) vive aquí como
-// jerarquía real: Ejecución › Adquisición › {Tareas, CRM}.
+// jerarquía real: Ejecución › Adquisición › Tareas. (El CRM se movió a
+// meeting-copilot /crm el 2026-08-08.)
 
 import type { NavArbol } from './app-registry'
 
@@ -46,9 +47,8 @@ export const NAV_MC: NavArbol = {
           glifo: '◎',
           hijos: [{ id: 'adquisicion-tareas', etiqueta: 'Tareas', href: '/desarrollo?departamento=adquisicion' }],
         },
-        // CRM es vista clave de la dueña: SIEMPRE a 1 clic, nivel 2 (#2 del
-        // ataque: colgado de Adquisición quedaba invisible salvo en su rama).
-        { id: 'crm', etiqueta: 'CRM', href: '/crm', glifo: '☎' },
+        // CRM: MOVIDO a meeting-copilot /crm (2026-08-08); aquí queda un
+        // redirect en next.config para la memoria muscular.
       ],
     },
     {

@@ -2,7 +2,6 @@ import 'server-only'
 import type {
   AiSpend,
   ContratosVista,
-  CrmVista,
   DesarrolloVista,
   ExploradorParams,
   ExploradorVista,
@@ -13,7 +12,6 @@ import { DEPARTAMENTOS_REGISTRADOS } from '../types'
 import {
   mockAiSpend,
   mockContratos,
-  mockCrm,
   mockDesarrollo,
   mockGrafoExplorador,
   mockGrafoVista,
@@ -22,10 +20,8 @@ import {
 import {
   realAiSpend,
   realContratos,
-  realCrm,
   realDecidirContratoSc,
   realDepartamentos,
-  realMoverLeadEtapa,
   realDesarrollo,
   realGrafoExplorador,
   realGrafoVista,
@@ -46,8 +42,6 @@ export interface DataSource {
   pantheon(): Promise<Pantheon>
   desarrollo(departamento?: string): Promise<DesarrolloVista>
   departamentos(): Promise<string[]>
-  crm(): Promise<CrmVista>
-  moverLeadEtapa(leadId: string, etapa: string): Promise<void>
   contratos(): Promise<ContratosVista>
   decidirContratoSc(
     id: string,
@@ -67,9 +61,6 @@ const mockSource: DataSource = {
   desarrollo: async (departamento) =>
     departamento && departamento !== 'software' ? [] : mockDesarrollo,
   departamentos: async () => [...DEPARTAMENTOS_REGISTRADOS],
-  crm: async () => mockCrm,
-  // En mock no hay dónde persistir: la acción es un no-op explícito.
-  moverLeadEtapa: async () => {},
   contratos: async () => mockContratos,
   decidirContratoSc: async () => {},
 }
@@ -81,8 +72,6 @@ const realSource: DataSource = {
   pantheon: realPantheon,
   desarrollo: realDesarrollo,
   departamentos: realDepartamentos,
-  crm: realCrm,
-  moverLeadEtapa: realMoverLeadEtapa,
   contratos: realContratos,
   decidirContratoSc: realDecidirContratoSc,
 }

@@ -1,4 +1,4 @@
-// VENDORED-FROM businessos/frontends/app-registry/src/apps.ts (v2, c1bb9bf2fea4)
+// VENDORED-FROM businessos/frontends/app-registry/src/apps.ts (v2, 534d2b8ae204)
 // NO editar aquí: editar el canónico y correr node scripts/sync-vendored.mjs
 // @a2a/app-registry — REGISTRO CANÓNICO de las apps del ecosistema.
 // DATOS PUROS: cero JSX, cero dependencias. Cada app interna consume una copia
@@ -39,7 +39,7 @@ export const APPS: AppEcosistema[] = [
   {
     id: 'mission-control',
     nombre: 'Mission Control',
-    descripcion: 'Panel del negocio: Pantheon, AI Spend, grafo, desarrollo, CRM y contratos',
+    descripcion: 'Panel del negocio: Pantheon, AI Spend, grafo, desarrollo y contratos',
     glifo: '◉',
     iconoLucide: 'Radar',
     audiencia: 'interna',
@@ -65,7 +65,7 @@ export const APPS: AppEcosistema[] = [
   {
     id: 'meeting-copilot',
     nombre: 'Meeting Copilot',
-    descripcion: 'Copiloto comercial: reuniones, pre-discovery y agendamiento de asesores',
+    descripcion: 'Copiloto comercial: reuniones, pre-discovery, CRM y agendamiento de asesores',
     glifo: '◈',
     iconoLucide: 'Telescope',
     audiencia: 'interna',

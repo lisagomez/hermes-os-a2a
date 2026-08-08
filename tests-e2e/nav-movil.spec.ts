@@ -51,9 +51,10 @@ test.describe('móvil (<md)', () => {
     await page.getByTestId('nav-movil').click()
     await expect(sidebarVisible(page)).toHaveCount(1)
 
-    // CRM a 1 clic desde el drawer (#2 del ataque); al navegar, el drawer cierra.
-    await page.getByRole('link', { name: 'CRM' }).click()
-    await expect(page).toHaveURL(/\/crm/)
+    // Navegar desde el drawer cierra el drawer (el CRM se movió a
+    // meeting-copilot 2026-08-08; Contratos SC cubre el mismo caso a 1 clic).
+    await page.getByRole('link', { name: 'Contratos SC' }).click()
+    await expect(page).toHaveURL(/\/contratos/)
     await expect(sidebarVisible(page)).toHaveCount(0)
 
     // Escape cierra sin navegar.
@@ -61,7 +62,7 @@ test.describe('móvil (<md)', () => {
     await expect(sidebarVisible(page)).toHaveCount(1)
     await page.keyboard.press('Escape')
     await expect(sidebarVisible(page)).toHaveCount(0)
-    await expect(page).toHaveURL(/\/crm/)
+    await expect(page).toHaveURL(/\/contratos/)
   })
 })
 

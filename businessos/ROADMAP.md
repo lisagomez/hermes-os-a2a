@@ -239,12 +239,9 @@ PRP: `.claude/PRPs/prp-fase4-dashboard.md`. Estado detallado en
     verificada y desplegada): últimas 20 filas de `tareas` con badge por estado y
     **combo de departamento en el navbar** (registrados en el Supervisor ∪ presentes
     en `tareas` vía `v_departamentos` — autoactualizable en ambas direcciones).
-  - Vista **CRM** (`/crm`, submenú `Tareas | CRM` del departamento adquisición):
-    **canvas del embudo de cliente** (9 etapas de `leads.etapa` + `perdido` aparte,
-    conteos vivos vía `v_embudo_leads`), panel de conversaciones CRM
-    (`v_crm_conversaciones_resumen`) y tabla de **leads con "Mover a"** — única
-    escritura del panel (server action + Zod + fila-afectada verificada; e2e real
-    probado en producción). Tipografía base 20px (pedido de la dueña).
+  - Vista **CRM**: construida aquí originalmente (canvas del embudo, conversaciones,
+    tabla con "Mover a") y **MOVIDA a Meeting Copilot `/crm` el 2026-08-08 (PRs A/B)**
+    — el `/crm` de Mission Control redirige al copiloto. Ver §Línea Meeting Copilot.
 - [x] **Post-fase (2026-07-24, PR #143) — auth + PWA + listo para Vercel**: el panel se
   abre a los compañeros. Como renderiza todo el negocio con `service_role`, la auth es
   prerequisito (no opcional): **magic link passwordless + allowlist fail-closed**
@@ -1281,8 +1278,9 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   conexión" (sin credenciales muestra un aviso honesto, jamás datos fingidos). Doctrina
   SPEC §19.6 actualizada: el copilot **solo escribe la etapa** de `leads` (server action
   única con cinturón de auth). Etapas derivadas de `ETAPAS_LEAD` (un solo espejo del
-  check de la BD). Pendiente PR B: retirar `/crm` de Mission Control + redirect +
-  RUNBOOK-PIPELINE-COMERCIAL apuntando aquí.
+  check de la BD). **PR B (mismo día): retiro consumado en Mission Control** — ruta,
+  componentes, tipos y nav removidos; `/crm` de MC redirige aquí (next.config);
+  RUNBOOK-PIPELINE-COMERCIAL y DEPLOY-mission-control apuntan al copiloto.
 - [x] **Tercera pasada — el bloque regulatorio desperdiciaba el grafo (2026-08-08)**: con los
   7 bloques ya vivos, el dictamen del lead legal salió `dudoso` en los 6 conceptos y con
   `categoria: null` — o sea, cero valor, justo en el bloque más vendible para un despacho.

@@ -383,62 +383,8 @@ export const DEPARTAMENTOS_REGISTRADOS = [
 export const desarrolloVistaSchema = z.array(tareaSchema)
 export type DesarrolloVista = z.infer<typeof desarrolloVistaSchema>
 
-// ---------- CRM (departamento adquisición) ----------
-// Embudo de cliente: el ORDEN de las etapas es conocimiento del dashboard
-// (espejo del check constraint `leads_etapa_check`, supabase-fase9/11).
-// `perdido` no es una etapa del embudo: es la salida, se pinta aparte. Una
-// etapa nueva en la BD que este espejo no conozca se muestra al final del
-// embudo (no se pierde ni revienta — lección del enum de vertical).
-
-export const ETAPAS_EMBUDO = [
-  'nuevo',
-  'calificado',
-  'contactado',
-  'descubrimiento',
-  'propuesta',
-  'negociacion',
-  'contrato',
-  'onboarding',
-  'ganado',
-] as const
-
-export const etapaEmbudoSchema = z.object({
-  etapa: z.string(),
-  cuenta: z.number().int().nonnegative(),
-})
-export type EtapaEmbudo = z.infer<typeof etapaEmbudoSchema>
-
-export const conversacionResumenSchema = z.object({
-  estado: z.string(), // abierta | escalada | cerrada (check en BD)
-  nivel: z.string(), // A0..A3 (check en BD)
-  canal: z.string(), // telegram | whatsapp (de crm_contactos; dominio abierto)
-  cuenta: z.number().int().nonnegative(),
-})
-export type ConversacionResumen = z.infer<typeof conversacionResumenSchema>
-
-// Etapas a las que un humano puede MOVER un lead desde el dashboard:
-// las del embudo + la salida `perdido` (dominio completo del check de la BD).
-export const ETAPAS_MOVIBLES = [...ETAPAS_EMBUDO, 'perdido'] as const
-
-export const leadResumenSchema = z.object({
-  lead_id: z.string(),
-  origen: z.string(), // a2a | manual | slack | web2 | crm | copilot (check en BD)
-  canal: z.string(), // telegram | whatsapp | '' (dominio abierto, sin enum)
-  empresa: z.string().nullable(),
-  contacto: z.string().nullable(),
-  etapa: z.string(),
-  updated_at: z.string(),
-})
-export type LeadResumen = z.infer<typeof leadResumenSchema>
-
-export const crmVistaSchema = z.object({
-  // Etapas del embudo EN ORDEN, con cuenta 0 incluida; `perdido` aparte.
-  embudo: z.array(etapaEmbudoSchema),
-  perdidos: z.number().int().nonnegative(),
-  conversaciones: z.array(conversacionResumenSchema),
-  leads: z.array(leadResumenSchema),
-})
-export type CrmVista = z.infer<typeof crmVistaSchema>
+// ---------- CRM: MOVIDO a meeting-copilot /crm (2026-08-08, PR A #279) ----------
+// Etapas y schemas viven en businessos/frontends/meeting-copilot/src/features/crm/types.ts.
 
 // ---------- Contratos SC (departamento contratos_inteligentes, Fase 12 F5) ----------
 // Paquete de revisión humana: banderas G1 ARRIBA (anti-sello-de-goma G4),

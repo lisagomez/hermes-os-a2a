@@ -50,8 +50,7 @@ export function DepartamentoComboView({
 function ComboConSeleccion({ departamentos }: { departamentos: string[] }) {
   const pathname = usePathname()
   const param = useSearchParams().get('departamento') ?? undefined
-  // Estar en /crm (submenú de adquisición) cuenta como ese departamento
-  const seleccionado = pathname.startsWith('/crm') ? 'adquisicion' : param
+  const seleccionado = param
   // key: re-monta el <select> (uncontrolled) cuando cambia el filtro en la URL
   return (
     <DepartamentoComboView
