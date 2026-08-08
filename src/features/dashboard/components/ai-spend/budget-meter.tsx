@@ -21,18 +21,18 @@ export function BudgetMeter({ totalUsd, mes }: { totalUsd: number; mes: string }
       <SectionTitle>Gasto del mes ({mes})</SectionTitle>
       <p className="mt-2 text-4xl font-bold">
         ${totalUsd.toFixed(2)}
-        <span className="ml-2 text-base font-normal text-slate-400">
+        <span className="ml-2 text-base font-normal text-ink-secondary">
           de ${PRESUPUESTO_MENSUAL_USD} presupuestados
         </span>
       </p>
       {/* Medidor con marca del umbral de alerta (80%) */}
-      <div className="relative mt-4 h-3 overflow-hidden rounded-full bg-slate-800">
+      <div className="relative mt-4 h-3 overflow-hidden rounded-full bg-surface-muted">
         <div
           className="h-full rounded-full"
           style={{ width: `${Math.min(pct * 100, 100)}%`, backgroundColor: estado.color }}
         />
         <div
-          className="absolute top-0 h-full w-0.5 bg-slate-500"
+          className="absolute top-0 h-full w-0.5 bg-ink-muted"
           style={{ left: `${UMBRAL_ALERTA * 100}%` }}
           title={`Umbral de alerta: $${PRESUPUESTO_MENSUAL_USD * UMBRAL_ALERTA}`}
         />

@@ -18,8 +18,8 @@ export function ConstructorPanel({ insumos }: { insumos: ConstructorExplorador }
   return (
     <Card as="section">
       <header className="flex flex-wrap items-center gap-2">
-        <h2 className="text-sm font-semibold text-slate-100">Constructor de flujos</h2>
-        <span className="text-xs text-slate-400">
+        <h2 className="text-sm font-semibold text-ink">Constructor de flujos</h2>
+        <span className="text-xs text-ink-secondary">
           {insumos.jurisdiccion} · {insumos.dimension}
           {insumos.fecha ? ` · vigencia al ${insumos.fecha}` : ''}
         </span>
@@ -28,7 +28,7 @@ export function ConstructorPanel({ insumos }: { insumos: ConstructorExplorador }
       <div className="mt-4">
         <MicroLabel>Regímenes con impactos vigentes</MicroLabel>
         {insumos.regimenes.length === 0 ? (
-          <p className="mt-1 text-xs italic text-slate-500">
+          <p className="mt-1 text-xs italic text-ink-muted">
             Ninguno propio del ámbito: la plantilla usa el régimen por defecto (
             {insumos.regimen_default}).
           </p>
@@ -39,8 +39,8 @@ export function ConstructorPanel({ insumos }: { insumos: ConstructorExplorador }
                 key={r}
                 className={
                   r === insumos.regimen_default
-                    ? 'rounded-full border border-emerald-600 px-2 py-0.5 text-xs font-semibold text-emerald-400'
-                    : 'rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300'
+                    ? 'rounded-full border border-success px-2 py-0.5 text-xs font-semibold text-success'
+                    : 'rounded-full border border-line px-2 py-0.5 text-xs text-ink-secondary'
                 }
               >
                 {r}
@@ -54,17 +54,17 @@ export function ConstructorPanel({ insumos }: { insumos: ConstructorExplorador }
       <div className="mt-4">
         <MicroLabel>Categorías del ámbito</MicroLabel>
         {insumos.categorias.length === 0 ? (
-          <p className="mt-1 text-xs italic text-slate-500">
+          <p className="mt-1 text-xs italic text-ink-muted">
             Sin categorías referenciadas por reglas vigentes de este ámbito.
           </p>
         ) : (
           <ul className="mt-1 grid gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
             {insumos.categorias.map((c) => (
               <li key={c.clave}>
-                <code className="text-slate-500">{c.clave}</code>{' '}
-                <span className="text-slate-300">{c.nombre}</span>
+                <code className="text-ink-muted">{c.clave}</code>{' '}
+                <span className="text-ink-secondary">{c.nombre}</span>
                 {c.descripcion ? (
-                  <span className="text-slate-500"> — {c.descripcion}</span>
+                  <span className="text-ink-muted"> — {c.descripcion}</span>
                 ) : null}
               </li>
             ))}
@@ -80,15 +80,15 @@ export function ConstructorPanel({ insumos }: { insumos: ConstructorExplorador }
             onClick={() => {
               void navigator.clipboard.writeText(payloadJson)
             }}
-            className="rounded-md border border-slate-700 px-2 py-0.5 text-xs text-slate-300 hover:border-slate-500"
+            className="rounded-md border border-line px-2 py-0.5 text-xs text-ink-secondary hover:border-ink-muted"
           >
             Copiar
           </button>
         </div>
-        <pre className="mt-2 overflow-x-auto rounded-md border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300">
+        <pre className="mt-2 overflow-x-auto rounded-md border border-line bg-background p-3 text-xs text-ink-secondary">
           {payloadJson}
         </pre>
-        <p className="mt-2 text-xs italic text-slate-500">
+        <p className="mt-2 text-xs italic text-ink-muted">
           Esta vista JAMÁS escribe: completa los conceptos y ejecuta el payload
           contra el grafo fuera del panel. El veredicto llegará con fuente
           citada y disclaimer (regla de oro).

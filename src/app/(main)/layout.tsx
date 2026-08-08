@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NavMovil, SidebarJerarquico } from '@/shared/components/nav/sidebar-jerarquico'
 import { AppLauncher } from '@/shared/components/nav/app-launcher'
 import { Breadcrumb } from '@/shared/components/nav/breadcrumb'
+import { ThemeToggle } from '@/shared/components/theme-toggle'
 
 // Shell del panel: sidebar jerárquico config-driven (src/shared/nav.config.ts)
 // + header delgado con waffle (App Launcher del ecosistema) y breadcrumb
@@ -29,7 +30,7 @@ export default async function MainLayout({
     <div className="flex h-dvh overflow-hidden">
       <SidebarJerarquico />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-4 py-2">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line bg-surface/60 px-4 py-2">
           <NavMovil />
           <AppLauncher />
           <Breadcrumb />
@@ -38,11 +39,12 @@ export default async function MainLayout({
             <div className="hidden sm:block">
               <DepartamentoCombo departamentos={departamentos} />
             </div>
+            <ThemeToggle />
             <span
               className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
                 fuente === 'mock'
-                  ? 'bg-amber-900/60 text-amber-300'
-                  : 'bg-emerald-900/60 text-emerald-300'
+                  ? 'bg-warning-muted text-warning'
+                  : 'bg-success-muted text-success'
               }`}
               title="Fuente de datos activa (DASHBOARD_DATA)"
             >

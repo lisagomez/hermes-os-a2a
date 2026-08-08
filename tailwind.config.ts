@@ -6,19 +6,23 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // Colores semánticos de la skin `mission` (tokens en globals.css).
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
+      },
+      // Colores semánticos de la skin `ejecutiva` (tokens en globals.css).
       // Solo AGREGAN nombres: las escalas slate-*/emerald-* siguen intactas.
-      // Ojo: al ser var() no soportan modificador de opacidad (bg-surface/60);
-      // para eso siguen las escalas Tailwind.
+      // background/surface/line van por triplete RGB para soportar el
+      // modificador de opacidad (bg-surface/60); el resto sigue en var().
       colors: {
-        background: 'var(--background)',
+        background: 'rgb(var(--background-rgb) / <alpha-value>)',
         surface: {
-          DEFAULT: 'var(--surface)',
+          DEFAULT: 'rgb(var(--surface-rgb) / <alpha-value>)',
           raised: 'var(--surface-raised)',
-          muted: 'var(--surface-muted)',
+          muted: 'rgb(var(--surface-muted-rgb) / <alpha-value>)',
         },
         line: {
-          DEFAULT: 'var(--line)',
+          DEFAULT: 'rgb(var(--line-rgb) / <alpha-value>)',
           subtle: 'var(--line-subtle)',
         },
         ink: {

@@ -43,31 +43,31 @@ export function AppLauncherView({
         title="Apps del ecosistema"
         aria-expanded={abierto}
         data-testid="waffle"
-        className="rounded px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-800 hover:text-white"
+        className="rounded px-2 py-1 text-lg leading-none text-ink-secondary hover:bg-surface-muted hover:text-ink"
       >
         ⠿
       </button>
       {abierto && (
         <div
           data-testid="launcher-apps"
-          className="absolute left-0 top-full z-50 mt-2 w-72 rounded-lg border border-slate-800 bg-slate-900 p-2 shadow-xl"
+          className="absolute left-0 top-full z-50 mt-2 w-72 rounded-lg border border-line bg-surface p-2 shadow-xl"
         >
           {apps.map((app) => {
             const url = urls[app.id] ?? ''
             const estado = estadoTile(app, appActualId, url)
             const cuerpo = (
               <>
-                <span className="mt-0.5 w-6 shrink-0 text-center text-lg text-emerald-500">{app.glifo}</span>
+                <span className="mt-0.5 w-6 shrink-0 text-center text-lg text-success">{app.glifo}</span>
                 <span className="min-w-0">
-                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                     {app.nombre}
-                    {estado === 'actual' && <span className="rounded-full bg-emerald-900/60 px-2 text-xs text-emerald-300">actual</span>}
-                    {estado === 'en-construccion' && <span className="rounded-full bg-amber-900/60 px-2 text-xs text-amber-300">en construcción</span>}
+                    {estado === 'actual' && <span className="rounded-full bg-success-muted px-2 text-xs text-success">actual</span>}
+                    {estado === 'en-construccion' && <span className="rounded-full bg-warning-muted px-2 text-xs text-warning">en construcción</span>}
                   </span>
-                  <span className="block truncate text-xs text-slate-400">{app.descripcion}</span>
-                  {app.nota && estado !== 'actual' && <span className="block text-xs text-amber-300">{app.nota}</span>}
+                  <span className="block truncate text-xs text-ink-secondary">{app.descripcion}</span>
+                  {app.nota && estado !== 'actual' && <span className="block text-xs text-warning">{app.nota}</span>}
                   {estado === 'en-construccion' && app.docUrl && (
-                    <span className="block text-xs text-slate-500">saber más: {app.docUrl}</span>
+                    <span className="block text-xs text-ink-muted">saber más: {app.docUrl}</span>
                   )}
                 </span>
               </>
@@ -75,7 +75,7 @@ export function AppLauncherView({
             const clase = 'flex w-full items-start gap-2 rounded p-2 text-left'
             if (estado === 'actual') {
               return (
-                <div key={app.id} className={`${clase} border border-emerald-700/60 bg-slate-800/60`} data-testid={`tile-${app.id}`}>
+                <div key={app.id} className={`${clase} border border-success-muted bg-surface-muted/60`} data-testid={`tile-${app.id}`}>
                   {cuerpo}
                 </div>
               )
@@ -88,7 +88,7 @@ export function AppLauncherView({
               )
             }
             return (
-              <a key={app.id} href={url} target="_self" className={`${clase} hover:bg-slate-800`} data-testid={`tile-${app.id}`}>
+              <a key={app.id} href={url} target="_self" className={`${clase} hover:bg-surface-muted`} data-testid={`tile-${app.id}`}>
                 {cuerpo}
               </a>
             )

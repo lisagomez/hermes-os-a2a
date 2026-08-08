@@ -67,7 +67,17 @@ Reglas de la arquitectura:
 
 ## 3. Las dos skins
 
-### Skin `mission` (Mission Control) — dark-only, slate + esmeralda
+> **⚠️ ACTUALIZACIÓN 2026-08-08 — la skin `mission` queda RETIRADA.** Por decisión
+> de la dueña, Mission Control adopta la skin `ejecutiva` (los MISMOS valores que
+> Meeting Copilot, §skin copilot) con tres variantes deliberadas: base **20px**
+> (pedido vigente de la dueña), **glifos Unicode** (sin lucide — los tests sin
+> navegador y las vistas puras se conservan) y puente alpha `--*-rgb` en
+> tailwind.config (v3 no atenúa `var()` sin triplete). El CHROME de los charts
+> (`--viz-grid/axis/muted`) pasó a ser POR TEMA en globals.css; `conAlpha()`
+> atenúa `var()` vía `color-mix`. El bloque siguiente se conserva como registro
+> histórico de los valores que tuvo la skin mission.
+
+### Skin `mission` (RETIRADA 2026-08-08) — dark-only, slate + esmeralda
 
 Valores REALES hoy en producción (hardcodeados como clases Tailwind; el set-up
 los convierte en tokens sin cambiar el look):

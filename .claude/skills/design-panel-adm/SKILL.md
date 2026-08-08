@@ -20,10 +20,12 @@ Antes de diseñar o escribir UI de Mission Control o Meeting Copilot:
 
 ## Reglas rápidas (no romperlas)
 
-- **Aislar, no fundir**: skin `mission` (dark-only, slate `#020617/#0f172a`, acento
-  esmeralda `#059669`, glifos Unicode, fuente de sistema base 20px) ≠ skin `copilot`
-  (light-first + dark, Inter, acento azul `#2760db`, lucide). NUNCA mezclar pieles ni
-  usar `@a2a/design-system` (eso es marca de CLIENTE, no admin).
+- **Una sola skin admin desde 2026-08-08**: la `ejecutiva` (light-first + dark,
+  Inter, acento azul `#2760db`) viste a AMBAS superficies por decisión de la dueña.
+  Variantes por app: Mission Control conserva base 20px, glifos Unicode (sin
+  lucide) y puente alpha `--*-rgb`; Copilot usa lucide y base 16px. La skin
+  `mission` (dark slate+esmeralda) está RETIRADA — no revivirla. NUNCA usar
+  `@a2a/design-system` (eso es marca de CLIENTE, no admin).
 - Nombres de token canónicos: `--background --surface --line --ink* --accent*` +
   estados tonales `--success/-muted` etc. Dataviz compartida `--viz-*`: el color
   sigue a la ENTIDAD (personal azul, negocio verde, clientes ámbar), nunca al rank.

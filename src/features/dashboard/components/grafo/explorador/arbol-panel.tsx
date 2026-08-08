@@ -19,28 +19,28 @@ import { NeutralBadge } from '../badges'
 
 function ImpactoItem({ impacto }: { impacto: ImpactoExplorador }) {
   return (
-    <li className="rounded-md border border-slate-800 px-3 py-2 text-xs">
+    <li className="rounded-md border border-line px-3 py-2 text-xs">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-slate-300">{impacto.regimen}</span>
-        <span className="text-slate-500">·</span>
-        <span className="text-slate-400">
+        <span className="text-ink-secondary">{impacto.regimen}</span>
+        <span className="text-ink-muted">·</span>
+        <span className="text-ink-secondary">
           {impacto.categoria ?? 'todas las categorías'}
         </span>
         {impacto.veredicto_base ? (
           <NeutralBadge texto={impacto.veredicto_base.replace(/_/g, ' ')} />
         ) : (
-          <span className="italic text-slate-500">solo requisitos / banderas</span>
+          <span className="italic text-ink-muted">solo requisitos / banderas</span>
         )}
       </div>
       {impacto.requisitos.length > 0 && (
-        <ul className="mt-1 space-y-0.5 text-slate-400">
+        <ul className="mt-1 space-y-0.5 text-ink-secondary">
           {impacto.requisitos.map((r) => (
             <li key={r}>☐ {r}</li>
           ))}
         </ul>
       )}
       {impacto.banderas.length > 0 && (
-        <ul className="mt-1 space-y-0.5 text-amber-400">
+        <ul className="mt-1 space-y-0.5 text-warning">
           {impacto.banderas.map((b) => (
             <li key={b}>▲ {b}</li>
           ))}
@@ -52,10 +52,10 @@ function ImpactoItem({ impacto }: { impacto: ImpactoExplorador }) {
 
 export function ReglaItem({ regla }: { regla: ReglaExplorador }) {
   return (
-    <article className="border-l-2 border-slate-700 pl-3">
+    <article className="border-l-2 border-line pl-3">
       <div className="flex flex-wrap items-center gap-2">
-        <code className="text-xs text-slate-500">{regla.clave}</code>
-        <span className="text-sm text-slate-100">{regla.titulo}</span>
+        <code className="text-xs text-ink-muted">{regla.clave}</code>
+        <span className="text-sm text-ink">{regla.titulo}</span>
         {regla.vigente ? (
           <NeutralBadge texto="vigente" tono="good" />
         ) : (
@@ -63,7 +63,7 @@ export function ReglaItem({ regla }: { regla: ReglaExplorador }) {
         )}
       </div>
       {regla.texto_resumen && (
-        <p className="mt-1 text-xs text-slate-400">{regla.texto_resumen}</p>
+        <p className="mt-1 text-xs text-ink-secondary">{regla.texto_resumen}</p>
       )}
       <p className="mt-1 text-xs">
         {regla.fuente_url ? (
@@ -71,14 +71,14 @@ export function ReglaItem({ regla }: { regla: ReglaExplorador }) {
             href={regla.fuente_url}
             target="_blank"
             rel="noreferrer"
-            className="text-sky-400 underline decoration-dotted hover:text-sky-300"
+            className="text-info underline decoration-dotted hover:text-info"
           >
             {regla.fuente_cita}
           </a>
         ) : (
-          <span className="text-slate-400">{regla.fuente_cita}</span>
+          <span className="text-ink-secondary">{regla.fuente_cita}</span>
         )}
-        <span className="ml-2 text-slate-600">
+        <span className="ml-2 text-ink-muted">
           {regla.vigente_desde}
           {regla.vigente_hasta ? ` → ${regla.vigente_hasta}` : ' → sin derogación conocida'}
         </span>
@@ -99,7 +99,7 @@ function DimensionBloque({ dimension }: { dimension: ArbolDimensionExplorador })
     <div className="mt-3">
       <div className="flex items-center gap-2">
         <MicroLabel>{dimension.nombre}</MicroLabel>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-ink-muted">
           {dimension.reglas.length} regla{dimension.reglas.length === 1 ? '' : 's'}
         </span>
       </div>
@@ -122,7 +122,7 @@ function DimensionBloque({ dimension }: { dimension: ArbolDimensionExplorador })
 export function ArbolPanel({ arbol }: { arbol: ArbolExplorador }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-ink-muted">
         {arbol.total_reglas} reglas en el conocimiento · vigencia evaluada al{' '}
         {arbol.fecha ?? 'día de hoy del grafo'}
       </p>
@@ -137,8 +137,8 @@ export function ArbolPanel({ arbol }: { arbol: ArbolExplorador }) {
       {arbol.jurisdicciones.map((j, idx) => (
         <Card as="section" key={j.codigo}>
           <details open={idx === 0}>
-            <summary className="cursor-pointer text-sm font-semibold text-slate-100">
-              {j.nombre} <code className="ml-1 text-xs text-slate-500">{j.codigo}</code>
+            <summary className="cursor-pointer text-sm font-semibold text-ink">
+              {j.nombre} <code className="ml-1 text-xs text-ink-muted">{j.codigo}</code>
             </summary>
             {j.dimensiones.map((d) => (
               <DimensionBloque key={d.codigo} dimension={d} />

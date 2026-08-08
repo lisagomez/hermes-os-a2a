@@ -1736,6 +1736,16 @@ abandone `service_role` y adopte `app_tenant`.
 
 ---
 
+## Corriente transversal — Panel admin: skin única ejecutiva (2026-08-08)
+
+- [x] **Mission Control adopta la skin ejecutiva de Meeting Copilot** (decisión de la
+  dueña): tokens light-first + dark con los valores del copiloto, Inter vía next/font,
+  tema tri-estado con anti-flash y ThemeToggle, CHROME de charts por-tema
+  (`--viz-grid/axis/muted`), `conAlpha()` con `color-mix` para `var()`, y barrido de
+  239 clases slate/emerald hardcodeadas a tokens. Se conservan: base 20px, glifos
+  Unicode y tests sin navegador (45/45 sin tocar aserciones). La skin `mission`
+  queda retirada en el set-up panel-adm.
+
 ## Corriente transversal — Pipeline comercial (2026-08-08)
 
 - [x] **Pendientes 🤖 del RUNBOOK-PIPELINE-COMERCIAL** (P2–P6): escritores idempotentes

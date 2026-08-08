@@ -17,11 +17,11 @@ export function BreadcrumbView({ rastro }: { rastro: NavNodo[] }) {
         const ultimo = i === rastro.length - 1
         return (
           <span key={nodo.id} className="flex min-w-0 items-center gap-1.5">
-            {i > 0 && <span className="text-slate-600">›</span>}
+            {i > 0 && <span className="text-ink-muted">›</span>}
             {ultimo || !nodo.href ? (
-              <span className={`truncate ${ultimo ? 'font-semibold text-white' : 'text-slate-400'}`}>{nodo.etiqueta}</span>
+              <span className={`truncate ${ultimo ? 'font-semibold text-ink' : 'text-ink-secondary'}`}>{nodo.etiqueta}</span>
             ) : (
-              <Link href={nodo.href} className="truncate text-slate-400 hover:text-white">
+              <Link href={nodo.href} className="truncate text-ink-secondary hover:text-ink">
                 {nodo.etiqueta}
               </Link>
             )}

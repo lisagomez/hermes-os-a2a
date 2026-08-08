@@ -8,7 +8,7 @@ import { CHROME, VERTICAL_COLOR } from '@/shared/constants/colors'
 export function VerticalBars({ filas }: { filas: PresupuestoMes[] }) {
   const verticales = filas.filter((f) => f.vertical !== 'TOTAL')
   if (verticales.length === 0) {
-    return <p className="text-sm text-slate-500">Sin desglose por vertical.</p>
+    return <p className="text-sm text-ink-muted">Sin desglose por vertical.</p>
   }
   const max = Math.max(...verticales.map((f) => f.costo_usd), 0.01)
 
@@ -25,9 +25,9 @@ export function VerticalBars({ filas }: { filas: PresupuestoMes[] }) {
               />
               {f.vertical}
             </span>
-            <span className="tabular-nums text-slate-300">${f.costo_usd.toFixed(2)}</span>
+            <span className="tabular-nums text-ink-secondary">${f.costo_usd.toFixed(2)}</span>
           </div>
-          <div className="mt-1 h-2 overflow-hidden rounded bg-slate-800">
+          <div className="mt-1 h-2 overflow-hidden rounded bg-surface-muted">
             <div
               className="h-full rounded"
               style={{

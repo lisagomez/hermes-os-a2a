@@ -9,7 +9,7 @@ export default async function PantheonPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Pantheon</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-ink-secondary">
         Una mente, tres bocas: estado del gateway, cerebro y skills por vertical.
         El dashboard observa (API + Supabase); jamás toca los volúmenes.
       </p>

@@ -24,7 +24,7 @@ export function DepartamentoComboView({
   seleccionado?: string
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-slate-400">
+    <label className="flex items-center gap-2 text-sm text-ink-secondary">
       Departamento
       <select
         defaultValue={seleccionado ?? ''}
@@ -34,7 +34,7 @@ export function DepartamentoComboView({
             ? `/desarrollo?departamento=${encodeURIComponent(valor)}`
             : '/desarrollo'
         }}
-        className="rounded-md border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 focus:border-slate-600 focus:outline-none"
+        className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink focus:border-line focus:outline-none"
       >
         <option value="">Todos</option>
         {departamentos.map((d) => (
