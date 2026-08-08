@@ -15,8 +15,8 @@
 
 Dos archivos, un orden, cero atajos.
 
-- `supabase-organizaciones.sql` — la migración (aditiva, idempotente)
-- `test-aislamiento-tenants.sql` — la suite que la valida
+- `migrations/supabase-organizaciones.sql` — la migración (aditiva, idempotente)
+- `tenancy/test-aislamiento-tenants.sql` — la suite que la valida
 
 Y cuatro de andamiaje, en `businessos/tenancy/`:
 
@@ -244,7 +244,7 @@ migración de todos modos no la tocará** — pero clasifícala antes, no despu�
 
 **2 · Aplicar** por management API (`POST /v1/projects/{ref}/database/query`,
 UA `curl/8.0` por el gotcha de Cloudflare 1010), en este orden:
-`supabase-organizaciones.sql` → verificar → `test-aislamiento-tenants.sql`.
+`migrations/supabase-organizaciones.sql` → verificar → `tenancy/test-aislamiento-tenants.sql`.
 
 ⚠️ **La suite siembra dos tenants de prueba (`acme`, `globex`) y no puede
 retirarlos** (tablas append-only). **No la corras contra producción**: su sitio

@@ -1232,7 +1232,7 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   quick vs discovery (el brief del mini-form llega a la bandeja). Máquina de
   estados explícita, slots UTC-internos con TZ del asesor vía Intl (DST testeado),
   multi-tenant desde día 1. SQL diseñado SIN aplicar:
-  `businessos/supabase-fase14-agendamiento.sql`. 162 unit + 7 smokes. SPEC §19.
+  `businessos/migrations/supabase-fase14-agendamiento.sql`. 162 unit + 7 smokes. SPEC §19.
 - [x] **Google Workspace en `/herramientas` (2026-08-02, PRs #205/#206/#207)**: la única
   integración de Google que existe en el repo es el Calendar de `control-interno` (CLI
   `gog` + tablas `calendar_sources`/`calendar_events`/`calendar_sync_state`, patrón "un
@@ -1332,7 +1332,7 @@ implementa **SOLO lo que quepa según la recomendación del paso 0**.
   tokens, NO de infra (hosting ~$9/mes aparte, sin techo formal — fijarlo es de Elisa).
   Puertos: **5100 queda RESERVADO para `flujos-a2a` (App C)** y se propone **5200** para
   `reuniones-a2a` (el 5000 del encargo lo tomó enriquecimiento en el rebase del #210).
-- [ ] **Paso 1 — SQL** (`businessos/supabase-reuniones.sql`, aditivo): `reuniones`,
+- [ ] **Paso 1 — SQL** (`businessos/migrations/supabase-reuniones.sql`, aditivo): `reuniones`,
   `consentimiento_grabacion` (sin registro = fail-closed), columnas aditivas sobre lo
   que ya exista de meeting-copilot; todo con `tenant_id` + RLS.
 - [ ] **Paso 2 — Servicio** `businessos/reuniones-a2a/` (FastAPI + Dockerfile, :5200,
@@ -1574,7 +1574,7 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
   `permitido|dudoso|no_permitido`. De paso corrige una deuda real: la LFPDPPP de 2010 fue
   abrogada (Decreto DOF 20-03-2025, vigente 21-03-2025; autoridad hoy la Secretaría
   Anticorrupción y Buen Gobierno, INAI extinto) — el seed citaba una ley muerta.
-- [x] **A2 — PR #199**: `businessos/supabase-enriquecimiento.sql` (5 tablas + 2 vistas)
+- [x] **A2 — PR #199**: `businessos/migrations/supabase-enriquecimiento.sql` (5 tablas + 2 vistas)
   con el **gate 69-B como invariante en la tabla**, no como cortesía del código, y
   `supabase-enriquecimiento.test.sql` (27 pruebas de comportamiento en Postgres efímero).
 - [x] **A3 — PR #210 (fusionado 2026-08-02)**: el servicio `businessos/enriquecimiento-a2a/`
@@ -1602,8 +1602,8 @@ pendientes de decisiones (cada documento lista las suyas).
 |---|---|---|
 | Respaldos 3-2-1-1-0 | `businessos/FASE0-respaldos.md` | Borg → Storage Box + archivo mensual cifrado en B2 con Object Lock; **retira** `backup-verticales.sh` como copia de recuperación |
 | Arquitectura multi-inquilino B2B | `businessos/arquitectura-multitenant-b2b.md` | Doctrina: jerarquía socio→tenant, 5 roles, propagación de contexto, ciclo de vida y baja |
-| Migración de tenencia | `businessos/supabase-organizaciones.sql` | `organizaciones`/`membresias`/`usuarios` + `tenant_id` + RLS real con rol `app_tenant` |
-| Suite de aislamiento | `businessos/test-aislamiento-tenants.sql` | 13 pruebas; T5–T8 y T11 son meta-pruebas que se rompen solas ante una regresión futura |
+| Migración de tenencia | `businessos/migrations/supabase-organizaciones.sql` | `organizaciones`/`membresias`/`usuarios` + `tenant_id` + RLS real con rol `app_tenant` |
+| Suite de aislamiento | `businessos/tenancy/test-aislamiento-tenants.sql` | 13 pruebas; T5–T8 y T11 son meta-pruebas que se rompen solas ante una regresión futura |
 | Orden de aplicación | `businessos/README-migracion-tenancy.md` | Efímero primero, idempotencia, y los cinco gotchas |
 | Aprovisionamiento de workspace | `.claude/PRPs/prp-workspace-meeting-copilot.md` | El workspace como objeto de primera clase en meeting-copilot; depende de fase 14 (sin aplicar) |
 | Anclas de confianza | `businessos/gobernanza/anclas-de-confianza.md` | Dos anclas independientes (raíz A2A + CAs de Fabric) y guion de ceremonia |
@@ -1681,6 +1681,18 @@ del runbook §3. Sigue pendiente, con fecha límite en el segundo cliente: que l
 abandone `service_role` y adopte `app_tenant`.
 
 ---
+
+## Corriente transversal — Higiene del repo (2026-08-08)
+
+- [x] **Migraciones SQL con casa propia**: las 33 migraciones sueltas de la raíz de
+  `businessos/` + el huérfano `supabase/migrations/harden_handle_new_user.sql` viven
+  ahora en `businessos/migrations/` (pruebas de datos en `migrations/tests/`; la
+  suite de aislamiento junto a su arnés en `tenancy/test-aislamiento-tenants.sql`).
+  El orden canónico de aplicación sigue siendo `tenancy/orden.txt` — los nombres
+  no ordenan y nunca ordenaron — y `replay.sh` mantiene las ubicaciones viejas
+  como guarda: un `.sql` que nazca allí pone el gate en rojo. Reglas de la casa
+  en `businessos/migrations/README.md`. ERP, grafo y control-interno conservan
+  sus carpetas propias (tenencia/convención distintas, a propósito).
 
 ## Descartados (con motivo)
 

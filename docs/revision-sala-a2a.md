@@ -83,7 +83,7 @@ conservan las dos pruebas: cierran cosas distintas.
 
 `usuarios` es una tabla propia de la capa de tenencia con `id uuid default
 gen_random_uuid()`, **sin vínculo con `auth.users`**
-(`businessos/supabase-organizaciones.sql:79-84`). La identidad de sesión vive en
+(`businessos/migrations/supabase-organizaciones.sql:79-84`). La identidad de sesión vive en
 `profiles`, ligada a `auth.users` por el disparador `handle_new_user`. Y **no
 existe en todo el repositorio una sola inserción a `usuarios`** fuera de la suite
 de pruebas.

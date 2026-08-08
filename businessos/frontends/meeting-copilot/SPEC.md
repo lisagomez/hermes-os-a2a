@@ -758,7 +758,7 @@ de llamada, y marketplace de profundidad de servicio. Referencias UX: Calendly
 (disponibilidad/booking), Acuity (bandeja/intake), HubSpot (directorio/pipeline),
 Cal.com Teams. Mock-first: la agenda vive en zustand+localStorage
 (`meeting-copilot-agenda`, demo ∪ usuario con copy-on-write); el contrato Supabase ya
-está diseñado en `businessos/supabase-fase14-agendamiento.sql` (NO aplicado).
+está diseñado en `businessos/migrations/supabase-fase14-agendamiento.sql` (NO aplicado).
 
 Rutas: `/asesores` (M1) · `/asesores/[id]/agenda` (M2) · `/reservar/[slug]` y
 `/reservar/cita/[token]` (M3, PÚBLICAS y sin shell) · `/citas` (M4) · `/servicios` (M5).
@@ -851,7 +851,7 @@ mock mono-navegador → Callout que lo declara en la página pública.
 `Excepcion` · `Servicio` (sessionDepth, requierePago) · `Cita` (tenantId, pagoEstado
 paralelo, brief, resumenIaBrief, participantes, historial de eventos, procedencia) ·
 `NotificacionPendiente` (clave idempotente, intentos) · `EnlaceReserva` (usos/expira) ·
-`Slot`. SQL espejo: `businessos/supabase-fase14-agendamiento.sql` (7 tablas `agenda_*`
+`Slot`. SQL espejo: `businessos/migrations/supabase-fase14-agendamiento.sql` (7 tablas `agenda_*`
 con tenant_id, RLS sin políticas, exclusion constraint anti doble-reserva, escritor
 único por transición en la cabecera). Métricas derivables del historial: tasa no-show
 por asesor/servicio, tiempo medio solicitada→aprobada, distribución quick vs discovery.

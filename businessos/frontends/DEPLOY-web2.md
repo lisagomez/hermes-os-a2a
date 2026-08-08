@@ -55,7 +55,7 @@ de infra.
 Aplicar una vez sobre el proyecto Supabase (habilita el origen `web2` en `leads`):
 
 ```sql
--- businessos/supabase-fase11-leads-web2.sql
+-- businessos/migrations/supabase-fase11-leads-web2.sql
 ```
 
 Aplicar con el patrón del repo (MCP Supabase read-only bloquea DDL → management API

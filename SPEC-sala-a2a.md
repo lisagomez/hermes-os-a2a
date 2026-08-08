@@ -22,11 +22,11 @@ real, y cada corrección lleva su evidencia.
 | 1 | `aprobacion_solo_humana` como política permisiva | **Ahora es `as restrictive`** | Se probó en Postgres 16 real: con dos políticas permisivas, un rol `app_tenant` **firmó una aprobación a nombre de otra persona y la fila entró**. Con `as restrictive`, rechazada. Ver §4.3 |
 | 2 | La prueba S2 atacaba con un rol de servicio | **Ataca con `app_tenant`** | Un rol de servicio tiene `bypassrls`; no es el principal que la política acota. S2 salía verde sin ejercitar nada |
 | 3 | `primary key (…, coalesce(…))` en `sala_miembros` | **Columna generada + clave primaria sobre ella** | Postgres rechaza expresiones en `primary key`: `syntax error at or near "("`, verificado |
-| 4 | "patrón idéntico al de la capa ya aplicada", omitiendo `with check` | **`using` y `with check` explícitos**, como escribe la capa vigente | `businessos/supabase-organizaciones.sql:468-470` |
+| 4 | "patrón idéntico al de la capa ya aplicada", omitiendo `with check` | **`using` y `with check` explícitos**, como escribe la capa vigente | `businessos/migrations/supabase-organizaciones.sql:468-470` |
 | 5 | §4.1 definía la función del disparador, nunca el disparador | **Se añade el `create trigger`** | — |
 | 6 | Puerto `5000` | **Puerto `5300`** | El 5000 lo ocupa `enriquecimiento-a2a` (`businessos/docker-compose.yml:408`) |
 | 7 | "Fila en `usuarios` / `profiles`" | **La barra oblicua era el defecto**: sube a §14 como decisión 5 | `usuarios` no tiene vínculo con `auth.users` y nadie la puebla en el repositorio |
-| 8 | `app.tenant_actual()` marcado como "marcador a confirmar" | **Confirmado: existe y devuelve `uuid`** | `businessos/supabase-organizaciones.sql:183` |
+| 8 | `app.tenant_actual()` marcado como "marcador a confirmar" | **Confirmado: existe y devuelve `uuid`** | `businessos/migrations/supabase-organizaciones.sql:183` |
 
 ---
 
@@ -135,7 +135,7 @@ estrenar la deuda en una app nueva sería añadirla con vencimiento ya puesto.
 
 > ✅ **Confirmado en la revisión r2:** el helper de tenant es
 > `app.tenant_actual()`, existe y devuelve `uuid`
-> (`businessos/supabase-organizaciones.sql:183`). Lee primero el GUC
+> (`businessos/migrations/supabase-organizaciones.sql:183`). Lee primero el GUC
 > `app.tenant_id` (agentes, puentes) y si no, el claim `org_id` del JWT (web).
 > Ya no es un marcador.
 
@@ -284,7 +284,7 @@ create trigger tg_sala_hilo_un_nivel
 
 Patrón de la capa de tenencia ya aplicada: `enable` + `force` + política
 `for all` con `using` **y** `with check` explícitos, exactamente como la escribe
-`businessos/supabase-organizaciones.sql:468-470`.
+`businessos/migrations/supabase-organizaciones.sql:468-470`.
 
 ```sql
 alter table sala_canales enable row level security;
@@ -442,7 +442,7 @@ Solo cuando un cliente lo pida. Hereda tenencia; no hay reescritura.
 
 ## 9. Pruebas
 
-Se extiende `businessos/test-aislamiento-tenants.sql` en lugar de crear una suite
+Se extiende `businessos/tenancy/test-aislamiento-tenants.sql` en lugar de crear una suite
 paralela. Nuevas pruebas mínimas:
 
 | # | Qué prueba | Sabotaje que debe cazarla |

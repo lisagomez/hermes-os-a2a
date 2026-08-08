@@ -78,7 +78,7 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   deshabilitados): `v_departamentos`, `v_embudo_leads`,
   `v_crm_conversaciones_resumen` (+ `v_facturas_resumen` del fix); todas
   `security_invoker` + revoke anon/authenticated; aplicadas por management API
-  (MCP en read-only). Archivos `businessos/supabase-vista*-*.sql`.
+  (MCP en read-only). Archivos `businessos/migrations/supabase-vista*-*.sql`.
 - Gotcha menor: el MCP de Playwright exige Chrome (`/opt/google/chrome`) — para
   e2e local usar script node con el playwright del repo (patrón smoke de
   frontend-web2), el chromium de `npx playwright install chromium` sí está.
