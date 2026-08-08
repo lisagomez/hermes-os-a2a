@@ -34,6 +34,8 @@ export function CrmWorkspace({
     <div className="space-y-4">
       <PillToggle<Vista>
         etiqueta="Vista del CRM"
+        className="w-fit"
+        claseBoton="px-3 py-1 text-[12px]"
         opciones={[
           { id: 'tablero', contenido: 'Tablero', testid: 'crm-vista-tablero' },
           { id: 'detalle', contenido: 'Embudo y tabla', testid: 'crm-vista-detalle' },
