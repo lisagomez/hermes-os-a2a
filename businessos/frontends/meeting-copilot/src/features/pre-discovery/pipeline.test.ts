@@ -13,7 +13,7 @@ describe('pipeline de Pre-Discovery (fallback mock declarado)', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('sin red en tests')))
   })
 
-  it('corre los 8 bloques, todos con procedencia declarada, y el caso queda listo', async () => {
+  it('corre TODOS los bloques (ORDEN_BLOQUES), con procedencia declarada, y el caso queda listo', async () => {
     const casoId = usePreDiscoveryStore.getState().crearCaso('lead-test', INTAKE_GAL)
     await correrPipeline(casoId)
     const caso = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId)

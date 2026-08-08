@@ -9,6 +9,7 @@ import type {
   DatosBrief,
   DatosCompetencia,
   DatosDiferenciacion,
+  DatosEnriquecimiento,
   DatosFoda,
   DatosPerfil,
   DatosSitio,
@@ -196,6 +197,32 @@ export function mockRegulatorio(intake: IntakeLead): Bloque<EvaluacionGrafo> {
   }
 }
 
+/** El enriquecimiento NO tiene modo demo, y es deliberado: inventar el correo o
+ *  el teléfono de una empresa real es exactamente el fallo que ese servicio
+ *  existe para evitar. Cuando no está disponible se DECLARA, con cero hallazgos. */
+export function mockEnriquecimiento(intake: IntakeLead): Bloque<DatosEnriquecimiento> {
+  return {
+    estado: 'no_concluyente',
+    datos: {
+      leadId: '',
+      hallazgos: [],
+      bloqueos: [],
+      gate69b: null,
+      costoUsd: 0,
+      persistido: false,
+      fuentes: [],
+      disclaimer:
+        'El enriquecimiento no corrió: no hay datos de contacto verificados para ' +
+        `${intake.giro}. Este bloque nunca inventa un correo ni un teléfono.`,
+    },
+    confianza: 'baja',
+    procedencia: { metodo: 'mock', fuente: 'enriquecimiento no disponible (sin datos inventados)' },
+    requiereValidacion: ['El waterfall de enriquecimiento no está disponible en este entorno: los datos de contacto siguen sin verificar'],
+    error: null,
+    generadoAt: AHORA_FIJO,
+  }
+}
+
 export function mockTecnologia(intake: IntakeLead): Bloque<DatosTecnologia> {
   const logistica = esLogistica(intake)
   return bloqueListo<DatosTecnologia>(
@@ -260,6 +287,8 @@ export function mockBloque(bloque: BloqueId, intake: IntakeLead): Bloque<unknown
       return mockFoda(intake)
     case 'regulatorio':
       return mockRegulatorio(intake)
+    case 'enriquecimiento':
+      return mockEnriquecimiento(intake)
     case 'tecnologia':
       return mockTecnologia(intake)
     case 'brief':

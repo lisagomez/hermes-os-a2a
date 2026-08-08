@@ -491,6 +491,21 @@ services:
   # Fail-closed: sin GRAFO_GATE_TOKEN (>=32 chars) el servicio NO arranca. El
   # publico entra por el edge (grafo.167-233-233-56.sslip.io); los consumidores
   # internos de hermes-net siguen en grafo:3000 directo y sin token.
+  enriquecimiento-gate:
+    build: ./enriquecimiento-gate
+    container_name: enriquecimiento-gate
+    profiles: ["edge"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5300:5300"     # solo inspeccion local; nunca 0.0.0.0
+    environment:
+      - ENRIQUECIMIENTO_GATE_TOKEN=${ENRIQUECIMIENTO_GATE_TOKEN}
+      - ENRIQUECIMIENTO_UPSTREAM=http://enriquecimiento-a2a:5000
+    networks: [hermes-net]
+    deploy:
+      resources:
+        limits: { cpus: "0.25", memory: 128M }
+
   grafo-gate:
     build: ./grafo-gate
     container_name: grafo-gate

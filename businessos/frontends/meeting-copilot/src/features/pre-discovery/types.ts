@@ -8,6 +8,7 @@ export type BloqueId =
   | 'competencia'
   | 'diferenciacion'
   | 'foda'
+  | 'enriquecimiento'
   | 'regulatorio'
   | 'tecnologia'
   | 'brief'
@@ -18,6 +19,7 @@ export const ORDEN_BLOQUES: BloqueId[] = [
   'competencia',
   'diferenciacion',
   'foda',
+  'enriquecimiento',
   'regulatorio',
   'tecnologia',
   'brief',
@@ -29,6 +31,7 @@ export const ETIQUETA_BLOQUE: Record<BloqueId, string> = {
   competencia: 'Benchmark competitivo',
   diferenciacion: 'Diferenciación',
   foda: 'FODA',
+  enriquecimiento: 'Enriquecimiento del lead',
   regulatorio: 'Marco regulatorio',
   tecnologia: 'Marco tecnológico',
   brief: 'Brief del asesor',
@@ -117,6 +120,38 @@ export interface DatosFoda {
   oportunidades: Item[]
   debilidades: Item[]
   amenazas: Item[]
+}
+
+/** Hallazgo del waterfall: un campo, su valor, con QUE fuente se obtuvo y que
+ *  tan firme es. El veredicto `dudoso` es el fail-safe del servicio (p. ej. un
+ *  correo inferido por patron de dominio NUNCA se afirma como confirmado). */
+export interface HallazgoEnriquecimiento {
+  campo: string
+  valor: string
+  veredicto: 'confirmado' | 'dudoso' | string
+  fuente: string
+  origen?: string
+}
+
+/** Un bloqueo del gate regulatorio: el dato NO se busca hasta que la
+ *  prospeccion sea licita. Trae su checklist y su fuente citada. */
+export interface BloqueoEnriquecimiento {
+  concepto: string
+  estado: string
+  razon: string
+  checklist: string[]
+  fuente?: { cita: string; url?: string }
+}
+
+export interface DatosEnriquecimiento {
+  leadId: string
+  hallazgos: HallazgoEnriquecimiento[]
+  bloqueos: BloqueoEnriquecimiento[]
+  gate69b: { pasa: boolean; estatus: string | null; razon: string } | null
+  costoUsd: number
+  persistido: boolean
+  fuentes: { cita: string; url?: string }[]
+  disclaimer: string
 }
 
 // regulatorio.datos = EvaluacionGrafo (contrato del grafo, en ./grafo.ts)

@@ -1520,6 +1520,37 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   fuente, 709 ms). El bloque regulatorio del copiloto dictamina ahora con el grafo
   REAL de 63 reglas; el mock queda solo como fallback declarado si el túnel cae.
 
+### Enriquecimiento dentro de Pre-Discovery + vocabulario del grafo (2026-08-08)
+
+El waterfall de `enriquecimiento-a2a` deja de ser un servicio suelto: **es un bloque del
+Pre-Discovery**. Tres piezas:
+
+- **QA en producción (PASS)**: card y skill correctas, opacidad 4/4 (`/reglas`, `/openapi.json`,
+  `/docs`, `/leads` → 404), fallos honestos (lead inexistente, entrada sin `lead_id`), cascada
+  real con gate LFPDPPP del grafo (4 fuentes citadas), gate 69-B **fail-closed** ("sin RFC
+  utilizable") y ledger escribiendo. Con RFC de persona física el gate **bloquea** con checklist
+  y fuente (Arts. 14/16/17). El QA dejó 11 filas en el ledger append-only —por diseño— y un RFC
+  de prueba en `lead_enriquecimiento` que se borró.
+- **`enriquecimiento-gate` (nuevo, :5300, perfil `edge`)**: gemelo de `grafo-gate` para el puente
+  Vercel→hermes-net. Token Bearer fail-closed (<32 chars = no arranca) **y acotado por método**:
+  solo `SendMessage` pasa — un gate que reenvía cualquier método del protocolo no es mínimo
+  privilegio, es un túnel. Pone él mismo el header `A2A-Version: 1.0`. 13 tests. Publicado en
+  `enriquecimiento.167-233-233-56.sslip.io` con rate limit 10/min (cada llamada dispara una
+  cascada real y escribe ledger).
+- **Bloque `enriquecimiento` en el copiloto**: ruta server-side que asegura la fila en `leads`
+  con origen `copilot` (ignore-duplicates: jamás pisa la etapa del funnel) y llama al gate.
+  **No tiene modo demo**: sin servicio se declara no disponible con cero hallazgos, porque
+  inventar el correo de una empresa real es exactamente el fallo que ese servicio evita. Un
+  bloqueo del gate se muestra como **hallazgo**, no como error.
+
+**Vocabulario del grafo (cierra la causa 1 del QA del 2026-08-08)**: `TESTAMENTOS_SUCESIONES` e
+`COMPRAVENTA_INMUEBLES` ganan formas derivadas y traducciones equivalentes ("juicios sucesorios"
+teniendo "juicio sucesorio", "inmobiliario" teniendo "inmueble", "property law"). De las frases
+reales del sitio del despacho pasan de 1 a 5 clasificando. **NO** se añaden etiquetas amplias de
+área de práctica ("derecho corporativo", "environmental consulting"): abarcan varias categorías,
+el clasificador devuelve UNA, y un dictamen seguro de sí mismo sobre una pregunta que nadie hizo
+es peor que el fail-safe. Hay test que lo fija como decisión, no como olvido.
+
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
 Tercera de las 3 apps del encargo (2026-07-30). NO es LangGraph: es el explorador visual

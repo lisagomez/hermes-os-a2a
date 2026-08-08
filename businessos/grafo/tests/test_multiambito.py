@@ -298,3 +298,31 @@ def test_frase_que_nombra_ambas_resuelve_determinista():
     r = ev([{"descripcion": "Proteccion de patentes, marcas y derechos de autor"}],
            dimension="regulatorio", regimen="GENERAL")
     assert r["conceptos"][0]["categoria"] == "PATENTES_INVENCIONES"
+
+
+# --- Vocabulario: formas derivadas y traducciones equivalentes ----------------
+# La frontera de palabra del clasificador rechazaba "juicios sucesorios" cuando
+# la keyword era "juicio sucesorio", e "inmobiliario" teniendo "inmueble". Las
+# frases de abajo son literales del sitio de un despacho real.
+
+def test_plural_no_rompe_la_clasificacion():
+    r = ev([{"descripcion": "Gestion de juicios sucesorios intestamentarios"}],
+           dimension="regulatorio", regimen="GENERAL")
+    assert r["conceptos"][0]["categoria"] == "TESTAMENTOS_SUCESIONES"
+
+
+def test_forma_derivada_inmobiliario_encuentra_la_regla_de_inmuebles():
+    r = ev([{"descripcion": "Especialistas en derecho inmobiliario"}],
+           dimension="regulatorio", regimen="GENERAL")
+    assert r["conceptos"][0]["categoria"] == "COMPRAVENTA_INMUEBLES"
+
+
+def test_etiqueta_amplia_de_area_NO_se_fuerza_a_una_categoria():
+    """Decision explicita, no un olvido: 'derecho corporativo' abarca constitucion,
+    asambleas, fusiones, poderes y holding, y el clasificador solo puede devolver
+    UNA. Dictaminar sobre una de ellas seria responder con seguridad a una
+    pregunta que nadie hizo; el fail-safe es la respuesta correcta."""
+    for etiqueta in ("Derecho corporativo", "Environmental Consulting", "Business Law"):
+        r = ev([{"descripcion": etiqueta}], dimension="regulatorio", regimen="GENERAL")
+        assert r["conceptos"][0]["categoria"] is None, etiqueta
+        assert r["conceptos"][0]["estado"] == "dudoso"
