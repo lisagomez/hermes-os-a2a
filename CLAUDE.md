@@ -1702,4 +1702,18 @@ npm run lint         # ESLint
 - **Aplicar en**: todo consumidor de manifiestos/config editables (orden.txt ya lo hace bien:
   su guardián nombra el archivo faltante y aborta con instrucciones).
 
+### 2026-08-08: Un var() de fuente roto tira TODA la tipografía a serif — y un server zombi te lo esconde
+- **Error(es) (reskin de Mission Control)**: (1) `--font-sans: var(--font-inter), …`
+  con la clase de `next/font` puesta en `<body>`: si la var anidada no resuelve en el
+  punto de uso, la declaración entera es inválida-en-computed-value y `font-family`
+  cae a la heredada del navegador (**Times serif**) — no al fallback de la lista, que
+  jamás se lee. Fix: la variable de `next/font` va en `<html>` (`:root`), donde la ve
+  toda la cascada. (2) El diagnóstico mintió media iteración porque un `next start`
+  previo quedó ZOMBI sirviendo el build viejo (el `kill` mató al wrapper de npx, no al
+  hijo): el HTML servido no traía los cambios y parecía que el fix no funcionaba. La
+  verdad la dio `ss -ltnp` (pid real del puerto), no el "server detenido" del script.
+- **Aplicar en**: todo token de fuente que anide la var de `next/font`, y toda
+  verificación contra un server local: antes de concluir "no sirvió el cambio",
+  confirmar QUÉ proceso sirve el puerto (hermano de 2026-07-16 y 2026-07-26).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
