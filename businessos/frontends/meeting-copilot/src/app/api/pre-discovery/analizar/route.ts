@@ -11,18 +11,11 @@ import {
   validarBloqueIA,
   type BloqueLLM,
 } from '@/features/agents/prompt-prediscovery'
+import { IntakeSchema } from '@/features/pre-discovery/intake-schema'
 
 const Cuerpo = z.object({
   bloque: z.enum(Object.keys(ESQUEMAS_BLOQUE) as [BloqueLLM, ...BloqueLLM[]]),
-  intake: z.object({
-    telefono: z.string(),
-    email: z.string(),
-    web: z.string(),
-    tamano: z.string(),
-    giro: z.string().min(2),
-    pais: z.string(),
-    notas: z.string(),
-  }),
+  intake: IntakeSchema,
   textoSitio: z.string().max(25_000).optional(),
   perfilPrevio: z.unknown().optional(),
   competenciaPrevia: z.unknown().optional(),

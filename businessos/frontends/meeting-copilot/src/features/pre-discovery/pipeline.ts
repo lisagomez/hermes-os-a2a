@@ -120,10 +120,14 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
   }
 }
 
-/** TODAS las fuentes del intake: la web + toda URL en las notas (LinkedIn, etc.). */
+/** TODAS las fuentes del intake: la web, el LinkedIn del contacto y toda URL en
+ *  las notas. El campo `linkedin` tiene su propia casilla en el formulario: si no
+ *  se incluye aquí, se captura y nunca se lee. Lo que resulte bloqueado (LinkedIn
+ *  suele responder 999) se DECLARA como fuente bloqueada, no se omite. */
 export function extraerUrls(caso: CasoPreDiscovery): string[] {
   const urls = new Set<string>()
   if (caso.intake.web.trim()) urls.add(caso.intake.web.trim())
+  if (caso.intake.linkedin?.trim()) urls.add(caso.intake.linkedin.trim())
   for (const m of caso.intake.notas.matchAll(/https?:\/\/[^\s)"'·]+/g)) {
     urls.add(m[0].replace(/[.,;]+$/, ''))
   }
