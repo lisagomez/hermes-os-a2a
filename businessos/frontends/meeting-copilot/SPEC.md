@@ -833,8 +833,8 @@ asesor) con evento `reprogramar`. Sin margen → estado con criterio (contactar 
   `copilot`** — reservas (`/api/reservar`) y casos de Pre-Discovery (`/api/crm/leads`,
   fix de la fuga: antes los casos vivían solo en localStorage), siempre upsert
   ignore-duplicates que jamás pisa ni regresa de etapa. La UX es el **tablero kanban**
-  (drag & drop por etapa, `features/crm/TableroLeads.tsx`) con vista alterna
-  embudo+tabla. Lecturas por PostgREST con service_role server-only
+  (drag & drop por etapa, `features/crm/TableroLeads.tsx`) como vista única
+  (la pestaña "Embudo y tabla" se retiró el 2026-08-08 a pedido de la dueña). Lecturas por PostgREST con service_role server-only
   (`features/crm/data.ts` — las vistas del embudo están revocadas para
   anon/authenticated) y FUERA del seam `NEXT_PUBLIC_COPILOT_DATA`: el CRM es real-source
   por diseño y lo declara con su chip propio ("datos: supabase" / "sin conexión").
