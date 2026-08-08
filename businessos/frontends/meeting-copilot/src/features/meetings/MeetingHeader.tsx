@@ -7,16 +7,11 @@ import type { Reunion } from '@/features/domain/types'
 import { ETIQUETA_TIPO_REUNION } from '@/features/domain/types'
 import { Chip } from '@/shared/components/ui'
 import { fmtDuracion, fmtFecha } from '@/shared/lib/format'
-
-const TABS = [
-  { seg: 'transcripcion', etiqueta: 'Transcripción' },
-  { seg: 'insights', etiqueta: 'Insights' },
-  { seg: 'guiada', etiqueta: 'Guided Meeting' },
-  { seg: 'resumen', etiqueta: 'Resumen' },
-]
+import { pestanasDeReunion } from './pestanas'
 
 export function MeetingHeader({ reunion }: { reunion: Reunion }) {
   const pathname = usePathname()
+  const pestanas = pestanasDeReunion(reunion.origen)
   return (
     <div className="mb-4 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -30,8 +25,11 @@ export function MeetingHeader({ reunion }: { reunion: Reunion }) {
           {reunion.participantes.map((p) => p.nombre).join(', ')}
         </span>
       </div>
+      {/* Sin pestañas no se pinta la barra: una franja vacía parece un fallo de
+          carga. Una reunión presencial no tiene vistas de análisis todavía. */}
+      {pestanas.length > 0 && (
       <nav className="flex gap-1 border-b border-line">
-        {TABS.map((t) => {
+        {pestanas.map((t) => {
           const href = `/reuniones/${reunion.id}/${t.seg}`
           const activo = pathname === href
           return (
@@ -48,6 +46,7 @@ export function MeetingHeader({ reunion }: { reunion: Reunion }) {
           )
         })}
       </nav>
+      )}
     </div>
   )
 }

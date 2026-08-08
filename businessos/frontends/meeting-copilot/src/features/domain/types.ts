@@ -5,6 +5,14 @@
 export type TipoReunion = 'discovery' | 'demo' | 'negociacion' | 'revision_tecnica' | 'cierre'
 export type EstadoReunion = 'capturada' | 'transcrita' | 'analizada' | 'revisada' | 'cerrada'
 
+/** De dónde salió la reunión.
+ *
+ *  `presencial` es el encuentro cara a cara —un stand en una feria, una visita—
+ *  donde no hay audio que transcribir: lo que se captura son los contactos, no
+ *  la conversación. Por eso una reunión presencial nunca tiene `Transcripcion`
+ *  y las vistas de análisis no aplican (ver `pestanasDeReunion`). */
+export type OrigenReunion = 'audio' | 'texto' | 'virtual' | 'presencial'
+
 export interface Participante {
   nombre: string
   rol: string
@@ -20,7 +28,7 @@ export interface Reunion {
   asesor: string
   fecha: string // ISO
   duracionS: number | null
-  origen: 'audio' | 'texto' | 'virtual'
+  origen: OrigenReunion
   leadId?: string
   estado: EstadoReunion
 }
@@ -238,6 +246,15 @@ export const ETIQUETA_TIPO_REUNION: Record<TipoReunion, string> = {
   negociacion: 'Negociación',
   revision_tecnica: 'Revisión técnica',
   cierre: 'Cierre',
+}
+
+/** `Record` a propósito, no un `switch`: si mañana aparece un origen nuevo,
+ *  TypeScript exige darle etiqueta aquí en vez de dejarlo salir sin nombre. */
+export const ETIQUETA_ORIGEN_REUNION: Record<OrigenReunion, string> = {
+  audio: 'Audio',
+  texto: 'Texto',
+  virtual: 'Virtual',
+  presencial: 'Presencial',
 }
 
 export const ETIQUETA_ESTADO_REUNION: Record<EstadoReunion, string> = {
