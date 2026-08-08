@@ -86,9 +86,10 @@ línea CRM arrancó. En corto:
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO; contable,
   contractual, regulatorio y datos-personales MX; todo citado — 33 reglas / 5
   dimensiones vivas en runtime desde 2026-08-04), cobros Polar y contratos validados.
-- **Fases 4–5** ✅ — dashboard **Mission Control** (6 vistas: Pantheon, AI Spend,
-  Grafo, Desarrollo, CRM con el **embudo de cliente operable** y **Contratos SC**
-  — paquete de revisión con banderas G1) + primer servicio **A2A** (`grafo-a2a`).
+- **Fases 4–5** ✅ — dashboard **Mission Control** (5 vistas: Pantheon, AI Spend,
+  Grafo, Desarrollo y **Contratos SC** — paquete de revisión con banderas G1;
+  el CRM se movió a Meeting Copilot el 2026-08-08 y `/crm` aquí solo redirige)
+  + primer servicio **A2A** (`grafo-a2a`).
 - **Fases 6–7** ✅ — **trío de desarrollo** (Hermes→Ejecutor→Supervisor) y
   **enjambre** (Coordinador con fan-out acotado y presupuesto); dogfood real
   aprobado con GLM-5.2 como motor.
@@ -125,8 +126,12 @@ línea CRM arrancó. En corto:
   módulo `act`** aplicado a producción (pipeline feature→activo→contable) ·
   **Meeting Copilot** (marca blanca) MVP construido, desplegado y con login
   (magic link + allowlist del equipo, 2026-07-28), con **agendamiento** completo
-  (catálogo de asesores, bandeja de aprobación, reserva pública) y sección
-  **Google Workspace** en `/herramientas` (2026-08-02).
+  (catálogo de asesores, bandeja de aprobación, reserva pública), sección
+  **Google Workspace** en `/herramientas` (2026-08-02) y el **CRM** (2026-08-08,
+  movido desde Mission Control): tablero **kanban** de leads con drag & drop,
+  canal AUDITADO de movimientos (`mover_lead_etapa` + `leads_movimientos`,
+  actor 👤 equipo / 🤖 agente) — el calificador de `crm-canales` auto-avanza
+  `nuevo→calificado` — y siembra de leads de Pre-Discovery al canónico.
 - **Ecosistema de frontends** ✅ — waffle (App Launcher) + sidebar jerárquico
   config-driven en las 3 apps internas; auditoría adversarial post-merge con
   sus 12 objeciones resueltas (hotfix #195 + smoke móvil `npm run smoke` #196,
