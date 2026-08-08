@@ -698,5 +698,32 @@ begin
 end $$;
 
 -- ============================================================================
+-- T13 · La captura sin tenant explícito cae en la organización interna
+--
+--  El trigger tenant_captura (BLOQUE 8) existe porque los escritores de
+--  producción (leads, buzón, ingest) insertan sin tenant_id: sin él, el
+--  embudo entero muere por not-null (visto en prod 2026-08-06→08). Y un
+--  escritor que SÍ declara tenant jamás debe ser reasignado.
+-- ============================================================================
+
+do $$
+declare interno uuid; a uuid; t uuid;
+begin
+  select id into interno from organizaciones where slug = 'hermes-interno';
+  select id into a       from organizaciones where slug = 'acme';
+
+  insert into leads (lead_id, origen, empresa, contacto, mensaje)
+  values ('t13-sin-tenant', 'manual', 'T13', 'T13 <t13@x.test>', 'captura sin tenant')
+  returning tenant_id into t;
+  perform app.assert(t = interno,
+    format('FALLO: captura sin tenant quedó en %s, no en la org interna', t));
+
+  insert into leads (lead_id, origen, empresa, contacto, mensaje, tenant_id)
+  values ('t13-con-tenant', 'manual', 'T13', 'T13 <t13b@x.test>', 'tenant explícito', a)
+  returning tenant_id into t;
+  perform app.assert(t = a, 'FALLO: el trigger reasignó un tenant declarado explícitamente');
+end $$;
+
+-- ============================================================================
 
 select 'TODAS LAS PRUEBAS DE AISLAMIENTO PASARON' as resultado;

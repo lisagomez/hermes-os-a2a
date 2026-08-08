@@ -1,6 +1,14 @@
 # RUNBOOK — Pipeline Comercial de A2A / hermes-os-a2a
 
 > Generado por la skill `pipeline-comercial` el 2026-08-08.
+> **⚠️ HALLAZGO CRÍTICO 2026-08-08 (cerrado)**: la capa de tenencia (2026-08-06) dejó
+> `tenant_id NOT NULL` sin default → TODOS los escritores de `leads` (y de las otras 16
+> tablas de tenant: buzón, reuniones…) morían por not-null desde ese día. Los canales no
+> estaban "sin señal": estaban MUERTOS por la migración. Fix: trigger `tenant_captura`
+> (BLOQUE 8 de `supabase-organizaciones.sql`, aplicado a prod) — captura sin tenant →
+> organización interna. Verificado E2E: dedup ×2 → 1 fila; concurrencia ×5 → 5 filas
+> (ni 4 ni 6); copilot → fila con brief. Aprendizaje en CLAUDE.md.
+>
 > **Actualización 2026-08-08 (tarde)**: P1 desbloqueada (MCP de Supabase en sesión de dev,
 > lectura verificada con números reales); P2/P3/P6 implementados; P4/P5 escritos
 > (`businessos/avisar-leads.py`, `businessos/reporte-leads.py`) — cron y verificación
@@ -47,12 +55,12 @@ autorización legal, un pago o un clic en la consola de un tercero — nadie los
 
 | # | Superficie | Dónde vive | Escribe en | Origen | Idempotencia | Estado |
 |---|---|---|---|---|---|---|
-| 1 | Formulario landing | `frontends/cliente-web2/src/app/api/leads/route.ts` | `leads` | `web2` | ✅ `web2chat-sha1(email)` + upsert (P2, comparte clave con el chat) | 🟡 |
+| 1 | Formulario landing | `frontends/cliente-web2/src/app/api/leads/route.ts` | `leads` | `web2` | ✅ `web2chat-sha1(email)` + upsert (P2, comparte clave con el chat) | 🟢 2026-08-08 |
 | 2 | Chat vendedor IA | `businessos/chat-web2/leads.py:73` | `leads` | `web2` | ✅ `web2chat-sha1(email\|tel)` + upsert merge | 🟡 |
 | 3 | Card pública comercial | `businessos/ventas-a2a/executor.py` | `leads` | `a2a` | ✅ `a2a-sha1(contacto|empresa)` + upsert (P3; texto libre conserva uuid) | 🟡 |
 | 4 | WhatsApp / Telegram CRM | `businessos/crm-canales/leads.py:116` | `leads` | `crm` | ✅ `crm-<tenant>-<canal>-<uid>` + ignore-duplicates | 🔴 gate |
 | 5 | Buzón `atencion@digifixapp.com` | `businessos/ingerir-entrantes.py:316` | `leads` | `correo` | ✅ `correo-<tenant>-<remitente>` + upsert | 🟡 |
-| 6 | Agenda / citas Meeting Copilot | `frontends/meeting-copilot/src/app/api/reservar/route.ts` | `leads` | `copilot` | ✅ `copilot-sha1(email)` + upsert (P6) | 🟡 |
+| 6 | Agenda / citas Meeting Copilot | `frontends/meeting-copilot/src/app/api/reservar/route.ts` | `leads` | `copilot` | ✅ `copilot-sha1(email)` + upsert (P6) | 🟢 2026-08-08 |
 | 7 | Gafetes en evento presencial | `meeting-copilot` (Fase 1 de 5) | — | *(sin origen)* | — | 🔴 huérfano |
 | 8 | Canal Slack interno | — | — | `slack` | — | 🔴 sin escritor |
 | 9 | Carga manual | humano / host-jobs | `leads` | `manual` | según quien escriba | 🟡 |

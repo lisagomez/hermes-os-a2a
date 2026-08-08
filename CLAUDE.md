@@ -1667,4 +1667,26 @@ npm run lint         # ESLint
   revisar `git status` en la carpeta permanente antes de sincronizarla, no solo antes
   de hacer cambios.
 
+### 2026-08-08: La capa de tenencia dejó MUDOS a todos los escritores — y ningún gate podía verlo
+- **Error**: al aplicar la capa de tenencia (2026-08-06), `tenant_id` quedó NOT NULL sin
+  default en las 17 tablas de tenant (el default del backfill se retira a propósito), y
+  NINGÚN escritor de producción (leads web2/a2a/chat, buzón, ingest de reuniones…) declara
+  tenant_id → **todo INSERT moría por not-null desde ese día**: el embudo y el buzón rotos
+  en silencio 2 días. Ningún gate lo vio porque el efímero migra y corre la suite, pero
+  **nadie inserta COMO ESCRITOR de producción después de migrar** — la suite siembra con
+  tenant explícito. Lo destapó la verificación E2E del pipeline comercial (curl real a la
+  landing → 500), no los tests. Hermano de "el ciclo real destapa lo que los tests verdes
+  no ven" (buzón 2026-08-02) y del limbo de la cola (2026-07-13).
+- **Fix**: BLOQUE 8 de `supabase-organizaciones.sql` — trigger `tenant_captura` en las 17
+  tablas: captura sin tenant explícito → organización interna (la MISMA semántica que el
+  backfill decidió para las filas preexistentes); tenant declarado se respeta; si la org
+  interna no existe, aborta con mensaje claro. T13 en la suite + sabotaje 7 en el control
+  de reversión (trigger castrado → rojo). Aplicado a prod por management API y verificado
+  con escrituras reales de los 3 orígenes.
+- **Regla**: toda migración que endurezca una columna (NOT NULL, CHECK, tipo) debe
+  enumerar **quién escribe esa tabla en producción** y probar el camino del escritor
+  DESPUÉS de migrar — el efímero replica el esquema y los datos, pero no a los escritores.
+- **Aplicar en**: toda capa transversal sobre tablas con escritores vivos, y todo apply
+  cuyo "verde" venga de una suite que siembra sus propios datos.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
