@@ -253,7 +253,35 @@ tomadas, no tomarlas.
 
 ---
 
-## 5. Nota de método
+## 5. Lo que la primera versión de estos gates NO cazaba
+
+Se documenta porque es la misma lección otra vez, y esta vez me la comí yo.
+
+Los dos gates escritos como `! grep …` (sin credenciales de servicio, sin `next
+dev`) **pasaban en verde cuando su objetivo no existía**: `grep` sobre una ruta
+inexistente sale con código 2, y la negación lo convierte en 0. Un ejecutor que
+nunca hubiera creado `businessos/sala-a2a/` habría recibido "limpio" de un gate
+que no miró nada. Es exactamente el gotcha 3 del PRP §7 —*"aserción sobre 0 filas
+no es aserción"*— entrando por la puerta de atrás.
+
+No se detectó al validar porque el árbol de prueba **siempre** creaba los
+directorios: el caso no llegaba a correr. Se corrigió exigiendo que el objetivo
+exista antes del `grep`, y el control de reversión se amplió con dos sabotajes
+nuevos —borrar el directorio del servicio y borrar el del frontend— que ahora se
+cazan.
+
+De paso salieron dos cosas más: el gate omitía `businessos/frontends/sala/`, que
+es justo la superficie que habla con Supabase y el sitio más probable donde
+aterrizaría una credencial; y los contadores exigían seis pruebas mientras los
+documentos mandaban siete (el patrón `^-- S[1-6] ` ni siquiera reconocía `S2b`),
+de modo que una prueba podía omitirse en silencio.
+
+**Regla:** un gate negado necesita una precondición de existencia, y un gate que
+cuenta necesita que el documento diga qué formato contar.
+
+---
+
+## 6. Nota de método
 
 Citas `archivo:línea` sobre el repositorio, contrastadas contra `master`. Las dos
 afirmaciones que no se podían resolver leyendo —la combinación con O lógico de

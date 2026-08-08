@@ -47,9 +47,19 @@ sobrevive a `replay.sh` dos veces y una suite que se pone roja cuando debe.
   `with check`, y **`aprobacion_solo_humana` declarada `as restrictive`**
   (spec §4.3 — sin esa palabra el invariante no existe).
 - Extensión de `businessos/test-aislamiento-tenants.sql` con S1–S6 y S2b
-  (spec §9).
+  (spec §9) — **siete pruebas**.
 - Extensión de `businessos/tenancy/control-reversion.sh` con los siete
   sabotajes.
+
+> **Formato obligatorio de los marcadores.** Los gates de §5 los cuentan, así que
+> el formato es parte del contrato, no una preferencia de estilo:
+> - cada prueba abre con un comentario `-- S<n>[letra] · <descripción>` al
+>   principio de línea (`-- S1 · …`, `-- S2b · …`), en la línea del patrón
+>   `T<n> ·` que la suite ya usa;
+> - cada sabotaje es una función cuyo nombre empieza por `sabotaje_sala`.
+>
+> Un gate que cuenta y un ejecutor que no sabe qué contar es trabajo correcto
+> tirado a la basura — la lección del 2026-07-12, por el otro lado.
 - **Alta de la migración en `businessos/tenancy/orden.txt`.** Si no está en el
   manifiesto, el CI no la ve y todo lo anterior es decorativo.
 - Servicio `businessos/sala-a2a/` con superficie mínima: `/health`,
@@ -148,10 +158,16 @@ regla = "sala_trigger_hilo_declarado"
 runner = "comando"
 comando = '''bash -c "grep -qiE 'create[[:space:]]+trigger' businessos/supabase-sala-a2a.sql"'''
 
+# OJO con los dos gates NEGADOS (`! grep`): `grep` sobre una ruta inexistente
+# sale con codigo 2, y la negacion lo convierte en 0 — el gate diria "limpio"
+# SIN HABER MIRADO NADA. Es el gotcha 3 de §7 ("asercion sobre 0 filas no es
+# asercion") por la puerta de atras. Por eso ambos exigen ANTES que su objetivo
+# exista; si no existe, el gate cae en rojo, que es lo correcto.
+
 [[gate]]
 regla = "sala_sin_service_role"
 runner = "comando"
-comando = '''bash -c "! grep -rqiE 'service_role|SUPABASE_SERVICE_ROLE_KEY' businessos/sala-a2a businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "test -d businessos/sala-a2a && test -d businessos/frontends/sala && test -f businessos/supabase-sala-a2a.sql && ! grep -rqiE 'service_role|SUPABASE_SERVICE_ROLE_KEY' businessos/sala-a2a businessos/frontends/sala businessos/supabase-sala-a2a.sql"'''
 
 [[gate]]
 regla = "sala_migracion_en_manifiesto"
@@ -161,12 +177,12 @@ comando = '''bash -c "grep -q 'businessos/supabase-sala-a2a.sql' businessos/tena
 [[gate]]
 regla = "sala_suite_s1_s6"
 runner = "comando"
-comando = '''bash -c "awk '/^-- S[1-6] /{n++} END{exit !(n>=6)}' businessos/test-aislamiento-tenants.sql"'''
+comando = '''bash -c "awk '/^-- S[0-9]+[a-z]? /{n++} END{exit !(n>=7)}' businessos/test-aislamiento-tenants.sql"'''
 
 [[gate]]
-regla = "sala_seis_sabotajes"
+regla = "sala_siete_sabotajes"
 runner = "comando"
-comando = '''bash -c "awk '/sabotaje_sala/{n++} END{exit !(n>=6)}' businessos/tenancy/control-reversion.sh"'''
+comando = '''bash -c "awk '/sabotaje_sala/{n++} END{exit !(n>=7)}' businessos/tenancy/control-reversion.sh"'''
 
 [[gate]]
 regla = "sala_realtime_declarado"
@@ -182,7 +198,7 @@ timeout_s = 120
 [[gate]]
 regla = "sala_frontend_sin_next_dev"
 runner = "comando"
-comando = '''bash -c "! grep -rq 'next dev' businessos/frontends/sala/Dockerfile businessos/frontends/sala/package.json"'''
+comando = '''bash -c "test -f businessos/frontends/sala/Dockerfile && test -f businessos/frontends/sala/package.json && ! grep -rq 'next dev' businessos/frontends/sala/Dockerfile businessos/frontends/sala/package.json"'''
 
 # --- gate de modelo: DECLARADO pero inactivo hasta tener runner real ---
 [[gate]]
