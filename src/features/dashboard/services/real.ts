@@ -12,13 +12,7 @@ import {
   presupuestoMesSchema,
   saludConocimientoSchema,
   tareaSchema,
-  conversacionResumenSchema,
-  etapaEmbudoSchema,
-  leadResumenSchema,
   DEPARTAMENTOS_REGISTRADOS,
-  ETAPAS_EMBUDO,
-  type CrmVista,
-  type EtapaEmbudo,
   verticalPantheonSchema,
   contratoScSchema,
   validarArbol,
@@ -286,58 +280,9 @@ export async function realDesarrollo(departamento?: string): Promise<DesarrolloV
   )
 }
 
-export async function realCrm(): Promise<CrmVista> {
-  // Embudo de cliente (leads por etapa) + resumen de conversaciones CRM.
-  // Los agregados viven en vistas (supabase-vistas-crm-embudo.sql): PostgREST
-  // no expone GROUP BY inline. El orden del embudo lo pone ETAPAS_EMBUDO;
-  // una etapa desconocida que venga de la BD se anexa al final (no se pierde).
-  const [porEtapa, conversaciones, leads] = await Promise.all([
-    sb('v_embudo_leads?select=etapa,cuenta', z.array(etapaEmbudoSchema)),
-    sb(
-      'v_crm_conversaciones_resumen?select=estado,nivel,canal,cuenta&order=estado,nivel',
-      z.array(conversacionResumenSchema)
-    ),
-    sb(
-      'leads?select=lead_id,origen,canal,empresa,contacto,etapa,updated_at&order=updated_at.desc&limit=50',
-      z.array(leadResumenSchema)
-    ),
-  ])
-  const cuentas = new Map(porEtapa.map((e) => [e.etapa, e.cuenta]))
-  const conocidas = new Set<string>([...ETAPAS_EMBUDO, 'perdido'])
-  const embudo: EtapaEmbudo[] = [
-    ...ETAPAS_EMBUDO.map((etapa) => ({ etapa, cuenta: cuentas.get(etapa) ?? 0 })),
-    ...porEtapa.filter((e) => !conocidas.has(e.etapa)),
-  ]
-  return { embudo, perdidos: cuentas.get('perdido') ?? 0, conversaciones, leads }
-}
-
-export async function realMoverLeadEtapa(leadId: string, etapa: string): Promise<void> {
-  // ÚNICA escritura del dashboard: mover un lead de etapa (acción humana de
-  // Elisa desde /crm; el acceso ya es solo-localhost + túnel SSH). El check
-  // constraint de la BD es el backstop del dominio; PostgREST devuelve la fila
-  // afectada para no reportar éxito sobre un lead inexistente (fallo visible,
-  // nunca silencioso).
-  const url = process.env.SUPABASE_URL
-  if (!url) throw new Error('SUPABASE_URL ausente (fuente real)')
-  const res = await fetch(
-    `${url.replace(/\/$/, '')}/rest/v1/leads?lead_id=eq.${encodeURIComponent(leadId)}`,
-    {
-      method: 'PATCH',
-      headers: {
-        ...sbHeaders(),
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify({ etapa, updated_at: new Date().toISOString() }),
-      cache: 'no-store',
-    }
-  )
-  if (!res.ok) throw new Error(`leads PATCH etapa: HTTP ${res.status}`)
-  const filas = (await res.json()) as unknown[]
-  if (filas.length !== 1) {
-    throw new Error(`leads PATCH etapa: ${filas.length} filas afectadas para ${leadId}`)
-  }
-}
+// El CRM (embudo + mover de etapa) se MOVIÓ a meeting-copilot /crm el
+// 2026-08-08 (PR A #279): realCrm/realMoverLeadEtapa viven ahora en
+// businessos/frontends/meeting-copilot/src/features/crm/data.ts.
 
 export async function realDepartamentos(): Promise<string[]> {
   // Opciones del combo del navbar. DISTINCT vive en la vista

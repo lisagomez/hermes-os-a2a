@@ -2,7 +2,6 @@ import 'server-only'
 import type {
   AiSpend,
   ContratosVista,
-  CrmVista,
   DesarrolloVista,
   ExploradorParams,
   ExploradorVista,
@@ -10,7 +9,6 @@ import type {
   Pantheon,
   ReglaExplorador,
 } from '../types'
-import { ETAPAS_EMBUDO } from '../types'
 
 /**
  * Fixtures de desarrollo: réplicas de datos REALES del sistema
@@ -394,46 +392,8 @@ export const mockDesarrollo: DesarrolloVista = [
   },
 ]
 
-// Réplica del estado real del CRM (2026-07-23): 3 leads en `nuevo` (2 a2a +
-// 1 web2), el resto del embudo en cero y sin conversaciones CRM todavía
-// (tenant real pendiente de alta).
-export const mockCrm: CrmVista = {
-  embudo: ETAPAS_EMBUDO.map((etapa) => ({
-    etapa,
-    cuenta: etapa === 'nuevo' ? 3 : 0,
-  })),
-  perdidos: 0,
-  conversaciones: [],
-  leads: [
-    {
-      lead_id: 'web2-266d25d2-cd0e-4487-b785-c31e4b96f76d',
-      origen: 'web2',
-      canal: '',
-      empresa: 'Mi IA',
-      contacto: 'Elisa <lisagomez967@gmail.com>',
-      etapa: 'nuevo',
-      updated_at: '2026-07-19T04:04:15Z',
-    },
-    {
-      lead_id: 'lead-d8dafc4f-04ab-4a9f-b03d-7ef23394768e',
-      origen: 'a2a',
-      canal: '',
-      empresa: 'Smoke Test S.A.',
-      contacto: 'smoke@ejemplo.mx',
-      etapa: 'nuevo',
-      updated_at: '2026-07-18T23:39:11Z',
-    },
-    {
-      lead_id: 'lead-5e70ed15-1d1d-4647-b211-d82d67aa5e3f',
-      origen: 'a2a',
-      canal: '',
-      empresa: 'Smoke Test S.A.',
-      contacto: 'smoke@ejemplo.mx',
-      etapa: 'nuevo',
-      updated_at: '2026-07-18T23:33:13Z',
-    },
-  ],
-}
+// El CRM se MOVIÓ a meeting-copilot /crm (2026-08-08, PR A #279): su mock
+// vivía aquí; el workspace nuevo es real-source y no tiene modo mock.
 
 // ---------- Contratos SC (Fase 12 F5) ----------
 // Dos fixtures: uno EN REVISIÓN con banderas (el caso que ejercita el paquete

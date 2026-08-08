@@ -61,8 +61,8 @@ test('rastroDe: breadcrumbs de las rutas del panel (incluido el desempate por qu
 
   expect(ruta('/dashboard')).toEqual(['Panorama', 'Pantheon'])
   expect(ruta('/ai-spend')).toEqual(['Panorama', 'AI Spend'])
-  // CRM es vista clave: nivel 2, SIEMPRE a 1 clic (#2 del ataque al PR #194)
-  expect(ruta('/crm')).toEqual(['Ejecución', 'CRM'])
+  // CRM movido a meeting-copilot (2026-08-08): /crm ya no está en el árbol
+  expect(ruta('/crm')).toEqual([])
   expect(ruta('/contratos')).toEqual(['Legal', 'Contratos SC'])
   // Desempate: con ?departamento=adquisicion gana la rama Adquisición › Tareas…
   expect(ruta('/desarrollo', 'departamento=adquisicion')).toEqual(['Ejecución', 'Adquisición', 'Tareas'])
@@ -77,17 +77,18 @@ test('SidebarJerarquicoView pinta secciones, marca la rama activa y colapsa a ri
   const abierto = render(
     SidebarJerarquicoView({ arbol: NAV_MC, rastro, estado: { colapsado: false, seccionesCerradas: [] } })
   )
-  for (const etiqueta of ['Mission Control', 'Panorama', 'Pantheon', 'AI Spend', 'Grafo', 'Ejecución', 'Adquisición', 'CRM', 'Legal', 'Contratos SC']) {
+  // CRM movido a meeting-copilot (2026-08-08): ya no es etiqueta del sidebar
+  for (const etiqueta of ['Mission Control', 'Panorama', 'Pantheon', 'AI Spend', 'Grafo', 'Ejecución', 'Adquisición', 'Legal', 'Contratos SC']) {
     expect(abierto).toContain(etiqueta)
   }
   // Subpáginas solo bajo la rama activa: Tareas visible (rama Adquisición activa)
   expect(abierto).toContain('Tareas')
-  // CRM SIEMPRE visible como página de nivel 2 (regresión #2 del ataque):
-  // aunque la rama activa sea otra, la palabra CRM existe en el sidebar.
+  // CRM ya NO vive en este árbol (movido a meeting-copilot 2026-08-08):
+  // la regresión #2 del ataque (visibilidad a 1 clic) ahora aplica en el copiloto.
   const desdeDashboard = render(
     SidebarJerarquicoView({ arbol: NAV_MC, rastro: rastroDe(NAV_MC, '/dashboard'), estado: { colapsado: false, seccionesCerradas: [] } })
   )
-  expect(desdeDashboard).toContain('CRM')
+  expect(desdeDashboard).not.toContain('CRM')
 
   // Una sección cerrada esconde sus páginas
   const cerrado = render(
@@ -106,9 +107,6 @@ test('SidebarJerarquicoView pinta secciones, marca la rama activa y colapsa a ri
 })
 
 test('BreadcrumbView deriva del rastro y no pinta nada fuera del árbol', () => {
-  const crm = render(BreadcrumbView({ rastro: rastroDe(NAV_MC, '/crm') }))
-  expect(crm).toContain('Ejecución')
-  expect(crm).toContain('CRM')
   expect(render(BreadcrumbView({ rastro: rastroDe(NAV_MC, '/desarrollo', 'departamento=adquisicion') }))).toContain('Adquisición')
   expect(render(BreadcrumbView({ rastro: [] }))).toBe('')
 })

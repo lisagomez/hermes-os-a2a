@@ -26,8 +26,9 @@ qué falta para que el pipeline quede completo y medible.
 (`hsejpktzcqwkwkwholkw`). Cualquier pregunta del tipo *"¿cuántos leads llevamos?"* se responde
 **desde ahí**, nunca desde un panel, una hoja ni un chat.
 
-**Lectura humana:** Mission Control → `/crm` (embudo por etapa + mover de etapa). Ojo: es un
-**lector** del canónico, no un espejo — mover etapa es su única escritura.
+**Lectura humana:** **Meeting Copilot → `/crm`** (embudo por etapa + mover de etapa; movido
+desde Mission Control el 2026-08-08, PRs A/B — el `/crm` viejo de Mission Control redirige).
+Ojo: es un **lector** del canónico, no un espejo — mover etapa es su única escritura.
 
 **Si vas a continuar el trabajo pendiente**, abre un agente y pégale esto:
 
@@ -44,7 +45,7 @@ autorización legal, un pago o un clic en la consola de un tercero — nadie los
 ```
 [landing cliente-web2  ]─┐
 [chat vendedor web2    ]─┤
-[card pública ventas   ]─┼──▶ [ public.leads ]──┬──▶ Mission Control /crm  (lector humano)
+[card pública ventas   ]─┼──▶ [ public.leads ]──┬──▶ Meeting Copilot /crm  (lector humano)
 [WhatsApp / Telegram   ]─┤     (LA VERDAD)      ├──▶ aviso en vivo          ← NO EXISTE
 [buzón atencion@       ]─┘                      └──▶ reporte diario/recon.  ← NO EXISTE
 [agenda Meeting Copilot] ··▶ (no escribe)
@@ -85,7 +86,7 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 > **Este es el hallazgo operativo más caro del pipeline.** Ningún host-job de `businessos/`
 > lee la tabla `leads`: no hay aviso, no hay digest, no hay reconciliación. Un interesado
 > puede entrar por cualquiera de los 5 canales cableados y **nadie se entera** hasta que un
-> humano abre Mission Control por su cuenta. En un ciclo consultivo B2B, eso es la fuga.
+> humano abre el CRM (Meeting Copilot `/crm`) por su cuenta. En un ciclo consultivo B2B, eso es la fuga.
 
 ---
 
@@ -277,6 +278,7 @@ seguir dando **una sola fila**.
 | Decisión | Por qué | Fecha |
 |---|---|---|
 | `public.leads` es el único destino canónico | Ya recibe 5 de los canales y es la fuente del panel `/crm` | vigente |
+| El panel `/crm` vive en **Meeting Copilot** (movido desde Mission Control) | Decisión de Elisa: mover, no copiar; MC redirige. Doctrina del copilot: solo escribe la etapa | 2026-08-08 |
 | **Un escritor por origen** | Doctrina del repo: dos escritores sobre la misma fila producen verdades que se contradicen | 2026-07-16 |
 | El panel `/crm` solo escribe la etapa | Mover de etapa es su única escritura; el resto es lectura | 2026-07-23 |
 | WhatsApp Cloud API directa, sin BSP | Dictamen P-01 | 2026-07-28 |

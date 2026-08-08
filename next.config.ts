@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   experimental: {
     mcpServer: true,
   },
+  // El CRM se MOVIÓ a meeting-copilot (2026-08-08, PR A #279): redirect por
+  // memoria muscular/bookmarks. temporary (307) a propósito.
+  async redirects() {
+    const copiloto = process.env.NEXT_PUBLIC_APP_MEETING_COPILOT_URL ?? 'https://meeting-copilot-pi.vercel.app'
+    return [{ source: '/crm', destination: `${copiloto}/crm`, permanent: false }]
+  },
 }
 
 export default nextConfig
