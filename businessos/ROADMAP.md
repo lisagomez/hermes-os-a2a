@@ -1260,6 +1260,19 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   producción re-corrido tras el deploy. El smoke de las 14 rutas del runbook pasaba con el
   módulo roto: **renderizar no es funcionar** — §4 del runbook ahora exige ejercitar el
   motor.
+- [x] **Segunda pasada del mismo QA (2026-08-08)**: el QA post-deploy dio **6/7** — quedaba
+  `sitio` fallando 3/3 con un error DISTINTO (`"no devolvió JSON válido"`) que en realidad
+  era **truncamiento**: necesita 2.646 tokens de salida y el tope era 1.600
+  (`finish_reason: length`), y el mensaje mandaba a depurar el prompt en vez del tamaño.
+  Fixes: tope a 4.000, **un reintento con el motivo exacto de vuelta al modelo** (cumplir un
+  contrato es probabilístico), truncamiento reportado como tal, y ningún intento perdido
+  mudo (todos al log). La llamada se extrajo a `features/agents/analista-prediscovery.ts`
+  porque **el primer smoke real pasaba 7/7 mientras producción fallaba**: corría sin texto
+  de sitio y reimplementaba el camino en vez de usarlo — ahora ejercita el camino de
+  producción con el caso difícil (sitio real + contexto encadenado). Control de reversión
+  honesto: al devolver el tope a 1.600 el smoke **siguió pasando** porque el reintento
+  rescata; quien sostiene la fiabilidad es el reintento, el tope evita pagar intentos
+  tirados. QA final en producción: **7/7 bloques + grafo**.
 - [ ] Post-merge agendamiento: ~~aplicar fase14~~ (**aplicado 2026-08-06** junto
   con la capa de tenencia: sin él, el registro `app.tablas_tenant_ajeno`
   declaraba 7 tablas fantasma en prod), host-job notificador real

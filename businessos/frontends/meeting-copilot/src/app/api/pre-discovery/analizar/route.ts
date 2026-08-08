@@ -1,16 +1,13 @@
 // Análisis IA de un bloque de Pre-Discovery. Mismo seam que /api/asesor/*:
 // OPENROUTER_API_KEY solo en servidor; sin clave → 503 y el pipeline cae al
 // mock con aviso visible. Devuelve `usage` para el ledger de costeo del activo.
+// La llamada al modelo vive en features/agents/analista-prediscovery para que el
+// smoke real pueda ejercitar el MISMO camino que corre en producción.
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import {
-  ESQUEMAS_BLOQUE,
-  SYSTEM_PREDISCOVERY,
-  construirUsuarioBloque,
-  validarBloqueIA,
-  type BloqueLLM,
-} from '@/features/agents/prompt-prediscovery'
+import { ESQUEMAS_BLOQUE, type BloqueLLM } from '@/features/agents/prompt-prediscovery'
+import { TIMEOUT_MS, analizarBloque } from '@/features/agents/analista-prediscovery'
 import { IntakeSchema } from '@/features/pre-discovery/intake-schema'
 
 const Cuerpo = z.object({
@@ -45,62 +42,28 @@ export async function POST(req: Request) {
   if (bloque === 'competencia' && process.env.PREDISCOVERY_ONLINE === '1' && !modelo.includes(':online')) {
     modelo = `${modelo}:online`
   }
+
   const controlador = new AbortController()
-  const timeout = setTimeout(() => controlador.abort(), 30_000)
+  const timeout = setTimeout(() => controlador.abort(), TIMEOUT_MS)
 
   try {
-    const respuesta = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      signal: controlador.signal,
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: modelo,
-        temperature: 0.3,
-        max_tokens: 1600,
-        messages: [
-          { role: 'system', content: SYSTEM_PREDISCOVERY },
-          { role: 'user', content: construirUsuarioBloque(bloque, { intake, textoSitio, perfilPrevio, competenciaPrevia, bloquesPrevios }) },
-        ],
-      }),
-    })
-
-    if (!respuesta.ok) {
-      const detalle = await respuesta.text().catch(() => '')
-      return NextResponse.json({ error: `OpenRouter respondió ${respuesta.status}: ${detalle.slice(0, 160)}` }, { status: 502 })
-    }
-
-    const data = (await respuesta.json()) as {
-      choices?: { message?: { content?: string } }[]
-      usage?: { prompt_tokens?: number; completion_tokens?: number }
-    }
-    const contenido = data.choices?.[0]?.message?.content ?? ''
-    let crudo: unknown = null
-    try {
-      crudo = JSON.parse(contenido)
-    } catch {
-      const m = contenido.match(/\{[\s\S]*\}/)
-      if (m) {
-        try {
-          crudo = JSON.parse(m[0])
-        } catch {
-          crudo = null
-        }
-      }
-    }
-    if (crudo === null) return NextResponse.json({ error: 'El modelo no devolvió JSON válido.' }, { status: 502 })
-
-    const validado = validarBloqueIA(bloque, crudo)
-    if (!validado) return NextResponse.json({ error: `La respuesta del modelo no cumplió el contrato del bloque "${bloque}".` }, { status: 502 })
-
+    const r = await analizarBloque(
+      bloque,
+      { intake, textoSitio, perfilPrevio, competenciaPrevia, bloquesPrevios },
+      { apiKey, modelo, signal: controlador.signal }
+    )
+    if (!r.ok) return NextResponse.json({ error: r.motivo }, { status: r.estado })
     return NextResponse.json({
       bloque,
-      datos: validado.datos,
-      degradados: validado.degradados,
+      datos: r.datos,
+      degradados: r.degradados,
       modelo,
-      usage: { tokensIn: data.usage?.prompt_tokens ?? 0, tokensOut: data.usage?.completion_tokens ?? 0 },
+      usage: { tokensIn: r.tokensIn, tokensOut: r.tokensOut },
+      reintentos: r.reintentos,
     })
   } catch (e) {
-    const mensaje = e instanceof Error && e.name === 'AbortError' ? 'Timeout (30 s) llamando al modelo.' : String(e)
+    const mensaje = e instanceof Error && e.name === 'AbortError' ? `Timeout (${TIMEOUT_MS / 1000} s) llamando al modelo.` : String(e)
+    console.warn(`[pre-discovery/${bloque}] error: ${mensaje}`)
     return NextResponse.json({ error: mensaje }, { status: 502 })
   } finally {
     clearTimeout(timeout)
