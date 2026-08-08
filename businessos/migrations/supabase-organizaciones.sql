@@ -208,7 +208,8 @@ end $$;
 
 -- Las 71 tablas de `public` clasificadas (enumeradas contra el esquema real
 -- reconstruido por businessos/tenancy/replay.sh, no a ojo). Reparto:
---   17 tenant · 5 globales · 49 de tenencia ajena (17 slug_text + 32 auth_uid).
+--   18 tenant · 5 globales · 49 de tenencia ajena (17 slug_text + 32 auth_uid).
+--   (leads_movimientos entró el 2026-08-08 con la capa de auditoría del CRM.)
 --   (El registro de globales lista 7: `reglas` vive en el Postgres del grafo y
 --   `usuarios` la crea esta misma capa — por eso solo 5 cuentan en las 71.)
 -- La prueba T5 falla si aparece una tabla nueva sin clasificar.
@@ -222,6 +223,7 @@ insert into app.tablas_tenant (tabla) values
   ('cobros'), ('contratos'), ('contratos_sc'), ('facturas'),
   -- Adquisición
   ('leads'), ('lead_enriquecimiento'), ('enriquecimiento_intento'),
+  ('leads_movimientos'), -- auditoría de etapa (2026-08-08); tenant copiado del lead por la RPC
   -- Operación
   ('tareas'), ('tareas_reunion'), ('transcripciones'),
   ('aprobaciones_salientes')
