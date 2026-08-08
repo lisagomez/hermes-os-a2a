@@ -12,7 +12,7 @@
 set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MIG="$RAIZ/businessos/supabase-organizaciones.sql"
+MIG="$RAIZ/businessos/migrations/supabase-organizaciones.sql"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 

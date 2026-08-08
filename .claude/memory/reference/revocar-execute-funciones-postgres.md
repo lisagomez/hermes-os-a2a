@@ -31,7 +31,7 @@ where n.nspname = 'public' and p.proname = '<fn>';
 Contexto: surgió al cerrar los advisors de seguridad de `handle_new_user`
 (SECURITY DEFINER ejecutable por anon/authenticated vía `/rest/v1/rpc/`). El fix
 completo (también fija `set search_path = ''`) quedó en
-`supabase/migrations/harden_handle_new_user.sql`. Nota: revocar EXECUTE **no** afecta
+`businessos/migrations/harden_handle_new_user.sql`. Nota: revocar EXECUTE **no** afecta
 al trigger sobre `auth.users` — los triggers no dependen del grant `EXECUTE`.
 
 El MCP de Supabase está en `--read-only`, así que estas migraciones se ejecutan a mano

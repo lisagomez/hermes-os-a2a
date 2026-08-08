@@ -64,10 +64,13 @@ psql_f < "$DIR/00-prelude.sql" || { echo "✗ El prelude falló: nada más tiene
 # Es el mismo colapso silencioso que la aserción de siembra evita una capa más
 # abajo. Aquí se caza arriba.
 echo "▶ Comprobando que el manifiesto no se quedó atrás…"
-EXCLUIDOS=("supabase-organizaciones.sql" "supabase-enriquecimiento.test.sql")
+EXCLUIDOS=("supabase-organizaciones.sql")
 FALTAN=()
 en_manifiesto() { grep -qE "^[[:space:]]*$1[[:space:]]*$" "$DIR/orden.txt"; }
-for f in "$RAIZ"/businessos/supabase-*.sql \
+# (los globs de las ubicaciones VIEJAS quedan como guarda: un .sql que nazca ahí
+#  sale en rojo aquí en vez de perderse — la casa nueva es businessos/migrations/)
+for f in "$RAIZ"/businessos/migrations/*.sql \
+         "$RAIZ"/businessos/supabase-*.sql \
          "$RAIZ"/businessos/frontends/control-interno/supabase/migrations/*.sql \
          "$RAIZ"/supabase/migrations/*.sql; do
   [[ -f "$f" ]] || continue
@@ -134,10 +137,10 @@ psql_f < "$DIR/01-preseed-produccion.sql" || { echo "✗ La pre-siembra falló";
 # aguantó la migración dos veces, que es el estado real de producción tras un
 # reintento.
 echo "▶ Migración de tenencia (1ª corrida)…"
-psql_f < "${MIGRACION:-$RAIZ/businessos/supabase-organizaciones.sql}" || { echo "✗ La migración falló"; exit 1; }
+psql_f < "${MIGRACION:-$RAIZ/businessos/migrations/supabase-organizaciones.sql}" || { echo "✗ La migración falló"; exit 1; }
 
 echo "▶ Migración de tenencia (2ª corrida — idempotencia)…"
-psql_f < "${MIGRACION:-$RAIZ/businessos/supabase-organizaciones.sql}" || { echo "✗ La migración NO es idempotente"; exit 1; }
+psql_f < "${MIGRACION:-$RAIZ/businessos/migrations/supabase-organizaciones.sql}" || { echo "✗ La migración NO es idempotente"; exit 1; }
 
 # La demostración del gate: las filas pre-sembradas en las append-only deben
 # haber quedado con tenant_id poblado SIN que la migración tocara sus triggers.
@@ -162,7 +165,7 @@ end $$;
 SQL
 
 echo "▶ Suite de aislamiento…"
-psql_f < "${SUITE:-$RAIZ/businessos/test-aislamiento-tenants.sql}" || { echo "✗ La suite falló"; exit 1; }
+psql_f < "${SUITE:-$RAIZ/businessos/tenancy/test-aislamiento-tenants.sql}" || { echo "✗ La suite falló"; exit 1; }
 
 if (( ${#FALLIDOS[@]} > 0 )); then
   echo "✗ Tenencia OK, pero el esquema base quedó incompleto (ver FALLIDOS)."

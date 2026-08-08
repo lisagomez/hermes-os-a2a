@@ -4,7 +4,7 @@
 Consume el bloque TAREAS_JSON que produce el prompt generico de ingesta de reuniones
 (C:\\OPS\\_VelOS\\proyectos\\Transcript reuniones colaborativas\\SYSTEM-PROMPT-ingesta-reunion-negocio.md,
 fuera de este repo a proposito) y hace UPSERT en `tareas_reunion` (migracion
-businessos/supabase-fase10-reuniones.sql). Idempotente: reingerir la misma reunion
+businessos/migrations/supabase-fase10-reuniones.sql). Idempotente: reingerir la misma reunion
 actualiza las filas (clave natural reunion_id+id), no duplica.
 
 A diferencia de ingest-facturas.py (que relevea via `docker exec` porque el PRODUCTOR

@@ -9,60 +9,60 @@
 # saber que le falta clasificar. Un manifiesto desactualizado se ve verde.
 #
 # NO incluye (a propósito):
-#   businessos/supabase-organizaciones.sql   — es la migración bajo prueba
-#   businessos/test-aislamiento-tenants.sql  — es la suite
-#   businessos/supabase-enriquecimiento.test.sql — pruebas de datos, no esquema
+#   businessos/migrations/supabase-organizaciones.sql   — es la migración bajo prueba
+#   businessos/tenancy/test-aislamiento-tenants.sql  — es la suite
+#   businessos/migrations/tests/supabase-enriquecimiento.test.sql — pruebas de datos, no esquema
 #   businessos/erp/migrations/*              — el ERP tiene su propia tenencia
 #                                              (app.cliente_id + rol_exe_fin);
 #                                              fuera del alcance de esta capa
 
 # ── Base y fases del negocio ────────────────────────────────────────────────
-businessos/supabase-init.sql
-businessos/supabase-fase3.sql
-businessos/supabase-fase3b-cobros-web.sql
-businessos/supabase-fase4.sql
-businessos/supabase-fase6.sql
-businessos/supabase-fase7.sql
-businessos/supabase-fase9.sql
-businessos/supabase-fase10.sql
-businessos/supabase-fase10-reuniones.sql
-businessos/supabase-fase11-leads-web2.sql
-businessos/supabase-fase12-contratos-sc.sql
-businessos/supabase-fase13-clasificacion-tareas.sql
-businessos/supabase-fase14-agendamiento.sql
+businessos/migrations/supabase-init.sql
+businessos/migrations/supabase-fase3.sql
+businessos/migrations/supabase-fase3b-cobros-web.sql
+businessos/migrations/supabase-fase4.sql
+businessos/migrations/supabase-fase6.sql
+businessos/migrations/supabase-fase7.sql
+businessos/migrations/supabase-fase9.sql
+businessos/migrations/supabase-fase10.sql
+businessos/migrations/supabase-fase10-reuniones.sql
+businessos/migrations/supabase-fase11-leads-web2.sql
+businessos/migrations/supabase-fase12-contratos-sc.sql
+businessos/migrations/supabase-fase13-clasificacion-tareas.sql
+businessos/migrations/supabase-fase14-agendamiento.sql
 
 # ── CRM (marca blanca CancioBot) ────────────────────────────────────────────
-businessos/supabase-crm0.sql
+businessos/migrations/supabase-crm0.sql
 # Estas dos van aquí por CRONOLOGÍA, no por nombre:
 #   - vistas-crm-embudo (07-23) crea v_crm_conversaciones_resumen SIN `canal`
 #   - fase12-leads-crm  (07-24) la dropea y la recrea CON `canal`, y añade
 #     leads.canal, que crm4 necesita.
 # Invertirlas rompe con "cannot drop columns from view".
-businessos/supabase-vistas-crm-embudo.sql
-businessos/supabase-fase12-leads-crm.sql
-businessos/supabase-crm1-sup.sql
-businessos/supabase-crm2-muestreo.sql
-businessos/supabase-crm3-expediente.sql
-businessos/supabase-crm4-calificacion.sql
+businessos/migrations/supabase-vistas-crm-embudo.sql
+businessos/migrations/supabase-fase12-leads-crm.sql
+businessos/migrations/supabase-crm1-sup.sql
+businessos/migrations/supabase-crm2-muestreo.sql
+businessos/migrations/supabase-crm3-expediente.sql
+businessos/migrations/supabase-crm4-calificacion.sql
 
 # ── Buzón agéntico ──────────────────────────────────────────────────────────
-businessos/supabase-buzon.sql
-businessos/supabase-buzon-leads.sql
-businessos/supabase-buzon-onboarding.sql
+businessos/migrations/supabase-buzon.sql
+businessos/migrations/supabase-buzon-leads.sql
+businessos/migrations/supabase-buzon-onboarding.sql
 
 # ── Enriquecimiento (App A) ─────────────────────────────────────────────────
-businessos/supabase-enriquecimiento.sql
-businessos/supabase-enriquecimiento-refuerzo.sql
+businessos/migrations/supabase-enriquecimiento.sql
+businessos/migrations/supabase-enriquecimiento-refuerzo.sql
 
 # ── Herramientas y guardias ─────────────────────────────────────────────────
-businessos/supabase-egcrm-herramientas.sql
-businessos/supabase-guardia-presupuesto.sql
+businessos/migrations/supabase-egcrm-herramientas.sql
+businessos/migrations/supabase-guardia-presupuesto.sql
 
 # ── Correcciones y vistas (dependen de lo anterior) ─────────────────────────
-businessos/supabase-fix-token-ledger.sql
-businessos/supabase-fix-vista-facturas.sql
-businessos/supabase-costeo-tarea.sql
-businessos/supabase-vista-departamentos.sql
+businessos/migrations/supabase-fix-token-ledger.sql
+businessos/migrations/supabase-fix-vista-facturas.sql
+businessos/migrations/supabase-costeo-tarea.sql
+businessos/migrations/supabase-vista-departamentos.sql
 
 # ── Cabina control-interno (comparte el mismo proyecto Supabase desde
 #    2026-07-15; sus tablas viven en el mismo `public` y por tanto la
@@ -75,4 +75,4 @@ businessos/frontends/control-interno/supabase/migrations/20260712000000_todoist_
 businessos/frontends/control-interno/supabase/migrations/20260712010000_finances.sql
 
 # ── Endurecimiento del trigger de auth (fusión negocio + control-interno) ────
-supabase/migrations/harden_handle_new_user.sql
+businessos/migrations/harden_handle_new_user.sql

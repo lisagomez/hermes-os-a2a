@@ -4,10 +4,10 @@ import { z } from 'zod'
  * Schemas Zod de TODOS los payloads externos del dashboard.
  * Regla: nada entra a la UI sin pasar por aquí (no `any`, no confiar en la red).
  * Las formas replican los esquemas reales:
- *  - v_presupuesto_mensual / token_usage  (businessos/supabase-init.sql)
+ *  - v_presupuesto_mensual / token_usage  (businessos/migrations/supabase-init.sql)
  *  - facturas (supabase-init.sql), cobros/contratos (supabase-fase3.sql)
  *  - grafo: Salud, SaludConocimiento, EvaluacionResponse (businessos/grafo/schemas.py)
- *  - pantheon (businessos/supabase-fase4.sql)
+ *  - pantheon (businessos/migrations/supabase-fase4.sql)
  */
 
 // ---------- AI Spend ----------
@@ -343,7 +343,7 @@ export const pantheonSchema = z.array(verticalPantheonSchema)
 export type Pantheon = z.infer<typeof pantheonSchema>
 
 // ---------- Desarrollo (trío) ----------
-// Fuente del dominio: businessos/supabase-fase6.sql (check constraint de
+// Fuente del dominio: businessos/migrations/supabase-fase6.sql (check constraint de
 // `tareas`). La vista /desarrollo lista el estado del trío (Ejecutor + Supervisor):
 // son las mismas filas que escriben los servicios A2A con service_role.
 

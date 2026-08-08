@@ -59,8 +59,8 @@ Artefactos nuevos propuestos:
 |---|---|---|
 | PRP | `.claude/PRPs/prp-vertical-legal-bufete.md` | por escribir |
 | Spec | `frontends/meeting-copilot/SPEC.md` §20 | por escribir |
-| SQL aditivo | `businessos/supabase-legal-bufete.sql` | por escribir, **sin aplicar** |
-| Pruebas SQL | `businessos/supabase-legal-bufete.test.sql` | Postgres efímero, patrón #199 |
+| SQL aditivo | `businessos/migrations/supabase-legal-bufete.sql` | por escribir, **sin aplicar** |
+| Pruebas SQL | `businessos/migrations/supabase-legal-bufete.test.sql` | Postgres efímero, patrón #199 |
 | Memoria | `.claude/memory/project/frontend-vertical-legal.md` | por escribir |
 | Servicio OCR | `businessos/documentos-a2a/` (:5300) | L5 |
 | Seed grafo | `businessos/grafo/seeds/legal-mx-v1.sql` | L4 |

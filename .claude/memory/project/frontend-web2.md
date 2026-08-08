@@ -36,7 +36,7 @@ Estado y decisiones de la superficie de cara al cliente humano. Iniciado 2026-07
   (hoy solo ventas-a2a:4400 es público) → mientras no, el chat degrada con aviso, no finge.
 - **Invariante un-escritor-por-origen:** el frontend web2 usa su propio origen **`web2`** en la
   tabla `leads` (no reusa `a2a` de ventas-a2a ni `manual` de humanos). Migración:
-  `businessos/supabase-fase11-leads-web2.sql` (PREREQUISITO de deploy, aún NO aplicada en prod).
+  `businessos/migrations/supabase-fase11-leads-web2.sql` (PREREQUISITO de deploy, aún NO aplicada en prod).
 
 ## Residuales
 

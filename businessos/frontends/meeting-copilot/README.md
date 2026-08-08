@@ -110,7 +110,7 @@ marketplace de profundidad de servicio (`/servicios`: quick vs discovery — el 
 mini-formulario llega a la bandeja del asesor). Máquina de estados explícita con
 historial auditable, slots UTC-internos con TZ del asesor vía `Intl` (DST correcto),
 notificaciones como cola idempotente (el frontend jamás llama a un canal) y multi-tenant
-desde el día 1. SQL espejo en `businessos/supabase-fase14-agendamiento.sql` (NO aplicado:
+desde el día 1. SQL espejo en `businessos/migrations/supabase-fase14-agendamiento.sql` (NO aplicado:
 mock-first). Detalle completo en SPEC §19.
 
 ## Arquitectura

@@ -35,7 +35,7 @@ Uso:
 
 Idempotente: re-correr el mismo dia recalcula desde el log y reemplaza SOLO el agregado
 diario de estas verticales (delete+insert; indice unico PARCIAL desde 2026-07-11, no admite
-on_conflict — ver supabase-fix-token-ledger.sql). Las filas por-tarea del trio (task_id set)
+on_conflict — ver migrations/supabase-fix-token-ledger.sql). Las filas por-tarea del trio (task_id set)
 NUNCA se borran; solo se les corrige costo_usd (recalculo determinista: mismo insumo,
 mismo resultado). El recalculo se acota al MES corriente: los meses cerrados no se
 reescriben aunque cambie la tarifa. Corre por cron en el server.
