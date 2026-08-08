@@ -1652,4 +1652,19 @@ npm run lint         # ESLint
 - **Aplicar en**: todo apply a producción, toda vista/tabla nueva en el proyecto
   compartido, y todo runbook con paso "enumera primero" (ejecutarlo, no asumirlo).
 
+### 2026-07-2x: Archivos sueltos sin commitear aparecen directo en la carpeta master-permanente (2ª vez)
+- **Error**: con el patrón de worktrees locales (`hermes-os-a2a/` = master permanente,
+  `hermes-os-a2a-wip/` = rama activa — ver `.claude/memory` del workspace de Johann),
+  alguna sesión que trabajó directo en la carpeta de `master` deja archivos NUEVOS sin
+  commitear ahí (ej. `businessos/competencia-houston.md`). Como esa carpeta nunca cambia
+  de rama, el archivo sobrevive silencioso a través de sesiones — hasta que alguien hace
+  `git status` ahí y lo encuentra por sorpresa. Ya pasó dos veces.
+- **Fix**: antes de cualquier `git pull` en la carpeta master-permanente, correr
+  `git status --short` — si aparece algo untracked, NO commitearlo ahí (viola la regla
+  "master nunca se toca directo"). Moverlo al worktree `-wip`, crear rama fresca desde
+  `origin/master`, y seguir el flujo normal de PR.
+- **Aplicar en**: toda sesión que trabaje en un repo con esta convención de worktrees;
+  revisar `git status` en la carpeta permanente antes de sincronizarla, no solo antes
+  de hacer cambios.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
