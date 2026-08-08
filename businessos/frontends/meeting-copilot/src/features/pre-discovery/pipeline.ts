@@ -23,14 +23,29 @@ interface ResultadoAnalisis {
   usage?: { tokensIn: number; tokensOut: number; modelo: string }
 }
 
-function conceptosRegulatorios(caso: CasoPreDiscovery): string[] {
+export const MAX_CONCEPTOS_REGULATORIOS = 6
+
+export function conceptosRegulatorios(caso: CasoPreDiscovery): string[] {
   // Escaneo QUIRÚRGICO: no solo el giro — también los servicios Y los claims
   // observados del sitio derivan conceptos regulatorios (p. ej. "Electronics
   // AWB" observado → concepto e-AWB con su marco IATA/Montreal).
+  //
+  // Los SERVICIOS mandan: son la actividad regulada. Los claims solo rellenan
+  // los huecos que queden, porque suelen ser marketing sin contenido normativo
+  // — un despacho con 15 servicios listados gastaba la mitad de sus 6 espacios
+  // en "Más de 50 años de experiencia" y "Laborando desde hace dos
+  // generaciones", que el grafo no puede sino declarar `dudoso`.
   const sitio = caso.bloques.sitio.datos as { servicios?: { texto: string }[]; claims?: { texto: string }[] } | null
-  const servicios = (sitio?.servicios ?? []).slice(0, 3).map((s) => s.texto)
-  const claims = (sitio?.claims ?? []).slice(0, 3).map((c) => c.texto)
-  return [`Operación de ${caso.intake.giro} en ${caso.intake.pais}`, ...servicios, ...claims].slice(0, 6)
+  const conceptos = [`Operación de ${caso.intake.giro} en ${caso.intake.pais}`]
+  for (const s of sitio?.servicios ?? []) {
+    if (conceptos.length >= MAX_CONCEPTOS_REGULATORIOS) break
+    conceptos.push(s.texto)
+  }
+  for (const c of sitio?.claims ?? []) {
+    if (conceptos.length >= MAX_CONCEPTOS_REGULATORIOS) break
+    conceptos.push(c.texto)
+  }
+  return conceptos
 }
 
 async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, textoSitio: string | null): Promise<ResultadoAnalisis> {

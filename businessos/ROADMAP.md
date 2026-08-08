@@ -1273,6 +1273,24 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   honesto: al devolver el tope a 1.600 el smoke **siguió pasando** porque el reintento
   rescata; quien sostiene la fiabilidad es el reintento, el tope evita pagar intentos
   tirados. QA final en producción: **7/7 bloques + grafo**.
+- [x] **Tercera pasada — el bloque regulatorio desperdiciaba el grafo (2026-08-08)**: con los
+  7 bloques ya vivos, el dictamen del lead legal salió `dudoso` en los 6 conceptos y con
+  `categoria: null` — o sea, cero valor, justo en el bloque más vendible para un despacho.
+  No era falta de cobertura: la expansión legal MX (Fases A–D, 63 reglas) **sí dictamina**
+  esos temas (probado: 6/9 conceptos bien redactados devuelven `permitido` con fuente —
+  holding LGSM 1o/2o/6o, fideicomiso LGTOC 381-388, sucesiones CCF 1295-1511, inmuebles
+  CCF 2317/2320, asesoría de inversiones LMV 225, cabildeo RegDip 263-268, beneficiario
+  controlador CFF 32-B Ter). El problema era **qué se le manda**: `conceptosRegulatorios`
+  repartía los 6 espacios entre 3 servicios y 3 claims, y para este despacho (15 servicios
+  listados) la mitad se fue en *"Más de 50 años de experiencia"* y *"Laborando desde hace
+  dos generaciones"*. Corregido: los **servicios mandan** (son la actividad regulada) y los
+  claims solo rellenan huecos — se preserva el caso e-AWB que motivó incluirlos.
+- [ ] **Hallazgo abierto, NO aplicado**: el grafo no reconoce frases naturales de servicio
+  (*"Especialistas en derecho inmobiliario"*, *"Gestión de juicios sucesorios
+  intestamentarios"* → `dudoso`), aunque sí reconoce *"compraventa de inmueble"* y
+  *"sucesión testamentaria"*. Es un hueco de **keywords** de las categorías, no de reglas.
+  Vive en `grafo/seed/reglas.json` y exige su propio gate + re-seed al runtime
+  (procedimiento 2026-08-04): no se tocó en esta sesión.
 - [ ] Post-merge agendamiento: ~~aplicar fase14~~ (**aplicado 2026-08-06** junto
   con la capa de tenencia: sin él, el registro `app.tablas_tenant_ajeno`
   declaraba 7 tablas fantasma en prod), host-job notificador real

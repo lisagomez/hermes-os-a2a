@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IntakeSchema } from './intake-schema'
-import { extraerUrls } from './pipeline'
+import { MAX_CONCEPTOS_REGULATORIOS, conceptosRegulatorios, extraerUrls } from './pipeline'
 import type { CasoPreDiscovery, IntakeLead } from './types'
 import { bloquesVacios } from './types'
 
@@ -69,5 +69,40 @@ describe('extraerUrls — se compila TODA fuente del intake', () => {
   it('sin LinkedIn no inventa fuentes', () => {
     const urls = extraerUrls(casoCon({ ...COMPLETO, linkedin: '   ' }))
     expect(urls.some((u) => u.includes('linkedin'))).toBe(false)
+  })
+})
+
+describe('conceptosRegulatorios — al grafo se le mandan actividades, no marketing', () => {
+  function casoConSitio(servicios: string[], claims: string[]): CasoPreDiscovery {
+    const caso = casoCon(COMPLETO)
+    caso.bloques.sitio.datos = {
+      servicios: servicios.map((texto) => ({ texto, naturaleza: 'hecho' as const })),
+      claims: claims.map((texto) => ({ texto, naturaleza: 'hecho' as const })),
+    }
+    return caso
+  }
+
+  it('con muchos servicios, ningún claim de marketing ocupa un espacio', () => {
+    const c = conceptosRegulatorios(
+      casoConSitio(
+        ['Derecho inmobiliario', 'Juicios sucesorios', 'Registro de marcas', 'Litigio fiscal', 'Derecho corporativo', 'Litigio penal'],
+        ['Más de 50 años de experiencia', 'Laborando desde hace dos generaciones']
+      )
+    )
+    expect(c).toHaveLength(MAX_CONCEPTOS_REGULATORIOS)
+    expect(c.some((x) => x.includes('50 años'))).toBe(false)
+    expect(c).toContain('Derecho inmobiliario')
+  })
+
+  it('con pocos servicios, los claims sí rellenan (un claim puede ser señal regulatoria)', () => {
+    const c = conceptosRegulatorios(casoConSitio(['Flete aéreo internacional'], ['Emitimos Electronics AWB']))
+    expect(c).toContain('Emitimos Electronics AWB')
+  })
+
+  it('siempre encabeza el giro y país, y respeta el tope', () => {
+    const c = conceptosRegulatorios(casoConSitio(Array.from({ length: 20 }, (_, i) => `Servicio ${i}`), []))
+    expect(c[0]).toContain('Legal')
+    expect(c[0]).toContain('México')
+    expect(c.length).toBeLessThanOrEqual(MAX_CONCEPTOS_REGULATORIOS)
   })
 })
