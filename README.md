@@ -86,7 +86,8 @@ línea CRM arrancó. En corto:
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO; contable,
   contractual, regulatorio y datos-personales MX; todo citado — 33 reglas / 5
   dimensiones vivas en runtime desde 2026-08-04), cobros Polar y contratos validados.
-- **Fases 4–5** ✅ — dashboard **Mission Control** (5 vistas: Pantheon, AI Spend,
+- **Fases 4–5** ✅ — dashboard **Mission Control** (skin ejecutiva light+dark
+  compartida con Meeting Copilot desde 2026-08-08; 5 vistas: Pantheon, AI Spend,
   Grafo, Desarrollo y **Contratos SC** — paquete de revisión con banderas G1;
   el CRM se movió a Meeting Copilot el 2026-08-08 y `/crm` aquí solo redirige)
   + primer servicio **A2A** (`grafo-a2a`).

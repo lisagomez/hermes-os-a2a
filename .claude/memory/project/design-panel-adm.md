@@ -1,6 +1,13 @@
 # Design system del panel admin (panel-adm)
 
-**Estado (2026-07-26): set-up CREADO y las DOS tandas de deuda EJECUTADAS.**
+**Estado (2026-08-08): SKIN ÚNICA EJECUTIVA.** Por decisión de la dueña, Mission
+Control adoptó la skin ejecutiva de Meeting Copilot (PR #283): tokens light+dark
+del copiloto, Inter (§MC-9 CERRADO), tema tri-estado con anti-flash y toggle,
+CHROME de charts por-tema, conAlpha con color-mix para var(). Variantes que MC
+conserva: base 20px, glifos Unicode (sin lucide), puente alpha --*-rgb. La skin
+`mission` (dark slate+esmeralda) quedó RETIRADA — registro histórico en el set-up.
+
+**Estado previo (2026-07-26): set-up CREADO y las DOS tandas de deuda EJECUTADAS.**
 Tanda 1 (PR #161, mergeado): MC tokens+Card+shadcn fuera+loading/error; copilot
 pulse-once+surface-raised+tonoScore+Button/Table/Dialog. Tanda 2 (PR #164,
 mergeado a master `102dbaa`): MC colors.ts a shared+SectionTitle/MicroLabel+/crm al nav+
@@ -22,10 +29,10 @@ Invocable con el skill **`/design-panel-adm`** (`.claude/skills/design-panel-adm
   --surface --line --ink* --accent*` + estados tonales `--*-muted`): Copilot ya la
   tenía sana (19 tokens × light/dark) mientras Mission Control tenía CERO tokens
   (tailwind.config vacío, todo hardcodeado como clases slate/emerald).
-- **Dos skins separadas, doctrina "aislar, no fundir"**: `mission` (dark-only,
-  slate `#020617/#0f172a` + esmeralda `#059669`, glifos Unicode, sistema base 20px
-  — los 20px son decisión de la dueña) y `copilot` (light-first + dark, Inter,
-  azul `#2760db`, lucide). Ninguna consume `@a2a/design-system` (marca de CLIENTE).
+- ~~Dos skins separadas~~ → **UNA skin (ejecutiva) desde 2026-08-08**: light-first
+  + dark, Inter, azul `#2760db`. Variantes por app: MC con base 20px (decisión de
+  la dueña), glifos Unicode y puente alpha `--*-rgb`; copilot con lucide y 16px.
+  Ninguna superficie admin consume `@a2a/design-system` (marca de CLIENTE).
 - **Dataviz compartida** (`--viz-*`, de `colors.ts` de ai-spend): el color sigue a
   la ENTIDAD, nunca al rank.
 - **No se imprimen CLIs para esto** (evaluado 2026-07-26): el trabajo es edición de
