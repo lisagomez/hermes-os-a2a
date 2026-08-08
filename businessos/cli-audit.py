@@ -89,9 +89,14 @@ def current_phase() -> tuple[int, str]:
     return n, (label.group(1).split("←")[0].strip() if label else "")
 
 
-def phase_earliest(phase_key: str) -> int:
-    """'0-1' -> 0, '1-2' -> 1, '2' -> 2: la fase mas temprana donde el CLI ya aplica."""
-    return int(phase_key.split("-")[0])
+def phase_due(phase_key: str, fase: int) -> bool:
+    """'0-1' -> aplica desde la fase 0; '2' -> desde la 2. Una clave TEMATICA
+    ('copilot') no esta atada al roadmap numerico: aplica desde que existe en el
+    manifiesto (quien la declaro ya vive esa linea de trabajo). Antes esto era
+    `int(key.split('-')[0])` y una clave tematica MATABA el job entero por
+    ValueError — el auditor nocturno murio en silencio 2026-07-26→08-08."""
+    m = re.match(r"^(\d+)", phase_key)
+    return int(m.group(1)) <= fase if m else True
 
 
 def find_library() -> Path | None:
@@ -278,7 +283,7 @@ def main() -> None:
     due_keys: list[str] = []
 
     for key, phase in phases.items():
-        due = phase_earliest(key) <= fase
+        due = phase_due(key, fase)
         for cli in phase.get("clis", []):
             if cli.get("deprecated"):
                 continue  # superseded (p. ej. digitalocean -> hcloud): no se audita ni cuenta

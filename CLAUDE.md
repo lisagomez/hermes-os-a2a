@@ -1689,4 +1689,17 @@ npm run lint         # ESLint
 - **Aplicar en**: toda capa transversal sobre tablas con escritores vivos, y todo apply
   cuyo "verde" venga de una suite que siembra sus propios datos.
 
+### 2026-08-08: Una clave temática en el manifiesto mató al auditor de CLIs 13 días
+- **Error**: `cli-manifest.yaml` ganó la clave de fase `"copilot"` (2026-07-26, módulo
+  Pre-Discovery) y `cli-audit.py::phase_earliest` hacía `int(key.split("-")[0])` →
+  ValueError que tumbaba el job nocturno ENTERO desde entonces; 12 corridas muertas visibles
+  solo en host-jobs.log, snapshot rancio. Nadie lee ese log: el fallo impreso que nadie mira
+  es tan invisible como el silencioso (pariente del fetch fantasma 2026-07-13).
+- **Fix**: `phase_due(key, fase)` — claves numéricas (`0-1`, `2`) aplican desde su fase;
+  claves temáticas aplican desde que existen en el manifiesto. `print-phase.sh` ya aceptaba
+  la clave literal. Regla: un parser de claves de un archivo que EDITAN humanos y agentes
+  jamás asume el formato: o lo acepta, o falla nombrando la clave y sigue con las demás.
+- **Aplicar en**: todo consumidor de manifiestos/config editables (orden.txt ya lo hace bien:
+  su guardián nombra el archivo faltante y aborta con instrucciones).
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
