@@ -1556,6 +1556,12 @@ Pre-Discovery**. Tres piezas:
   inventar el correo de una empresa real es exactamente el fallo que ese servicio evita. Un
   bloqueo del gate se muestra como **hallazgo**, no como error.
 
+**Compatibilidad de casos guardados**: sumar un bloque era un cambio incompatible con lo ya
+persistido — un caso creado antes no tenía la clave en su mapa y `caso.bloques.<id>.datos`
+reventaba la vista al abrirlo. La rehidratación ahora **rellena los bloques que falten** sin
+pisar el trabajo existente (`completarBloques`), así que añadir bloques deja de romper casos
+viejos. Cazado antes de que mordiera, verificando la ruta real del caso desplegado.
+
 **Vocabulario del grafo (cierra la causa 1 del QA del 2026-08-08)**: `TESTAMENTOS_SUCESIONES` e
 `COMPRAVENTA_INMUEBLES` ganan formas derivadas y traducciones equivalentes ("juicios sucesorios"
 teniendo "juicio sucesorio", "inmobiliario" teniendo "inmueble", "property law"). De las frases
