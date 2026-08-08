@@ -11,6 +11,7 @@ no firma, no envia correos. Un humano da seguimiento a cada lead.
 """
 from __future__ import annotations
 
+import hashlib
 import uuid
 
 from a2a.helpers import get_data_parts, get_text_parts, new_data_part, new_task, new_text_part
@@ -23,6 +24,18 @@ from leads import LeadsError, LeadsStore
 from oferta import DISCLAIMER, OFERTA
 
 MENSAJE_MAX = 4_000
+
+
+def lead_id_de(lead: dict) -> str:
+    """Clave natural del origen a2a (RUNBOOK P2/P3): un lead con contacto
+    estructurado (DataPart) deriva su id de contacto+empresa normalizados ->
+    el mismo tercero reenviando el mismo lead actualiza la MISMA fila (upsert)
+    en vez de duplicarla. Texto libre no lleva contacto estructurado: conserva
+    uuid, porque dos textos distintos JAMAS deben colapsar en una fila."""
+    if lead["contacto"]:
+        base = f"{lead['contacto'].strip().lower()}|{lead['empresa'].strip().lower()}"
+        return "a2a-" + hashlib.sha1(base.encode()).hexdigest()[:16]
+    return f"lead-{uuid.uuid4()}"
 
 
 class EntradaInvalida(ValueError):
@@ -97,14 +110,15 @@ class VentasExecutor(AgentExecutor):
             await self._fallar(updater, f"lead invalido: {exc}")
             return
 
-        lead_id = f"lead-{uuid.uuid4()}"
+        lead_id = lead_id_de(lead)
+        # Sin `etapa`: la fila nueva toma el default 'nuevo' de la tabla y un
+        # reenvio NO regresa de etapa un lead que el equipo ya avanzo.
         fila = {
             "lead_id": lead_id,
             "origen": "a2a",
             "empresa": lead["empresa"],
             "contacto": lead["contacto"],
             "mensaje": lead["mensaje"],
-            "etapa": "nuevo",
             "datos": lead["datos"],
         }
         try:

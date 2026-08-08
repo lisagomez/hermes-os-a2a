@@ -1,6 +1,10 @@
 # RUNBOOK — Pipeline Comercial de A2A / hermes-os-a2a
 
 > Generado por la skill `pipeline-comercial` el 2026-08-08.
+> **Actualización 2026-08-08 (tarde)**: P1 desbloqueada (MCP de Supabase en sesión de dev,
+> lectura verificada con números reales); P2/P3/P6 implementados; P4/P5 escritos
+> (`businessos/avisar-leads.py`, `businessos/reporte-leads.py`) — cron y verificación
+> con dato real pendientes del deploy.
 > Estado: **0 de 7 orígenes verificados hoy** — la auditoría empírica contra la base no se
 > pudo ejecutar desde la máquina de desarrollo (ver P1). Todo lo que sigue sale de auditar
 > el **código de cada escritor**, no de mirar filas reales.
@@ -43,12 +47,12 @@ autorización legal, un pago o un clic en la consola de un tercero — nadie los
 
 | # | Superficie | Dónde vive | Escribe en | Origen | Idempotencia | Estado |
 |---|---|---|---|---|---|---|
-| 1 | Formulario landing | `frontends/cliente-web2/src/app/api/leads/route.ts:36` | `leads` | `web2` | ❌ `lead_id = web2-<uuid4>` + `insert` puro | 🟡 |
+| 1 | Formulario landing | `frontends/cliente-web2/src/app/api/leads/route.ts` | `leads` | `web2` | ✅ `web2chat-sha1(email)` + upsert (P2, comparte clave con el chat) | 🟡 |
 | 2 | Chat vendedor IA | `businessos/chat-web2/leads.py:73` | `leads` | `web2` | ✅ `web2chat-sha1(email\|tel)` + upsert merge | 🟡 |
-| 3 | Card pública comercial | `businessos/ventas-a2a/executor.py:100` | `leads` | `a2a` | ❌ `lead-<uuid4>` + insert sin `on_conflict` | 🟡 |
+| 3 | Card pública comercial | `businessos/ventas-a2a/executor.py` | `leads` | `a2a` | ✅ `a2a-sha1(contacto|empresa)` + upsert (P3; texto libre conserva uuid) | 🟡 |
 | 4 | WhatsApp / Telegram CRM | `businessos/crm-canales/leads.py:116` | `leads` | `crm` | ✅ `crm-<tenant>-<canal>-<uid>` + ignore-duplicates | 🔴 gate |
 | 5 | Buzón `atencion@digifixapp.com` | `businessos/ingerir-entrantes.py:316` | `leads` | `correo` | ✅ `correo-<tenant>-<remitente>` + upsert | 🟡 |
-| 6 | Agenda / citas Meeting Copilot | `frontends/meeting-copilot` | — | `copilot` | — | 🔴 huérfano |
+| 6 | Agenda / citas Meeting Copilot | `frontends/meeting-copilot/src/app/api/reservar/route.ts` | `leads` | `copilot` | ✅ `copilot-sha1(email)` + upsert (P6) | 🟡 |
 | 7 | Gafetes en evento presencial | `meeting-copilot` (Fase 1 de 5) | — | *(sin origen)* | — | 🔴 huérfano |
 | 8 | Canal Slack interno | — | — | `slack` | — | 🔴 sin escritor |
 | 9 | Carga manual | humano / host-jobs | `leads` | `manual` | según quien escriba | 🟡 |
@@ -65,8 +69,8 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 
 | Espejo | Destino exacto | Disparado desde | Estado |
 |---|---|---|---|
-| Aviso en vivo de lead nuevo | — | — | 🔴 **no existe** |
-| Reporte diario / reconciliación | — | — | 🔴 **no existe** |
+| Aviso en vivo de lead nuevo | Telegram grupo equipo (`hermes send`) | `businessos/avisar-leads.py` (cron 5 min, marca de agua) | 🟡 código listo; cron pendiente |
+| Reporte diario / reconciliación | Telegram grupo equipo (`hermes send`) | `businessos/reporte-leads.py` (cron 14:00 UTC = 08:00 CST) | 🟡 código listo; cron pendiente |
 | Hoja de cálculo | — | — | 🔴 no existe (no se pidió) |
 | Correo de acuse al propio lead | — | — | 🔴 no existe |
 
@@ -97,6 +101,10 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 ## 3. Pendientes
 
 ### P1 · 🙋 Dar acceso de lectura al canónico para poder auditar
+
+> **Estado 2026-08-08**: ✅ RESUELTA en la sesión de dev — el MCP de Supabase (read-only)
+> responde con números reales. Auditoría del día: 3 filas (web2:1 del 07-19, a2a:2 del 07-18
+> — las dos a2a son basura de smoke "ignorar/borrar", ver §6).
 - **Qué:** entregar al agente una vía de consulta a `public.leads` (MCP de Supabase en la
   sesión, o `SUPABASE_URL` + una key de lectura en la máquina de desarrollo).
 - **Dónde:** configuración del MCP de este repo, o `~/.config/claude/secrets.env` (permisos 600).
@@ -107,6 +115,11 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 - **Bloquea a:** P2 (medir el daño), P7, y todo el §4.
 
 ### P2 · 🤖 Unificar la clave natural del origen `web2`
+
+> **Estado 2026-08-08**: ✅ implementado — el formulario deriva `web2chat-sha1(email)` con la
+> MISMA función/prefijo del chat (`src/lib/leads/lead-id.ts`) y upserta `on_conflict=lead_id`.
+> Además ni formulario ni chat viajan `etapa`: un reenvío ya no regresa a 'nuevo' un lead
+> avanzado. Verificación real pendiente del deploy CLI de cliente-web2.
 - **Qué:** el formulario y el chat escriben **el mismo origen con claves incompatibles**. El
   formulario usa `web2-<uuid4>` con `insert` puro: cada reenvío (doble clic, reintento, la
   misma persona mañana) crea **una fila nueva**. El chat usa `web2chat-sha1(email)` con upsert.
@@ -123,12 +136,20 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
   cualquier métrica de conversión queda inflada sin que nadie lo note.
 
 ### P3 · 🤖 Aplicar el mismo criterio al origen `a2a`
+
+> **Estado 2026-08-08**: ✅ implementado — DataPart deriva `a2a-sha1(contacto|empresa)` +
+> upsert; el texto libre CONSERVA uuid (dos textos distintos jamás deben colapsar en una
+> fila). 16 tests verdes. Deploy = rebuild de ventas-a2a en el server.
 - **Qué:** `ventas-a2a` también genera `lead-<uuid4>` y hace `insert` sin `on_conflict`.
 - **Archivos:** `businessos/ventas-a2a/executor.py:100` · `businessos/ventas-a2a/leads.py:53`
 - **Verificación:** dos envíos con el mismo contacto por la card pública → una fila.
 - **Si no se hace:** mismo daño que P2 en el canal comercial público.
 
 ### P4 · 🤖 Aviso en vivo cuando entra un lead
+
+> **Estado 2026-08-08**: 🟡 código listo (`businessos/avisar-leads.py`: marca de agua local,
+> primera corrida no spamea histórico, la marca solo avanza tras envío exitoso). Falta el
+> cron `*/5 * * * *` en el server y verlo llegar al grupo.
 - **Qué:** host-job que consulta `leads` por `created_at > última corrida` y avisa por Telegram
   al grupo del equipo, con origen, contacto y etapa.
 - **Dónde:** `businessos/nightly-jobs.sh` no sirve (es nocturno) — cron propio cada 5 min, con
@@ -140,6 +161,10 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
   se escribe `0 14 * * *`.
 
 ### P5 · 🤖 Reporte diario de reconciliación
+
+> **Estado 2026-08-08**: 🟡 código listo (`businessos/reporte-leads.py`: ayer CST + mes en
+> curso + canales sin filas ≥7 días; fechas literales, jamás now()/interval en PostgREST).
+> Falta el cron `0 14 * * *` (UTC) y ver llegar el primer reporte.
 - **Qué:** resumen 08:00 CST: leads por origen del día + total del mes + **canales sin filas
   en 7 días** (la señal de canal roto).
 - **Verificación:** el primer reporte llega con números que cuadran con una consulta manual.
@@ -147,6 +172,11 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
   host-jobs huérfanos tras la migración a Hetzner.
 
 ### P6 · 🤖 Escritor para el origen `copilot`
+
+> **Estado 2026-08-08**: ✅ implementado — `/api/reservar` es el escritor único (upsert
+> `copilot-sha1(email)`, brief de discovery en `datos`); el pipeline del cliente lo dispara
+> fire-and-forget tras reservar (jamás rompe la reserva). La cita en sí sigue mock-first y
+> la respuesta lo DICE (`cita_persistida:false`). Verificación real pendiente del deploy.
 - **Qué:** `copilot` existe en el CHECK de `leads` desde `supabase-fase12-leads-crm.sql` y
   **no tiene escritor**: agendar una cita en Meeting Copilot no crea lead. La agenda es hoy
   una isla respecto del embudo.
@@ -252,6 +282,8 @@ seguir dando **una sola fila**.
 ## 6. Limpieza pendiente
 
 - [ ] 🤖 Borrar las filas `PRUEBA …` de `leads` tras ejecutar el §4 (nadie más las puede ver).
+- [ ] 🤖 Borrar las 2 filas `a2a` de smoke del 2026-07-18 (`mensaje` literal: "lead del smoke
+      de runtime (ignorar/borrar)") — detectadas en la auditoría del 2026-08-08.
 - [ ] 🙋 Confirmar que ningún lead real quedó marcado como prueba antes de borrar por patrón.
 - [ ] 🤖 Al cerrar P2/P3, revisar si ya existen duplicados históricos en `leads` y decidir con
       la dueña si se fusionan o se dejan (fusionar cambia números que quizá ya se reportaron).

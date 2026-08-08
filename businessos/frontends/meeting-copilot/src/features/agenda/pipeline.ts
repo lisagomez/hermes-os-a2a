@@ -106,6 +106,24 @@ export async function enviarSolicitudReserva(
 
   if (solicitud.token) useAgendaStore.getState().consumirEnlace(solicitud.token)
   useAgendaStore.getState().crearCita(cita)
+
+  // Captura del lead en el embudo (RUNBOOK P6): fire-and-forget al escritor
+  // server-side de `leads`. JAMÁS bloquea ni rompe la reserva; el fallo se
+  // imprime (ningún best-effort silencioso). Solo en navegador: en tests/SSR
+  // no hay servidor que reciba el POST.
+  if (typeof window !== 'undefined') {
+    void fetch('/api/reservar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(parse.data),
+    })
+      .then((r) => {
+        if (r.status === 503) console.info('[agenda] lead copilot no persistido: Supabase sin configurar (degradación declarada)')
+        else if (!r.ok) console.warn('[agenda] lead copilot NO registrado: HTTP', r.status)
+      })
+      .catch((e) => console.warn('[agenda] lead copilot NO registrado:', e))
+  }
+
   return { ok: true, cita }
 }
 

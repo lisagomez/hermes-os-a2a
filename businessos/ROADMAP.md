@@ -1713,6 +1713,17 @@ abandone `service_role` y adopte `app_tenant`.
 
 ---
 
+## Corriente transversal — Pipeline comercial (2026-08-08)
+
+- [x] **Pendientes 🤖 del RUNBOOK-PIPELINE-COMERCIAL** (P2–P6): escritores idempotentes
+  por clave natural en web2 (formulario comparte `web2chat-sha1(email)` con el chat),
+  a2a (`a2a-sha1(contacto|empresa)`; texto libre conserva uuid) y copilot nuevo
+  (`/api/reservar` upserta el lead con el brief de discovery — la cita sigue mock-first
+  y lo declara). Ningún escritor viaja `etapa`: un reenvío no regresa etapas avanzadas.
+  Espejos: `avisar-leads.py` (cron 5 min → Telegram grupo, marca de agua) y
+  `reporte-leads.py` (08:00 CST: ayer + mes + canales sin señal ≥7 días). P1 resuelta
+  vía MCP read-only en dev. Estados y verificación: `RUNBOOK-PIPELINE-COMERCIAL.md`.
+
 ## Corriente transversal — Higiene del repo (2026-08-08)
 
 - [x] **Migraciones SQL con casa propia**: las 33 migraciones sueltas de la raíz de

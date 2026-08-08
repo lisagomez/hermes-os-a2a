@@ -14,6 +14,7 @@
 
 import { NextResponse } from 'next/server'
 import { LIMITE_PAYLOAD_BYTES, esquemaSolicitudReserva } from '@/features/agenda/contratos'
+import { filaLeadCopilot } from '@/features/agenda/lead-copilot'
 
 export async function POST(request: Request) {
   const crudo = await request.text()
@@ -44,7 +45,37 @@ export async function POST(request: Request) {
     )
   }
 
-  // Fase Supabase: validar token firmado + rate-limit → INSERT en agenda_citas
-  // (estado 'solicitada'; el exclusion constraint es la garantía anti doble-reserva).
-  return NextResponse.json({ error: 'Escritura a agenda_citas pendiente de la fase Supabase.' }, { status: 501 })
+  // Escritor ÚNICO del origen `copilot` (RUNBOOK P6): la cita solicitada entra
+  // al embudo como lead AHORA, aunque agenda_citas siga en fase mock. Upsert por
+  // clave natural (email): reintento o re-reserva = la misma fila; el flooding
+  // por email queda acotado a una fila por dirección (idempotencia como freno).
+  const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/$/, '')
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const fila = filaLeadCopilot(parse.data)
+  try {
+    const r = await fetch(`${url}/rest/v1/leads?on_conflict=lead_id`, {
+      method: 'POST',
+      headers: {
+        apikey: key!,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        // Upsert: el conflicto es éxito (misma persona, fila actualizada).
+        Prefer: 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify(fila),
+      signal: AbortSignal.timeout(8_000),
+    })
+    if (!r.ok) {
+      console.error('[reservar] lead copilot NO guardado: HTTP', r.status, (await r.text()).slice(0, 200))
+      return NextResponse.json({ error: 'No se pudo registrar la solicitud.' }, { status: 502 })
+    }
+  } catch (err) {
+    console.error('[reservar] lead copilot NO guardado:', err instanceof Error ? err.message : err)
+    return NextResponse.json({ error: 'No se pudo registrar la solicitud.' }, { status: 502 })
+  }
+
+  // Fase Supabase pendiente para agenda_citas (token firmado + rate-limit +
+  // exclusion constraint anti doble-reserva); la cita del MVP vive en el
+  // navegador y esta respuesta lo DICE — nunca finge una cita persistida.
+  return NextResponse.json({ ok: true, lead_id: fila.lead_id, cita_persistida: false })
 }
