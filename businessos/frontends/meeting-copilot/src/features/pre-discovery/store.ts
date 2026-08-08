@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Bloque, BloqueId, CasoPreDiscovery, IntakeLead } from './types'
-import { bloquesVacios, estadoCasoDe } from './types'
+import { ORDEN_BLOQUES, bloqueVacio, bloquesVacios, estadoCasoDe } from './types'
 import { CASOS_DEMO } from './fixtures'
 import { nuevoId } from '@/shared/lib/format'
 
@@ -14,6 +14,17 @@ interface PreDiscoveryState {
   crearCaso: (leadId: string, intake: IntakeLead) => string
   actualizarBloque: (casoId: string, bloque: BloqueId, valor: Bloque<unknown>) => void
   setActivoId: (casoId: string, activoId: string) => void
+}
+
+/** Un caso guardado ANTES de que existiera un bloque no lo tiene en su mapa, y
+ *  la vista accede a `caso.bloques.<id>.datos` sin red de seguridad: abrir un
+ *  caso viejo tras añadir un bloque reventaba la página. Al rehidratar se
+ *  rellenan los bloques que falten, así que sumar bloques deja de ser un cambio
+ *  incompatible con lo ya guardado. */
+export function completarBloques(caso: CasoPreDiscovery): CasoPreDiscovery {
+  const bloques = { ...bloquesVacios(), ...(caso.bloques ?? {}) } as Record<BloqueId, Bloque<unknown>>
+  for (const id of ORDEN_BLOQUES) if (!bloques[id]) bloques[id] = bloqueVacio()
+  return { ...caso, bloques }
 }
 
 function fusionar(casosUsuario: CasoPreDiscovery[]): CasoPreDiscovery[] {
@@ -77,7 +88,7 @@ export const usePreDiscoveryStore = create<PreDiscoveryState>()(
       partialize: (s) => ({ casosUsuario: s.casosUsuario }),
       merge: (persisted, actual) => {
         const p = (persisted ?? {}) as Partial<PreDiscoveryState>
-        const casosUsuario = p.casosUsuario ?? []
+        const casosUsuario = (p.casosUsuario ?? []).map(completarBloques)
         return { ...actual, casosUsuario, casos: fusionar(casosUsuario) }
       },
     }
