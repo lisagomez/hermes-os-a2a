@@ -4,8 +4,10 @@
 // menos de lo que el usuario capturó (defecto real: "Holding" y la dirección se
 // perdían y el modelo los reportaba como "no proporcionado").
 //
-// La anotación `z.ZodType<IntakeLead>` hace que el typecheck sea el guardián:
-// si IntakeLead gana un campo y este esquema no, el build se pone rojo.
+// Ojo: la anotación `z.ZodType<IntakeLead>` NO alcanza como guardián — se
+// comprobó quitando `linkedin` y el typecheck pasó igual (TS no exige que el
+// esquema cubra los campos opcionales del tipo). Quien defiende esto es el test
+// de intake-schema.test.ts que compara las claves de entrada y salida.
 
 import { z } from 'zod'
 import type { IntakeLead } from './types'

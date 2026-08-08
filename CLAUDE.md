@@ -1597,6 +1597,37 @@ npm run lint         # ESLint
 - **Aplicar en**: todo gate con BD efímera, toda migración con backfill sobre tablas con
   triggers, y toda meta-prueba registro-contra-realidad.
 
+### 2026-08-08: Un fallback que degrada "con procedencia declarada" esconde una avería total
+- **Error**: el Pre-Discovery de meeting-copilot llevaba **desde su construcción** con los
+  **7 bloques LLM caídos en producción** (502 `"no cumplió el contrato"`, 3/3 intentos cada
+  uno) y **nadie lo notó**: el pipeline degrada al mock por diseño y lo declara en la
+  procedencia del bloque, así que la UI se ve completa y verosímil. El smoke del runbook
+  (14 rutas → 200) pasaba con el motor muerto. Lo destapó revisar UN bloque a mano.
+- **Causa raíz**: el prompt ordenaba *"Responde SOLO el JSON con la forma exacta pedida"* y
+  **la forma no aparecía en ninguna parte** — el modelo (gemini-2.5-flash-lite) envolvía la
+  salida en `{"<bloque>": …}` y renombraba `texto`→`descripcion`; el validador, correcto,
+  la rechazaba. Fix: la forma se **DERIVA del esquema zod** (`describirEsquema`) y se
+  inyecta en el prompt — un contrato que cambia arrastra el prompt consigo, con test
+  guardián por bloque. Y para probar que el modelo la OBEDECE (los unit tests solo prueban
+  que se la pedimos) hay un **smoke real gated** `PREDISCOVERY_SMOKE_REAL=1`.
+- **Dos hermanos del mismo QA**: (a) un **esquema zod paralelo** en la ruta API despojaba
+  en silencio `modeloNegocio`/`direccion`/`linkedin` del intake — el modelo los reportaba
+  como "no proporcionado" y llegó a listarlo como *debilidad del lead*: **un bug que
+  fabrica hallazgos es peor que un bug que rompe**. Un solo esquema compartido, y su
+  guardián es un test que compara claves de entrada y salida, **no** el typecheck (probado:
+  `z.ZodType<T>` acepta un esquema al que le falta un campo opcional). (b) `extraerUrls`
+  ignoraba el `linkedin` del intake pese a tener casilla propia en el formulario.
+- **Reglas**: todo camino degradado necesita un modo de VERSE (si "mock declarado" es
+  indistinguible de "real" a ojos del usuario, la declaración no informa); todo prompt que
+  exija una forma debe LLEVARLA derivada del contrato, jamás describirla a mano ni darla
+  por sabida; y un smoke que solo pide 200 a las rutas no verifica el producto — hay que
+  ejercitar el motor.
+- **Trampa operativa del día**: `git checkout <archivo>` para deshacer un sabotaje del
+  control de reversión **borra también los fixes sin commitear** (restaura desde HEAD).
+  Commitear ANTES de sabotear, o sabotear sobre una copia.
+- **Aplicar en**: todo pipeline con fallback a mock/reglas, todo par prompt↔esquema, toda
+  ruta API que valide una entidad que ya tiene tipo, y todo control de reversión.
+
 ### 2026-08-06: El efímero replica el REPO, no producción — y los advisors ven lo que el efímero no
 - **Hallazgos al aplicar la capa de tenencia a prod** (autorizada por Elisa): (1) el paso
   "enumerar las tablas REALES antes de migrar" del runbook NO era ceremonia: prod tenía
