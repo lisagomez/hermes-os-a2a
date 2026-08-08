@@ -106,3 +106,33 @@ válida) → `hermes-advisor-brief` (empaquetador: trazabilidad total o se recha
 tabla desalineada y el selector de playbook no persistente). Contrato de evidencia
 compartido embebido en cada uno; cada skill declara su estado real de implementación
 (implementado/parcial/manual) — jamás finge features.
+
+**QA de Pre-Discovery en producción (2026-08-08, PRs #270/#272/#273) — el módulo llevaba
+caído desde el origen.** Revisar UN bloque a mano (FODA, lead legal real) destapó que los
+**7 bloques LLM fallaban 3/3** en producción y que todo el Pre-Discovery servía el **mock**.
+Nadie lo vio porque el pipeline degrada al mock POR DISEÑO y lo declara en la procedencia:
+la UI se ve completa, y el smoke de las 14 rutas del runbook pasaba con el motor muerto.
+Causa raíz: el prompt exigía *"la forma exacta pedida"* y **la forma no estaba en ninguna
+parte** — el modelo envolvía en `{"<bloque>": …}` y renombraba `texto`→`descripcion`.
+Cuatro correcciones, cada una con control de reversión:
+(1) `describirEsquema()` **deriva la forma del esquema zod** y la inyecta en el prompt —
+no puede desincronizarse; test guardián por bloque.
+(2) `IntakeSchema` compartido: la ruta tenía un **esquema paralelo** que despojaba
+`modeloNegocio`/`direccion`/`linkedin` en silencio; el analista los veía "no proporcionado"
+y llegó a listarlo como **debilidad del lead** — un bug que FABRICA hallazgos es peor que
+uno que rompe. Ojo: `z.ZodType<IntakeLead>` **NO** caza un opcional faltante (probado); el
+guardián es el test que compara claves.
+(3) Truncamiento: `sitio` necesita ~2.650 tokens y el tope era 1.600 → se reportaba como
+"JSON inválido". Tope 4.000 + **un reintento** con el motivo de vuelta al modelo. Control
+honesto: con el tope viejo el smoke SIGUE pasando — quien sostiene la fiabilidad es el
+reintento.
+(4) `conceptosRegulatorios` gastaba la mitad de sus 6 espacios en claims de marketing; ahora
+mandan los servicios (el caso e-AWB se preserva con test).
+**El smoke real es la lección de método**: el primero pasaba 7/7 mientras producción fallaba
+—corría sin texto de sitio y **reimplementaba** el camino—. Por eso la llamada vive ahora en
+`features/agents/analista-prediscovery.ts` y el smoke gated (`PREDISCOVERY_SMOKE_REAL=1`)
+ejercita el camino de producción con el caso difícil.
+**Abierto, sin aplicar**: el grafo no reconoce frases naturales de servicio ("derecho
+inmobiliario" → `dudoso`; "compraventa de inmueble" → `permitido` con fuente). Hueco de
+**keywords** del catálogo, no de reglas; vive en `grafo/seed/reglas.json` con su propio gate
+y re-siembra al runtime.
