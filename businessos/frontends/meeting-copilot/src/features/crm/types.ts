@@ -55,10 +55,10 @@ export const movimientoSchema = z.object({
 })
 export type Movimiento = z.infer<typeof movimientoSchema>
 
+// Vista del workspace: el tablero agrupa `leads` por etapa él mismo
+// (agruparPorEtapa); el embudo agregado (componerEmbudo) solo lo consume la
+// card de Inicio vía obtenerEmbudo.
 export interface CrmVista {
-  // Etapas del embudo EN ORDEN, con cuenta 0 incluida; `perdido` aparte.
-  embudo: EtapaEmbudo[]
-  perdidos: number
   conversaciones: ConversacionResumen[]
   leads: LeadResumen[]
   // Últimos movimientos del canal auditado (tablero + agentes), más reciente primero.

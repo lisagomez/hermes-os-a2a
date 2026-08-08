@@ -52,10 +52,7 @@ export async function obtenerEmbudo(): Promise<{ embudo: EtapaEmbudo[]; perdidos
 }
 
 export async function obtenerCrm(): Promise<CrmVista> {
-  // Los agregados viven en vistas (supabase-vistas-crm-embudo.sql): PostgREST
-  // no expone GROUP BY inline.
-  const [porEtapa, conversaciones, leads, movimientos] = await Promise.all([
-    sb('v_embudo_leads?select=etapa,cuenta', z.array(etapaEmbudoSchema)),
+  const [conversaciones, leads, movimientos] = await Promise.all([
     sb(
       'v_crm_conversaciones_resumen?select=estado,nivel,canal,cuenta&order=estado,nivel',
       z.array(conversacionResumenSchema)
@@ -69,7 +66,7 @@ export async function obtenerCrm(): Promise<CrmVista> {
       z.array(movimientoSchema)
     ),
   ])
-  return { ...componerEmbudo(porEtapa), conversaciones, leads, movimientos }
+  return { conversaciones, leads, movimientos }
 }
 
 export async function moverLeadEtapaDb(

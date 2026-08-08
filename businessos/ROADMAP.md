@@ -1283,7 +1283,8 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   RUNBOOK-PIPELINE-COMERCIAL y DEPLOY-mission-control apuntan al copiloto.
 - [x] **Tablero kanban + canal auditado + agente que mueve leads (2026-08-08, 2ª tanda)**:
   `/crm` gana su experiencia operativa — tablero por etapa con **drag & drop** (@dnd-kit,
-  patrón de control-interno) y vista alterna embudo+tabla. TODO movimiento de etapa va
+  patrón de control-interno) como vista única (la pestaña "Embudo y tabla" se retiró
+  el mismo día a pedido de la dueña; el embudo-silueta sigue en la card de Inicio). TODO movimiento de etapa va
   por la RPC **`mover_lead_etapa`** (migración `supabase-crm-movimientos.sql`, APLICADA):
   update + fila de auditoría en `leads_movimientos` con actor `humano:<email>` /
   `agente:<nombre>` y motivo, visibles en el feed de **Actividad** (👤/🤖) y en cada
