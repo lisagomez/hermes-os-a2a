@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes)",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -630,6 +630,45 @@
         "consultoria financiera",
         "asesoria financiera",
         "financial consulting"
+      ]
+    },
+    {
+      "clave": "MARCAS_REGISTRO",
+      "nombre": "Marcas y avisos comerciales: registro, vigencia y uso",
+      "descripcion": "Registrar y conservar una marca o aviso comercial ante el IMPI: derecho exclusivo, vigencia, renovacion y declaracion de uso",
+      "keywords": [
+        "registro de marca",
+        "registro de marcas",
+        "marcas y patentes",
+        "marca registrada",
+        "signo distintivo",
+        "signos distintivos",
+        "aviso comercial",
+        "avisos comerciales",
+        "marca",
+        "marcas",
+        "trademark"
+      ],
+      "exclusiones": [
+        "marca blanca",
+        "marca personal",
+        "marca de agua"
+      ]
+    },
+    {
+      "clave": "PATENTES_INVENCIONES",
+      "nombre": "Patentes, modelos de utilidad y disenos industriales",
+      "descripcion": "Proteger una invencion o creacion tecnica ante el IMPI: vigencias improrrogables, anualidades y renovacion del diseno",
+      "keywords": [
+        "patente",
+        "patentes",
+        "registro de patente",
+        "modelo de utilidad",
+        "modelos de utilidad",
+        "diseño industrial",
+        "diseños industriales",
+        "invencion",
+        "invenciones"
       ]
     }
   ],
@@ -2443,6 +2482,100 @@
           ],
           "parametros": {
             "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPPI-170-178-MARCA-REGISTRO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Marcas: usarlas es libre, pero el derecho EXCLUSIVO solo se obtiene con el registro ante el IMPI",
+      "texto_resumen": "Cualquier persona fisica o moral puede usar marcas en la industria, el comercio o los servicios que preste; el derecho a su uso EXCLUSIVO se obtiene unicamente mediante el registro en el Instituto (Art. 170). El registro de marca tiene una vigencia de diez anos contados a partir de la fecha de su OTORGAMIENTO y se renueva por periodos de la misma duracion (Art. 178); el aviso comercial sigue la misma regla (Art. 204). La renovacion se solicita dentro de los seis meses ANTERIORES al vencimiento, y el Instituto da tramite a las presentadas dentro de los seis meses POSTERIORES (Art. 237). Vencido ese plazo sin solicitud, el registro caduca de pleno derecho, sin que se requiera declaracion del Instituto (Art. 238).",
+      "fuente_cita": "LFPPI, Arts. 170, 174, 178, 204, 236, 237 y 238 (nueva ley DOF 01-07-2020, en vigor 05-11-2020 conforme a su Transitorio PRIMERO (90 dias habiles); texto vigente, ultima reforma DOF 03-04-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPPI.pdf",
+      "vigente_desde": "2020-11-05",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "MARCAS_REGISTRO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Registrar la marca ante el IMPI si se quiere derecho de uso EXCLUSIVO: sin registro el uso es licito pero no excluye a terceros (Art. 170)",
+            "Renovar dentro de los seis meses anteriores al vencimiento de los diez anos; hay plazo de gracia de seis meses posteriores (Arts. 178 y 237)",
+            "Al solicitar el registro y al renovarlo, declarar el uso real y efectivo indicando productos o servicios (Arts. 178 y 237)",
+            "Usar las leyendas 'Marca Registrada', 'M.R.' o el simbolo (R) SOLO en los productos o servicios efectivamente registrados (Art. 236)"
+          ],
+          "banderas": [
+            "Vencido el plazo de renovacion sin solicitarla, el registro CADUCA DE PLENO DERECHO: no hay resolucion ni aviso previo del Instituto (Art. 238)",
+            "La vigencia de la marca corre desde el OTORGAMIENTO, no desde la solicitud — al reves que la patente (comparar Art. 178 con Art. 53)",
+            "Una marca registrada ajena, o semejante en grado de confusion, no puede usarse ni formar parte del nombre comercial, denominacion o razon social en actividades iguales o similares sin consentimiento (Art. 174)",
+            "Obligacion SEPARADA y con plazo propio: la declaracion de uso al tercer ano (ver MX-LFPPI-233-235-MARCA-USO-CADUCIDAD)"
+          ],
+          "parametros": {
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPPI-233-235-MARCA-USO-CADUCIDAD",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Marca registrada: declaracion de uso al tercer ano y caducidad por falta de uso",
+      "texto_resumen": "La marca debe usarse en territorio nacional tal como fue registrada o con modificaciones que no alteren su caracter distintivo. La persona titular DEBE declarar su uso real y efectivo ante el Instituto durante los TRES MESES posteriores a que se cumpla el TERCER ANO de haberse otorgado el registro, indicando los productos o servicios especificos y pagando la tarifa; la proteccion continua solo sobre aquellos en que se declaro el uso, y si no se declara el registro CADUCA DE PLENO DERECHO sin que se requiera declaracion del Instituto (Art. 233). Ademas, si la marca no se usa durante tres anos consecutivos procede la caducidad del registro, total o parcial respecto de los productos o servicios sin uso (Art. 235).",
+      "fuente_cita": "LFPPI, Arts. 233 y 235 y Transitorio DECIMO PRIMERO (Arts. 233 y 235 con parrafos reformados DOF 03-04-2026; nueva ley DOF 01-07-2020, en vigor 05-11-2020 conforme a su Transitorio PRIMERO (90 dias habiles); texto vigente, ultima reforma DOF 03-04-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPPI.pdf",
+      "vigente_desde": "2020-11-05",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "MARCAS_REGISTRO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Presentar la declaracion de uso real y efectivo dentro de los tres meses posteriores al tercer aniversario del OTORGAMIENTO del registro, con pago de tarifa (Art. 233)",
+            "Usar la marca en territorio nacional tal como fue registrada, o con modificaciones que no alteren su caracter distintivo (Art. 233)",
+            "Indicar los productos o servicios especificos sobre los que se declara el uso: la proteccion sobrevive SOLO en esos (Art. 233)"
+          ],
+          "banderas": [
+            "Omitir la declaracion caduca el registro DE PLENO DERECHO: no hay aviso ni resolucion previa del Instituto (Art. 233)",
+            "Tres anos consecutivos sin uso abren la caducidad, total o parcial, a peticion de tercero (Art. 235)",
+            "Transicion: los registros otorgados CON ANTERIORIDAD al 10-08-2018 quedan EXCEPTUADOS de la declaracion de uso del Art. 233, aunque si deben renovar conforme al Art. 237 (Transitorio DECIMO PRIMERO)"
+          ],
+          "parametros": {
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPPI-53-62-78-PATENTES-VIGENCIA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Patentes, modelos de utilidad y disenos industriales: vigencias improrrogables y anualidades",
+      "texto_resumen": "La patente tiene una vigencia de VEINTE anos IMPRORROGABLES contada a partir de la fecha de presentacion reconocida de la solicitud, sujeta al pago de las tarifas correspondientes a cada anualidad (Art. 53). El registro de modelo de utilidad dura QUINCE anos improrrogables desde la presentacion de la solicitud, tambien con anualidades (Art. 62). El registro de diseno industrial dura CINCO anos desde la presentacion, renovable por periodos sucesivos de igual duracion hasta un maximo de VEINTICINCO anos (Art. 78), y su renovacion se solicita dentro de los seis meses anteriores al vencimiento (Art. 79). El esquema de trazado de circuito integrado tiene vigencia de diez anos improrrogables (Art. 87).",
+      "fuente_cita": "LFPPI, Arts. 53, 62, 78, 79 y 87 (Art. 53 en el capitulo reformado DOF 03-04-2026; nueva ley DOF 01-07-2020, en vigor 05-11-2020 conforme a su Transitorio PRIMERO (90 dias habiles); texto vigente, ultima reforma DOF 03-04-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPPI.pdf",
+      "vigente_desde": "2020-11-05",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "PATENTES_INVENCIONES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Pagar las tarifas de cada anualidad para conservar la patente, el modelo de utilidad o el esquema de trazado (Arts. 53, 62 y 87)",
+            "Renovar el diseno industrial dentro de los seis meses anteriores al vencimiento de cada periodo de cinco anos (Art. 79)"
+          ],
+          "banderas": [
+            "La vigencia de patente y modelo de utilidad corre desde la PRESENTACION de la solicitud, no desde el otorgamiento: el tiempo de tramite consume vigencia (Arts. 53 y 62)",
+            "Veinte anos de patente y quince de modelo de utilidad son IMPRORROGABLES: no existe renovacion, a diferencia del diseno industrial (Arts. 53, 62 y 78)",
+            "El diseno industrial tiene tope duro de veinticinco anos aunque se renueve puntualmente (Art. 78)"
+          ],
+          "parametros": {
+            "verificar": true
           }
         }
       ]

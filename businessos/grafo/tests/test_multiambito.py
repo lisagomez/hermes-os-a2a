@@ -239,3 +239,62 @@ def test_dp_no_cruza_a_contractual():
     # en el ambito datos-personales NO debe clasificar
     r = ev([{"descripcion": "Confidencialidad y no divulgacion"}], dimension="datos-personales")
     assert r["conceptos"][0]["categoria"] is None
+
+
+# --- Propiedad industrial MX (LFPPI): marcas y patentes -----------------------
+# Origen: un despacho real listaba "Registro de marcas y patentes" entre sus
+# servicios y el grafo no tenia nada que decir. No era vocabulario: faltaban las
+# reglas.
+
+def test_marca_registro_permitido_con_fuente_lfppi():
+    r = ev([{"descripcion": "Registro de marcas y patentes"}], dimension="regulatorio", regimen="GENERAL")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "MARCAS_REGISTRO"
+    assert c["estado"] == "permitido"
+    assert "LFPPI" in c["fuente"]["cita"]
+    # El derecho exclusivo NACE del registro: es el punto que distingue usar de registrar.
+    assert any("EXCLUSIVO" in req for req in c["checklist"])
+
+
+def test_marca_declara_la_caducidad_de_pleno_derecho():
+    """Los dos plazos que matan un registro sin que el Instituto avise."""
+    r = ev([{"descripcion": "declaracion de uso de la marca"}], dimension="regulatorio", regimen="GENERAL")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "MARCAS_REGISTRO"
+    banderas = " ".join(c["banderas"])
+    assert "PLENO DERECHO" in banderas
+    assert "10-08-2018" in banderas  # transicion: registros previos exceptuados del Art. 233
+    assert any("tercer aniversario" in req for req in c["checklist"])
+
+
+def test_patente_vigencia_corre_desde_la_solicitud():
+    r = ev([{"descripcion": "solicitar una patente de invencion"}], dimension="regulatorio", regimen="GENERAL")
+    c = r["conceptos"][0]
+    assert c["categoria"] == "PATENTES_INVENCIONES"
+    assert c["estado"] == "permitido"
+    assert "Arts. 53" in c["fuente"]["cita"]
+    assert any("PRESENTACION" in b for b in c["banderas"])
+
+
+def test_propiedad_industrial_no_cruza_a_fiscal():
+    """Una consulta fiscal no debe clasificar en categorias regulatorias."""
+    r = ev([{"descripcion": "Registro de marcas y patentes"}])  # dimension fiscal por defecto
+    assert r["conceptos"][0]["categoria"] != "MARCAS_REGISTRO"
+
+
+def test_marca_blanca_no_es_una_marca_registrable():
+    """Control negativo del vocabulario propio de la casa: 'marca blanca' es
+    white-label, no propiedad industrial. Sin la exclusion, cada mencion del
+    modelo de negocio de la fabrica dispararia un dictamen de marcas."""
+    r = ev([{"descripcion": "servicios de marca blanca para clientes"}], dimension="regulatorio", regimen="GENERAL")
+    assert r["conceptos"][0]["categoria"] is None
+
+
+def test_frase_que_nombra_ambas_resuelve_determinista():
+    """Un concepto solo puede caer en UNA categoria. Cuando la frase nombra
+    marcas y patentes a la vez gana la keyword mas larga ('patentes'): no es un
+    empate sin resolver, es la regla del clasificador. Documentado para que
+    nadie lo 'arregle' anadiendo keywords que rompan el determinismo."""
+    r = ev([{"descripcion": "Proteccion de patentes, marcas y derechos de autor"}],
+           dimension="regulatorio", regimen="GENERAL")
+    assert r["conceptos"][0]["categoria"] == "PATENTES_INVENCIONES"
