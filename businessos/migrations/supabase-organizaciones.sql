@@ -535,6 +535,51 @@ select o.id            as tenant_id,
 
 revoke all on v_margen_tenant from anon, authenticated;
 
+
+-- ============================================================================
+-- BLOQUE 8 · Captura sin tenant explícito → organización interna (2026-08-08)
+-- ============================================================================
+-- El BLOQUE 5 deja tenant_id NOT NULL y el BLOQUE 4 retira el default (era
+-- solo el vehículo del backfill). Consecuencia vista en PRODUCCIÓN el
+-- 2026-08-08: TODOS los escritores de las tablas de tenant (leads web2/a2a/
+-- chat/copilot, buzón, ingest de reuniones, …) insertan SIN tenant_id y morían
+-- por not-null desde el apply del 2026-08-06 — el embudo y el buzón rotos en
+-- silencio dos días. Ningún gate lo vio: el efímero migra y prueba, pero nadie
+-- INSERTA como escritor de producción después de migrar.
+--
+-- Fix estructural (semántica del backfill, hacia adelante): lo que se captura
+-- sin declarar tenant es de la organización interna — exactamente lo que el
+-- backfill decidió para las filas preexistentes. Un escritor white-label que
+-- SÍ declare tenant_id no es tocado; si la org interna no existiera, el
+-- trigger aborta con mensaje claro (fail-closed, jamás un tenant inventado).
+create or replace function app.tenant_captura_default() returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.tenant_id is null then
+    select id into new.tenant_id
+      from public.organizaciones
+     where lower(slug) = 'hermes-interno';
+    if new.tenant_id is null then
+      raise exception 'captura sin tenant: no existe la organización interna (hermes-interno)';
+    end if;
+  end if;
+  return new;
+end $$;
+
+do $$
+declare r record;
+begin
+  for r in select esquema, tabla from app.tablas_tenant loop
+    execute format('drop trigger if exists tenant_captura on %I.%I', r.esquema, r.tabla);
+    execute format(
+      'create trigger tenant_captura before insert on %I.%I '
+      'for each row execute function app.tenant_captura_default()',
+      r.esquema, r.tabla);
+  end loop;
+end $$;
+
 commit;
 
 -- ============================================================================

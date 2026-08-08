@@ -100,6 +100,13 @@ saboteo "backfill por UPDATE contra append-only" "la migración (bloque 4)" \
 saboteo_estado "NOT NULL retirado de una tabla slug_text" "T11" \
   "alter table public.crm_contactos alter column tenant_id drop not null;"
 
+# 7 · El trigger de captura (BLOQUE 8) que no asigna deja al escritor de
+#     producción exactamente como el 2026-08-06: muerto por not-null. T13
+#     inserta sin tenant y debe ver la org interna; con el trigger castrado,
+#     el insert revienta y la suite se pone roja.
+saboteo "trigger de captura que no asigna tenant" "T13" \
+  's/if new\.tenant_id is null then/if false then/'
+
 docker rm -f pg-reversion >/dev/null 2>&1
 
 echo
