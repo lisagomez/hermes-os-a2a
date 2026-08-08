@@ -1254,6 +1254,48 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
+### Captura en eventos presenciales (gafetes por QR) 🟡 Fase 1 de 5 (2026-08-07)
+
+Pedido de Victor: el equipo también hace negocio **de pie en un stand**, donde no hay audio
+que transcribir sino gafetes que capturar. El eje ya estaba abierto en el tipo
+(`Reunion.origen` contemplaba virtual y no-virtual, y solo se construyó un lado). Decisiones
+tomadas: lector **genérico y tolerante** (los gafetes los imprime el organizador, así que el
+contenido es impredecible), persistencia en **Supabase real** y encaje **dentro de Reuniones**
+con el origen nuevo `presencial`. Plan completo (pasó por ataque adversarial):
+`.claude/plans/se-busca-integrar-en-hashed-stroustrup.md`.
+
+Dos hallazgos del ataque reordenaron el plan y **son la parte importante de esta entrada**:
+
+1. **Obligación legal que el propio repo ya tiene sembrada.** Escanear un gafete es tratamiento
+   de datos personales. El grafo (`grafo/seed/reglas.json`, dimensión `datos-personales`) ya
+   dictamina: contacto de **persona física** → `dudoso`, con bandera literal *"sin aviso de
+   privacidad publicado no hay vía lícita para prospección"*; contacto **corporativo** →
+   `permitido` **pero** exige aviso accesible + mecanismo para que el titular limite el uso
+   (Art. 15 IV). Por eso el aviso de privacidad y un buzón de bajas **con responsable
+   nombrado** son prerrequisito de la fase de persistencia, no adorno; y la tabla lleva
+   columnas de cumplimiento (`fuente_dato`, `aviso_version`, `aviso_mostrado_at`,
+   `baja_solicitada_at`). La app **no** automatiza la baja: eso se dice, no se finge.
+2. **La premisa central se validaba demasiado tarde.** El plan asumía gafetes con vCard,
+   cuando lo habitual en ferias es un identificador opaco del organizador (que vende el
+   servicio de recuperación). Comprobarlo cuesta una llamada; construir el intérprete y la
+   cámara cuesta ~2 días. La validación pasó a ser el primer paso y **condiciona** la Fase 3.
+
+- [x] **Fase 1 — tipo y andamio (2026-08-07)**: `OrigenReunion` con `presencial` +
+  `ETIQUETA_ORIGEN_REUNION` (`Record`, para que un origen futuro no salga sin nombre) +
+  `pestanasDeReunion()` como función **pura y probada sin navegador** (patrón del repo: una
+  decisión dentro del JSX no se puede poner en rojo). Una reunión presencial **no ofrece** las
+  4 vistas de análisis: `VistaReunion` corta con *"procesa su audio"*, que ahí sería un mensaje
+  permanentemente falso. Control de reversión ejecutado (sabotaje → rojo → restaurado). 271
+  pruebas verdes.
+- [ ] **Fase 0 — bloqueada por terceros**: aviso de privacidad publicado + buzón de bajas con
+  responsable, y respuesta escrita sobre qué codifican los gafetes del evento objetivo.
+- [ ] Fase 2 — pantalla de captura sin cámara (sin relleno automático todavía; ya bate al papel).
+- [ ] Fase 3 — intérprete (vCard/MECARD/URL) + cámara. **Condicionada a la Fase 0.**
+- [ ] Fase 4 — `supabase-fase15-gafetes.sql` (`evento_asistentes`, tabla propia: **no** se
+  toca el CHECK de `leads`, cuyo estado real en prod no se puede verificar desde el repo) +
+  ruta de servidor con `server-only`. Bloqueada por el token de administración de Supabase.
+- [ ] Fase 5 — promoción a lead con el origen `copilot` **ya existente** (cero orígenes nuevos).
+
 ## Línea Reuniones (App B — Meeting Events / Call Recordings) 🟡 paso 0 completo (2026-08-03)
 
 Segunda de las 3 apps del encargo (2026-07-30; la App A es `enriquecimiento-a2a`, ya
