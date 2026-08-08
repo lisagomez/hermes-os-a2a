@@ -77,8 +77,8 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 
 | Espejo | Destino exacto | Disparado desde | Estado |
 |---|---|---|---|
-| Aviso en vivo de lead nuevo | Telegram grupo equipo (`hermes send`) | `businessos/avisar-leads.py` (cron 5 min, marca de agua) | 🟡 código listo; cron pendiente |
-| Reporte diario / reconciliación | Telegram grupo equipo (`hermes send`) | `businessos/reporte-leads.py` (cron 14:00 UTC = 08:00 CST) | 🟡 código listo; cron pendiente |
+| Aviso en vivo de lead nuevo | Telegram grupo equipo (`hermes send`) | `businessos/avisar-leads.py` (cron 5 min, marca de agua) | 🟢 2026-08-08 (cron vivo; "avisados 7" visto salir) |
+| Reporte diario / reconciliación | Telegram grupo equipo (`hermes send`) | `businessos/reporte-leads.py` (cron 14:00 UTC = 08:00 CST) | 🟢 2026-08-08 (cron vivo; primer envío real verificado) |
 | Hoja de cálculo | — | — | 🔴 no existe (no se pidió) |
 | Correo de acuse al propio lead | — | — | 🔴 no existe |
 
@@ -155,9 +155,8 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 
 ### P4 · 🤖 Aviso en vivo cuando entra un lead
 
-> **Estado 2026-08-08**: 🟡 código listo (`businessos/avisar-leads.py`: marca de agua local,
-> primera corrida no spamea histórico, la marca solo avanza tras envío exitoso). Falta el
-> cron `*/5 * * * *` en el server y verlo llegar al grupo.
+> **Estado 2026-08-08 (cierre)**: ✅ VIVO — cron `*/5` registrado en el server; el ciclo
+> real anunció los 7 leads de prueba al grupo ("avisados 7 lead(s)", marca avanzada).
 - **Qué:** host-job que consulta `leads` por `created_at > última corrida` y avisa por Telegram
   al grupo del equipo, con origen, contacto y etapa.
 - **Dónde:** `businessos/nightly-jobs.sh` no sirve (es nocturno) — cron propio cada 5 min, con
@@ -170,9 +169,8 @@ Un canal "conectado" del que nadie ve filas frescas está roto hasta demostrar l
 
 ### P5 · 🤖 Reporte diario de reconciliación
 
-> **Estado 2026-08-08**: 🟡 código listo (`businessos/reporte-leads.py`: ayer CST + mes en
-> curso + canales sin filas ≥7 días; fechas literales, jamás now()/interval en PostgREST).
-> Falta el cron `0 14 * * *` (UTC) y ver llegar el primer reporte.
+> **Estado 2026-08-08 (cierre)**: ✅ VIVO — cron `0 14 * * *` (UTC) registrado y un primer
+> reporte REAL enviado al grupo para verificar el camino completo.
 - **Qué:** resumen 08:00 CST: leads por origen del día + total del mes + **canales sin filas
   en 7 días** (la señal de canal roto).
 - **Verificación:** el primer reporte llega con números que cuadran con una consulta manual.
@@ -289,12 +287,11 @@ seguir dando **una sola fila**.
 
 ## 6. Limpieza pendiente
 
-- [ ] 🤖 Borrar las filas `PRUEBA …` de `leads` tras ejecutar el §4 (nadie más las puede ver).
-- [ ] 🤖 Borrar las 2 filas `a2a` de smoke del 2026-07-18 (`mensaje` literal: "lead del smoke
-      de runtime (ignorar/borrar)") — detectadas en la auditoría del 2026-08-08.
+- [x] 🤖 Borrar las filas `PRUEBA …` de `leads` tras ejecutar el §4 — hecho 2026-08-08 (quedó 1 fila real).
+- [x] 🤖 Borrar las 2 filas `a2a` de smoke del 2026-07-18 — hecho 2026-08-08.
 - [ ] 🙋 Confirmar que ningún lead real quedó marcado como prueba antes de borrar por patrón.
-- [ ] 🤖 Al cerrar P2/P3, revisar si ya existen duplicados históricos en `leads` y decidir con
-      la dueña si se fusionan o se dejan (fusionar cambia números que quizá ya se reportaron).
+- [x] 🤖 Duplicados históricos: revisados 2026-08-08 — no existían (3 filas totales antes de
+      la limpieza). Resuelto por vacuidad.
 
 ---
 
