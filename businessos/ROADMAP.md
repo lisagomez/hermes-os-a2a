@@ -1483,6 +1483,21 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   (categoría `ASESORIA_INVERSIONES`, 62→63 reglas / 40 categorías; banderas de las
   fronteras vecinas más duras: captación LIC, intermediación, Fintech). Gate OK;
   83/83 tests. **Con esto la línea completa del caso Pre-Discovery legal queda cerrada.**
+- [x] **Fase E — propiedad industrial MX (2026-08-08)**: 2 categorías + 3 reglas sobre la
+  **LFPPI** (nueva ley DOF 01-07-2020, en vigor **05-11-2020** por su Transitorio PRIMERO —90
+  días hábiles, computados, no asumidos—; texto vigente con última reforma **DOF 03-04-2026**).
+  `MARCAS_REGISTRO`: usar una marca es libre pero el derecho **exclusivo** solo nace del
+  registro (Art. 170), vigencia de 10 años desde el **otorgamiento** renovable (Art. 178),
+  renovación 6 meses antes + 6 de gracia y caducidad **de pleno derecho** si se deja pasar
+  (Arts. 237-238), leyendas ®/M.R. solo sobre lo registrado (Art. 236), y la trampa práctica:
+  **declaración de uso** en los 3 meses siguientes al tercer aniversario o el registro caduca
+  sin que el Instituto avise (Art. 233), con la excepción de los registros previos al
+  **10-08-2018** (Transitorio DÉCIMO PRIMERO). `PATENTES_INVENCIONES`: 20 años improrrogables
+  desde la **solicitud** (Art. 53) —al revés que la marca—, 15 el modelo de utilidad (Art. 62),
+  5 renovables hasta 25 el diseño industrial (Arts. 78-79) y 10 el esquema de trazado (Art. 87).
+  Todo leído del PDF oficial de Diputados, no de memoria. Seed 63→66 reglas / 42 categorías;
+  gate OK; **89 tests** (6 nuevos, con control negativo de `marca blanca` —vocabulario de la
+  casa— y el caso determinista de una frase que nombra marcas y patentes a la vez).
 - [x] **Seed de la frontera financiera APLICADO al runtime** (2026-08-07): psql rc=0 +
   restart + smoke — 63 reglas / 40 categorías vivas; "financial consulting" dictamina
   por API con fuente LMV 225 y el test de frontera como primer requisito del checklist.
