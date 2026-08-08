@@ -13,6 +13,7 @@ const LEAD: LeadResumen = {
   empresa: 'Acme SA',
   contacto: 'Ana Torres',
   etapa: 'nuevo',
+  calificacion: null,
   updated_at: '2026-08-08T10:00:00Z',
 }
 

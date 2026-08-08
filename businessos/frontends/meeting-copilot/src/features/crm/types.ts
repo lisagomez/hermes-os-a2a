@@ -36,9 +36,24 @@ export const leadResumenSchema = z.object({
   empresa: z.string().nullable(),
   contacto: z.string().nullable(),
   etapa: z.string(),
+  // Señal del calificador agéntico de crm-canales (null = sin calificar).
+  calificacion: z.string().nullable(),
   updated_at: z.string(),
 })
 export type LeadResumen = z.infer<typeof leadResumenSchema>
+
+// Fila de leads_movimientos: el rastro auditado de quién movió qué
+// (actor 'humano:<email>' | 'agente:<nombre>' — ver actores.ts).
+export const movimientoSchema = z.object({
+  id: z.number(),
+  lead_id: z.string(),
+  de_etapa: z.string().nullable(),
+  a_etapa: z.string(),
+  actor: z.string(),
+  motivo: z.string(),
+  created_at: z.string(),
+})
+export type Movimiento = z.infer<typeof movimientoSchema>
 
 export interface CrmVista {
   // Etapas del embudo EN ORDEN, con cuenta 0 incluida; `perdido` aparte.
@@ -46,6 +61,27 @@ export interface CrmVista {
   perdidos: number
   conversaciones: ConversacionResumen[]
   leads: LeadResumen[]
+  // Últimos movimientos del canal auditado (tablero + agentes), más reciente primero.
+  movimientos: Movimiento[]
+}
+
+// Columnas del tablero: TODAS las etapas movibles (embudo + perdido), cada una
+// con sus leads. Pura para testear el agrupado sin servidor. Un lead con etapa
+// desconocida (BD por delante del espejo) cae en una columna extra al final —
+// jamás se pierde (misma lección que componerEmbudo).
+export function agruparPorEtapa(leads: LeadResumen[]): { etapa: string; leads: LeadResumen[] }[] {
+  const columnas = ETAPAS_MOVIBLES.map((etapa) => ({
+    etapa: etapa as string,
+    leads: leads.filter((l) => l.etapa === etapa),
+  }))
+  const conocidas = new Set<string>(ETAPAS_MOVIBLES)
+  const huerfanos = leads.filter((l) => !conocidas.has(l.etapa))
+  for (const l of huerfanos) {
+    const col = columnas.find((c) => c.etapa === l.etapa)
+    if (col) col.leads.push(l)
+    else columnas.push({ etapa: l.etapa, leads: [l] })
+  }
+  return columnas
 }
 
 // El orden del embudo lo pone ETAPAS_EMBUDO; una etapa desconocida que venga

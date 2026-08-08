@@ -107,9 +107,15 @@ class LeadsCrm:
         return insertado
 
     async def calificar(self, tenant_id: str, canal: str, canal_uid: str, resultado: dict) -> bool:
-        """Escribe la señal del calificador en el lead. SOLO las columnas de
-        calificación — jamás `etapa` (regla dura §4: el escritor de la etapa es
-        el funnel; esto es una señal paralela). Best-effort ruidoso."""
+        """Escribe la señal del calificador en el lead y, si la decisión es
+        'califica', pide el avance AUDITADO nuevo→calificado.
+
+        Regla §4 ACTUALIZADA (2026-08-08, decisión de la dueña): el agente SÍ
+        mueve etapa, pero SOLO por el canal auditado `mover_lead_etapa` (RPC:
+        update + fila en leads_movimientos con actor 'agente:calificador-crm')
+        y SOLO nuevo→calificado con guard p_solo_desde='nuevo' en el servidor —
+        jamás retrocede ni pisa un lead que el equipo ya avanzó. El PATCH de la
+        señal sigue sin tocar `etapa`. Best-effort ruidoso en ambas patas."""
         if not self.activo:
             log.warning("calificación NO persistida: Supabase no configurado (tenant=%s)", tenant_id)
             return False
@@ -140,5 +146,40 @@ class LeadsCrm:
             return False
         if r.status_code not in (200, 204):
             log.error("calificación NO guardada (lead=%s): HTTP %s", lead_id, r.status_code)
+            return False
+        if resultado["decision"] == "califica":
+            await self._mover_a_calificado(lead_id, resultado)
+        return True
+
+    async def _mover_a_calificado(self, lead_id: str, resultado: dict) -> bool:
+        """Avance agéntico nuevo→calificado vía RPC auditada. El guard
+        p_solo_desde vive en el SERVIDOR (no-op si la etapa ya no es 'nuevo'):
+        este cliente no decide, solo pide. Fallo = log fuerte, nunca tumba la
+        atención (la señal ya quedó escrita; el equipo puede mover a mano)."""
+        confianza = resultado.get("confianza", 0.0)
+        cuerpo = {
+            "p_lead_id": lead_id,
+            "p_etapa": "calificado",
+            "p_actor": "agente:calificador-crm",
+            "p_motivo": f"calificación automática (confianza {confianza:.2f})",
+            "p_solo_desde": "nuevo",
+        }
+        headers = {
+            "apikey": self._key,
+            "Authorization": f"Bearer {self._key}",
+            "Content-Type": "application/json",
+        }
+        url = f"{self._url}/rest/v1/rpc/mover_lead_etapa"
+        try:
+            if self._http is not None:
+                r = await self._http.post(url, headers=headers, json=cuerpo)
+            else:
+                async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
+                    r = await client.post(url, headers=headers, json=cuerpo)
+        except httpx.HTTPError as exc:
+            log.error("avance agéntico NO aplicado (lead=%s): %s", lead_id, type(exc).__name__)
+            return False
+        if r.status_code != 200:
+            log.error("avance agéntico NO aplicado (lead=%s): HTTP %s", lead_id, r.status_code)
             return False
         return True

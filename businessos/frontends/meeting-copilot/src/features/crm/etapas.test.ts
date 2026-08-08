@@ -1,7 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { ETAPAS_LEAD } from '@/features/domain/types'
-import { componerEmbudo, ETAPAS_EMBUDO, ETAPAS_MOVIBLES, etapaMovibleSchema } from './types'
+import {
+  agruparPorEtapa,
+  componerEmbudo,
+  ETAPAS_EMBUDO,
+  ETAPAS_MOVIBLES,
+  etapaMovibleSchema,
+  type LeadResumen,
+} from './types'
 
 describe('etapas del workspace CRM (derivadas del espejo del dominio)', () => {
   it('el embudo son las 9 etapas vivas, en el orden canónico, sin `perdido`', () => {
@@ -44,5 +51,33 @@ describe('componerEmbudo', () => {
     expect(embudo).toHaveLength(9)
     expect(embudo.every((e) => e.cuenta === 0)).toBe(true)
     expect(perdidos).toBe(0)
+  })
+})
+
+describe('agruparPorEtapa (columnas del tablero)', () => {
+  const lead = (id: string, etapa: string): LeadResumen => ({
+    lead_id: id,
+    origen: 'web2',
+    canal: '',
+    empresa: id,
+    contacto: null,
+    etapa,
+    calificacion: null,
+    updated_at: '2026-08-08T10:00:00Z',
+  })
+
+  it('siempre hay una columna por etapa movible, aunque esté vacía', () => {
+    const cols = agruparPorEtapa([lead('a', 'nuevo')])
+    expect(cols.map((c) => c.etapa)).toEqual([...ETAPAS_MOVIBLES])
+    expect(cols[0].leads).toHaveLength(1)
+    expect(cols.find((c) => c.etapa === 'perdido')?.leads).toHaveLength(0)
+  })
+
+  it('una etapa desconocida de la BD gana columna extra al final — jamás se pierde', () => {
+    const cols = agruparPorEtapa([lead('a', 'etapa_rara'), lead('b', 'etapa_rara')])
+    const extra = cols[cols.length - 1]
+    expect(extra.etapa).toBe('etapa_rara')
+    expect(extra.leads).toHaveLength(2)
+    expect(cols).toHaveLength(ETAPAS_MOVIBLES.length + 1)
   })
 })

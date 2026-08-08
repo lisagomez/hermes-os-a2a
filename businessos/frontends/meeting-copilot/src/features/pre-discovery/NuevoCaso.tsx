@@ -111,6 +111,35 @@ export function NuevoCaso() {
     // el número siempre viaja con su código de país; si ya lo trae escrito (+…), se respeta
     const telefonoFinal = num ? (num.startsWith('+') ? num : `${lada} ${num}`) : ''
     const casoId = crearCaso(leadId, { ...intake, giro: giroFinal, telefono: telefonoFinal })
+    if (leadSel === 'nuevo') {
+      // Fix de la fuga (2026-08-08): el lead también entra al CRM canónico
+      // (public.leads, origen 'copilot') — antes vivía solo en localStorage y
+      // el tablero nunca lo veía. Best-effort RUIDOSO: un fallo se loguea y se
+      // registra en la bitácora admin, jamás se traga en silencio.
+      void fetch('/api/crm/leads', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          empresa: empresa.trim(),
+          contacto: contacto.trim(),
+          giro: giroFinal,
+          web: intake.web || undefined,
+          linkedin: intake.linkedin || undefined,
+          pais: intake.pais || undefined,
+          telefono: telefonoFinal || undefined,
+          email: intake.email || undefined,
+          casoId,
+        }),
+      })
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+          useAdminPreDiscovery.getState().log('lead_crm', `caso:${casoId} lead sembrado en CRM canónico`)
+        })
+        .catch((err) => {
+          console.error('[pre-discovery] lead NO llegó al CRM canónico:', err)
+          useAdminPreDiscovery.getState().log('lead_crm_error', `caso:${casoId} ${String(err)}`)
+        })
+    }
     useAdminPreDiscovery.getState().log('crear_caso', `caso:${casoId} lead:${leadId} (${intake.giro})`)
     useAdminPreDiscovery.getState().log('analizar', `caso:${casoId} pipeline completo`)
     void correrPipeline(casoId) // corre en background; el workspace muestra el avance por bloque
