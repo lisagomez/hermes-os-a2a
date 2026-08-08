@@ -326,3 +326,12 @@ def test_etiqueta_amplia_de_area_NO_se_fuerza_a_una_categoria():
         r = ev([{"descripcion": etiqueta}], dimension="regulatorio", regimen="GENERAL")
         assert r["conceptos"][0]["categoria"] is None, etiqueta
         assert r["conceptos"][0]["estado"] == "dudoso"
+
+
+def test_inmuebles_a_secas_clasifica():
+    """Literal del sitio de un despacho: 'Abogados Especialistas En Inmuebles'.
+    Solo existian las formas compuestas ('bien inmueble', 'compraventa de
+    inmueble') y la frontera de palabra dejaba fuera el sustantivo suelto."""
+    r = ev([{"descripcion": "Abogados Especialistas En Inmuebles"}],
+           dimension="regulatorio", regimen="GENERAL")
+    assert r["conceptos"][0]["categoria"] == "COMPRAVENTA_INMUEBLES"
