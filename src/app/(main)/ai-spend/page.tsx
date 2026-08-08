@@ -16,7 +16,7 @@ export default async function AiSpendPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">AI Spend</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-secondary">
           Misma fuente que el skill budget-report: v_presupuesto_mensual + token_usage.
         </p>
       </div>

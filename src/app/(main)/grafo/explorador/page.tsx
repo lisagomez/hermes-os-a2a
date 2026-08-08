@@ -32,14 +32,14 @@ export default async function ExploradorPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Explorador regulatorio</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-secondary">
           Árbol jurisdicción → dimensión → reglas y constructor de flujos de
-          consulta, vía <code className="text-slate-500">flujos-a2a</code>{' '}
+          consulta, vía <code className="text-ink-muted">flujos-a2a</code>{' '}
           (solo lectura por construcción). Señala riesgos con fuente citada; no
           asesora.
         </p>
         {fechaInvalida && (
-          <p className="mt-1 text-xs text-amber-400">
+          <p className="mt-1 text-xs text-warning">
             ▲ La fecha <code>{sp.fecha}</code> no tiene formato AAAA-MM-DD: se
             ignoró (vigencia evaluada a hoy).
           </p>
@@ -58,7 +58,7 @@ export default async function ExploradorPage({
               fecha={fecha}
             />
           ) : (
-            <p className="text-xs text-amber-400">
+            <p className="text-xs text-warning">
               ▲ Los catálogos no respondieron: selector de ámbito no disponible
               (el resto de la vista sigue).
             </p>
@@ -69,14 +69,14 @@ export default async function ExploradorPage({
             {vista.constructorAmbito ? (
               <ConstructorPanel insumos={vista.constructorAmbito} />
             ) : ambitoPedido ? (
-              <p className="text-sm text-amber-400">
+              <p className="text-sm text-warning">
                 ▲ flujos-a2a no resolvió el constructor para{' '}
                 <code>{sp.jurisdiccion}</code> · <code>{sp.dimension}</code>{' '}
                 (error del grafo o respuesta irreconocible). El árbol de abajo
                 sigue siendo fiel.
               </p>
             ) : (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-ink-muted">
                 Elige jurisdicción y dimensión arriba para derivar regímenes,
                 categorías y la plantilla de <code>POST /evaluaciones</code>.
               </p>
@@ -88,7 +88,7 @@ export default async function ExploradorPage({
             {vista.arbol ? (
               <ArbolPanel arbol={vista.arbol} />
             ) : (
-              <p className="text-sm text-amber-400">
+              <p className="text-sm text-warning">
                 ▲ El árbol no está disponible: <code>/arbol</code> no respondió o
                 su forma no se reconoce (posible desfase de versiones
                 panel↔flujos-a2a).
@@ -102,7 +102,7 @@ export default async function ExploradorPage({
               {vista.evaluaciones ? ` (${vista.evaluaciones.length})` : ''}
             </SectionTitle>
             {vista.evaluacionesDescartadas > 0 && (
-              <p className="mb-2 text-xs text-amber-400">
+              <p className="mb-2 text-xs text-warning">
                 ▲ {vista.evaluacionesDescartadas} evaluación
                 {vista.evaluacionesDescartadas === 1 ? '' : 'es'} descartada
                 {vista.evaluacionesDescartadas === 1 ? '' : 's'} por forma
@@ -110,11 +110,11 @@ export default async function ExploradorPage({
               </p>
             )}
             {vista.evaluaciones === null ? (
-              <p className="text-sm text-amber-400">
+              <p className="text-sm text-warning">
                 ▲ El historial de evaluaciones no respondió.
               </p>
             ) : vista.evaluaciones.length === 0 ? (
-              <p className="text-sm text-slate-500">Sin evaluaciones persistidas todavía.</p>
+              <p className="text-sm text-ink-muted">Sin evaluaciones persistidas todavía.</p>
             ) : (
               <div className="space-y-4">
                 {vista.evaluaciones.map((e) => (

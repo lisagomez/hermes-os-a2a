@@ -22,16 +22,16 @@ export default async function ContratosPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Contratos SC</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-secondary">
           Fábrica de smart contracts (departamento contratos_inteligentes):
-          últimos 20 desde <code className="text-slate-500">contratos_sc</code>.
+          últimos 20 desde <code className="text-ink-muted">contratos_sc</code>.
           Aprobar aquí es el candado humano del despliegue; el host-job solo
           opera filas aprobadas y re-verifica el hash (G5).
         </p>
       </div>
 
       {contratos.length === 0 ? (
-        <Card className="p-10 text-center text-sm text-slate-500">
+        <Card className="p-10 text-center text-sm text-ink-muted">
           Sin contratos fabricados todavía. Cuando el trío fabrique un paquete
           (departamento contratos_inteligentes), su fila aparecerá aquí con sus
           banderas G1 y el resultado de la red efímera.
@@ -50,7 +50,7 @@ export default async function ContratosPage() {
                     <input type="hidden" name="decision" value="aprobado" />
                     <button
                       type="submit"
-                      className="rounded bg-emerald-600 px-3 py-1 text-sm font-semibold text-white hover:bg-emerald-500"
+                      className="rounded bg-accent px-3 py-1 text-sm font-semibold text-accent-ink hover:bg-accent-hover"
                     >
                       ✓ Aprobar
                     </button>
@@ -62,11 +62,11 @@ export default async function ContratosPage() {
                       name="motivo"
                       required
                       placeholder="motivo del rechazo"
-                      className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 placeholder:text-slate-600"
+                      className="rounded border border-line bg-background px-2 py-1 text-xs text-ink placeholder:text-ink-muted"
                     />
                     <button
                       type="submit"
-                      className="rounded border border-rose-800 px-3 py-1 text-sm font-semibold text-rose-400 hover:bg-rose-950/40"
+                      className="rounded border border-danger-muted px-3 py-1 text-sm font-semibold text-danger hover:bg-danger-muted"
                     >
                       ✕ Rechazar
                     </button>

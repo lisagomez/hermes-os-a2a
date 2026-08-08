@@ -19,7 +19,7 @@ function urlExplorador(jurisdiccion: string, dimension: string, fecha: string): 
 }
 
 const SELECT_CLASES =
-  'rounded-md border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 focus:border-slate-600 focus:outline-none'
+  'rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink focus:border-line focus:outline-none'
 
 export function AmbitoSelector({
   catalogos,
@@ -37,7 +37,7 @@ export function AmbitoSelector({
   const f = fecha ?? ''
   return (
     <div className="flex flex-wrap items-end gap-4">
-      <label className="flex flex-col gap-1 text-xs text-slate-400">
+      <label className="flex flex-col gap-1 text-xs text-ink-secondary">
         Jurisdicción
         <select
           defaultValue={jur}
@@ -54,7 +54,7 @@ export function AmbitoSelector({
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-slate-400">
+      <label className="flex flex-col gap-1 text-xs text-ink-secondary">
         Dimensión
         <select
           defaultValue={dim}
@@ -71,7 +71,7 @@ export function AmbitoSelector({
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-slate-400">
+      <label className="flex flex-col gap-1 text-xs text-ink-secondary">
         Vigencia al
         <input
           type="date"

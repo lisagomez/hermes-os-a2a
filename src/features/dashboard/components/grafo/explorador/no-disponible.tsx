@@ -13,13 +13,13 @@ export function NoDisponible({ saludFlujos }: { saludFlujos: SaludFlujos | null 
   if (saludFlujos) {
     return (
       <Card as="section" className="p-10 text-center">
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-ink-secondary">
           flujos-a2a está vivo, pero el grafo no responde.
         </p>
-        <p className="mx-auto mt-2 max-w-xl text-xs text-slate-500">
-          Su health reporta: <code className="text-amber-400">{saludFlujos.grafo}</code>.
+        <p className="mx-auto mt-2 max-w-xl text-xs text-ink-muted">
+          Su health reporta: <code className="text-warning">{saludFlujos.grafo}</code>.
           Revisa el contenedor <code>grafo</code> en el runtime (
-          <code className="text-slate-400">docker compose logs grafo</code>) —
+          <code className="text-ink-secondary">docker compose logs grafo</code>) —
           levantar el perfil a2a no arregla esto.
         </p>
       </Card>
@@ -27,11 +27,11 @@ export function NoDisponible({ saludFlujos }: { saludFlujos: SaludFlujos | null 
   }
   return (
     <Card as="section" className="p-10 text-center">
-      <p className="text-sm text-slate-300">flujos-a2a (:5100) no respondió.</p>
-      <p className="mx-auto mt-2 max-w-xl text-xs text-slate-500">
+      <p className="text-sm text-ink-secondary">flujos-a2a (:5100) no respondió.</p>
+      <p className="mx-auto mt-2 max-w-xl text-xs text-ink-muted">
         Esta vista necesita el servicio <code>flujos-a2a</code> corriendo en la
         misma red interna que el panel:{' '}
-        <code className="text-slate-400">docker compose --profile a2a up -d</code>{' '}
+        <code className="text-ink-secondary">docker compose --profile a2a up -d</code>{' '}
         en el runtime. Las superficies fuera de hermes-net (p. ej. el despliegue
         de Vercel) no tienen acceso a :5100 por diseño — ahí esta vista degrada a
         este aviso, no es un error del panel.

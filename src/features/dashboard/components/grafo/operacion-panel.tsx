@@ -17,11 +17,11 @@ export function FacturasPanel({ facturas }: { facturas: FacturaResumen[] }) {
     <Card as="section">
       <SectionTitle>Facturas por deducibilidad</SectionTitle>
       <ul className="mt-3 space-y-2">
-        {facturas.length === 0 && <li className="text-sm text-slate-500">Sin facturas.</li>}
+        {facturas.length === 0 && <li className="text-sm text-ink-muted">Sin facturas.</li>}
         {facturas.map((f) => (
           <li key={f.deducibilidad_estado} className="flex items-center justify-between text-sm">
             <NeutralBadge texto={f.deducibilidad_estado.replace('_', ' ')} tono={TONO_FACTURA[f.deducibilidad_estado]} />
-            <span className="tabular-nums text-slate-200">{f.cuenta}</span>
+            <span className="tabular-nums text-ink">{f.cuenta}</span>
           </li>
         ))}
       </ul>
@@ -43,17 +43,17 @@ export function ContratosPanel({ contratos }: { contratos: Contrato[] }) {
     <Card as="section">
       <SectionTitle>Contratos</SectionTitle>
       <ul className="mt-3 space-y-2">
-        {contratos.length === 0 && <li className="text-sm text-slate-500">Sin contratos.</li>}
+        {contratos.length === 0 && <li className="text-sm text-ink-muted">Sin contratos.</li>}
         {contratos.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="truncate text-slate-200" title={`${c.cliente} — ${c.titulo} (${c.jurisdiccion})`}>
-              {c.cliente} <span className="text-slate-500">· {c.titulo}</span>
+            <span className="truncate text-ink" title={`${c.cliente} — ${c.titulo} (${c.jurisdiccion})`}>
+              {c.cliente} <span className="text-ink-muted">· {c.titulo}</span>
             </span>
             <NeutralBadge texto={c.estado.replace('_', ' ')} tono={TONO_CONTRATO[c.estado]} />
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-slate-600">Aprobar y firmar es exclusivamente humano.</p>
+      <p className="mt-3 text-xs text-ink-muted">Aprobar y firmar es exclusivamente humano.</p>
     </Card>
   )
 }
@@ -72,12 +72,12 @@ export function CobrosPanel({ cobros }: { cobros: Cobro[] }) {
     <Card as="section">
       <SectionTitle>Cobros (Polar)</SectionTitle>
       <ul className="mt-3 space-y-2">
-        {cobros.length === 0 && <li className="text-sm text-slate-500">Sin cobros.</li>}
+        {cobros.length === 0 && <li className="text-sm text-ink-muted">Sin cobros.</li>}
         {cobros.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="truncate text-slate-200" title={c.concepto}>
+            <span className="truncate text-ink" title={c.concepto}>
               {c.cliente}
-              <span className="ml-2 tabular-nums text-slate-400">
+              <span className="ml-2 tabular-nums text-ink-secondary">
                 {c.monto === null ? 'monto por definir' : `$${c.monto.toFixed(2)} ${c.moneda}`}
               </span>
             </span>

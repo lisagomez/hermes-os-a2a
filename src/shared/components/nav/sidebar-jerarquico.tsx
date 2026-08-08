@@ -49,10 +49,10 @@ export function SidebarJerarquicoView({
     const base = colapsado
       ? 'flex h-9 w-9 items-center justify-center rounded'
       : `flex items-center gap-2 rounded px-3 py-1.5 text-sm ${nivel === 3 ? 'ml-5' : ''}`
-    const tinta = activo ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+    const tinta = activo ? 'bg-surface-muted text-ink' : 'text-ink-secondary hover:bg-surface-muted hover:text-ink'
     return (
       <Link key={nodo.id} href={nodo.href} title={nodo.etiqueta} onClick={onNavegar} className={`${base} ${tinta}`} aria-current={activo ? 'page' : undefined}>
-        <span className="w-4 shrink-0 text-center text-slate-500">{nodo.glifo ?? nodo.etiqueta[0]}</span>
+        <span className="w-4 shrink-0 text-center text-ink-muted">{nodo.glifo ?? nodo.etiqueta[0]}</span>
         {!colapsado && <span className="truncate">{nodo.etiqueta}</span>}
       </Link>
     )
@@ -63,15 +63,15 @@ export function SidebarJerarquicoView({
   // ataque al PR #194); el móvil navega con el drawer de NavMovil.
   const claseVariante =
     variante === 'drawer'
-      ? 'flex h-full w-64 max-w-[85vw] flex-col border-r border-slate-800 bg-slate-900'
-      : `hidden h-full shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 transition-[width] md:flex ${colapsado ? 'w-14' : 'w-56'}`
+      ? 'flex h-full w-64 max-w-[85vw] flex-col border-r border-line bg-surface'
+      : `hidden h-full shrink-0 flex-col border-r border-line bg-surface/60 transition-[width] md:flex ${colapsado ? 'w-14' : 'w-56'}`
 
   return (
     <aside data-testid="sidebar-mc" className={claseVariante}>
       <div className="flex items-center gap-2 px-3 py-4">
-        <span className="text-lg text-emerald-500">◉</span>
+        <span className="text-lg text-success">◉</span>
         {!colapsado && (
-          <span className="truncate text-sm font-bold uppercase tracking-widest text-slate-400">Mission Control</span>
+          <span className="truncate text-sm font-bold uppercase tracking-widest text-ink-secondary">Mission Control</span>
         )}
       </div>
 
@@ -86,7 +86,7 @@ export function SidebarJerarquicoView({
                 <button
                   type="button"
                   onClick={() => onToggleSeccion?.(seccion.id)}
-                  className="flex w-full items-center justify-between px-3 py-1 text-xs uppercase tracking-wide text-slate-500 hover:text-slate-300"
+                  className="flex w-full items-center justify-between px-3 py-1 text-xs uppercase tracking-wide text-ink-muted hover:text-ink-secondary"
                   aria-expanded={abierta}
                 >
                   {seccion.etiqueta}
@@ -113,7 +113,7 @@ export function SidebarJerarquicoView({
       <button
         type="button"
         onClick={() => onToggleColapso?.()}
-        className="flex items-center gap-2 border-t border-slate-800 px-3 py-2 text-sm text-slate-400 hover:text-white"
+        className="flex items-center gap-2 border-t border-line px-3 py-2 text-sm text-ink-secondary hover:text-ink"
         title={colapsado ? 'Expandir' : 'Colapsar'}
       >
         <span className="w-4 text-center">{colapsado ? '»' : '«'}</span>
@@ -226,7 +226,7 @@ function NavMovilConContexto() {
         title="Abrir navegación"
         aria-label="Abrir navegación"
         data-testid="nav-movil"
-        className="rounded px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-800 hover:text-white"
+        className="rounded px-2 py-1 text-lg leading-none text-ink-secondary hover:bg-surface-muted hover:text-ink"
       >
         ☰
       </button>

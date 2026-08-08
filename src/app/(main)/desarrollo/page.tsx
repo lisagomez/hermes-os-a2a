@@ -16,11 +16,11 @@ export default async function DesarrolloPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Desarrollo</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-secondary">
           Tareas del trío (Ejecutor + Supervisor): últimas 20 desde la tabla{' '}
-          <code className="text-slate-500">tareas</code>
+          <code className="text-ink-muted">tareas</code>
           {departamento ? (
-            <> · departamento <code className="text-slate-500">{departamento}</code></>
+            <> · departamento <code className="text-ink-muted">{departamento}</code></>
           ) : null}
           . La escribe el trío con service_role; aquí solo se observa.
         </p>

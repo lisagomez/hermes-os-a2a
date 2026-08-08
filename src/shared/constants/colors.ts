@@ -1,7 +1,8 @@
 /**
- * Paleta del dashboard (modo oscuro único; superficie #0f172a = slate-900).
- * Validada con dataviz/validate_palette.js: PASS completo, ΔE adyacente 41.3.
- * El color sigue a la ENTIDAD (vertical), nunca a su posición o rank.
+ * Paleta del dashboard (skin ejecutiva, tema dual light/dark).
+ * Entidades y estados validados con dataviz/validate_palette.js: PASS
+ * completo, ΔE adyacente 41.3. El color sigue a la ENTIDAD (vertical),
+ * nunca a su posición o rank — idéntico en ambos temas.
  */
 export const VERTICAL_COLOR: Record<string, string> = {
   personal: '#3987e5', // slot 1 azul
@@ -18,21 +19,25 @@ export const STATUS = {
   critical: '#d03b3b',
 } as const
 
+// El CHROME del chart (grid/axis/labels/halo) sí depende del tema: se
+// resuelve vía CSS vars (globals.css define los valores light y .dark).
+// Los charts son SVG con estos valores en style/attrs — var() funciona ahí.
 export const CHROME = {
-  grid: '#1e293b', // slate-800, hairline recesivo
-  axis: '#334155', // slate-700
-  muted: '#94a3b8', // slate-400 (labels)
-  surface: '#0f172a', // slate-900 (= --surface) — fondo de card, halo de puntos en charts
+  grid: 'var(--viz-grid)', // hairline recesivo
+  axis: 'var(--viz-axis)',
+  muted: 'var(--viz-muted)', // labels
+  surface: 'var(--surface)', // fondo de card, halo de puntos en charts
 } as const
 
 /**
- * `#rrggbb` + alpha (0..1) → `rgba(r, g, b, a)`. Si el input no es un hex de
- * 6 dígitos devuelve el color tal cual (sin alpha): mejor un fondo pleno
- * visible que un valor CSS inválido por concatenación.
+ * Color + alpha (0..1). Hex de 6 dígitos → `rgba(...)`; cualquier otro valor
+ * CSS (p. ej. `var(--viz-muted)`, necesario desde el tema dual) →
+ * `color-mix(in srgb, <color> N%, transparent)`, que el navegador resuelve
+ * con el valor vigente del tema. Nunca devuelve CSS inválido por concatenación.
  */
-export function conAlpha(hex: string, alpha: number): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex)
-  if (!m) return hex
+export function conAlpha(color: string, alpha: number): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(color)
+  if (!m) return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
   const n = parseInt(m[1], 16)
   return `rgba(${(n >> 16) & 0xff}, ${(n >> 8) & 0xff}, ${n & 0xff}, ${alpha})`
 }

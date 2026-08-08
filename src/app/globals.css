@@ -8,51 +8,60 @@
  */
 
 /*
- * Tokens de la skin `mission` (set-up design panel-adm). Valores = los mismos
- * hex que hoy viven hardcodeados como clases slate/emerald: fundar los tokens
- * NO cambia el look. Fuente canónica:
- * .claude/design-systems/panel-adm/panel-adm-tokens.css (la app es single-skin,
- * por eso van en :root y no bajo [data-skin]).
+ * Tokens de la skin `ejecutiva` (canon panel-adm; los mismos VALORES que
+ * Meeting Copilot — decisión de la dueña 2026-08-08: Mission Control adopta
+ * el look ejecutivo light-first + dark). Nombres canónicos intactos; la app
+ * sigue siendo single-skin, por eso van en :root/.dark y no bajo [data-skin].
+ * Fuente canónica: .claude/design-systems/panel-adm/panel-adm-tokens.css
+ *
+ * Los pares *-rgb existen para las utilidades con opacidad (bg-surface/60):
+ * tailwind.config los consume como `rgb(var(--x-rgb) / <alpha-value>)`.
+ * Si cambias un valor, cambia su triplete — un par desincronizado pinta
+ * dos colores distintos para el mismo token.
  */
 :root {
-  --background: #020617;        /* slate-950 — body, themeColor, manifest */
-  --surface: #0f172a;           /* slate-900 — cards; header 60%, subnav 40% */
-  --surface-raised: #0f172a;
-  --surface-muted: #1e293b;     /* chips slate-800 */
-  --line: #1e293b;              /* slate-800 (= CHROME.grid) */
-  --line-subtle: #1e293b;
-  --ink: #f1f5f9;               /* slate-100 */
-  --ink-secondary: #94a3b8;     /* slate-400 (= CHROME.muted) */
-  --ink-muted: #64748b;         /* slate-500 */
+  --background: #f6f7f9;
+  --background-rgb: 246 247 249;
+  --surface: #ffffff;
+  --surface-rgb: 255 255 255;
+  --surface-raised: #ffffff;
+  --surface-muted: #f1f3f6;
+  --surface-muted-rgb: 241 243 246;
+  --line: #e3e6eb;
+  --line-rgb: 227 230 235;
+  --line-subtle: #edf0f4;
+  --ink: #1b2334;
+  --ink-secondary: #4a5468;
+  --ink-muted: #8a93a5;
 
-  --accent: #059669;            /* emerald-600 — CTA, badge fuente `real` */
-  --accent-hover: #10b981;      /* emerald-500 — focus ring */
-  --accent-muted: rgba(5, 150, 105, 0.15);
+  --accent: #2760db;
+  --accent-hover: #1d4fc0;
+  --accent-muted: #e9effc;
   --accent-ink: #ffffff;
 
-  --success: #34d399;           /* emerald-400 en texto sobre dark */
-  --success-muted: rgba(5, 150, 105, 0.15);
-  --warning: #fbbf24;           /* amber-400 */
-  --warning-muted: rgba(120, 53, 15, 0.4);   /* amber-950/40 */
-  --danger: #fb7185;            /* rose-400 */
-  --danger-muted: rgba(76, 5, 25, 0.4);      /* rose-950/40 */
-  --info: #38bdf8;              /* sky-400 — enlaces de fuente citada */
-  --info-muted: rgba(12, 74, 110, 0.4);
+  --success: #178a4c;
+  --success-muted: #e6f5ec;
+  --warning: #b26a05;
+  --warning-muted: #fdf3e2;
+  --danger: #c93434;
+  --danger-muted: #fdecec;
+  --info: #0d7f9e;
+  --info-muted: #e5f5fa;
 
-  --shadow-1: none;             /* MC no usa sombras: separa por borde */
-  --shadow-2: none;
+  --shadow-1: 0 1px 2px rgba(27, 35, 52, 0.06), 0 0 0 1px rgba(27, 35, 52, 0.03);
+  --shadow-2: 0 4px 12px rgba(27, 35, 52, 0.08), 0 0 0 1px rgba(27, 35, 52, 0.04);
 
-  --radius-s: 0.375rem;         /* rounded-md */
-  --radius-m: 0.5rem;           /* rounded-lg — card canónica */
+  --radius-s: 0.5rem;
+  --radius-m: 0.625rem;
   --radius-pill: 999px;
 
-  /* Sistema + base 20px (decisión de la dueña — html { font-size: 20px }) */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  /* Inter la aporta layout.tsx vía next/font (--font-inter). */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Dataviz — el color sigue a la ENTIDAD, nunca al rank.
-     Origen: src/shared/constants/colors.ts */
+  /* Dataviz — el color sigue a la ENTIDAD, nunca al rank (compartido con
+     copilot). El CHROME del chart (grid/axis/labels) sí es por-tema. */
   --viz-personal: #3987e5;
   --viz-negocio: #199e70;
   --viz-clientes: #c98500;
@@ -62,15 +71,52 @@
   --viz-warning: #fab219;
   --viz-critical: #d03b3b;
 
-  --viz-grid: #1e293b;
-  --viz-axis: #334155;
-  --viz-muted: #94a3b8;
+  --viz-grid: #e3e6eb;
+  --viz-axis: #c2c9d4;
+  --viz-muted: #8a93a5;
+}
+
+.dark {
+  --background: #0f1319;
+  --background-rgb: 15 19 25;
+  --surface: #161b23;
+  --surface-rgb: 22 27 35;
+  --surface-raised: #1b212b;
+  --surface-muted: #1a2029;
+  --surface-muted-rgb: 26 32 41;
+  --line: #2a3140;
+  --line-rgb: 42 49 64;
+  --line-subtle: #222938;
+  --ink: #e5eaf3;
+  --ink-secondary: #a6b0c2;
+  --ink-muted: #6c7689;
+
+  --accent: #6a95f0;
+  --accent-hover: #85a9f4;
+  --accent-muted: #1d2b47;
+  --accent-ink: #0f1319;
+
+  --success: #46c07e;
+  --success-muted: #15301f;
+  --warning: #e0a144;
+  --warning-muted: #322610;
+  --danger: #ee6a6a;
+  --danger-muted: #371b1b;
+  --info: #45b3d1;
+  --info-muted: #11303a;
+
+  --shadow-1: none;
+  --shadow-2: none;
+
+  --viz-grid: #2a3140;
+  --viz-axis: #3a4356;
+  --viz-muted: #6c7689;
 }
 
 /* Tipografía base del panel: 20px (pedido de la dueña, 2026-07-23; 18px le
    seguía pareciendo pequeña). Las escalas de Tailwind son rem, así que esto
    agranda TODO proporcionalmente (tablas, badges, navegación) sin tocar
-   componente por componente. */
+   componente por componente. Se conserva en la skin ejecutiva. */
 html {
   font-size: 20px;
 }

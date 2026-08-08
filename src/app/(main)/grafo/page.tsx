@@ -17,7 +17,7 @@ export default async function GrafoPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Grafo</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-secondary">
           Cerebro regulatorio: señala riesgos con fuente citada; no asesora.
         </p>
       </div>
@@ -35,7 +35,7 @@ export default async function GrafoPage() {
           Evaluaciones recientes ({vista.evaluaciones.length})
         </SectionTitle>
         {vista.evaluaciones.length === 0 ? (
-          <p className="text-sm text-slate-500">Sin evaluaciones persistidas todavía.</p>
+          <p className="text-sm text-ink-muted">Sin evaluaciones persistidas todavía.</p>
         ) : (
           <div className="space-y-4">
             {vista.evaluaciones.map((e) => (

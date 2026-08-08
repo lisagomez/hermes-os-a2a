@@ -22,7 +22,7 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold capitalize">{v.vertical}</h2>
-          <p className="text-xs text-slate-500">{DESCRIPCION[v.vertical]}</p>
+          <p className="text-xs text-ink-muted">{DESCRIPCION[v.vertical]}</p>
         </div>
         <NeutralBadge
           texto={v.gateway + (v.latencia_ms !== null ? ` · ${v.latencia_ms}ms` : '')}
@@ -32,21 +32,21 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
 
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex justify-between gap-2">
-          <dt className="text-slate-500">Bot</dt>
-          <dd className="truncate text-slate-300">{v.bot ?? '—'}</dd>
+          <dt className="text-ink-muted">Bot</dt>
+          <dd className="truncate text-ink-secondary">{v.bot ?? '—'}</dd>
         </div>
         <div className="flex justify-between gap-2">
-          <dt className="text-slate-500">Cerebro</dt>
-          <dd className="truncate text-slate-100" title={v.modelo ?? undefined}>
+          <dt className="text-ink-muted">Cerebro</dt>
+          <dd className="truncate text-ink" title={v.modelo ?? undefined}>
             {v.modelo ?? 'sin snapshot'}
           </dd>
         </div>
         {v.fallbacks.length > 0 && (
           <div>
-            <dt className="text-slate-500">Fallbacks</dt>
+            <dt className="text-ink-muted">Fallbacks</dt>
             <dd className="mt-1 space-y-0.5">
               {v.fallbacks.map((f, i) => (
-                <p key={f} className="truncate text-xs text-slate-400" title={f}>
+                <p key={f} className="truncate text-xs text-ink-secondary" title={f}>
                   {i + 1}. {f}
                 </p>
               ))}
@@ -58,13 +58,13 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
       <div className="mt-4">
         <MicroLabel>Skills ({v.skills.length})</MicroLabel>
         {v.skills.length === 0 ? (
-          <p className="mt-1 text-xs text-slate-600">sin skills instalados</p>
+          <p className="mt-1 text-xs text-ink-muted">sin skills instalados</p>
         ) : (
           <ul className="mt-1 flex flex-wrap gap-1.5">
             {v.skills.map((s) => (
               <li
                 key={s.nombre}
-                className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300"
+                className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-ink-secondary"
                 title={s.descripcion ?? undefined}
               >
                 {s.nombre}
@@ -74,7 +74,7 @@ export function VerticalCard({ v }: { v: VerticalPantheon }) {
         )}
       </div>
 
-      <footer className="mt-4 border-t border-slate-800 pt-2 text-xs text-slate-600">
+      <footer className="mt-4 border-t border-line pt-2 text-xs text-ink-muted">
         {v.snapshot_at
           ? `snapshot: ${v.snapshot_at.slice(0, 16).replace('T', ' ')} UTC`
           : 'sin snapshot del host-job todavía'}

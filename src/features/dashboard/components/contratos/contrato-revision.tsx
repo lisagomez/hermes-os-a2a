@@ -51,13 +51,13 @@ export function ContratoRevision({
   return (
     <Card as="article" className="space-y-4">
       <header className="flex flex-wrap items-center gap-3">
-        <h2 className="font-semibold text-slate-100">{c.task_id}</h2>
+        <h2 className="font-semibold text-ink">{c.task_id}</h2>
         <EstadoContratoBadge estado={c.estado} />
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-ink-secondary">
           {c.plantilla} · canal <code>{c.canal_destino ?? '—'}</code> · seq{' '}
           {c.secuencia} · pide {c.solicitante}
         </span>
-        <span className="ml-auto text-xs text-slate-500">
+        <span className="ml-auto text-xs text-ink-muted">
           fabricado {fecha(c.created_at)}
         </span>
       </header>
@@ -91,7 +91,7 @@ export function ContratoRevision({
           </p>
         </div>
       ) : (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-muted">
           <span aria-hidden>○</span> Sin banderas G1 — la revisión sigue siendo
           tuya, no del detector.
         </p>
@@ -118,7 +118,7 @@ export function ContratoRevision({
                 : `roja en fase ${red.fase ?? '?'}: ${red.motivo ?? 'ver contratos_sc.red_efimera'}`}
             </p>
           ) : (
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-ink-muted">
               sin corrida — el gate verificar-red-efimera.py aún no procesa este
               paquete
             </p>
@@ -126,10 +126,10 @@ export function ContratoRevision({
         </section>
         <section>
           <MicroLabel>Hash del paquete (G5)</MicroLabel>
-          <p className="mt-1 break-all font-mono text-xs text-slate-400" title={c.hash_paquete ?? undefined}>
+          <p className="mt-1 break-all font-mono text-xs text-ink-secondary" title={c.hash_paquete ?? undefined}>
             {c.hash_paquete ?? 'sin hash registrado'}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-muted">
             El despliegue re-verifica este hash: lo que se despliega es bit a
             bit lo que apruebas.
           </p>
@@ -141,22 +141,22 @@ export function ContratoRevision({
         {c.manifest.diff.length > 0 ? (
           <table className="mt-1 w-full text-left font-mono text-xs">
             <thead>
-              <tr className="text-slate-500">
+              <tr className="text-ink-muted">
                 <th className="py-1 pr-4 font-normal">antes (escrow-v1)</th>
                 <th className="py-1 font-normal">después (parametrizado)</th>
               </tr>
             </thead>
             <tbody>
               {c.manifest.diff.map((d, i) => (
-                <tr key={i} className="border-t border-slate-800 align-top">
-                  <td className="py-1 pr-4 text-slate-400">{d.antes}</td>
-                  <td className="py-1 text-slate-200">{d.despues}</td>
+                <tr key={i} className="border-t border-line align-top">
+                  <td className="py-1 pr-4 text-ink-secondary">{d.antes}</td>
+                  <td className="py-1 text-ink">{d.despues}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-ink-muted">
             sin líneas de diff en el manifest
           </p>
         )}
@@ -165,7 +165,7 @@ export function ContratoRevision({
       {c.manifest.criterios_aceptacion.length > 0 ? (
         <section>
           <MicroLabel>Criterios de aceptación de la spec</MicroLabel>
-          <ul className="mt-1 list-inside list-disc text-sm text-slate-300">
+          <ul className="mt-1 list-inside list-disc text-sm text-ink-secondary">
             {c.manifest.criterios_aceptacion.map((cr, i) => (
               <li key={i}>{cr}</li>
             ))}
@@ -173,7 +173,7 @@ export function ContratoRevision({
         </section>
       ) : null}
 
-      <footer className="flex flex-wrap items-center gap-4 border-t border-slate-800 pt-3 text-xs text-slate-400">
+      <footer className="flex flex-wrap items-center gap-4 border-t border-line pt-3 text-xs text-ink-secondary">
         {tiempoRevision ? (
           <span>
             <span aria-hidden>◔</span> tiempo en revisión: {tiempoRevision}

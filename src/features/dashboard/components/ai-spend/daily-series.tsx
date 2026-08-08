@@ -16,7 +16,7 @@ const PAD = { top: 12, right: 12, bottom: 24, left: 44 }
 export function DailySeries({ datos }: { datos: GastoDiario[] }) {
   const [hover, setHover] = useState<number | null>(null)
   if (datos.length === 0) {
-    return <p className="text-sm text-slate-500">Sin datos del mes todavía.</p>
+    return <p className="text-sm text-ink-muted">Sin datos del mes todavía.</p>
   }
 
   const max = Math.max(...datos.map((d) => d.costo_usd), 0.01)
@@ -78,7 +78,7 @@ export function DailySeries({ datos }: { datos: GastoDiario[] }) {
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute -top-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-slate-100"
+          className="pointer-events-none absolute -top-1 rounded border border-line bg-surface-muted px-2 py-1 text-xs text-ink"
           style={{ left: `${(x(hover) / W) * 100}%`, transform: 'translateX(-50%)' }}
         >
           {datos[hover].fecha} · ${datos[hover].costo_usd.toFixed(4)}

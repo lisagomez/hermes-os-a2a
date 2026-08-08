@@ -9,8 +9,10 @@
  */
 
 /* ============================================================
- * Skin MISSION (Mission Control) — dark-only, slate + esmeralda
- * Valores = los que hoy están hardcodeados como clases Tailwind.
+ * Skin MISSION — RETIRADA 2026-08-08 (registro histórico).
+ * Mission Control usa desde entonces la skin COPILOT/ejecutiva
+ * (con base 20px, glifos Unicode y puente alpha --*-rgb propio;
+ * ver src/app/globals.css de la raíz, que es la copia viva).
  * ============================================================ */
 [data-skin='mission'] {
   --background: #020617;        /* slate-950 — body, themeColor, manifest */
