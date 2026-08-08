@@ -98,10 +98,10 @@ def test_sin_referral_no_manda_columnas_de_campana():
     assert "campana_id" not in fila and "utm" not in fila
 
 
-# --- señal de calificación (§4) — jamás toca etapa ------------------------------
+# --- señal de calificación (§4) + avance agéntico auditado ----------------------
 
 def test_calificar_escribe_senal_y_nunca_etapa():
-    http = FakeHttp(status_code=204, body=[])
+    http = FakeHttp(status_code=200, body=[])
     leads = LeadsCrm(url="http://sb", key="k", http_client=http)
     ok = asyncio.run(leads.calificar("acme", "whatsapp", "521551", {
         "decision": "califica", "senales": ["pide cotización"], "confianza": 0.9,
@@ -114,7 +114,50 @@ def test_calificar_escribe_senal_y_nunca_etapa():
     assert parche["calificacion"] == "califica"
     assert parche["calificacion_senales"] == {"senales": ["pide cotización"], "confianza": 0.9}
     assert parche["calificado_en"]
-    assert "etapa" not in parche  # regla dura: el escritor de la etapa es el funnel
+    # el PATCH de la señal sigue sin tocar etapa: el avance va aparte, auditado
+    assert "etapa" not in parche
+
+
+def test_califica_pide_avance_auditado_via_rpc():
+    http = FakeHttp(status_code=200, body=[])
+    leads = LeadsCrm(url="http://sb", key="k", http_client=http)
+    asyncio.run(leads.calificar("acme", "whatsapp", "521551", {
+        "decision": "califica", "senales": [], "confianza": 0.83,
+    }))
+    assert len(http.llamadas) == 2
+    rpc = http.llamadas[1]
+    assert rpc["metodo"] == "post"
+    assert rpc["url"].endswith("/rest/v1/rpc/mover_lead_etapa")
+    assert rpc["json"]["p_actor"] == "agente:calificador-crm"
+    assert rpc["json"]["p_etapa"] == "calificado"
+    # guard fail-safe en el SERVIDOR: solo si sigue en 'nuevo' (jamás retrocede)
+    assert rpc["json"]["p_solo_desde"] == "nuevo"
+    assert "0.83" in rpc["json"]["p_motivo"]
+
+
+def test_no_califica_e_indeterminado_no_mueven_etapa():
+    for decision in ("no_califica", "indeterminado"):
+        http = FakeHttp(status_code=200, body=[])
+        leads = LeadsCrm(url="http://sb", key="k", http_client=http)
+        asyncio.run(leads.calificar("acme", "telegram", "42", {
+            "decision": decision, "senales": [], "confianza": 0.5,
+        }))
+        assert len(http.llamadas) == 1  # solo la señal, cero RPC
+
+
+def test_avance_fallido_es_ruidoso_pero_no_tumba_la_senal(caplog):
+    class HttpRpcRoto(FakeHttp):
+        async def post(self, url, headers=None, json=None):
+            self.llamadas.append({"metodo": "post", "url": url, "headers": headers, "json": json})
+            return type("R", (), {"status_code": 500, "json": lambda s: []})()
+
+    http = HttpRpcRoto(status_code=200, body=[])
+    leads = LeadsCrm(url="http://sb", key="k", http_client=http)
+    ok = asyncio.run(leads.calificar("acme", "whatsapp", "1", {
+        "decision": "califica", "senales": [], "confianza": 0.9,
+    }))
+    assert ok  # la señal quedó; el equipo puede mover a mano
+    assert any("avance agéntico NO aplicado" in r.message for r in caplog.records)
 
 
 def test_calificar_fallo_es_ruidoso(caplog):

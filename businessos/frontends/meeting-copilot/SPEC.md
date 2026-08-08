@@ -826,10 +826,16 @@ asesor) con evento `reprogramar`. Sin margen → estado con criterio (contactar 
 ### 19.6 Seams CRM, pago e IA
 
 - **CRM**: desde 2026-08-08 el workspace `/crm` (port del panel de Mission Control) vive
-  aquí y la doctrina pasa de "NUNCA escribe `leads`" a: el copilot **solo escribe la
-  ETAPA** de `leads`, vía una única server action (`features/crm/actions.ts`) detrás del
-  login+allowlist; jamás inserta ni borra leads. Lecturas por PostgREST con service_role
-  server-only (`features/crm/data.ts` — las vistas del embudo están revocadas para
+  aquí. Escrituras del copilot sobre `leads`: (a) **mover de etapa** vía la RPC auditada
+  `mover_lead_etapa` (server action única en `features/crm/actions.ts`, actor
+  `humano:<email de la sesión>`; cada movimiento queda en `leads_movimientos` y se pinta
+  en el feed de Actividad junto a los del agente 🤖); (b) **alta de leads origen
+  `copilot`** — reservas (`/api/reservar`) y casos de Pre-Discovery (`/api/crm/leads`,
+  fix de la fuga: antes los casos vivían solo en localStorage), siempre upsert
+  ignore-duplicates que jamás pisa ni regresa de etapa. La UX es el **tablero kanban**
+  (drag & drop por etapa, `features/crm/TableroLeads.tsx`) con vista alterna
+  embudo+tabla. Lecturas por PostgREST con service_role server-only
+  (`features/crm/data.ts` — las vistas del embudo están revocadas para
   anon/authenticated) y FUERA del seam `NEXT_PUBLIC_COPILOT_DATA`: el CRM es real-source
   por diseño y lo declara con su chip propio ("datos: supabase" / "sin conexión").
   Los flujos automáticos siguen la regla de siempre: garantizan los insumos (`leadId`,

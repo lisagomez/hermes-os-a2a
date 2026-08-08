@@ -5,6 +5,7 @@ import {
   conversacionResumenSchema,
   etapaEmbudoSchema,
   leadResumenSchema,
+  movimientoSchema,
   type CrmVista,
   type EtapaEmbudo,
 } from './types'
@@ -53,44 +54,66 @@ export async function obtenerEmbudo(): Promise<{ embudo: EtapaEmbudo[]; perdidos
 export async function obtenerCrm(): Promise<CrmVista> {
   // Los agregados viven en vistas (supabase-vistas-crm-embudo.sql): PostgREST
   // no expone GROUP BY inline.
-  const [porEtapa, conversaciones, leads] = await Promise.all([
+  const [porEtapa, conversaciones, leads, movimientos] = await Promise.all([
     sb('v_embudo_leads?select=etapa,cuenta', z.array(etapaEmbudoSchema)),
     sb(
       'v_crm_conversaciones_resumen?select=estado,nivel,canal,cuenta&order=estado,nivel',
       z.array(conversacionResumenSchema)
     ),
     sb(
-      'leads?select=lead_id,origen,canal,empresa,contacto,etapa,updated_at&order=updated_at.desc&limit=50',
+      'leads?select=lead_id,origen,canal,empresa,contacto,etapa,calificacion,updated_at&order=updated_at.desc&limit=50',
       z.array(leadResumenSchema)
     ),
+    sb(
+      'leads_movimientos?select=id,lead_id,de_etapa,a_etapa,actor,motivo,created_at&order=created_at.desc&limit=30',
+      z.array(movimientoSchema)
+    ),
   ])
-  return { ...componerEmbudo(porEtapa), conversaciones, leads }
+  return { ...componerEmbudo(porEtapa), conversaciones, leads, movimientos }
 }
 
-export async function moverLeadEtapaDb(leadId: string, etapa: string): Promise<void> {
-  // ÚNICA escritura del copilot sobre `leads`: mover un lead de etapa (acción
-  // humana desde /crm, detrás del login + allowlist). El check constraint de
-  // la BD es el backstop del dominio; PostgREST devuelve la fila afectada para
-  // no reportar éxito sobre un lead inexistente (fallo visible, nunca
-  // silencioso).
+export async function moverLeadEtapaDb(
+  leadId: string,
+  etapa: string,
+  actor: string,
+  motivo = ''
+): Promise<void> {
+  // Mover de etapa va por la RPC AUDITADA mover_lead_etapa (migración
+  // supabase-crm-movimientos.sql): update + fila en leads_movimientos en una
+  // transacción, con actor 'humano:<email>' | 'agente:<nombre>'. Es el ÚNICO
+  // escritor de etapa del sistema (tablero humano y agentes comparten canal).
+  // Lanza si el lead no existe (fallo visible, nunca silencioso).
   const url = supabaseUrl()
   if (!url) throw new Error('SUPABASE_URL ausente (workspace CRM)')
-  const res = await fetch(
-    `${url.replace(/\/$/, '')}/rest/v1/leads?lead_id=eq.${encodeURIComponent(leadId)}`,
-    {
-      method: 'PATCH',
-      headers: {
-        ...sbHeaders(),
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify({ etapa, updated_at: new Date().toISOString() }),
-      cache: 'no-store',
-    }
-  )
-  if (!res.ok) throw new Error(`leads PATCH etapa: HTTP ${res.status}`)
-  const filas = (await res.json()) as unknown[]
-  if (filas.length !== 1) {
-    throw new Error(`leads PATCH etapa: ${filas.length} filas afectadas para ${leadId}`)
+  const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/rpc/mover_lead_etapa`, {
+    method: 'POST',
+    headers: { ...sbHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_lead_id: leadId, p_etapa: etapa, p_actor: actor, p_motivo: motivo }),
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`rpc mover_lead_etapa: HTTP ${res.status}`)
+  const filas = (await res.json()) as { etapa?: string }[]
+  if (filas.length !== 1 || filas[0].etapa !== etapa) {
+    throw new Error(`rpc mover_lead_etapa: respuesta inesperada para ${leadId}`)
   }
+}
+
+// Alta de lead con origen 'copilot' (fix de la fuga de Pre-Discovery,
+// 2026-08-08): upsert por lead_id con ignore-duplicates — un lead ya
+// existente NUNCA se pisa ni regresa de etapa (mismo criterio que
+// /api/reservar y web2/a2a).
+export async function crearLeadDb(fila: Record<string, unknown>): Promise<void> {
+  const url = supabaseUrl()
+  if (!url) throw new Error('SUPABASE_URL ausente (workspace CRM)')
+  const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/leads?on_conflict=lead_id`, {
+    method: 'POST',
+    headers: {
+      ...sbHeaders(),
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=ignore-duplicates,return=minimal',
+    },
+    body: JSON.stringify(fila),
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`leads INSERT: HTTP ${res.status}`)
 }

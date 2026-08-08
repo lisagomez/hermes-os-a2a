@@ -1,7 +1,5 @@
 import { Callout, Chip, SectionHeader } from '@/shared/components/ui'
-import { ConversacionesPanel } from '@/features/crm/ConversacionesPanel'
-import { EmbudoCanvas } from '@/features/crm/EmbudoCanvas'
-import { LeadsTable } from '@/features/crm/LeadsTable'
+import { CrmWorkspace } from '@/features/crm/CrmWorkspace'
 import { moverLeadEtapa } from '@/features/crm/actions'
 import { crmDisponible, obtenerCrm } from '@/features/crm/data'
 import type { CrmVista } from '@/features/crm/types'
@@ -62,26 +60,10 @@ export default async function CrmPage() {
     )
   }
 
-  const { embudo, perdidos, conversaciones, leads } = carga.vista
   return (
     <div>
       <Cabecera chip={<Chip tono="success">datos: supabase</Chip>} />
-      <div className="space-y-4">
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <EmbudoCanvas embudo={embudo} perdidos={perdidos} />
-          </div>
-          <ConversacionesPanel conversaciones={conversaciones} />
-        </div>
-        <div>
-          <h2 className="text-[13px] font-semibold text-ink">Leads</h2>
-          <p className="mt-0.5 mb-3 text-[12px] text-ink-secondary">
-            Últimos 50. Mover un lead de etapa actualiza el embudo (única acción de escritura del
-            workspace).
-          </p>
-          <LeadsTable leads={leads} accionMover={moverLeadEtapa} />
-        </div>
-      </div>
+      <CrmWorkspace vista={carga.vista} accionMover={moverLeadEtapa} />
     </div>
   )
 }

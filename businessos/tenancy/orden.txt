@@ -76,3 +76,6 @@ businessos/frontends/control-interno/supabase/migrations/20260712010000_finances
 
 # ── Endurecimiento del trigger de auth (fusión negocio + control-interno) ────
 businessos/migrations/harden_handle_new_user.sql
+
+# ── CRM: canal auditado de movimientos de etapa (tablero + agentes, 2026-08-08) ──
+businessos/migrations/supabase-crm-movimientos.sql

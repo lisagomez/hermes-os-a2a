@@ -279,6 +279,9 @@ seguir dando **una sola fila**.
 |---|---|---|
 | `public.leads` es el único destino canónico | Ya recibe 5 de los canales y es la fuente del panel `/crm` | vigente |
 | El panel `/crm` vive en **Meeting Copilot** (movido desde Mission Control) | Decisión de Elisa: mover, no copiar; MC redirige. Doctrina del copilot: solo escribe la etapa | 2026-08-08 |
+| La etapa se mueve SOLO vía la RPC auditada `mover_lead_etapa` (tablero kanban humano Y agentes) | Cada movimiento queda en `leads_movimientos` con actor `humano:<email>` / `agente:<nombre>` y motivo — visible en el feed de Actividad de `/crm`. Migración `supabase-crm-movimientos.sql` | 2026-08-08 |
+| El agente `calificador-crm` auto-avanza `nuevo→calificado` cuando su señal es `califica` | Decisión de Elisa (el agéntico mueve leads). Acotado fail-safe: guard `p_solo_desde='nuevo'` en el SERVIDOR — jamás retrocede ni pisa trabajo del equipo; la señal (`calificacion`) sigue siendo columna aparte | 2026-08-08 |
+| Pre-Discovery SIEMBRA el lead en el canónico al crear un caso | Fix de la fuga: los casos vivían solo en localStorage y el CRM nunca los veía. `/api/crm/leads` (server del copiloto, mismo escritor del origen `copilot`), upsert ignore-duplicates por `copilot-pd-<hash empresa+contacto>` | 2026-08-08 |
 | **Un escritor por origen** | Doctrina del repo: dos escritores sobre la misma fila producen verdades que se contradicen | 2026-07-16 |
 | El panel `/crm` solo escribe la etapa | Mover de etapa es su única escritura; el resto es lectura | 2026-07-23 |
 | WhatsApp Cloud API directa, sin BSP | Dictamen P-01 | 2026-07-28 |

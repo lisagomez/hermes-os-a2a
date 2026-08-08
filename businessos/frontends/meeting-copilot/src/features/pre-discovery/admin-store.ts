@@ -12,7 +12,15 @@ import { nuevoId } from '@/shared/lib/format'
 
 export interface EntradaBitacora {
   id: string
-  accion: 'crear_caso' | 'analizar' | 'regenerar_bloque' | 'exportar_activo' | 'editar_settings'
+  accion:
+    | 'crear_caso'
+    | 'analizar'
+    | 'regenerar_bloque'
+    | 'exportar_activo'
+    | 'editar_settings'
+    // Siembra del lead al CRM canónico (fix fuga 2026-08-08) y su fallo visible.
+    | 'lead_crm'
+    | 'lead_crm_error'
   detalle: string
   at: string
 }

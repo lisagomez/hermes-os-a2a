@@ -1281,6 +1281,18 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   check de la BD). **PR B (mismo día): retiro consumado en Mission Control** — ruta,
   componentes, tipos y nav removidos; `/crm` de MC redirige aquí (next.config);
   RUNBOOK-PIPELINE-COMERCIAL y DEPLOY-mission-control apuntan al copiloto.
+- [x] **Tablero kanban + canal auditado + agente que mueve leads (2026-08-08, 2ª tanda)**:
+  `/crm` gana su experiencia operativa — tablero por etapa con **drag & drop** (@dnd-kit,
+  patrón de control-interno) y vista alterna embudo+tabla. TODO movimiento de etapa va
+  por la RPC **`mover_lead_etapa`** (migración `supabase-crm-movimientos.sql`, APLICADA):
+  update + fila de auditoría en `leads_movimientos` con actor `humano:<email>` /
+  `agente:<nombre>` y motivo, visibles en el feed de **Actividad** (👤/🤖) y en cada
+  tarjeta. El agente **calificador-crm** (crm-canales) ahora auto-avanza
+  `nuevo→calificado` cuando su señal es `califica` — guard `p_solo_desde` en el servidor:
+  jamás retrocede un lead que el equipo avanzó. **Fix de la fuga de leads**: los casos de
+  Pre-Discovery vivían SOLO en localStorage; ahora la alta siembra el lead en
+  `public.leads` (origen `copilot`, `/api/crm/leads`, upsert por hash empresa+contacto)
+  con fallo ruidoso en la bitácora admin.
 - [x] **Tercera pasada — el bloque regulatorio desperdiciaba el grafo (2026-08-08)**: con los
   7 bloques ya vivos, el dictamen del lead legal salió `dudoso` en los 6 conceptos y con
   `categoria: null` — o sea, cero valor, justo en el bloque más vendible para un despacho.
