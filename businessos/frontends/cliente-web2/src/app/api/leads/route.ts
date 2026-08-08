@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient, hasServiceConfig } from '@/lib/supabase/service';
+import { leadIdDeEmail } from '@/lib/leads/lead-id';
 
 // Validación estricta de la entrada del formulario público (landing).
 const LeadSchema = z.object({
@@ -33,14 +34,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Servicio no disponible' }, { status: 503 });
   }
 
-  const leadId = `web2-${crypto.randomUUID()}`;
+  // Clave natural compartida con el chat (RUNBOOK P2): mismo email → misma fila,
+  // venga por formulario o por chat. Un reenvío (doble clic, reintento, la misma
+  // persona mañana) actualiza la fila en vez de duplicarla.
+  const leadId = leadIdDeEmail(lead.email);
+  // Sin `etapa` a propósito: la fila nueva toma el default 'nuevo' de la tabla y
+  // un reenvío NO regresa a 'nuevo' un lead que el equipo ya avanzó de etapa.
   const row = {
     lead_id: leadId,
     origen: 'web2' as const,
     empresa: lead.empresa ?? '',
     contacto: `${lead.nombre} <${lead.email}>`,
     mensaje: lead.mensaje ?? '',
-    etapa: 'nuevo' as const,
     datos: {
       source: 'web2-landing',
       nombre: lead.nombre,
@@ -53,9 +58,10 @@ export async function POST(request: Request) {
 
   try {
     const supabase = createServiceClient();
-    const { error } = await supabase.from('leads').insert(row);
+    // Upsert por lead_id: el conflicto es éxito (misma persona, fila actualizada).
+    const { error } = await supabase.from('leads').upsert(row, { onConflict: 'lead_id' });
     if (error) {
-      console.error('[leads] insert falló:', error.message);
+      console.error('[leads] upsert falló:', error.message);
       return NextResponse.json({ ok: false, error: 'No se pudo guardar' }, { status: 500 });
     }
   } catch (err) {

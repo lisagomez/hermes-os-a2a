@@ -48,7 +48,7 @@ def test_upsert_construye_fila_web2():
     assert "merge-duplicates" in call["headers"]["Prefer"]
     fila = call["json"]
     assert fila["origen"] == "web2"
-    assert fila["etapa"] == "nuevo"
+    assert "etapa" not in fila  # la etapa no viaja: el default cubre la fila nueva y el upsert no la resetea
     assert fila["contacto"] == "Ana <ana@empresa.com>"
     assert fila["mensaje"] == "agente de pedidos"
     assert fila["lead_id"] == lead_id_de_email("ana@empresa.com")

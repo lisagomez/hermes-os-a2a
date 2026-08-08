@@ -88,6 +88,7 @@ def test_lead_estructurado_persistido(monkeypatch):
     def handler(request: httpx.Request) -> httpx.Response:
         import json
         capturado.update(json.loads(request.content))
+        capturado["_url"] = str(request.url)
         return httpx.Response(201)
 
     cola = ejecutar(VentasExecutor(store=store_mock(handler)), new_data_message(LEAD_OK))
@@ -96,7 +97,7 @@ def test_lead_estructurado_persistido(monkeypatch):
     assert isinstance(cola.eventos[0], Task)
     assert estados(cola)[-1] == TaskState.TASK_STATE_COMPLETED
     data = artifact_de(cola)
-    assert data["lead_id"].startswith("lead-")
+    assert data["lead_id"].startswith("a2a-")  # clave natural: contacto+empresa
     assert data["etapa"] == "nuevo"
     assert data["persistido"] is True
     assert data["oferta"] == OFERTA
@@ -104,8 +105,31 @@ def test_lead_estructurado_persistido(monkeypatch):
     # La fila enviada a PostgREST lleva el contrato de la tabla:
     assert capturado["origen"] == "a2a"
     assert capturado["empresa"] == "ACME S.A."
-    assert capturado["etapa"] == "nuevo"
+    assert "etapa" not in capturado  # el default cubre la fila nueva; el upsert no resetea etapas avanzadas
     assert capturado["datos"] == {"presupuesto": 2000}
+    assert "on_conflict=lead_id" in capturado["_url"]  # upsert idempotente (RUNBOOK P3)
+
+
+def test_mismo_lead_mismo_id_dos_envios(monkeypatch):
+    """RUNBOOK P3: dos envios del mismo contacto -> el MISMO lead_id (una fila)."""
+    ids = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json
+        ids.append(json.loads(request.content)["lead_id"])
+        return httpx.Response(201)
+
+    ejecutar(VentasExecutor(store=store_mock(handler)), new_data_message(LEAD_OK))
+    ejecutar(VentasExecutor(store=store_mock(handler)), new_data_message(dict(LEAD_OK)))
+    assert len(ids) == 2 and ids[0] == ids[1]
+
+
+def test_texto_libre_no_colapsa_ids():
+    """Dos leads de texto libre distintos JAMAS comparten lead_id (sin clave natural)."""
+    from executor import lead_id_de
+    a = lead_id_de({"empresa": "", "contacto": "", "mensaje": "hola", "datos": {}})
+    b = lead_id_de({"empresa": "", "contacto": "", "mensaje": "adios", "datos": {}})
+    assert a != b and a.startswith("lead-") and b.startswith("lead-")
 
 
 def test_texto_libre_es_lead_valido():

@@ -75,7 +75,8 @@ class LeadsStore:
             "empresa": lead.get("empresa") or "",
             "contacto": _contacto(nombre, email, telefono),
             "mensaje": lead.get("interes") or "",
-            "etapa": "nuevo",
+            # Sin `etapa`: la fila nueva toma el default 'nuevo' de la tabla y un
+            # upsert del mismo contacto NO regresa a 'nuevo' una etapa ya avanzada.
             "datos": {
                 "source": "web2-chat",
                 "nombre": nombre,

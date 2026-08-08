@@ -37,9 +37,12 @@ class LeadsStore:
         return bool(self._url and self._key)
 
     async def insertar(self, fila: dict) -> bool:
-        """Guarda el lead. True = persistido; False = sin Supabase configurado.
+        """Guarda el lead (UPSERT por lead_id). True = persistido; False = sin
+        Supabase configurado.
 
-        LeadsError si Supabase esta configurado y el INSERT no quedo (fallo
+        Idempotente (RUNBOOK P3): el mismo lead_id actualiza la fila existente
+        en vez de fallar por unique — el conflicto es exito, no error.
+        LeadsError si Supabase esta configurado y la escritura no quedo (fallo
         visible: el task A2A sale failed y el tercero puede reintentar).
         """
         if not self.activo:
@@ -48,9 +51,10 @@ class LeadsStore:
             "apikey": self._key,
             "Authorization": f"Bearer {self._key}",
             "Content-Type": "application/json",
-            "Prefer": "return=minimal",
+            # Upsert: si el lead_id ya existe, fusiona en vez de fallar por unique.
+            "Prefer": "resolution=merge-duplicates,return=minimal",
         }
-        url = f"{self._url}/rest/v1/leads"
+        url = f"{self._url}/rest/v1/leads?on_conflict=lead_id"
         try:
             if self._http is not None:
                 r = await self._http.post(url, headers=headers, json=fila)
@@ -59,6 +63,6 @@ class LeadsStore:
                     r = await client.post(url, headers=headers, json=fila)
         except httpx.HTTPError as exc:
             raise LeadsError(f"no se pudo guardar el lead: {type(exc).__name__}") from exc
-        if r.status_code not in (200, 201):
+        if r.status_code not in (200, 201, 204):
             raise LeadsError(f"no se pudo guardar el lead (HTTP {r.status_code})")
         return True
