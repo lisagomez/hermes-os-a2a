@@ -1562,7 +1562,9 @@ teniendo "juicio sucesorio", "inmobiliario" teniendo "inmueble", "property law")
 reales del sitio del despacho pasan de 1 a 5 clasificando. **NO** se añaden etiquetas amplias de
 área de práctica ("derecho corporativo", "environmental consulting"): abarcan varias categorías,
 el clasificador devuelve UNA, y un dictamen seguro de sí mismo sobre una pregunta que nadie hizo
-es peor que el fail-safe. Hay test que lo fija como decisión, no como olvido.
+es peor que el fail-safe. Hay test que lo fija como decisión, no como olvido. *(Segunda
+pasada, mismo día: se suman `inmueble`/`inmuebles` a secas — el sitio dice "Abogados
+Especialistas En Inmuebles" y solo existían las formas compuestas.)*
 
 ## Línea Visualizador del grafo (App C — explorador regulatorio) 🟡 paso 1 completo (2026-08-03)
 
