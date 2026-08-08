@@ -135,3 +135,12 @@ Hecho en el deploy inicial; repetir tras cada `deploy --prod`:
 3. `POST /api/asesor/pregunta` con body válido (y sesión) → 200 con `pregunta` +
    `justificacion` + `modelo` (prueba la clave end-to-end). `POST /api/asesor/insights`
    con `{}` → error de contrato ("Cuerpo inválido"), no 500.
+4. **Ejercitar el MOTOR de Pre-Discovery, no solo sus vistas** (añadido 2026-08-08).
+   `POST /api/pre-discovery/analizar` con un intake real, **una vez por bloque**
+   (`perfil`, `sitio`, `competencia`, `diferenciacion`, `foda`, `tecnologia`, `brief`)
+   → 200 con `datos` + `modelo` + `usage`. Un 502 *"no cumplió el contrato"* significa
+   que el módulo está sirviendo el **mock** aunque la UI cargue perfecta: las 14 rutas
+   dieron 200 durante semanas con los 7 bloques caídos, porque el pipeline degrada al
+   mock por diseño y el fallo solo se ve en la procedencia de cada bloque. Renderizar
+   no es funcionar. En dev, el equivalente barato es
+   `PREDISCOVERY_SMOKE_REAL=1 OPENROUTER_API_KEY=… npx vitest run prompt-prediscovery.real`.

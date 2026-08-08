@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { construirUsuarioBloque, validarBloqueIA } from './prompt-prediscovery'
+import { ESQUEMAS_BLOQUE, construirUsuarioBloque, describirEsquema, validarBloqueIA } from './prompt-prediscovery'
+import type { BloqueLLM } from './prompt-prediscovery'
 import type { IntakeLead } from '@/features/pre-discovery/types'
 
 const INTAKE: IntakeLead = {
@@ -22,6 +23,41 @@ describe('construirUsuarioBloque', () => {
   it('sin sitio, instruye a no marcar hechos fuera del intake', () => {
     const p = construirUsuarioBloque('foda', { intake: INTAKE })
     expect(p).toContain('SIN TEXTO DEL SITIO')
+  })
+
+  it('lleva al modelo los campos opcionales del intake cuando existen', () => {
+    const p = construirUsuarioBloque('foda', {
+      intake: { ...INTAKE, modeloNegocio: 'Holding', direccion: 'Condesa, CDMX', linkedin: 'linkedin.com/in/x' },
+    })
+    expect(p).toContain('Holding')
+    expect(p).toContain('Condesa, CDMX')
+    expect(p).toContain('linkedin.com/in/x')
+  })
+})
+
+// El motivo de que existan: en producción los 7 bloques fallaban 3/3 con
+// "no cumplió el contrato" porque el prompt pedía "la forma exacta" sin decir
+// nunca cuál era; el modelo envolvía la salida en {"foda": …} y renombraba
+// `texto` a `descripcion`. La forma se DERIVA del esquema para que no pueda
+// desincronizarse: si el contrato cambia, el prompt cambia con él.
+describe('describirEsquema — la forma pedida se deriva del contrato', () => {
+  it('describe claves, enums, límites y opcionalidad', () => {
+    const forma = describirEsquema(ESQUEMAS_BLOQUE.foda)
+    expect(forma).toContain('"fortalezas"')
+    expect(forma).toContain('"texto": string (3-400 caracteres)')
+    expect(forma).toContain('"hecho"|"hipotesis"|"recomendacion"')
+    expect(forma).toContain('"evidencia"?')
+    expect(forma).toContain('máx 6 elementos')
+  })
+
+  it('TODO bloque describe TODAS las claves de su esquema (guardián de deriva)', () => {
+    for (const [bloque, esquema] of Object.entries(ESQUEMAS_BLOQUE)) {
+      const prompt = construirUsuarioBloque(bloque as BloqueLLM, { intake: INTAKE })
+      for (const clave of Object.keys(esquema.shape)) {
+        expect(prompt, `bloque ${bloque}: falta la clave ${clave} en la forma pedida`).toContain(`"${clave}"`)
+      }
+      expect(prompt).toContain('sin envolverlo en')
+    }
   })
 })
 

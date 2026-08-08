@@ -1242,6 +1242,24 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   en producción). Categoría propia `google` en el launcher, de modo que toda herramienta
   Google futura cae en esa sección sin tocar el grid.
 - [x] **5 vistas del buzón + 16ª herramienta** (PR #208) — ver §Departamento de Buzón.
+- [x] **QA de Pre-Discovery en producción + 3 correcciones (2026-08-08)**: al revisar el
+  bloque FODA de un lead real se descubrió que **los 7 bloques LLM fallaban 3/3** en
+  producción (`502 "no cumplió el contrato"`) desde que existe el módulo — todo el
+  Pre-Discovery venía sirviendo el **mock**, con su procedencia declarada, sin que nadie
+  lo leyera como avería. Causas y fixes: (a) el prompt pedía *"la forma exacta pedida"*
+  y **nunca decía cuál era** → el modelo envolvía la salida en `{"<bloque>": …}` y
+  renombraba claves (`texto`→`descripcion`); ahora la forma se **DERIVA del esquema zod**
+  (`describirEsquema`) y viaja en el prompt, con test guardián de deriva por bloque;
+  (b) la ruta declaraba un **esquema paralelo del intake** sin `modeloNegocio`/`direccion`/
+  `linkedin` y zod los despojaba en silencio — el analista los veía como "no proporcionado"
+  y llegó a listarlo como *debilidad* del lead (hallazgo fabricado por el bug); ahora hay
+  un `IntakeSchema` compartido; (c) `extraerUrls` **nunca compilaba el LinkedIn** del
+  contacto pese a tener casilla propia, contra la doctrina de compilación multi-fuente.
+  Verificación: 280 tests + 3/3 sabotajes cazados + **smoke real gated** que exige que el
+  modelo obedezca el contrato de los 7 bloques (`PREDISCOVERY_SMOKE_REAL=1`), y QA en
+  producción re-corrido tras el deploy. El smoke de las 14 rutas del runbook pasaba con el
+  módulo roto: **renderizar no es funcionar** — §4 del runbook ahora exige ejercitar el
+  motor.
 - [ ] Post-merge agendamiento: ~~aplicar fase14~~ (**aplicado 2026-08-06** junto
   con la capa de tenencia: sin él, el registro `app.tablas_tenant_ajeno`
   declaraba 7 tablas fantasma en prod), host-job notificador real

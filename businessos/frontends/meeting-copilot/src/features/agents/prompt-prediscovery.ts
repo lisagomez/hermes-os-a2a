@@ -108,6 +108,49 @@ export interface ContextoAnalisis {
   bloquesPrevios?: unknown // p. ej. para el brief: foda + diferenciación
 }
 
+/** Describe un esquema zod como texto compacto para el prompt. Se DERIVA del
+ *  esquema, nunca se escribe a mano: si el contrato cambia, la forma que se le
+ *  pide al modelo cambia con él (no puede desincronizarse en silencio). */
+export function describirEsquema(esquema: z.ZodTypeAny): string {
+  const def = esquema._def as { typeName?: string; [k: string]: unknown }
+  switch (def.typeName) {
+    case 'ZodObject': {
+      const shape = (esquema as unknown as z.ZodObject<z.ZodRawShape>).shape
+      const campos = Object.entries(shape).map(([clave, valor]) => {
+        const v = valor as z.ZodTypeAny
+        const opcional = v.isOptional() ? '?' : ''
+        return `"${clave}"${opcional}: ${describirEsquema(v)}`
+      })
+      return `{${campos.join(', ')}}`
+    }
+    case 'ZodArray': {
+      const elemento = describirEsquema(def.type as z.ZodTypeAny)
+      const max = (def.maxLength as { value: number } | null)?.value
+      const min = (def.minLength as { value: number } | null)?.value
+      const limites = [min !== undefined ? `mín ${min}` : '', max !== undefined ? `máx ${max}` : ''].filter(Boolean).join(', ')
+      return `[${elemento}]${limites ? ` (${limites} elementos)` : ''}`
+    }
+    case 'ZodOptional':
+    case 'ZodNullable':
+      return describirEsquema(def.innerType as z.ZodTypeAny)
+    case 'ZodEnum':
+      return (def.values as string[]).map((v) => `"${v}"`).join('|')
+    case 'ZodString': {
+      const checks = (def.checks ?? []) as { kind: string; value: number }[]
+      const min = checks.find((c) => c.kind === 'min')?.value
+      const max = checks.find((c) => c.kind === 'max')?.value
+      const rango = min !== undefined || max !== undefined ? ` (${min ?? 0}-${max ?? '∞'} caracteres)` : ''
+      return `string${rango}`
+    }
+    case 'ZodNumber':
+      return 'number'
+    case 'ZodBoolean':
+      return 'boolean'
+    default:
+      return 'valor'
+  }
+}
+
 export function construirUsuarioBloque(bloque: BloqueLLM, c: ContextoAnalisis): string {
   const partes = [
     `TAREA: ${INSTRUCCION_BLOQUE[bloque]}`,
@@ -119,7 +162,13 @@ export function construirUsuarioBloque(bloque: BloqueLLM, c: ContextoAnalisis): 
   if (c.perfilPrevio) partes.push('', `PERFIL YA CONSOLIDADO: ${JSON.stringify(c.perfilPrevio).slice(0, 1500)}`)
   if (c.competenciaPrevia) partes.push('', `BENCHMARK YA PRODUCIDO: ${JSON.stringify(c.competenciaPrevia).slice(0, 2500)}`)
   if (c.bloquesPrevios) partes.push('', `ANÁLISIS PREVIO (para consistencia): ${JSON.stringify(c.bloquesPrevios).slice(0, 2500)}`)
-  partes.push('', `Responde SOLO el JSON del bloque "${bloque}" con la forma exacta pedida.`)
+  partes.push(
+    '',
+    `FORMA EXACTA del JSON de salida (objeto RAÍZ, sin envolverlo en {"${bloque}": …}, sin markdown):`,
+    describirEsquema(ESQUEMAS_BLOQUE[bloque]),
+    '',
+    `Responde SOLO ese JSON. Usa EXACTAMENTE esos nombres de clave y respeta los límites indicados.`
+  )
   return partes.join('\n')
 }
 
