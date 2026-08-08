@@ -9,6 +9,7 @@ import { RefreshCw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Callout, Card, Chip, Button } from '@/shared/components/ui'
 import type {
+  DatosEnriquecimiento,
   Bloque,
   BloqueId,
   DatosBrief,
@@ -479,6 +480,80 @@ export function BriefView({ datos, icono: Icono }: { datos: DatosBrief; icono?: 
       <Callout tono="success" variante="inline" titulo="Siguiente paso recomendado">
         <p className="text-[13px]">{datos.siguientePaso}</p>
       </Callout>
+    </div>
+  )
+}
+
+export function EnriquecimientoView({ datos }: { datos: DatosEnriquecimiento }) {
+  const sinNada = datos.hallazgos.length === 0 && datos.bloqueos.length === 0
+  return (
+    <div className="space-y-4 text-sm">
+      {datos.hallazgos.length > 0 && (
+        <div>
+          <h4 className="mb-2 font-medium">Hallazgos</h4>
+          <ul className="space-y-2">
+            {datos.hallazgos.map((h) => (
+              <li key={h.campo} className="flex flex-wrap items-baseline gap-2">
+                <span className="text-muted-foreground">{h.campo}:</span>
+                <span className="font-medium">{h.valor}</span>
+                <span
+                  className={
+                    h.veredicto === 'confirmado'
+                      ? 'rounded px-1.5 py-0.5 text-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                      : 'rounded px-1.5 py-0.5 text-xs bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                  }
+                >
+                  {h.veredicto}
+                </span>
+                <span className="text-xs text-muted-foreground">fuente: {h.fuente}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {datos.bloqueos.length > 0 && (
+        <div>
+          {/* Un bloqueo NO es un fallo: es el gate regulatorio impidiendo que se
+              busque un dato que todavía no es lícito buscar. Se muestra con su
+              checklist y su fuente, como cualquier dictamen. */}
+          <h4 className="mb-2 font-medium">Bloqueado por cumplimiento</h4>
+          {datos.bloqueos.map((b) => (
+            <div key={b.concepto} className="mb-3 rounded border border-amber-500/40 bg-amber-500/5 p-3">
+              <p className="font-medium">{b.concepto}</p>
+              <p className="text-muted-foreground">{b.razon}</p>
+              {b.checklist.length > 0 && (
+                <ul className="mt-2 list-disc pl-5 text-xs text-muted-foreground">
+                  {b.checklist.map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
+              )}
+              {b.fuente && <p className="mt-2 text-xs">Fuente: {b.fuente.cita}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {datos.gate69b && (
+        <p className="text-xs text-muted-foreground">
+          Gate 69-B CFF: {datos.gate69b.pasa ? 'superado' : 'no superado'} — {datos.gate69b.razon}
+        </p>
+      )}
+
+      {sinNada && <p className="text-muted-foreground">{datos.disclaimer || 'Sin hallazgos y sin bloqueos.'}</p>}
+
+      <p className="text-xs text-muted-foreground">
+        Costo de esta corrida: ${datos.costoUsd.toFixed(4)} USD · {datos.persistido ? 'registrado en el ledger' : 'sin registrar'}
+      </p>
+      {datos.disclaimer && !sinNada && <p className="text-xs text-muted-foreground">{datos.disclaimer}</p>}
+      {datos.fuentes.length > 0 && (
+        <ul className="text-xs text-muted-foreground">
+          {datos.fuentes.map((f) => (
+            <li key={f.cita}>· {f.cita}</li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

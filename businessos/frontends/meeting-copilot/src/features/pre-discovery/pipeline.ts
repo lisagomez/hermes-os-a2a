@@ -7,6 +7,7 @@
 // su costo al ledger del activo del caso (jamás se reemplaza).
 
 import type { Bloque, BloqueId, CasoPreDiscovery, DatosSitio, DatosTecnologia } from './types'
+import { type SalidaEnriquecimiento, normalizarEnriquecimiento } from './enriquecimiento'
 import { ORDEN_BLOQUES } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo, type EvaluacionGrafo } from './grafo'
@@ -85,6 +86,44 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
         confianza: 'alta',
         procedencia: { metodo: 'observado', fuente: 'grafo regulatorio (dictamen con fuentes citadas)' },
         requiereValidacion: evaluacion.estado === 'dudoso' ? ['Dictamen dudoso: requiere revisión posterior'] : [],
+        error: null,
+        generadoAt: ahora,
+      },
+    }
+  }
+
+  if (bloque === 'enriquecimiento') {
+    // Waterfall por fuentes públicas (RFC → DENUE → gate 69-B → patrón de
+    // dominio) detrás de su gate. Sin servicio no hay bloque: el catch de
+    // correrBloque cae al mock DECLARADO, que no inventa contacto alguno.
+    const respuesta = await fetch('/api/pre-discovery/enriquecer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leadId: caso.leadId,
+        empresa: caso.intake.giro,
+        contacto: caso.intake.email,
+        telefono: caso.intake.telefono,
+        campos: ['email', 'telefono'],
+      }),
+    })
+    const data = (await respuesta.json().catch(() => ({}))) as { datos?: SalidaEnriquecimiento; error?: string }
+    if (!respuesta.ok || !data.datos) throw new Error(data.error ?? `HTTP ${respuesta.status}`)
+    const datos = normalizarEnriquecimiento(caso.leadId, data.datos)
+    const hayBloqueo = datos.bloqueos.length > 0
+    return {
+      bloque: {
+        // Un gate que bloquea NO es un error: es el sistema haciendo su trabajo,
+        // y el asesor tiene que verlo como hallazgo, no como fallo.
+        estado: datos.hallazgos.length === 0 && hayBloqueo ? 'no_concluyente' : 'listo',
+        datos,
+        confianza: datos.hallazgos.some((h) => h.veredicto === 'confirmado') ? 'alta' : 'media',
+        procedencia: { metodo: 'observado', fuente: 'waterfall de fuentes públicas (RFC · DENUE · 69-B CFF · patrón de dominio)' },
+        requiereValidacion: [
+          ...datos.bloqueos.map((b) => `Bloqueado por el gate regulatorio: ${b.concepto} — ${b.razon}`),
+          ...(datos.gate69b && !datos.gate69b.pasa ? [`Gate 69-B CFF sin superar: ${datos.gate69b.razon}`] : []),
+          ...datos.hallazgos.filter((h) => h.veredicto !== 'confirmado').map((h) => `Dato NO confirmado (${h.fuente}): ${h.campo} = ${h.valor}`),
+        ],
         error: null,
         generadoAt: ahora,
       },

@@ -14,6 +14,7 @@ import {
   BriefView,
   CabeceraBloque,
   CompetenciaView,
+  EnriquecimientoView,
   EstrategiaView,
   PerfilView,
   RegulatorioView,
@@ -24,6 +25,7 @@ import type {
   DatosBrief,
   DatosCompetencia,
   DatosDiferenciacion,
+  DatosEnriquecimiento,
   DatosFoda,
   DatosPerfil,
   DatosSitio,
@@ -196,6 +198,15 @@ export function VistaCaso() {
 
       {tab === 'marcos' && (
         <div className="space-y-4">
+          <Card className="p-4">
+            {cabecera('enriquecimiento')}
+            {caso.bloques.enriquecimiento.datos ? (
+              <EnriquecimientoView datos={caso.bloques.enriquecimiento.datos as DatosEnriquecimiento} />
+            ) : (
+              <BloquePendiente caso={caso} bloque="enriquecimiento" />
+            )}
+            <AvisosValidacion bloque={caso.bloques.enriquecimiento} />
+          </Card>
           <Card className="p-4">
             {cabecera('regulatorio')}
             {caso.bloques.regulatorio.datos ? (

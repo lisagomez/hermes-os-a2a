@@ -94,3 +94,31 @@ grafo.167-233-233-56.sslip.io {
 		respond "" 404
 	}
 }
+
+# --- Puente del waterfall de enriquecimiento (meeting-copilot en Vercel) ---
+# Mismo patron que el puente del grafo: el gate valida el token Bearer
+# (fail-closed) y ademas acota el metodo JSON-RPC a SendMessage; aqui solo se
+# publica /rpc + el health del gate. Todo lo demas: 404. Rate limit mas
+# estricto que el del grafo porque cada llamada dispara una cascada real
+# (DENUE, 69-B) y escribe en el ledger.
+enriquecimiento.167-233-233-56.sslip.io {
+	handle /rpc {
+		rate_limit {
+			zone enriqgate {
+				key {remote_host}
+				events 10
+				window 1m
+			}
+		}
+		request_body {
+			max_size 64KB
+		}
+		reverse_proxy enriquecimiento-gate:5300
+	}
+	handle /health {
+		reverse_proxy enriquecimiento-gate:5300
+	}
+	handle {
+		respond "" 404
+	}
+}
