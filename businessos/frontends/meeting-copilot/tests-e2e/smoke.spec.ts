@@ -192,7 +192,10 @@ test('pre-discovery: intake → análisis (mock declarado) → brief → activo/
   await page.getByTestId('nuevo-caso').click()
   await page.getByTestId('intake-empresa').fill('EcoNorte Consultores')
   await page.getByTestId('intake-contacto').fill('Diana Robles')
-  await page.getByTestId('intake-giro').fill('Consultoría ambiental')
+  // El giro pasó de input libre a select de categorías + "Otro" con detalle
+  // (QA pre-discovery 2026-08-08); el smoke quedó rancio en master.
+  await page.getByTestId('intake-giro').selectOption('Otro')
+  await page.getByTestId('intake-giro-otro').fill('Consultoría ambiental')
   await page.getByTestId('crear-caso').click()
   // Workspace del caso: el pipeline mock corre y el caso queda listo.
   await expect(page.getByText('Resumen ejecutivo')).toBeVisible({ timeout: 20_000 })
@@ -473,6 +476,24 @@ test('agendamiento M1: CRUD de asesores — agregar, visualizar, editar y borrar
 })
 
 // ─── Ecosistema: sidebar jerárquico + App Launcher cross-app (SPEC nav) ─────
+
+test('workspace CRM: item en el sidebar, ruta con estado honesto sin Supabase y card en Inicio', async ({ page }) => {
+  // Inicio: la card resumen del CRM existe y enlaza al workspace
+  await page.goto('/')
+  await expect(page.getByTestId('home-crm')).toBeVisible()
+  await page.getByTestId('home-crm').getByRole('link', { name: /Abrir/ }).click()
+  await expect(page).toHaveURL(/\/crm$/)
+
+  // Página: heading + chip de fuente; el smoke corre SIN service_role, así que
+  // el estado correcto es el Callout honesto, jamás datos fingidos.
+  await expect(page.getByRole('heading', { name: 'CRM · Embudo de cliente' })).toBeVisible()
+  await expect(page.getByText('sin conexión')).toBeVisible()
+  await expect(page.getByTestId('crm-sin-config')).toBeVisible()
+
+  // Sidebar: item top-level activo + breadcrumb derivado del árbol
+  await expect(page.getByTestId('sidebar').getByRole('link', { name: 'CRM' })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByTestId('breadcrumb')).toContainText('CRM')
+})
 
 test('ecosistema: secciones del sidebar, waffle cross-app con la app actual resaltada y breadcrumb', async ({ page }) => {
   await page.goto('/citas')

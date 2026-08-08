@@ -1273,6 +1273,16 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   honesto: al devolver el tope a 1.600 el smoke **siguió pasando** porque el reintento
   rescata; quien sostiene la fiabilidad es el reintento, el tope evita pagar intentos
   tirados. QA final en producción: **7/7 bloques + grafo**.
+- [x] **Workspace CRM movido desde Mission Control (2026-08-08, PR A)**: `/crm` (embudo por
+  etapa + conversaciones CRM + tabla de leads con "Mover a") vive ahora en el copiloto —
+  item top-level del sidebar, card resumen en Inicio y herramienta `crm` en el launcher.
+  Datos REALES desde el día uno (PostgREST + service_role server-side, vistas revocadas
+  a anon/authenticated), FUERA del seam mock: chip propio "datos: supabase" / "sin
+  conexión" (sin credenciales muestra un aviso honesto, jamás datos fingidos). Doctrina
+  SPEC §19.6 actualizada: el copilot **solo escribe la etapa** de `leads` (server action
+  única con cinturón de auth). Etapas derivadas de `ETAPAS_LEAD` (un solo espejo del
+  check de la BD). Pendiente PR B: retirar `/crm` de Mission Control + redirect +
+  RUNBOOK-PIPELINE-COMERCIAL apuntando aquí.
 - [x] **Tercera pasada — el bloque regulatorio desperdiciaba el grafo (2026-08-08)**: con los
   7 bloques ya vivos, el dictamen del lead legal salió `dudoso` en los 6 conceptos y con
   `categoria: null` — o sea, cero valor, justo en el bloque más vendible para un despacho.

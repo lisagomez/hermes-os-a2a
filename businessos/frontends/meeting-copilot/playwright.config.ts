@@ -20,6 +20,9 @@ export default defineConfig({
     // El smoke valida la APP, no el candado: sin esto, toda ruta redirige a
     // /login (fail-closed sin Supabase). El gate de auth se prueba en unit
     // tests (acceso.test.ts) y en el smoke post-deploy de producción.
-    env: { AUTH_DISABLED: '1' },
+    // SUPABASE_SERVICE_ROLE_KEY vacía a propósito: el smoke del CRM verifica
+    // el estado honesto "sin conexión" de forma DETERMINISTA aunque el
+    // .env.local del dev tenga la key real (process env gana a .env.local).
+    env: { AUTH_DISABLED: '1', SUPABASE_SERVICE_ROLE_KEY: '' },
   },
 })

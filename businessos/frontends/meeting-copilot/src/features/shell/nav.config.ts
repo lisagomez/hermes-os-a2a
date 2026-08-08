@@ -33,6 +33,10 @@ export const NAV_COPILOT: NavArbol = {
       ],
     },
     { id: 'pre-discovery', etiqueta: 'Pre-Discovery', href: '/pre-discovery', iconoLucide: 'Telescope' },
+    // Workspace CRM (port del panel de Mission Control): una sola ruta, sin
+    // hijos con patron (releer el comentario de buzon-hilo antes de anidarle
+    // detalles dinámicos).
+    { id: 'crm', etiqueta: 'CRM', href: '/crm', exacto: true, iconoLucide: 'Funnel' },
     {
       id: 'sec-agendamiento',
       etiqueta: 'Agendamiento',
