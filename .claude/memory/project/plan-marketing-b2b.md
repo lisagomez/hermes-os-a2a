@@ -29,6 +29,17 @@ cerró el hilo de marketing que estaba en pausa).
   criterio humano (frontera de diseño — no venderlo como automatismo).
 - GAL México se cita solo como cliente de branding/diseño, no de CRM/Copilot.
 
+## Memo de decisión para Elisa (2026-08-08)
+
+Las 7 decisiones del §16 (D1–D7) se empaquetaron en un memo autocontenido en
+lenguaje no técnico: `docs/planes/memo-decisiones-marketing.html` (versionado
+junto a los otros 3 planes HTML pendientes de decisión). Publicado como
+artifact privado el 2026-08-08 para compartir con Elisa:
+https://claude.ai/code/artifact/bc06af3e-87e0-4266-b3b5-11aedc332469
+El memo no añade compromisos nuevos — solo ordena los del plan. Sigue en
+**espera de respuesta** (Apruebo / Apruebo con cambios / No por ahora, por
+decisión).
+
 ## Verificación que ya pasó
 
 Ataque adversarial en dos rondas (plan de trabajo + documento) con acceso al

@@ -1,0 +1,371 @@
+<title>Memo de decisión: plan de marketing B2B</title>
+<style>
+  :root {
+    --bg: #f4f5f3;
+    --surface: #ffffff;
+    --surface-2: #eceeea;
+    --ink: #1a2332;
+    --ink-soft: #4c5769;
+    --ink-faint: #7a8494;
+    --accent: #1f4e79;
+    --accent-soft: #dce6ef;
+    --amber: #a06a1e;
+    --amber-soft: #f3e8d4;
+    --line: #d5d9d2;
+    --ok: #2e6b4f;
+    --ok-soft: #ddeae3;
+    --no: #93412e;
+    --no-soft: #f0e0da;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+      --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+      --accent: #8db4d8; --accent-soft: #24384c;
+      --amber: #d9a55a; --amber-soft: #3a2f1c;
+      --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+      --no: #cf8a74; --no-soft: #3a2620;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+    --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+    --accent: #8db4d8; --accent-soft: #24384c;
+    --amber: #d9a55a; --amber-soft: #3a2f1c;
+    --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+    --no: #cf8a74; --no-soft: #3a2620;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 600;
+    margin: .5rem 0 .75rem;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 .5rem; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 2.6rem 0 .35rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  p { margin: .6rem 0; }
+
+  code {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .84em;
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .tabla-scroll { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; min-width: 34rem; }
+  th, td { text-align: left; padding: .5rem .65rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .7rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .urg {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .2em .6em;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .urg.alta  { background: var(--no-soft);    color: var(--no); }
+  .urg.media { background: var(--amber-soft); color: var(--amber); }
+  .urg.baja  { background: var(--ok-soft);    color: var(--ok); }
+
+  .decisiones { display: flex; flex-direction: column; gap: .9rem; margin: 1.2rem 0; }
+  .decision {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .decision header {
+    display: flex;
+    align-items: baseline;
+    gap: .7rem;
+    flex-wrap: wrap;
+    margin-bottom: .4rem;
+  }
+  .decision .id {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: .15em .55em;
+    border-radius: 6px;
+  }
+  .decision h3 {
+    font-size: 1.02rem;
+    margin: 0;
+    flex: 1 1 12rem;
+    text-wrap: balance;
+  }
+  .decision dl {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: .35rem .9rem;
+    margin: .5rem 0 0;
+  }
+  .decision dt {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: .18rem;
+  }
+  .decision dd { margin: 0; font-size: .9rem; color: var(--ink-soft); }
+  .decision dd.reco { color: var(--ink); }
+  .decision dd.costo { color: var(--no); }
+  @media (max-width: 34rem) {
+    .decision dl { grid-template-columns: 1fr; gap: .1rem; }
+    .decision dt { padding-top: .5rem; }
+  }
+
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .warn {
+    background: var(--amber-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .note b, .warn b { display: block; margin-bottom: .15rem; }
+  .warn b { color: var(--amber); }
+  .note b { color: var(--accent); }
+
+  .respuesta {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin: 1rem 0;
+  }
+  .respuesta div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .7rem;
+    align-items: baseline;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .7rem .95rem;
+    font-size: .9rem;
+    color: var(--ink-soft);
+  }
+  .respuesta b { color: var(--ink); white-space: nowrap; }
+
+  footer {
+    margin-top: 3.2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Memo de decisión · Proyecto A2A / Hermes OS · 8 de agosto de 2026</p>
+  <h1>Siete decisiones para encender la máquina comercial</h1>
+  <p class="lede">
+    El plan de marketing B2B ya está en el repositorio
+    (<code>businessos/PLAN-marketing-b2b.md</code>, fusionado el 8&nbsp;de&nbsp;agosto).
+    No hace falta leerlo entero para avanzar: todo lo que espera tu decisión cabe en
+    este memo. Son siete puntos; responderlos toma una sesión de 20–30 minutos.
+  </p>
+
+  <div class="note">
+    <b>Cómo leer este memo</b>
+    Cada decisión trae qué se decide, la recomendación del plan, qué desbloquea y el
+    costo de dejarla abierta. Ninguna exige leer el documento completo; si quieres el
+    detalle, cada una vive en la sección 16 del plan. Tres de ellas (D1) no son nuevas:
+    son las mismas que el plan Go-to-Market dejó listadas desde julio.
+  </div>
+
+  <h2>Resumen para decidir de un vistazo</h2>
+  <div class="tabla-scroll">
+    <table>
+      <tr><th>#</th><th>Decisión</th><th>Qué implica de tu parte</th><th>Urgencia</th></tr>
+      <tr><td>D1</td><td>Destrabar WhatsApp, dominio y envíos</td><td>Trámites y un sí: cuenta de Meta, compra de dominio, aprobar el motor y los correos</td><td><span class="urg alta">alta</span></td></tr>
+      <tr><td>D2</td><td>Encender la calificación de leads (CRM‑4)</td><td>Solo tu OK — ya está construido y probado; es un despliegue</td><td><span class="urg alta">alta</span></td></tr>
+      <tr><td>D3</td><td>Conectar las citas agendadas al embudo</td><td>Tu OK a una pieza pequeña de código</td><td><span class="urg media">media</span></td></tr>
+      <tr><td>D4</td><td>Puntaje 0–100 para priorizar leads</td><td>Tu OK — sin tocar la base de datos, reversible</td><td><span class="urg media">media</span></td></tr>
+      <tr><td>D5</td><td>Indicadores nuevos en Mission Control</td><td>Tu OK — mismo patrón seguro de vistas que ya usamos</td><td><span class="urg baja">baja</span></td></tr>
+      <tr><td>D6</td><td>¿Publicamos el rango de precios o no?</td><td>Un criterio tuyo para todos los materiales</td><td><span class="urg media">media</span></td></tr>
+      <tr><td>D7</td><td>Visto bueno al plan completo</td><td>Validar (puede ser por partes) para que el equipo tenga mandato</td><td><span class="urg alta">alta</span></td></tr>
+    </table>
+  </div>
+
+  <h2>Las siete decisiones</h2>
+  <div class="decisiones">
+
+    <div class="decision">
+      <header><span class="id">D1</span><h3>Destrabar WhatsApp, dominio y envíos (los tres candados de julio)</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Tres cosas que solo tú puedes mover: <b>(a)</b> dar de alta el primer negocio en WhatsApp —cuenta de Meta verificada, número y token; el instructivo ya existe—; <b>(b)</b> comprar el dominio propio —hoy la dirección pública es temporal y se nota—; <b>(c)</b> aprobar que el motor de adquisición trabaje con modelo real y que el programa de correos pueda enviar (hoy ensaya sin enviar nada).</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Sí a las tres, en ese orden. Son las mismas del plan Go‑to‑Market de julio (su sección 11); nada nuevo que evaluar.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>El canal de WhatsApp completo (hoy contesta «cerrado» a propósito), el contacto por correo a prospectos, y que la presencia pública deje de verse provisional.</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">La meta de 2 pilotos en 60 días depende solo de conocidos del equipo; el motor comercial existe pero «dispara con salva».</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D2</span><h3>Encender la calificación de leads y la atribución de campañas (CRM‑4)</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Poner en marcha algo que ya está construido y probado (52 pruebas en verde desde el 4 de agosto): el sistema que marca qué leads muestran intención real de compra y de qué campaña llegó cada uno.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Sí. No es desarrollo nuevo: es aplicar dos migraciones y reiniciar un servicio. El equipo lo ejecuta en cuanto des el OK.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>Saber qué leads priorizar y qué campaña trae clientes (sin esto no se puede medir cuánto cuesta conseguir cada uno).</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">Marketing a ciegas: se invierte en canales sin saber cuál funciona, y la señal de intención se pierde.</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D3</span><h3>Conectar las citas agendadas al embudo de ventas</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Hoy, cuando alguien agenda una sesión en el copiloto de reuniones, esa cita <b>no aparece</b> en el CRM: la agenda funciona como isla. Se propone el puente (una pieza pequeña de código, respetando las reglas de datos del proyecto) y de paso que el chat de la página invite a agendar.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Sí. Agendar una cita es la señal de interés más fuerte que existe; es la primera que debería verse en el tablero.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>El embudo completo en Mission Control, sin puntos ciegos entre «le interesa» y «ya agendó».</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">El tablero miente por omisión: puede haber citas de prospectos que ningún reporte muestra.</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D4</span><h3>Puntaje 0–100 para priorizar leads</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Calcular un puntaje por lead (ajuste al cliente ideal, intención, actividad, higiene del dato) usando solo señales que ya se capturan. Sin tocar la estructura de la base de datos: es una vista de consulta, reversible.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Sí, después de D2 (el puntaje aprovecha la calificación que CRM‑4 enciende). El puntaje ordena, nunca mueve un lead de etapa por sí solo — eso sigue siendo del equipo.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>Una lista diaria de «a quién llamar primero» en vez de intuición.</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">Los leads calientes esperan lo mismo que los fríos; el tiempo del equipo se reparte parejo donde no debería.</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D5</span><h3>Indicadores nuevos en Mission Control</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Añadir al panel: leads por canal por semana, la lista priorizada por puntaje, y las tasas de venta (agendamiento, asistencia, propuesta, cierre). Mismo patrón técnico seguro de las vistas que ya existen.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Sí, cuando D2–D4 estén andando. Alimenta la revisión semanal del equipo.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>La reunión semanal de ventas se abre con el tablero, no con recuerdos.</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">Cada revisión semanal se arma a mano; los números viven en la memoria de cada quien.</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D6</span><h3>¿Publicamos el rango de precios o no?</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Hoy conviven dos mensajes que no chocan pero tampoco están conciliados: la política interna fija un rango mensual autorizado (protegido por los controles automáticos), y la propuesta comercial dice a propósito «cifras concretas tras la sesión de descubrimiento». Falta tu criterio único para todos los materiales públicos.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Mantener «cifras tras el descubrimiento» de cara al público y el rango solo interno: protege la negociación y empuja hacia la sesión, que es nuestra oferta de entrada.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>Coherencia en landing, presentaciones, WhatsApp y correo — una sola voz sobre dinero.</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">Cada material nuevo improvisa; tarde o temprano dos canales dicen cosas distintas frente al mismo prospecto.</dd>
+      </dl>
+    </div>
+
+    <div class="decision">
+      <header><span class="id">D7</span><h3>Visto bueno al plan completo (o por partes)</h3></header>
+      <dl>
+        <dt>Qué se decide</dt>
+        <dd>Validar lo que el plan propone y las decisiones anteriores no cubren: los 5 segmentos de cliente, el catálogo de 7 servicios, el calendario de contenido, la agencia de marketing con agentes (como línea futura) y las metas del plan de 90 días.</dd>
+        <dt>Recomendación</dt>
+        <dd class="reco">Validar por partes está bien: con D1–D6 decididas y un «adelante con la Fase 1» el equipo ya puede ejecutar; el resto puede madurar sobre la marcha.</dd>
+        <dt>Qué desbloquea</dt>
+        <dd>Mandato: el plan deja de ser propuesta y el equipo deja de esperar.</dd>
+        <dt>Costo de no decidir</dt>
+        <dd class="costo">Todo el trabajo de marketing queda en pausa formal aunque la tecnología esté lista — el estado actual, indefinidamente.</dd>
+      </dl>
+    </div>
+
+  </div>
+
+  <div class="warn">
+    <b>Lo que este memo no pide</b>
+    Ninguna decisión compromete promesas sobre lo que aún no opera: los envíos masivos
+    por WhatsApp siguen bloqueados hasta su fase técnica (P2) y así lo declara el plan;
+    los precios no cambian (eso sería otro proceso, con CEO y CFO); y nada se publica
+    ni se envía sin aprobación humana, como siempre.
+  </div>
+
+  <h2>Cómo responder</h2>
+  <p>Por cada decisión, una de tres respuestas basta — por escrito en el grupo o en la
+  sesión que agendemos:</p>
+  <div class="respuesta">
+    <div><b>Apruebo</b><span>el equipo ejecuta sin volver a preguntar.</span></div>
+    <div><b>Apruebo con cambios</b><span>dime qué ajustar y se corrige antes de ejecutar.</span></div>
+    <div><b>No por ahora</b><span>se registra y se deja de empujar; el costo de la espera queda anotado arriba.</span></div>
+  </div>
+  <p>Si no hay respuesta esta semana, el equipo avanza solo con lo que no requiere tu
+  decisión (recursos descargables, textos de la página, lista de prospectos) y todo lo
+  demás queda detenido — sin excepciones ni atajos.</p>
+
+  <footer>
+    Fuente: <code>businessos/PLAN-marketing-b2b.md</code> §16 (fusionado a master el
+    2026-08-08, PR #264) · extiende el plan Go-to-Market (<code>businessos/GTM.md</code>).
+    El plan pasó dos rondas de revisión adversarial contra el repositorio antes de
+    presentarse; este memo no añade compromisos nuevos — solo ordena los que ya
+    estaban escritos.
+  </footer>
+</div>
