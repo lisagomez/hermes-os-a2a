@@ -7,7 +7,23 @@
 #     businessos/tenancy/replay.sh              # ciclo completo
 #     businessos/tenancy/replay.sh --solo-esquema
 #
-#  Requiere docker. No toca producción ni lee ninguna credencial.
+#  DOS MODOS DE CONEXIÓN (PG_MODO=auto|docker|tcp; por defecto `auto`):
+#
+#    docker — levanta y tira su propio `postgres:16-alpine`. Es lo que corre
+#             en CI y no cambió. `auto` lo elige cuando no hay PGHOST.
+#    tcp    — habla por TCP con un Postgres YA levantado, con el `psql` del
+#             anfitrión. Existe porque hay máquinas con el cliente de docker
+#             pero sin acceso al daemon, donde este gate era inejecutable y por
+#             tanto se saltaba — un gate que no se puede correr no protege nada.
+#             `auto` lo elige en cuanto PGHOST está definida.
+#
+#             Variables (las estándar de libpq): PGHOST, PGPORT (5432),
+#             PGUSER (postgres), PGPASSWORD, PGDATABASE (tenencia_efimera) y
+#             PG_BASE_MANTENIMIENTO (postgres, la base desde la que se recrea
+#             la de trabajo). ⚠ La base de PGDATABASE se DESTRUYE y se recrea
+#             en cada corrida: ver la guarda del bloque de arranque.
+#
+#  No toca producción ni lee ninguna credencial.
 #  Todo fallo de archivo se IMPRIME (ningún best-effort silencioso) y hace
 #  salir con código ≠ 0 al final: un esquema incompleto vuelve mentirosa a la
 #  prueba T5, que solo puede ver las tablas que existen.
@@ -26,33 +42,118 @@ IMAGEN="${PG_IMAGEN:-postgres:16-alpine}"
 SOLO_ESQUEMA=0
 [[ "${1:-}" == "--solo-esquema" ]] && SOLO_ESQUEMA=1
 
-psql_f() { docker exec -i "$CONTENEDOR" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f - ; }
+# ── Modo de conexión ────────────────────────────────────────────────────────
+# `auto` mira si hay PGHOST: quien exporta las variables de libpq ya declaró
+# a qué Postgres quiere hablarle. Sin PGHOST se conserva el comportamiento
+# histórico (docker), así que CI no cambia de camino por este añadido.
+MODO="${PG_MODO:-auto}"
+if [[ "$MODO" == auto ]]; then
+  if [[ -n "${PGHOST:-}" ]]; then MODO=tcp; else MODO=docker; fi
+fi
+case "$MODO" in
+  docker|tcp) ;;
+  *) echo "✗ PG_MODO='$MODO' no existe. Valores: auto | docker | tcp"; exit 1 ;;
+esac
 
-echo "▶ Levantando $IMAGEN como '$CONTENEDOR'…"
-docker rm -f "$CONTENEDOR" >/dev/null 2>&1
-# Sin -p: todo acceso va por `docker exec`. Publicar el puerto dejaba un
-# Postgres con contraseña 'x' escuchando en todas las interfaces del anfitrión.
-docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=x "$IMAGEN" >/dev/null || exit 1
-# La espera corre DENTRO del contenedor: un `sleep` de primer plano en el
-# anfitrión puede estar bloqueado según dónde se ejecute este script, y sin
-# espera real el bucle se agota en milisegundos y declara un arranque fallido
-# que en realidad iba en camino.
-# ⚠ La sonda va por TCP (-h 127.0.0.1), NO pg_isready por socket: el entrypoint
-# de la imagen levanta un servidor TEMPORAL solo-socket durante el init y lo
-# reinicia después — pg_isready da verde en esa ventana y el prelude pega en el
-# hueco (visto en CI, donde la imagen se baja fría y el timing lo expone). El
-# servidor temporal no escucha TCP; el definitivo sí: la sonda TCP no miente.
-listo=0
-for _ in $(seq 1 90); do
-  if docker exec -e PGPASSWORD=x "$CONTENEDOR" psql -h 127.0.0.1 -U postgres -d postgres -qAt -c 'select 1' >/dev/null 2>&1; then
-    listo=1; break
+if [[ "$MODO" == tcp ]]; then
+  PGHOST="${PGHOST:-127.0.0.1}"
+  PGPORT="${PGPORT:-5432}"
+  PGUSER="${PGUSER:-postgres}"
+  # La base de trabajo NO es `postgres` por defecto a propósito: se destruye en
+  # cada corrida, y el default de un script destructivo no debe ser la base que
+  # cualquier cliente encuentra ya creada.
+  BASE="${PGDATABASE:-tenencia_efimera}"
+  MANT="${PG_BASE_MANTENIMIENTO:-postgres}"
+  # Exportadas para que las tomen todas las invocaciones de psql. PGDATABASE no
+  # se exporta: cada llamada dice con -d a qué base va, para que el drop/create
+  # no dependa de una variable de ambiente que alguien pueda haber movido.
+  export PGHOST PGPORT PGUSER
+  psql_f()    { psql -d "$BASE" -v ON_ERROR_STOP=1 -q -f - ; }
+  psql_mant() { psql -d "$MANT" -v ON_ERROR_STOP=1 -qAt -c "$1" ; }
+
+  echo "▶ Modo TCP → $PGUSER@$PGHOST:$PGPORT · base de trabajo '$BASE' (se recrea desde cero)…"
+
+  command -v psql >/dev/null 2>&1 || {
+    echo "✗ No hay 'psql' en el PATH y el modo tcp lo necesita (paquete postgresql-client)."
+    exit 1
+  }
+
+  # ── Guarda · este script es DESTRUCTIVO sobre la base de trabajo ───────────
+  # El prelude ya aborta si huele a Supabase real, pero eso solo protege de una
+  # plataforma; un Postgres propio con datos no lo detectaría. Dos frenos más:
+  # el destino tiene que ser local, y la base de trabajo no puede ser la de
+  # mantenimiento (que además es la que suele traer datos de alguien).
+  case "$PGHOST" in
+    127.0.0.1|::1|localhost|/*) ;;
+    *)
+      if [[ "${PG_TCP_REMOTO:-0}" != "1" ]]; then
+        echo "✗ PGHOST='$PGHOST' no es local y este ciclo DESTRUYE la base '$BASE'."
+        echo "  Si de verdad es un Postgres desechable remoto: PG_TCP_REMOTO=1."
+        exit 1
+      fi
+      echo "  ⚠ PG_TCP_REMOTO=1 — destino remoto aceptado bajo tu responsabilidad."
+      ;;
+  esac
+  if [[ "$BASE" == "$MANT" ]]; then
+    echo "✗ PGDATABASE ('$BASE') es la base de mantenimiento: no se puede destruir"
+    echo "  la base desde la que se ejecuta el drop. Usa otra (p. ej. tenencia_efimera)."
+    exit 1
   fi
-  docker exec "$CONTENEDOR" sh -c 'sleep 1' >/dev/null 2>&1 || command sleep 1
-done
-if (( listo == 0 )); then
-  echo "✗ Postgres no arrancó. Últimas líneas del log:"
-  docker logs "$CONTENEDOR" 2>&1 | tail -5
-  exit 1
+
+  # Sonda de disponibilidad contra la base de MANTENIMIENTO (la de trabajo aún
+  # no existe). Corta rápido: aquí el Postgres lo levantó alguien más, así que
+  # no aparecerá "en camino" como el entrypoint de la imagen en CI.
+  listo=0
+  for _ in $(seq 1 "${PG_ESPERA_SEG:-15}"); do
+    if psql -d "$MANT" -qAt -c 'select 1' >/dev/null 2>&1; then listo=1; break; fi
+    command sleep 1
+  done
+  if (( listo == 0 )); then
+    echo "✗ No responde ningún Postgres en $PGHOST:$PGPORT (base '$MANT'). Error real:"
+    psql -d "$MANT" -c 'select 1' 2>&1 | head -5 | sed 's/^/    /'
+    exit 1
+  fi
+
+  # ── Base virgen en cada corrida ───────────────────────────────────────────
+  # En modo docker esto sale gratis: cada corrida es un contenedor nuevo. Por
+  # TCP el servidor sobrevive entre corridas, y control-reversion.sh ejecuta
+  # este ciclo SIETE veces esperando una base limpia; sin el drop/create, del
+  # segundo sabotaje en adelante el esquema ya estaría aplicado y el control
+  # mediría otra cosa. `with (force)` (Postgres 13+) echa las conexiones vivas.
+  echo "▶ Recreando la base '$BASE' desde cero…"
+  psql_mant "drop database if exists \"$BASE\" with (force)" >/dev/null || {
+    echo "✗ No se pudo destruir '$BASE'"; exit 1; }
+  psql_mant "create database \"$BASE\"" >/dev/null || {
+    echo "✗ No se pudo crear '$BASE'"; exit 1; }
+else
+  psql_f() { docker exec -i "$CONTENEDOR" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f - ; }
+
+  echo "▶ Levantando $IMAGEN como '$CONTENEDOR'…"
+  docker rm -f "$CONTENEDOR" >/dev/null 2>&1
+  # Sin -p: todo acceso va por `docker exec`. Publicar el puerto dejaba un
+  # Postgres con contraseña 'x' escuchando en todas las interfaces del anfitrión.
+  docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=x "$IMAGEN" >/dev/null || exit 1
+  # La espera corre DENTRO del contenedor: un `sleep` de primer plano en el
+  # anfitrión puede estar bloqueado según dónde se ejecute este script, y sin
+  # espera real el bucle se agota en milisegundos y declara un arranque fallido
+  # que en realidad iba en camino.
+  # ⚠ La sonda va por TCP (-h 127.0.0.1), NO pg_isready por socket: el entrypoint
+  # de la imagen levanta un servidor TEMPORAL solo-socket durante el init y lo
+  # reinicia después — pg_isready da verde en esa ventana y el prelude pega en el
+  # hueco (visto en CI, donde la imagen se baja fría y el timing lo expone). El
+  # servidor temporal no escucha TCP; el definitivo sí: la sonda TCP no miente.
+  listo=0
+  for _ in $(seq 1 90); do
+    if docker exec -e PGPASSWORD=x "$CONTENEDOR" psql -h 127.0.0.1 -U postgres -d postgres -qAt -c 'select 1' >/dev/null 2>&1; then
+      listo=1; break
+    fi
+    docker exec "$CONTENEDOR" sh -c 'sleep 1' >/dev/null 2>&1 || command sleep 1
+  done
+  if (( listo == 0 )); then
+    echo "✗ Postgres no arrancó. Últimas líneas del log:"
+    docker logs "$CONTENEDOR" 2>&1 | tail -5
+    exit 1
+  fi
 fi
 
 echo "▶ Prelude (roles, auth, extensiones)…"
@@ -172,5 +273,10 @@ if (( ${#FALLIDOS[@]} > 0 )); then
   exit 1
 fi
 
-docker rm -f "$CONTENEDOR" >/dev/null 2>&1
+# En modo tcp la base se deja en pie a propósito: el servidor no es nuestro y
+# una base que sobrevive al verde es lo único con lo que se puede depurar
+# después. La corrida siguiente la recrea de todos modos.
+if [[ "$MODO" == docker ]]; then
+  docker rm -f "$CONTENEDOR" >/dev/null 2>&1
+fi
 echo "✓ TODO VERDE: esquema completo ($TOTAL/$TOTAL), migración idempotente, backfill sobre datos reales, suite en verde."
