@@ -1,0 +1,360 @@
+<title>Plan: Avatares legales — 4 tableros para despachos</title>
+<style>
+  :root {
+    --bg: #f4f5f3;
+    --surface: #ffffff;
+    --surface-2: #eceeea;
+    --ink: #1a2332;
+    --ink-soft: #4c5769;
+    --ink-faint: #7a8494;
+    --accent: #1f4e79;
+    --accent-soft: #dce6ef;
+    --amber: #a06a1e;
+    --amber-soft: #f3e8d4;
+    --line: #d5d9d2;
+    --ok: #2e6b4f;
+    --term-underline: #9db4c8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d;
+      --surface: #1a2028;
+      --surface-2: #222a34;
+      --ink: #e6e9ed;
+      --ink-soft: #aab3bf;
+      --ink-faint: #7d8794;
+      --accent: #8db4d8;
+      --accent-soft: #24384c;
+      --amber: #d9a55a;
+      --amber-soft: #3a2f1c;
+      --line: #313a45;
+      --ok: #7cbb9d;
+      --term-underline: #4c6f8e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+    --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+    --accent: #8db4d8; --accent-soft: #24384c;
+    --amber: #d9a55a; --amber-soft: #3a2f1c;
+    --line: #313a45; --ok: #7cbb9d; --term-underline: #4c6f8e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f3; --surface: #ffffff; --surface-2: #eceeea;
+    --ink: #1a2332; --ink-soft: #4c5769; --ink-faint: #7a8494;
+    --accent: #1f4e79; --accent-soft: #dce6ef;
+    --amber: #a06a1e; --amber-soft: #f3e8d4;
+    --line: #d5d9d2; --ok: #2e6b4f; --term-underline: #9db4c8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 600;
+    margin: .5rem 0 .75rem;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 .5rem; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 2.8rem 0 .35rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h2 .num {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .8rem;
+    color: var(--ink-faint);
+    margin-right: .6rem;
+    vertical-align: .15em;
+  }
+  h3 { font-size: 1rem; margin: 1.4rem 0 .3rem; }
+  p { margin: .6rem 0; }
+  ul { margin: .5rem 0; padding-left: 1.2rem; }
+  li { margin: .35rem 0; }
+
+  /* Término del glosario: subrayado punteado */
+  .t {
+    border-bottom: 1px dotted var(--term-underline);
+    cursor: help;
+    font-style: normal;
+  }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .95rem 1.05rem;
+  }
+  .card h3 { margin: 0 0 .1rem; font-size: .98rem; }
+  .card .who {
+    font-size: .78rem; color: var(--accent);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .card p { font-size: .88rem; color: var(--ink-soft); margin: .4rem 0 0; }
+
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .warn {
+    background: var(--amber-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .note b, .warn b { display: block; margin-bottom: .15rem; }
+  .warn b { color: var(--amber); }
+  .note b { color: var(--accent); }
+
+  .fases { display: flex; flex-direction: column; gap: .55rem; margin: 1rem 0; counter-reset: fase; }
+  .fase {
+    display: grid;
+    grid-template-columns: 2.1rem 1fr;
+    gap: .8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .8rem .95rem;
+  }
+  .fase::before {
+    counter-increment: fase;
+    content: counter(fase);
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--accent);
+    text-align: center;
+    padding-top: .05rem;
+  }
+  .fase h3 { margin: 0; font-size: .95rem; }
+  .fase p { margin: .25rem 0 0; font-size: .87rem; color: var(--ink-soft); }
+  .fase .done {
+    display: inline-block;
+    margin-top: .4rem;
+    font-size: .78rem;
+    color: var(--ok);
+  }
+  .fase .done::before { content: "✓ Terminada cuando: "; font-weight: 600; }
+
+  code {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .84em;
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  dl.glosario { margin: 1rem 0 0; }
+  dl.glosario > div {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .75rem .95rem;
+    margin-bottom: .55rem;
+  }
+  dt {
+    font-weight: 650;
+    font-size: .92rem;
+  }
+  dt small {
+    font-weight: 400;
+    color: var(--ink-faint);
+    font-size: .8rem;
+    margin-left: .3rem;
+  }
+  dd { margin: .2rem 0 0; font-size: .89rem; color: var(--ink-soft); }
+
+  .paleta { display: flex; gap: .5rem; margin: .8rem 0; flex-wrap: wrap; }
+  .sw { display: flex; align-items: center; gap: .45rem; font-size: .8rem; color: var(--ink-soft); }
+  .sw i {
+    width: 1.15rem; height: 1.15rem; border-radius: 4px;
+    border: 1px solid var(--line); display: inline-block;
+  }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Plan de trabajo · Proyecto A2A / Hermes OS · 4 de agosto de 2026</p>
+  <h1>Avatares legales: cuatro tableros de trabajo para despachos de abogados</h1>
+  <p class="lede">Qué vamos a construir, cómo, y en qué orden — explicado sin dar por sabido el vocabulario técnico. Las palabras con <span class="t">subrayado punteado</span> están definidas en el glosario del final.</p>
+
+  <h2><span class="num">01</span>¿Qué vamos a construir?</h2>
+  <p>El equipo entregó un documento de instrucciones junto con una investigación de <span class="t">buyer persona</span> (perfiles de los clientes ideales: qué les duele, qué valoran, qué los haría comprar). Con esa base, construiremos una aplicación web con <strong>cuatro tableros de trabajo</strong>, uno por cada tipo de usuario de un despacho legal. A cada tablero le llamamos «avatar» porque representa a un asistente inteligente especializado en esa área.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="who">Socios fiscales</span>
+      <h3>Avatar Fiscal</h3>
+      <p>Registro guiado de casos fiscales paso a paso, panel de criterios aplicables con nivel de riesgo y fuentes, alertas de cambios en la ley, y un resumen del caso con tareas y vencimientos.</p>
+    </div>
+    <div class="card">
+      <span class="who">Coordinadores de litigio</span>
+      <h3>Avatar de Litigio</h3>
+      <p>Tablero de casos por etapa (tipo <span class="t">kanban</span>), calendario de audiencias y plazos, listas de verificación por tipo de juicio, y un panel de comunicación con clientes.</p>
+    </div>
+    <div class="card">
+      <span class="who">Firmas corporativas</span>
+      <h3>Avatar de Contratos</h3>
+      <p>Registro de operaciones contractuales, revisión de cláusulas sugeridas (aceptar, editar o descartar), historial de versiones y aprobaciones, y un buscador de contratos anteriores.</p>
+    </div>
+    <div class="card">
+      <span class="who">Socios y gerencia</span>
+      <h3>Avatar Director Multipráctica</h3>
+      <p>Vista 360° del despacho: métricas por área, gestión de departamentos operados por agentes (el trío Hermes → Ejecutor → Supervisor), alertas ejecutivas y clientes estratégicos.</p>
+    </div>
+  </div>
+
+  <p>Importante: es un <strong>prototipo funcional</strong>. Todo lo que se ve funciona y se puede navegar, pero los datos son de utilería (<span class="t">mock</span>): casos, audiencias y contratos inventados pero verosímiles, con nombres de empresas y juzgados mexicanos. No hay conexión real a bases de datos ni inicio de sesión — eso viene después, y el código queda preparado para conectarlo.</p>
+
+  <h2><span class="num">02</span>Dos decisiones que ya se tomaron</h2>
+  <p><strong>1. App real, no maquetas sueltas.</strong> En vez de hacer dibujos o páginas HTML desechables, la construimos como una aplicación real dentro del <span class="t">monorepo</span> del proyecto, con el mismo <span class="t">stack</span> que usan las demás apps (Next.js 16 + React 19 + Tailwind v4). Así el prototipo sirve de base directa para el producto final.</p>
+  <p><strong>2. Identidad visual sobria y propia.</strong> La marca general de A2A Factory es oscura, violeta y con lenguaje de videojuego — no encaja con socios de despachos que piden verse serios y confiables. Diseñaremos una piel visual propia para la vertical legal:</p>
+  <div class="paleta">
+    <span class="sw"><i style="background:#f7f8f9"></i> fondo claro</span>
+    <span class="sw"><i style="background:#1a2332"></i> tinta grafito</span>
+    <span class="sw"><i style="background:#1f4e79"></i> azul profundo</span>
+    <span class="sw"><i style="background:#c9971c"></i> ámbar (pendiente de validar)</span>
+  </div>
+  <p>Con tipografía seria (una serif para títulos, una sans para la interfaz) y colores semánticos de riesgo (alto / medio / bajo). Estos colores viven en <span class="t">tokens de diseño</span>: un archivo central donde cada color y medida tiene nombre, para que toda la app sea consistente y fácil de re-pintar.</p>
+
+  <h2><span class="num">03</span>Cómo está armada la app por dentro</h2>
+  <ul>
+    <li><strong>Una casa con cuatro alas.</strong> Un armazón compartido (barra lateral con los 4 avatares) y, dentro de cada avatar, pestañas para sus 4 vistas. Cada vista tiene su propia dirección web (<span class="t">ruta</span>), lo que hace fácil compartir un enlace directo en una demostración.</li>
+    <li><strong>Datos de utilería con costura preparada.</strong> Cada avatar tiene funciones con el nombre que tendrán en el futuro (por ejemplo <code>fetchFiscalCriteria()</code>, «trae los criterios fiscales»). Hoy devuelven datos inventados; el día que exista el <span class="t">backend</span>, se cambia solo el interior de esas funciones sin tocar las pantallas. A esa juntura deliberada se le llama <span class="t">seam</span>.</li>
+    <li><strong>Señales de confianza en toda la interfaz.</strong> La investigación insiste en que los abogados no confían en cajas negras. Cada tarjeta generada por el sistema muestra su origen (etiqueta «Hermes» o «Grafo»), sus fuentes, un aviso legal, y si ya fue <em>validada por un humano</em>.</li>
+    <li><strong>Trazabilidad con la investigación.</strong> Un documento dentro de la app (<code>INVESTIGACION-SINTESIS.md</code>) resume qué dijo la investigación de buyer persona y qué decisión de diseño salió de cada hallazgo.</li>
+    <li><strong>Piezas de interfaz propias y simples.</strong> Tabla, línea de tiempo, formulario por pasos, tablero kanban y calendario mensual se construyen a mano, sin librerías pesadas — para un prototipo, menos dependencias es más control.</li>
+  </ul>
+
+  <h2><span class="num">04</span>Las 8 fases, en orden</h2>
+  <p>El trabajo se hace por fases, cada una con su criterio de «terminada». Cada fase se guarda como un <span class="t">commit</span> separado, para que quien revise pueda leer el trabajo por capítulos.</p>
+
+  <div class="fases">
+    <div class="fase"><div>
+      <h3>Cimientos y marca</h3>
+      <p>Crear el esqueleto de la app (<span class="t">scaffold</span>) copiando el patrón de configuración de una app hermana ya probada (meeting-copilot), definir los tokens de diseño, las fuentes y la página de inicio con el selector de avatares.</p>
+      <span class="done">la app compila y pasa sus tres revisiones automáticas (<span class="t">typecheck</span>, <span class="t">lint</span> y <span class="t">build</span>).</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Armazón y piezas base</h3>
+      <p>Barra lateral, pestañas, y el juego de componentes compartidos: tarjetas, insignias de riesgo, tabla, línea de tiempo, formulario por pasos, kanban y calendario.</p>
+      <span class="done">se puede navegar entre los 4 avatares (aún vacíos) sin errores.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Avatar Fiscal (el de referencia)</h3>
+      <p>Se construye completo primero: sus tipos de datos, sus datos de utilería y sus 4 vistas. Sirve de molde para los otros tres.</p>
+      <span class="done">las 4 vistas muestran datos, con señales de confianza visibles.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Avatar de Litigio</h3>
+      <p>Tablero por etapas con vista de tabla alternativa, agenda con calendario, listas de verificación y comunicaciones. Filtros por práctica y por abogado.</p>
+      <span class="done">mismo criterio que la fase 3.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Avatar de Contratos</h3>
+      <p>Registro de operación, revisión de cláusulas con aceptar/editar/descartar, línea de tiempo de versiones y aprobaciones, y repositorio de precedentes.</p>
+      <span class="done">mismo criterio que la fase 3.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Avatar Director</h3>
+      <p>Panorama 360° con métricas densas, encendido/apagado de departamentos con bitácora de decisiones, alertas ejecutivas y clientes estratégicos.</p>
+      <span class="done">mismo criterio que la fase 3.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Registro y documentación</h3>
+      <p>Dar de alta la app en el registro central de aplicaciones del monorepo y actualizar los documentos vivos del proyecto (el mapa de ruta, entre otros) — una regla del repositorio exige que todo cambio grande deje huella en la documentación.</p>
+      <span class="done">el verificador de sincronización del registro pasa en verde.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Verificación final y entrega</h3>
+      <p>Revisiones automáticas finales, capturas de pantalla automatizadas de una vista densa por avatar (con Playwright, un navegador robotizado), y apertura del <span class="t">PR</span> para revisión del equipo.</p>
+      <span class="done">capturas correctas y PR abierto.</span>
+    </div></div>
+  </div>
+
+  <h2><span class="num">05</span>Cómo comprobamos que quedó bien</h2>
+  <ul>
+    <li>Las tres revisiones automáticas de la app en verde: <span class="t">typecheck</span> (tipos correctos), <span class="t">lint</span> (estilo y errores comunes) y <span class="t">build</span> (compila para producción).</li>
+    <li>El verificador del registro de apps en verde (confirma que todas las copias del registro están sincronizadas).</li>
+    <li>Recorrido visual real: levantar la app en el puerto 3005 y capturar pantallas de las vistas más densas, verificando que se vean la insignia de «datos: mock», las etiquetas Hermes/Grafo y los estados de validación.</li>
+  </ul>
+
+  <h2><span class="num">06</span>Límites que declaramos por honestidad</h2>
+  <div class="warn">
+    <b>El robot de revisión del repositorio no vigila esta zona</b>
+    El <span class="t">CI</span> del proyecto (las revisiones automáticas que corren en la nube con cada cambio) no cubre la carpeta donde viven estas apps — les pasa igual a las apps hermanas. Nuestras revisiones de la fase 8 son una foto del momento, no una vigilancia permanente. Lo dejamos escrito en la documentación de la app; conectarla al CI queda como mejora futura.
+  </div>
+  <div class="warn">
+    <b>Esta máquina no puede fusionar el resultado</b>
+    La cuenta de esta computadora puede proponer cambios pero no aprobarlos ella misma (y GitHub prohíbe aprobar tu propio PR). El entregable termina en un <strong>PR abierto</strong>, esperando la revisión de otro colaborador o de la cuenta administradora.
+  </div>
+  <div class="note">
+    <b>Fuera de alcance (a propósito)</b>
+    Backend real, base de datos, inicio de sesión, publicación en internet, tema oscuro, arrastrar-y-soltar en el kanban e idiomas adicionales. Todo queda anotado como futuro en la documentación, no se improvisa ahora.
+  </div>
+
+  <h2><span class="num">07</span>Glosario para ir aprendiendo</h2>
+  <dl class="glosario">
+    <div><dt>Buyer persona</dt><dd>Retrato semi-ficticio del cliente ideal: su rol, sus dolores, sus objeciones y qué lo haría comprar. Se construye con investigación, no con suposiciones.</dd></div>
+    <div><dt>Monorepo</dt><dd>Un solo repositorio de código que contiene varias aplicaciones y servicios del mismo proyecto. Facilita compartir reglas y piezas entre apps.</dd></div>
+    <div><dt>Stack</dt><dd>El conjunto de tecnologías con que se construye algo. Aquí: Next.js (armazón web), React (piezas de interfaz), Tailwind (estilos) y TypeScript (JavaScript con tipos).</dd></div>
+    <div><dt>Scaffold <small>andamiaje</small></dt><dd>El esqueleto inicial de una app: configuración, carpetas y archivos base sobre los que se construye lo demás.</dd></div>
+    <div><dt>Tokens de diseño</dt><dd>Colores, tipografías y medidas definidos una sola vez con nombre (p. ej. «riesgo-alto») y usados en toda la app. Cambias el token, cambia toda la interfaz.</dd></div>
+    <div><dt>Mock <small>datos de utilería</small></dt><dd>Datos inventados pero realistas que permiten ver y probar la interfaz sin tener todavía el sistema real detrás.</dd></div>
+    <div><dt>Seam <small>costura</small></dt><dd>Un punto de unión deliberado en el código donde mañana se puede cambiar una pieza (datos falsos → datos reales) sin tocar el resto.</dd></div>
+    <div><dt>Backend</dt><dd>La parte del sistema que no se ve: base de datos, lógica de negocio, servicios. Lo que se ve (pantallas) es el frontend.</dd></div>
+    <div><dt>Ruta</dt><dd>Cada dirección dentro de la app (p. ej. <code>/fiscal/resumen</code>). Que cada vista tenga la suya permite compartir enlaces directos.</dd></div>
+    <div><dt>Kanban</dt><dd>Tablero de columnas donde cada tarjeta es un caso o tarea y cada columna una etapa. Ver todo el flujo de un vistazo.</dd></div>
+    <div><dt>Rama <small>branch</small></dt><dd>Una línea de trabajo paralela dentro del repositorio. Trabajas en tu rama sin afectar la principal (master) hasta que tu cambio se aprueba.</dd></div>
+    <div><dt>Commit</dt><dd>Una fotografía guardada del código en un momento dado, con su descripción. La historia del proyecto es la cadena de commits.</dd></div>
+    <div><dt>PR <small>pull request / solicitud de integración</small></dt><dd>La propuesta formal de incorporar tus cambios a la rama principal. Otro colaborador la revisa y, si está bien, la fusiona.</dd></div>
+    <div><dt>CI <small>integración continua</small></dt><dd>Robot que corre revisiones automáticas en la nube cada vez que alguien propone un cambio, para atrapar errores antes de fusionar.</dd></div>
+    <div><dt>Gate <small>compuerta</small></dt><dd>Una revisión que debe pasar en verde obligatoriamente para que el trabajo se considere terminado o se pueda fusionar.</dd></div>
+    <div><dt>Typecheck</dt><dd>Revisión automática de que los tipos de datos cuadran (que no le pases un texto a algo que espera un número). La hace TypeScript.</dd></div>
+    <div><dt>Lint</dt><dd>Revisión automática de estilo y de errores comunes en el código, con reglas acordadas por el equipo.</dd></div>
+    <div><dt>Build</dt><dd>El proceso de compilar la app a su versión optimizada de producción. Si el build falla, la app no puede publicarse.</dd></div>
+    <div><dt>Trío Hermes → Ejecutor → Supervisor</dt><dd>Patrón de este proyecto donde un agente recibe el encargo (Hermes), otro lo ejecuta (Ejecutor) y un tercero, independiente, juzga el resultado con revisiones objetivas (Supervisor). Nadie aprueba su propio trabajo.</dd></div>
+  </dl>
+
+  <footer>
+    Plan sujeto a aprobación · Rama propuesta: <code>feat/avatares-legales</code> · App: <code>businessos/frontends/avatares-legales</code> · Puerto local 3005 · ~75 archivos nuevos · Este plan pasó por exploración del repositorio y por un ataque adversarial (un agente cuyo único trabajo era encontrarle fallas) antes de presentarse.
+  </footer>
+</div>

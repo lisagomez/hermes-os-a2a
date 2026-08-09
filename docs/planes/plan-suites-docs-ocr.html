@@ -1,0 +1,343 @@
+<title>Plan: gestión documental y OCR para A2A</title>
+<style>
+  :root {
+    --bg: #f4f5f3;
+    --surface: #ffffff;
+    --surface-2: #eceeea;
+    --ink: #1a2332;
+    --ink-soft: #4c5769;
+    --ink-faint: #7a8494;
+    --accent: #1f4e79;
+    --accent-soft: #dce6ef;
+    --amber: #a06a1e;
+    --amber-soft: #f3e8d4;
+    --line: #d5d9d2;
+    --ok: #2e6b4f;
+    --ok-soft: #ddeae3;
+    --no: #93412e;
+    --no-soft: #f0e0da;
+    --term-underline: #9db4c8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+      --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+      --accent: #8db4d8; --accent-soft: #24384c;
+      --amber: #d9a55a; --amber-soft: #3a2f1c;
+      --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+      --no: #cf8a74; --no-soft: #3a2620;
+      --term-underline: #4c6f8e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+    --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+    --accent: #8db4d8; --accent-soft: #24384c;
+    --amber: #d9a55a; --amber-soft: #3a2f1c;
+    --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+    --no: #cf8a74; --no-soft: #3a2620;
+    --term-underline: #4c6f8e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f3; --surface: #ffffff; --surface-2: #eceeea;
+    --ink: #1a2332; --ink-soft: #4c5769; --ink-faint: #7a8494;
+    --accent: #1f4e79; --accent-soft: #dce6ef;
+    --amber: #a06a1e; --amber-soft: #f3e8d4;
+    --line: #d5d9d2; --ok: #2e6b4f; --ok-soft: #ddeae3;
+    --no: #93412e; --no-soft: #f0e0da;
+    --term-underline: #9db4c8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 600;
+    margin: .5rem 0 .75rem;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 .5rem; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 2.8rem 0 .35rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h2 .num {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .8rem;
+    color: var(--ink-faint);
+    margin-right: .6rem;
+    vertical-align: .15em;
+  }
+  h3 { font-size: 1rem; margin: 1.4rem 0 .3rem; }
+  p { margin: .6rem 0; }
+  ul { margin: .5rem 0; padding-left: 1.2rem; }
+  li { margin: .35rem 0; }
+
+  .t { border-bottom: 1px dotted var(--term-underline); cursor: help; font-style: normal; }
+
+  .verdicts { display: flex; flex-direction: column; gap: .6rem; margin: 1rem 0; }
+  .verdict {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .8rem;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .85rem 1rem;
+  }
+  .pill {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .25em .7em;
+    border-radius: 999px;
+    white-space: nowrap;
+    margin-top: .2rem;
+  }
+  .pill.si  { background: var(--ok-soft);  color: var(--ok); }
+  .pill.no  { background: var(--no-soft);  color: var(--no); }
+  .pill.tal { background: var(--amber-soft); color: var(--amber); }
+  .verdict h3 { margin: 0; font-size: .98rem; }
+  .verdict p { margin: .3rem 0 0; font-size: .89rem; color: var(--ink-soft); }
+
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .warn {
+    background: var(--amber-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .note b, .warn b { display: block; margin-bottom: .15rem; }
+  .warn b { color: var(--amber); }
+  .note b { color: var(--accent); }
+
+  .fases { display: flex; flex-direction: column; gap: .55rem; margin: 1rem 0; counter-reset: fase -1; }
+  .fase {
+    display: grid;
+    grid-template-columns: 2.1rem 1fr;
+    gap: .8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .8rem .95rem;
+  }
+  .fase::before {
+    counter-increment: fase;
+    content: counter(fase);
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--accent);
+    text-align: center;
+    padding-top: .05rem;
+  }
+  .fase h3 { margin: 0; font-size: .95rem; }
+  .fase p { margin: .25rem 0 0; font-size: .87rem; color: var(--ink-soft); }
+  .fase .done {
+    display: inline-block;
+    margin-top: .4rem;
+    font-size: .78rem;
+    color: var(--ok);
+  }
+  .fase .done::before { content: "✓ Terminada cuando: "; font-weight: 600; }
+
+  code {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .84em;
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .tabla-scroll { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; min-width: 34rem; }
+  th, td { text-align: left; padding: .5rem .65rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .7rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+
+  dl.glosario { margin: 1rem 0 0; }
+  dl.glosario > div {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .75rem .95rem;
+    margin-bottom: .55rem;
+  }
+  dt { font-weight: 650; font-size: .92rem; }
+  dt small { font-weight: 400; color: var(--ink-faint); font-size: .8rem; margin-left: .3rem; }
+  dd { margin: .2rem 0 0; font-size: .89rem; color: var(--ink-soft); }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Plan de adopción de herramientas · Proyecto A2A / Hermes OS · 5 de agosto de 2026</p>
+  <h1>Gestión documental, OCR y multimedia: qué herramientas convienen al equipo</h1>
+  <p class="lede">Basado en el informe «Opciones Microsoft 365 y open source para gestión documental, OCR y multimedia en A2A», cruzado con cómo opera realmente el proyecto hoy. Las palabras con <span class="t">subrayado punteado</span> están en el glosario del final.</p>
+
+  <h2><span class="num">01</span>El problema que resolvemos</h2>
+  <p>Los equipos legal y de logística viven de documentos: expedientes, contratos, criterios fiscales, y en logística los AWB, B/L, cartas porte, pedimentos y evidencias en foto y video. Hoy no hay un repositorio formal: hace falta un lugar único donde guardarlos con <span class="t">versionado</span>, permisos, búsqueda por contenido (<span class="t">OCR</span>: que un escaneo o una foto se vuelvan texto buscable) y una <span class="t">API</span> para que los agentes del proyecto los consulten sin tocar archivos sueltos.</p>
+
+  <h2><span class="num">02</span>La recomendación, en una frase</h2>
+  <div class="note">
+    <b>Autoalojar Paperless-ngx como archivo documental con OCR, dentro de la infraestructura propia del proyecto — y no comprar Microsoft 365.</b>
+    Google (que el equipo ya usa) sigue para colaboración diaria; la multimedia se estandariza (MP4/MP3) y se guarda aparte, referenciada por enlaces y metadatos.
+  </div>
+
+  <h2><span class="num">03</span>Veredicto por herramienta evaluada</h2>
+  <div class="verdicts">
+    <div class="verdict">
+      <span class="pill si">Adoptar</span>
+      <div>
+        <h3>Paperless-ngx (open source, autoalojado)</h3>
+        <p>Archivo documental diseñado para escaneos: OCR en español incluido, clasificación asistida por IA, etiquetas y campos propios, búsqueda por contenido y una API REST completa. Corre en <span class="t">Docker</span> igual que el resto de los servicios del proyecto, es la opción más ligera de su categoría y tiene la comunidad más activa. Encaja con el patrón del proyecto: los agentes no tocan credenciales, leen resultados por API.</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill tal">Plan B</span>
+      <div>
+        <h3>Mayan EDMS (open source, autoalojado)</h3>
+        <p>Gestor documental más completo: permisos finos por rol y metadatos avanzados. Pero es notablemente más pesado y complejo de operar. Solo se prueba si la prueba de concepto de Paperless-ngx se queda corta en permisos o en calidad de OCR.</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill no">Descartar</span>
+      <div>
+        <h3>Nextcloud + OCR</h3>
+        <p>Buena plataforma de sincronización de archivos, pero su pieza de OCR es frágil: el propio informe cita usuarios que renunciaron tras un mes intentando estabilizarla. No necesitamos su fuerte (sincronización de escritorio) y sí sufriríamos su débil (el OCR).</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill no">No comprar</span>
+      <div>
+        <h3>Microsoft 365 (SharePoint + OCR Premium)</h3>
+        <p>Capaz, pero mal ajuste triple: (1) el equipo opera sobre Google — correo, buzones de agentes, dominios verificados con Google — y M365 sería una <em>segunda</em> suite que nadie usa hoy; (2) su OCR se cobra por página a través de Azure: costo variable difícil de controlar; (3) sacaría los documentos sensibles de la infraestructura propia, contra el diseño del proyecto (agentes, opacidad y datos en servidores controlados). Solo se reconsidera si un cliente corporativo exige trabajar dentro de su propio M365.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2><span class="num">04</span>¿Y los videos y audios?</h2>
+  <p>Un archivo documental no es una videoteca: meterle MP4 pesados lo vuelve lento y caro de respaldar. La política propuesta:</p>
+  <ul>
+    <li><strong>Estandarizar formatos</strong>: video en MP4 (códec H.264 + audio AAC), audio en MP3 — los formatos que cualquier navegador y herramienta reproducen.</li>
+    <li><strong>Guardar la multimedia aparte</strong> (volumen dedicado o almacenamiento de objetos del proveedor del servidor), y registrar en el repositorio documental solo la ficha: qué es, de qué expediente u operación, y el enlace al archivo.</li>
+    <li><strong>Los agentes trabajan sobre fichas y texto extraído</strong>, nunca sobre archivos crudos sin estructura — mismo principio que ya rige en el resto del proyecto.</li>
+  </ul>
+
+  <h2><span class="num">05</span>Comparación resumida</h2>
+  <div class="tabla-scroll">
+    <table>
+      <tr><th>Criterio</th><th>Paperless-ngx</th><th>Mayan EDMS</th><th>Microsoft 365</th></tr>
+      <tr><td>Costo de licencias</td><td>$0 (software libre)</td><td>$0 (software libre)</td><td>Suscripción por usuario + OCR por página (Azure)</td></tr>
+      <tr><td>OCR</td><td>Incluido (español), maduro</td><td>Incluido</td><td>De pago, calidad alta</td></tr>
+      <tr><td>Dónde viven los datos</td><td>Servidor propio</td><td>Servidor propio</td><td>Nube de Microsoft</td></tr>
+      <tr><td>Integración con agentes</td><td>API REST completa</td><td>API REST</td><td>API Graph (otra curva de aprendizaje)</td></tr>
+      <tr><td>Peso operativo</td><td>Ligero (~1–2 GB de RAM)</td><td>Pesado</td><td>Cero (SaaS), pero dependencia externa</td></tr>
+      <tr><td>Encaje con el proyecto</td><td>Alto</td><td>Medio</td><td>Bajo</td></tr>
+    </table>
+  </div>
+
+  <h2><span class="num">06</span>El plan por fases</h2>
+  <div class="fases">
+    <div class="fase"><div>
+      <h3>Inventario de necesidades (media jornada)</h3>
+      <p>Listar con legal y logística: tipos de documento, volúmenes mensuales esperados, quién debe ver qué, y 20–30 documentos reales de muestra (contratos escaneados, pedimentos, AWB, fotos de evidencia) que servirán de examen para el OCR.</p>
+      <span class="done">existe la lista y la carpeta de muestras.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Verificar capacidad del servidor</h3>
+      <p>Medir cuánta memoria libre tiene el servidor actual (una medición ya pendiente en el proyecto). Paperless-ngx necesita ~1–2 GB; si no caben, evaluar subir de tamaño el servidor antes de desplegar.</p>
+      <span class="done">sabemos si cabe o cuánto costaría que quepa.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Prueba de concepto en la máquina de desarrollo (1–2 días)</h3>
+      <p>Levantar Paperless-ngx con Docker en local, ingerir las muestras reales y calificar: ¿el OCR lee bien los escaneos mexicanos (sellos, tablas, fotos de celular)? ¿la búsqueda encuentra por contenido? ¿la API responde lo que los agentes necesitarían?</p>
+      <span class="done">hay calificación documentada por tipo de documento.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Decisión (con evidencia, no con folletos)</h3>
+      <p>Si Paperless-ngx aprueba, se adopta. Si falla en permisos o calidad, repetir la prueba con Mayan EDMS sobre el mismo corpus. La decisión y sus motivos quedan escritos en la documentación viva del proyecto.</p>
+      <span class="done">decisión registrada con los resultados de la prueba.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Despliegue en el servidor</h3>
+      <p>Instalar en la red interna de servicios del proyecto, crear las bibliotecas por vertical (fiscal, litigio, contratos, logística) con sus permisos, y cablear el respaldo automático junto al de los demás servicios.</p>
+      <span class="done">documentos de muestra cargados, búsqueda funcionando, respaldo verificado.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Integración con los agentes</h3>
+      <p>Siguiendo el patrón ya establecido del proyecto: las credenciales viven en el anfitrión, un <span class="t">host-job</span> de confianza habla con la API, y los agentes leen fichas y texto extraído — nunca manejan la llave. Conectar con el grafo regulatorio y el CRM donde aplique.</p>
+      <span class="done">un agente responde una consulta real citando un documento del repositorio.</span>
+    </div></div>
+  </div>
+
+  <h2><span class="num">07</span>Por qué esta recomendación y no la híbrida del informe</h2>
+  <p>El informe propone un híbrido «Microsoft 365 para colaboración + open source para lo crítico». La mitad open source la tomamos tal cual. La mitad Microsoft no aplica a este equipo: la colaboración diaria ya está resuelta con Google, y adoptar M365 solo para eso significaría pagar licencias de una suite duplicada. El híbrido real de este equipo es <strong>Google (ya pagado y en uso) + Paperless-ngx (gratis, en servidor propio)</strong> — mismo espíritu, cero licencias nuevas.</p>
+
+  <div class="warn">
+    <b>Riesgo a vigilar</b>
+    Autoalojar significa que el mantenimiento es nuestro: actualizaciones, respaldos y monitoreo. La mitigación es tratarlo como un servicio más del proyecto — mismo servidor, mismos respaldos automáticos, misma vigilancia — y no como una isla. Si el equipo creciera y el mantenimiento pesara, la decisión se revisa con datos de uso reales.
+  </div>
+
+  <h2><span class="num">08</span>Glosario</h2>
+  <dl class="glosario">
+    <div><dt>OCR <small>reconocimiento óptico de caracteres</small></dt><dd>Tecnología que «lee» imágenes y escaneos y los convierte en texto que se puede buscar y copiar. Es lo que permite encontrar un pedimento por su contenido y no por el nombre del archivo.</dd></div>
+    <div><dt>EDMS / gestor documental</dt><dd>Sistema para archivar documentos con orden: versiones, permisos, etiquetas, metadatos y búsqueda. Un archivero digital con reglas.</dd></div>
+    <div><dt>Open source <small>código abierto</small></dt><dd>Software cuyo código es público y de uso libre. No se pagan licencias; el costo es la infraestructura y el mantenimiento propio.</dd></div>
+    <div><dt>Autoalojar <small>self-host</small></dt><dd>Instalar y operar el software en servidores propios en vez de rentarlo como servicio. Máximo control sobre los datos, a cambio de asumir el mantenimiento.</dd></div>
+    <div><dt>API <small>interfaz de programación</small></dt><dd>La «ventanilla» por la que otros programas (por ejemplo, los agentes del proyecto) consultan o registran información en un sistema, sin usar su pantalla.</dd></div>
+    <div><dt>Docker</dt><dd>Tecnología para empaquetar un programa con todo lo que necesita y correrlo aislado en cualquier servidor. Todos los servicios del proyecto corren así.</dd></div>
+    <div><dt>Versionado</dt><dd>Guardar el historial de cambios de un documento: quién cambió qué y cuándo, con posibilidad de volver a una versión anterior.</dd></div>
+    <div><dt>Metadatos</dt><dd>Datos sobre el documento: cliente, expediente, tipo, fecha, etiquetas. Lo que permite organizarlo y encontrarlo sin abrirlo.</dd></div>
+    <div><dt>Host-job</dt><dd>Patrón de este proyecto: un programa de confianza que corre en el anfitrión (fuera del alcance de los agentes) y es el único que maneja credenciales. Los agentes le piden resultados, nunca llaves.</dd></div>
+    <div><dt>SaaS</dt><dd>Software como servicio: lo rentas por suscripción y el proveedor lo opera en su nube (Microsoft 365 es SaaS). Rápido de empezar, menos control sobre tus datos.</dd></div>
+    <div><dt>Almacenamiento de objetos</dt><dd>Servicio para guardar archivos grandes (videos, fotos) de forma barata y durable, accesibles por enlace — en vez de saturar el disco del servidor principal.</dd></div>
+  </dl>
+
+  <footer>
+    Plan sujeto a discusión con el equipo · Fuente: <code>informe-suites-docs-ocr-A2A.md</code> (Descargas) cruzado con la doctrina operativa del repositorio · Recomendación: Google (actual) + Paperless-ngx autoalojado; Mayan EDMS como plan B; Nextcloud OCR y compra de Microsoft 365 descartados.
+  </footer>
+</div>
