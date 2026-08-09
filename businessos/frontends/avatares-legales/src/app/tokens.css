@@ -1,0 +1,92 @@
+/* =============================================================================
+   AVATARES LEGALES — tokens.css
+   Piel "legal sobria": tema claro único (despacho, papel, tinta), tipografía
+   serif para display, acento azul profundo. Sin tema oscuro (fuera de alcance
+   del prototipo, ver README).
+
+   DECISIÓN C4 (adenda de conciliación, resuelta en esta fase):
+   El COLOR codifica una sola cosa: la ESCALA DE RIESGO (convención semáforo,
+   --risk-*). Los PLAZOS no llevan token de color propio — se codifican con peso
+   tipográfico, posición y cifras tabulares (la "cinta de plazos" es un elemento
+   propio, no un color). La VALIDACIÓN HUMANA es un estado de flujo: usa fichas
+   con acento/neutro, nunca la paleta de riesgo. Así el ámbar significa siempre
+   "riesgo medio" y nada más.
+
+   Nombres de radio a prueba de colisión: en Tailwind v4 un token --radius-s
+   genera `rounded-s`, que YA existe como utilidad lógica de lado (gotcha
+   2026-07-26 de meeting-copilot). Por eso: --radius-card / --radius-control.
+   ============================================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* Lienzo */
+  --background: #f7f8f9;
+  --surface: #ffffff;
+  --surface-muted: #f1f3f5;
+  --line: #e3e6ea;
+  --line-strong: #cfd4da;
+
+  /* Tinta (grafito, no negro puro) */
+  --ink: #1a2332;
+  --ink-secondary: #4c5665;
+  --ink-muted: #8a93a0;
+
+  /* Acento: azul profundo institucional */
+  --accent: #1f4e79;
+  --accent-hover: #173d60;
+  --accent-muted: #e8eef5;
+  --accent-ink: #ffffff;
+
+  /* Escala de riesgo — ÚNICA codificación por color (ver decisión C4 arriba).
+     Cada nivel trae su fondo -muted para fichas y filas resaltadas. */
+  --risk-alto: #9e3131;
+  --risk-alto-muted: #f7e9e9;
+  --risk-medio: #a3660a;
+  --risk-medio-muted: #f8efdf;
+  --risk-bajo: #2a7a4b;
+  --risk-bajo-muted: #e7f2ec;
+
+  /* Sombras discretas (papel sobre escritorio) */
+  --shadow-1: 0 1px 2px rgba(26, 35, 50, 0.06), 0 0 0 1px rgba(26, 35, 50, 0.03);
+  --shadow-2: 0 4px 12px rgba(26, 35, 50, 0.08), 0 0 0 1px rgba(26, 35, 50, 0.04);
+}
+
+/* Mapeo a utilidades Tailwind v4. `inline` = el valor viaja con la utilidad. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-ink: var(--accent-ink);
+  --color-risk-alto: var(--risk-alto);
+  --color-risk-alto-muted: var(--risk-alto-muted);
+  --color-risk-medio: var(--risk-medio);
+  --color-risk-medio-muted: var(--risk-medio-muted);
+  --color-risk-bajo: var(--risk-bajo);
+  --color-risk-bajo-muted: var(--risk-bajo-muted);
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+
+  /* Fuentes: las vars --font-source-serif/--font-libre-franklin/--font-plex-mono
+     las inyecta next/font en <html> (layout.tsx). Van en <html>, no en <body>:
+     un var() de fuente que no resuelve invalida la declaración ENTERA y tira
+     la tipografía a serif del navegador (gotcha 2026-08-08). */
+  --font-display: var(--font-source-serif), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, 'Courier New', monospace;
+}
+
+/* Radios de marca: valores directos en @theme (sin var() intermedia) para que
+   Tailwind emita rounded-card / rounded-control. */
+@theme {
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
+}

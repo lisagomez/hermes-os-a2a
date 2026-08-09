@@ -1,0 +1,17 @@
+/* =============================================================================
+   AVATARES LEGALES — globals.css
+   Los tokens de la piel viven en tokens.css (importado aquí); este archivo solo
+   trae la base del documento.
+   ============================================================================= */
+
+@import 'tailwindcss';
+@import './tokens.css';
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  /* Cadena explícita, no var(--font-sans) del theme inline (no se emite como
+     var global). La var de next/font resuelve porque vive en <html>. */
+  font-family: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
