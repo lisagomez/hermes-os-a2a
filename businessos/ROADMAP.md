@@ -6,6 +6,39 @@ que la fase previa esté validada.
 
 ---
 
+## 🔴 Espera respuesta de Elisa — trabajo detenido por una decisión, no por falta de manos
+
+Bandeja corta y arriba a propósito: lo que sigue no avanza aunque haya tiempo disponible,
+porque nadie más lo puede decidir. Cada punto vive desarrollado en su línea; aquí va lo
+mínimo para responder sin abrir nada. **Al día 2026-08-09.**
+
+**1 · Sala A2A — la Fase A no se puede encolar sin dos respuestas** *(pendiente desde el
+2026-08-08)*. No son trámite: el Ejecutor las necesita en la primera sub-tarea y, si no las
+encuentra escritas, las inventará.
+
+- **¿De qué tabla sale la identidad de un humano cuando aprueba algo con un botón:
+  `usuarios` o `profiles`?** La primera no la puebla nadie en todo el repositorio; la
+  segunda sí funciona, pero es de la cabina `control-interno` y ya provocó una colisión
+  entre superficies. De la respuesta cuelgan la clave foránea, la política de aprobación y
+  su prueba.
+- **¿El inicio de sesión de Supabase incluye el identificador de la organización (`org_id`)
+  en el token?** Sin él las políticas niegan todo y el frontal no vería un solo mensaje. Se
+  comprueba en minutos contra el Supabase real.
+- Menor, también suya: el **nombre definitivo del servicio** (hoy `sala-a2a`, puerto 5300).
+- *Detalle, con las dos salidas y sus costos, en §Línea Sala A2A.*
+
+**2 · Tenencia — ¿se unifica `tenant_id` o se quedan los dos mundos?** *(pendiente desde el
+2026-08-05)*. Hoy las 17 tablas que ya usaban un identificador de texto conservan el suyo y
+el puente es `organizaciones.slug`. Convertirlas obligaría a tocar CancioBot, la guardia de
+presupuesto, agendamiento y el buzón. *Detalle en §Propuestas en revisión.*
+
+**3 · Administración del repositorio: ¿es "Tenencia" un check obligatorio de `master`?**
+El reparto de verificación de la Fase A se apoya en él; si solo avisa y no bloquea, es una
+red que informa pero no detiene. La consulta a la protección de rama devuelve 404 sin
+permiso de administración.
+
+---
+
 ## Arquitectura en una frase
 
 Una mente (Hermes) con tres bocas (verticales: personal, negocio, clientes),
