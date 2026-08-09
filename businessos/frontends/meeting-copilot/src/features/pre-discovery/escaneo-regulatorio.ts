@@ -88,6 +88,51 @@ const SECTORES: DefSector[] = [
       },
     ],
   },
+  {
+    // El seed del grafo YA cubre estas categorías (MX·regulatorio): un lead
+    // "Legal" caía en VACÍO DEL GRAFO solo porque este espejo no mapeaba el
+    // sector — el vacío era del mapa, no del grafo.
+    sector: 'Servicios legales (despachos y firmas de abogados)',
+    patron: /(\blegal(es)?\b|abogad|abogac|bufete|law\s?firm|notar[ií]|despacho jur[ií]dico|despacho de abogados|(servicios|asesor[ií]a|firma) jur[ií]dic)/i,
+    expectativas: [
+      {
+        categoria: 'CONSTITUCION_SOCIEDADES',
+        esperadaPor: 'derecho corporativo / constitución de sociedades',
+        senal: /(corporativ|societari|constituci[oó]n de sociedad|mercantil|company formation|incorporation)/i,
+        severidadVacio: 'alta',
+      },
+      {
+        categoria: 'FUSION_ESCISION',
+        esperadaPor: 'fusiones y adquisiciones (M&A)',
+        senal: /(m&a|fusion|fusiones|adquisicion|escisi[oó]n|merger|acquisition)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'COMPRAVENTA_INMUEBLES',
+        esperadaPor: 'derecho inmobiliario / transacciones de inmuebles',
+        senal: /(inmobiliari|inmueble|real estate|bienes ra[ií]ces)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'MARCAS_REGISTRO',
+        esperadaPor: 'propiedad intelectual / registro de marcas',
+        senal: /(propiedad intelectual|intellectual property|marca|patente|\bip\b)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'PODERES_REPRESENTACION',
+        esperadaPor: 'representación legal / litigio y controversias',
+        senal: /(litigio|litigation|arbitraje|arbitration|controversia|juicio|poder notarial)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'TESTAMENTOS_SUCESIONES',
+        esperadaPor: 'derecho familiar / sucesiones y testamentos',
+        senal: /(sucesi[oó]n|testament|herencia|patrimonial|familiar?\b|estate planning)/i,
+        severidadVacio: 'baja',
+      },
+    ],
+  },
 ]
 
 function textoObservado(intake: IntakeLead, sitio: DatosSitio | null): string {

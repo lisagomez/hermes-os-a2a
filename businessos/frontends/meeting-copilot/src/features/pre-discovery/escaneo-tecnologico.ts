@@ -105,6 +105,44 @@ const CLASES: DefClase[] = [
       },
     ],
   },
+  {
+    // Espejo tecnológico del sector legal (mismas clases que el escaneo
+    // regulatorio): los vacíos de esta matriz SON el pitch de una plataforma
+    // legal especializada — portal de asuntos, firma electrónica, generación
+    // documental y agenda en línea.
+    clase: 'Servicios legales (despachos y firmas de abogados)',
+    patron: /(\blegal(es)?\b|abogad|abogac|bufete|law\s?firm|notar[ií]|despacho jur[ií]dico|despacho de abogados|(servicios|asesor[ií]a|firma) jur[ií]dic)/i,
+    expectativas: [
+      {
+        capacidad: 'PORTAL_CLIENTES_EXPEDIENTES',
+        esperadaPor: 'seguimiento de asuntos/expedientes por el cliente sin llamar al despacho',
+        sistema: /(portal de clientes|client portal|acceso a (su )?expediente|estatus de (su )?asunto en l[ií]nea|case management)/i,
+        senal: /(expediente|seguimiento de asuntos|estatus de su caso)/i,
+        severidadVacio: 'alta',
+      },
+      {
+        capacidad: 'FIRMA_ELECTRONICA_DOCUMENTOS',
+        esperadaPor: 'firma de contratos y convenios a distancia (e.firma / NOM-151)',
+        sistema: /(firma electr[oó]nica|e\.?firma|docusign|nom.?151|firma digital)/i,
+        senal: /(firmar? (de )?(contratos|convenios|documentos))/i,
+        severidadVacio: 'alta',
+      },
+      {
+        capacidad: 'AUTOMATIZACION_DOCUMENTAL',
+        esperadaPor: 'generación de contratos/escritos repetitivos con plantillas (document assembly)',
+        sistema: /(document assembly|automatizaci[oó]n documental|generador de (contratos|documentos)|plantillas (inteligentes|autom))/i,
+        senal: /(elaboraci[oó]n de contratos|redacci[oó]n de contratos|machotes)/i,
+        severidadVacio: 'media',
+      },
+      {
+        capacidad: 'AGENDA_CITAS_LINEA',
+        esperadaPor: 'agendar una consulta sin llamar (autoservicio del prospecto)',
+        sistema: /(agenda en l[ií]nea|calendly|reserva tu cita|agendar? (tu )?cita en l[ií]nea)/i,
+        senal: /(agendar|cita|consulta inicial)/i,
+        severidadVacio: 'media',
+      },
+    ],
+  },
 ]
 
 function textoObservado(intake: IntakeLead, sitio: DatosSitio | null, tecnologia: DatosTecnologia | null): string {

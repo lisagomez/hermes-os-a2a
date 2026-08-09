@@ -107,3 +107,39 @@ describe('escaneoTecnologico — cruce DECLARADO vs ESPERADO (Hermes-Tech-Stack-
     expect(e.cobertura).toBe('alta')
   })
 })
+
+describe('clase legal — los vacíos son el pitch de la plataforma legal especializada', () => {
+  const intakeLegal: IntakeLead = {
+    telefono: '',
+    email: '',
+    web: 'https://firma.mx',
+    tamano: '11-50',
+    giro: 'Legal',
+    pais: 'México (MX)',
+    notas: 'Despacho de abogados; buscan plataforma de gestión de asuntos',
+  }
+
+  it('un despacho sin sistemas observables sale con la matriz de vacíos (portal, firma, documental, agenda)', () => {
+    const e = escaneoTecnologico(intakeLegal, null, tecnologiaVacia)
+    expect(e.claseNegocio).toContain('legales')
+    expect(e.vacioDelMapa).toBeNull()
+    const vacios = e.matriz.filter((m) => m.estado === 'vacio').map((m) => m.capacidad)
+    expect(vacios).toContain('PORTAL_CLIENTES_EXPEDIENTES')
+    expect(vacios).toContain('FIRMA_ELECTRONICA_DOCUMENTOS')
+  })
+
+  it('señal de sistema real ("portal de clientes") → evidencia; claim de redacción de contratos → hipótesis', () => {
+    const sitioFirma: DatosSitio = {
+      servicios: [{ texto: 'Elaboración y redacción de contratos mercantiles', naturaleza: 'hecho', evidencia: 'sitio' }],
+      propuestaValor: { texto: 'Asesoría integral', naturaleza: 'hecho' },
+      claims: [{ texto: 'Consulta el estatus en nuestro portal de clientes', naturaleza: 'hecho', evidencia: 'sitio' }],
+      segmentosObjetivo: [],
+      madurezDigital: { nivel: 'media', senales: [] },
+      vacios: [],
+    }
+    const e = escaneoTecnologico(intakeLegal, sitioFirma, tecnologiaVacia)
+    const porCapacidad = Object.fromEntries(e.matriz.map((m) => [m.capacidad, m.estado]))
+    expect(porCapacidad.PORTAL_CLIENTES_EXPEDIENTES).toBe('evidencia')
+    expect(porCapacidad.AUTOMATIZACION_DOCUMENTAL).toBe('hipotesis')
+  })
+})

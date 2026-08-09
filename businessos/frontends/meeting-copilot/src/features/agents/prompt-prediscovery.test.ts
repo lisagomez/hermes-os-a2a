@@ -105,3 +105,17 @@ describe('validarBloqueIA — la IA propone, el contrato verifica', () => {
     ).toBeNull()
   })
 })
+
+describe('presupuesto de texto del sitio por bloque', () => {
+  const textoLargo = 'ç'.repeat(20_000)
+
+  it('el bloque sitio recibe hasta 14k del material compilado (no lo trunca a 6k)', () => {
+    const p = construirUsuarioBloque('sitio', { intake: INTAKE, textoSitio: textoLargo })
+    expect((p.match(/ç/g) ?? []).length).toBe(14_000)
+  })
+
+  it('un bloque derivado (foda) conserva el presupuesto acotado de 6k', () => {
+    const p = construirUsuarioBloque('foda', { intake: INTAKE, textoSitio: textoLargo })
+    expect((p.match(/ç/g) ?? []).length).toBe(6000)
+  })
+})
