@@ -19,7 +19,15 @@ describe('pestanasDeReunion', () => {
   // audio ese aviso es transitorio; en una presencial sería permanente y
   // falso, porque nunca va a haber audio que procesar.
   it('una reunión presencial no ofrece las vistas que dependen de la transcripción', () => {
-    expect(pestanasDeReunion('presencial')).toEqual([])
+    const segs = pestanasDeReunion('presencial').map((p) => p.seg)
+    expect(segs).not.toContain('transcripcion')
+    expect(segs).not.toContain('insights')
+    expect(segs).not.toContain('guiada')
+    expect(segs).not.toContain('resumen')
+  })
+
+  it('una reunión presencial ofrece la captura de contactos', () => {
+    expect(pestanasDeReunion('presencial').map((p) => p.seg)).toEqual(['gafetes'])
   })
 
   it('ninguna pestaña sale sin etiqueta ni sin segmento de ruta', () => {

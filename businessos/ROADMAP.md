@@ -1254,7 +1254,7 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
-### Captura en eventos presenciales (gafetes por QR) 🟡 Fase 1 de 5 (2026-08-07)
+### Captura en eventos presenciales (gafetes por QR) 🟡 Fases 1-2 de 5 (2026-08-08)
 
 Pedido de Victor: el equipo también hace negocio **de pie en un stand**, donde no hay audio
 que transcribir sino gafetes que capturar. El eje ya estaba abierto en el tipo
@@ -1279,6 +1279,10 @@ Dos hallazgos del ataque reordenaron el plan y **son la parte importante de esta
    cuando lo habitual en ferias es un identificador opaco del organizador (que vende el
    servicio de recuperación). Comprobarlo cuesta una llamada; construir el intérprete y la
    cámara cuesta ~2 días. La validación pasó a ser el primer paso y **condiciona** la Fase 3.
+   **Resuelto el 2026-08-08**: Victor confirmó que los gafetes traen **nombre, empresa,
+   correo de contacto y sitio web** — datos estructurados, no un identificador opaco. La
+   Fase 3 queda justificada. Falta una muestra del texto crudo para fijar el formato exacto
+   (vCard / MECARD / enlace / texto suelto); el intérprete tolera los cuatro por diseño.
 
 - [x] **Fase 1 — tipo y andamio (2026-08-07)**: `OrigenReunion` con `presencial` +
   `ETIQUETA_ORIGEN_REUNION` (`Record`, para que un origen futuro no salga sin nombre) +
@@ -1287,9 +1291,22 @@ Dos hallazgos del ataque reordenaron el plan y **son la parte importante de esta
   4 vistas de análisis: `VistaReunion` corta con *"procesa su audio"*, que ahí sería un mensaje
   permanentemente falso. Control de reversión ejecutado (sabotaje → rojo → restaurado). 271
   pruebas verdes.
+- [x] **Fase 2 — pantalla de captura sin cámara (2026-08-08)**: ruta
+  `/reuniones/[id]/gafetes` con vista propia (no `VistaReunion`), cuarta vía "Evento
+  presencial" en Nueva conversación, ficha con los 4 campos confirmados al frente y
+  puesto/teléfono/notas detrás de "Más campos". **Antiduplicados por huella** (sha256 del
+  texto crudo normalizado — misma clave que usará el índice único de la tabla): el mismo
+  gafete dos veces es una fila con el contador en 2. **Una corrección hecha a mano nunca se
+  pisa por un re-escaneo** (perder trabajo humano en silencio sería el peor fallo de esta
+  pantalla). El texto crudo se conserva íntegro aunque se corrijan los campos: si mañana
+  mejora el intérprete, se reprocesa sin haber perdido nada. Sin relleno automático todavía
+  —eso es la Fase 3— y los datos viven **solo en el navegador**, lo que la pantalla dice con
+  un contador de "sin sincronizar", no en un comentario. 32 pruebas nuevas + 1 de extremo a
+  extremo; 4 sabotajes de reversión, los 4 cazados.
 - [ ] **Fase 0 — bloqueada por terceros**: aviso de privacidad publicado + buzón de bajas con
-  responsable, y respuesta escrita sobre qué codifican los gafetes del evento objetivo.
-- [ ] Fase 2 — pantalla de captura sin cámara (sin relleno automático todavía; ya bate al papel).
+  responsable nombrado. Mientras no exista, la pantalla muestra una alerta roja permanente y
+  las filas quedan marcadas `SIN-AVISO` (marca fea a propósito: si aparece en producción,
+  alguien capturó sin cumplir y debe poder encontrarse con una consulta).
 - [ ] Fase 3 — intérprete (vCard/MECARD/URL) + cámara. **Condicionada a la Fase 0.**
 - [ ] Fase 4 — `supabase-fase15-gafetes.sql` (`evento_asistentes`, tabla propia: **no** se
   toca el CHECK de `leads`, cuyo estado real en prod no se puede verificar desde el repo) +
