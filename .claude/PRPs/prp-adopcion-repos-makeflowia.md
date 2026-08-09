@@ -17,7 +17,16 @@
 
 ---
 
-## PASO 0 — Gate legal BO-AT (bloqueante de 2, 3 y 4)
+## PASO 0 — Gate legal BO-AT (bloqueante de 2, 3 y 4) — ✅ RESUELTO 2026-08-09
+
+> **Decisión de Elisa (2026-08-09): Escenario A — misma casa.** Makeflowia Lab y
+> Hermes OS son la misma casa; la adopción es libre y **las adopciones 2, 3 y 4
+> quedan desbloqueadas**. Registrado en `businessos/negocio/MEMORY.md`, que es la
+> salida que este paso exigía.
+>
+> Lo que el Escenario A **no** exime: sigue en pie cablear `verificar-origen.mjs`
+> como gate del Supervisor en el departamento de adquisición. No es condición para
+> arrancar las adopciones, pero es parte de darlas por terminadas.
 
 **No es una tarea de ingeniería. Es una decisión de la dueña, y bloquea todo lo que copie o derive código de estos repos.**
 
@@ -28,7 +37,7 @@ Dos escenarios, y el ejecutor no elige:
 - **(A) Makeflowia Lab y Hermes OS son la misma casa** → no hay conflicto. Se adopta libremente y, de pilón, `verificar-origen.mjs` se cablea como **gate del Supervisor** en el departamento de adquisición, junto a `plantilla_contrato_intacta` y `politica_intocable` (mismo espíritu de integridad sha256).
 - **(B) Son casas distintas** → adoptar código de estos repos obliga a poner *"basado en el Business OS de Makeflowia Lab"* en el pie de Mission Control **y en los productos que se vendan a clientes**. Eso es una decisión comercial y legal, no técnica.
 
-**Salida del Paso 0:** una línea escrita en `negocio/MEMORY.md` con el escenario elegido y la fecha. Sin esa línea, las adopciones 2, 3 y 4 no arrancan.
+**Salida del Paso 0:** una línea escrita en `negocio/MEMORY.md` con el escenario elegido y la fecha. Sin esa línea, las adopciones 2, 3 y 4 no arrancan. — **Hecha el 2026-08-09** (Escenario A).
 
 > **La adopción 1 NO depende de este gate**, porque no se copia código: se reimplementa en Python desde una especificación de comportamiento (formato de audio, endpoint, modelo). Empieza por ahí mientras se resuelve el Paso 0.
 

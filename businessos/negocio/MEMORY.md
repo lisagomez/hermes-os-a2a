@@ -116,3 +116,10 @@ Rellena con los KPIs reales del negocio. Plantilla:
 - 2026-06-30 — Presupuesto **bajado a 30 USD/mes** (alerta 24 USD). Tras la Fase 1
   (gemini-flash-lite + caché de prefijo) el gasto real quedó casi nulo; 30 USD es un
   techo realista. *(Ajusta esta linea cuando cambie el presupuesto.)*
+- 2026-08-09 — **Gate legal BO-AT: Escenario A — misma casa.** Makeflowia Lab y
+  Hermes OS son la misma casa, así que la licencia BO-AT 1.0 no genera conflicto y
+  la adopción de esos repos es libre. Con esto quedan **desbloqueadas las adopciones
+  2, 3 y 4** del PRP `prp-adopcion-repos-makeflowia.md` (la 1 nunca dependió de este
+  gate: se reimplementa, no se copia). Decidido por Elisa. *(No exime de atribuir:
+  el Escenario A del PRP cablea `verificar-origen.mjs` como gate del Supervisor en
+  adquisición — tarea de la adopción, aún pendiente.)*
