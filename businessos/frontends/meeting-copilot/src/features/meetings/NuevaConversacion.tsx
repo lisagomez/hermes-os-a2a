@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ClipboardPaste, Mic, Video } from 'lucide-react'
+import { ClipboardPaste, Mic, QrCode, Video } from 'lucide-react'
 import { useAppStore } from '@/features/domain/store'
 import type { Participante, Reunion, Segmento, TipoReunion, Transcripcion } from '@/features/domain/types'
 import { ETIQUETA_TIPO_REUNION } from '@/features/domain/types'
@@ -11,7 +11,7 @@ import { contenidoDesdeSegmentos } from '@/features/domain/fixtures'
 import { Callout, Card, Chip, PillToggle, SectionHeader } from '@/shared/components/ui'
 import { nuevoId } from '@/shared/lib/format'
 
-type Tab = 'audio' | 'texto' | 'virtual'
+type Tab = 'audio' | 'texto' | 'virtual' | 'presencial'
 
 /** Parsea texto pegado: acepta "Hablante: texto" por línea o texto corrido. */
 export function parsearTextoPegado(texto: string): { segmentos: Segmento[]; hablantes: string[] } {
@@ -86,15 +86,43 @@ export function NuevaConversacion() {
     router.push(`/reuniones/${reunionId}/insights`)
   }
 
+  // Un evento presencial no produce transcripción: se crea la reunión vacía y
+  // se entra directo a capturar contactos. Por eso no reusa `crearDesdeTexto`.
+  const crearPresencial = () => {
+    setError(null)
+    if (!titulo.trim() || !cuenta.trim() || !asesor.trim()) {
+      setError('Nombre del evento, cuenta y asesor son obligatorios: identifican dónde y con quién se capturó cada contacto.')
+      return
+    }
+    const reunionId = nuevoId('r')
+    agregarReunion({
+      id: reunionId,
+      titulo: titulo.trim(),
+      cuenta: cuenta.trim(),
+      tipoReunion: tipo,
+      participantes: [],
+      asesor: asesor.trim(),
+      fecha: new Date().toISOString(),
+      duracionS: null,
+      origen: 'presencial',
+      estado: 'capturada',
+    })
+    router.push(`/reuniones/${reunionId}/gafetes`)
+  }
+
   const TABS: { id: Tab; etiqueta: string; Icono: typeof Mic }[] = [
     { id: 'audio', etiqueta: 'Subir audio', Icono: Mic },
     { id: 'texto', etiqueta: 'Pegar transcripción', Icono: ClipboardPaste },
     { id: 'virtual', etiqueta: 'Reunión virtual', Icono: Video },
+    { id: 'presencial', etiqueta: 'Evento presencial', Icono: QrCode },
   ]
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <SectionHeader titulo="Nueva conversación" descripcion="Tres caminos de entrada; los tres terminan en el mismo pipeline de análisis." />
+      <SectionHeader
+        titulo="Nueva conversación"
+        descripcion="Tres caminos terminan en el pipeline de análisis; el cuarto —evento presencial— captura contactos, que es lo que se hace de pie en un stand."
+      />
 
       <PillToggle
         variante="suelto"
@@ -135,6 +163,45 @@ export function NuevaConversacion() {
             de la app.
           </p>
           <Link href="/herramientas/transcripcion" className="btn-secondary w-fit">Simular con audio demo</Link>
+        </Card>
+      )}
+
+      {tab === 'presencial' && (
+        <Card className="space-y-3 p-5">
+          <p className="text-[13px] text-ink-secondary">
+            Para ferias, expos y visitas: se crea el evento y entras directo a capturar contactos. No hay
+            transcripción que analizar — lo que se guarda son las personas.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Nombre del evento
+              <input value={titulo} onChange={(e) => setTitulo(e.target.value)} className="input mt-1" placeholder="Expo Logística 2026" data-testid="input-titulo-presencial" />
+            </label>
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Cuenta / organizador
+              <input value={cuenta} onChange={(e) => setCuenta(e.target.value)} className="input mt-1" placeholder="Centro Citibanamex" data-testid="input-cuenta-presencial" />
+            </label>
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Asesor en el stand
+              <input value={asesor} onChange={(e) => setAsesor(e.target.value)} className="input mt-1" placeholder="Valeria" data-testid="input-asesor-presencial" />
+            </label>
+            <label className="block text-[12px] font-medium text-ink-secondary">
+              Tipo de reunión
+              <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoReunion)} className="input mt-1">
+                {Object.entries(ETIQUETA_TIPO_REUNION).map(([v, e]) => (
+                  <option key={v} value={v}>{e}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {error && (
+            <Callout tono="danger" variante="inline" data-testid="error-nueva-presencial">
+              <p className="text-[12px] text-danger">{error}</p>
+            </Callout>
+          )}
+          <button type="button" className="btn-primary" onClick={crearPresencial} data-testid="crear-evento-presencial">
+            Crear evento y capturar contactos
+          </button>
         </Card>
       )}
 
