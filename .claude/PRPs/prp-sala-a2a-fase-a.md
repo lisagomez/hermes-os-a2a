@@ -11,6 +11,27 @@
 
 ---
 
+> ## ⛔ Esto NO se puede encolar todavía — faltan dos respuestas de Elisa
+>
+> No es una formalidad: el Ejecutor las necesita en la **sub-tarea 1** del DAG, y
+> si no las encuentra, las inventará.
+>
+> 1. **¿Qué tabla representa a un humano cuando firma una aprobación?**
+>    `usuarios` no tiene vínculo con `auth.users` y **nadie la puebla en todo el
+>    repositorio**; `profiles` sí lo tiene, pero es de la cabina
+>    `control-interno` y ya provocó una colisión entre superficies el
+>    2026-07-15. De esta respuesta dependen la clave foránea de `decidida_por`,
+>    la política de la spec §4.3 y la prueba S2. *(Decisión 5 de la spec §14,
+>    con las dos salidas y sus costos.)*
+> 2. **¿El token de sesión de Supabase emite el claim `org_id`?** Sin él,
+>    `app.tenant_actual()` devuelve nulo desde el navegador, las políticas niegan
+>    todo y el frontend de la sub-tarea 5 no vería un solo mensaje. Se comprueba
+>    en minutos contra el Supabase real.
+>
+> Menor, pero también de Elisa: **el nombre definitivo del servicio** (§9.3).
+
+---
+
 ## 0. Qué cambió en la revisión r2
 
 | # | Qué decía r1 | Qué se corrigió | Evidencia |
@@ -22,6 +43,37 @@
 | 5 | §9.1 hueco: nombre del helper de tenant | **Cerrado**: `app.tenant_actual()` existe | `supabase-organizaciones.sql:183` |
 | 6 | §9.3 "el puerto 5000 está libre" | **Falso** → puerto **5300** | `docker-compose.yml:408` (`enriquecimiento-a2a`) |
 | 7 | `migracion_idempotente` "duplica lo que replay.sh ya hace" | **Matiz**: el doble paso solo cubre `$MIGRACION` | `replay.sh:137-140`; el bucle de `orden.txt` (`:87-108`) aplica cada archivo **una vez** |
+
+### r2.1 (2026-08-08) · Rutas al día tras la reorganización
+
+El commit `0510a28` movió las migraciones del esquema `public` a
+`businessos/migrations/` y la suite de aislamiento a `businessos/tenancy/`.
+Actualizó la spec y el informe de revisión, pero **no este documento** — que es
+justo donde viven los gates con rutas escritas a mano. Sin este ajuste, **cinco
+de los diez gates habrían fallado sobre trabajo perfectamente correcto**:
+
+| Ruta que esperaba el gate | Ruta vigente |
+|---|---|
+| `businessos/supabase-sala-a2a.sql` (5 gates) | `businessos/migrations/supabase-sala-a2a.sql` |
+| `businessos/test-aislamiento-tenants.sql` (1 gate) | `businessos/tenancy/test-aislamiento-tenants.sql` |
+
+Los gates se revalidaron con el motor real sobre las rutas nuevas: cargan
+(10 activos), pasan en verde sobre un árbol correcto, y **se sometieron a 12
+sabotajes — los 12 cazados, cero falsos verdes**. La cobertura es completa: cada
+uno de los nueve gates ejecutables fuera del repositorio real se puso rojo al
+menos una vez. Entre los sabotajes, los tres que antes no se probaban: borrar el
+directorio del servicio, borrar el del frontend, y borrar la migración entera.
+
+**Regla que deja esto:** un gate con una ruta escrita a mano es una dependencia
+silenciosa de la estructura del repositorio. Cuando algo se mueve, hay que
+barrer también los documentos que lo nombran — o el gate se vuelve una trampa
+que castiga trabajo correcto. La comprobación es barata: resolver cada ruta del
+documento contra el árbol y exigir que exista o que esté declarada como
+"la crea esta fase".
+
+Nota de la casa de migraciones (`businessos/migrations/README.md`): un `.sql`
+nuevo que no esté en `../tenancy/orden.txt` **pone en rojo el gate de tenencia**.
+El gate `sala_migracion_en_manifiesto` lo caza antes, en el Supervisor.
 
 ---
 
@@ -41,12 +93,12 @@ sobrevive a `replay.sh` dos veces y una suite que se pone roja cuando debe.
 
 **Dentro:**
 
-- Migración `businessos/supabase-sala-a2a.sql` — las 6 tablas de la spec §4,
+- Migración `businessos/migrations/supabase-sala-a2a.sql` — las 6 tablas de la spec §4,
   índices, **el `create trigger`** de hilo de un solo nivel (no solo la
   función), RLS `enable` + `force` + políticas por `app_tenant` con `using` y
   `with check`, y **`aprobacion_solo_humana` declarada `as restrictive`**
   (spec §4.3 — sin esa palabra el invariante no existe).
-- Extensión de `businessos/test-aislamiento-tenants.sql` con S1–S6 y S2b
+- Extensión de `businessos/tenancy/test-aislamiento-tenants.sql` con S1–S6 y S2b
   (spec §9) — **siete pruebas**.
 - Extensión de `businessos/tenancy/control-reversion.sh` con los siete
   sabotajes.
@@ -146,17 +198,17 @@ correspondientes.
 [[gate]]
 regla = "sala_rls_force_en_seis_tablas"
 runner = "comando"
-comando = '''bash -c "awk '/force row level security/{n++} END{exit !(n>=6)}' businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "awk '/force row level security/{n++} END{exit !(n>=6)}' businessos/migrations/supabase-sala-a2a.sql"'''
 
 [[gate]]
 regla = "sala_aprobacion_restrictiva"
 runner = "comando"
-comando = '''bash -c "grep -qiE 'as[[:space:]]+restrictive' businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "grep -qiE 'as[[:space:]]+restrictive' businessos/migrations/supabase-sala-a2a.sql"'''
 
 [[gate]]
 regla = "sala_trigger_hilo_declarado"
 runner = "comando"
-comando = '''bash -c "grep -qiE 'create[[:space:]]+trigger' businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "grep -qiE 'create[[:space:]]+trigger' businessos/migrations/supabase-sala-a2a.sql"'''
 
 # OJO con los dos gates NEGADOS (`! grep`): `grep` sobre una ruta inexistente
 # sale con codigo 2, y la negacion lo convierte en 0 — el gate diria "limpio"
@@ -167,17 +219,17 @@ comando = '''bash -c "grep -qiE 'create[[:space:]]+trigger' businessos/supabase-
 [[gate]]
 regla = "sala_sin_service_role"
 runner = "comando"
-comando = '''bash -c "test -d businessos/sala-a2a && test -d businessos/frontends/sala && test -f businessos/supabase-sala-a2a.sql && ! grep -rqiE 'service_role|SUPABASE_SERVICE_ROLE_KEY' businessos/sala-a2a businessos/frontends/sala businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "test -d businessos/sala-a2a && test -d businessos/frontends/sala && test -f businessos/migrations/supabase-sala-a2a.sql && ! grep -rqiE 'service_role|SUPABASE_SERVICE_ROLE_KEY' businessos/sala-a2a businessos/frontends/sala businessos/migrations/supabase-sala-a2a.sql"'''
 
 [[gate]]
 regla = "sala_migracion_en_manifiesto"
 runner = "comando"
-comando = '''bash -c "grep -q 'businessos/supabase-sala-a2a.sql' businessos/tenancy/orden.txt"'''
+comando = '''bash -c "grep -q 'businessos/migrations/supabase-sala-a2a.sql' businessos/tenancy/orden.txt"'''
 
 [[gate]]
 regla = "sala_suite_s1_s6"
 runner = "comando"
-comando = '''bash -c "awk '/^-- S[0-9]+[a-z]? /{n++} END{exit !(n>=7)}' businessos/test-aislamiento-tenants.sql"'''
+comando = '''bash -c "awk '/^-- S[0-9]+[a-z]? /{n++} END{exit !(n>=7)}' businessos/tenancy/test-aislamiento-tenants.sql"'''
 
 [[gate]]
 regla = "sala_siete_sabotajes"
@@ -187,7 +239,7 @@ comando = '''bash -c "awk '/sabotaje_sala/{n++} END{exit !(n>=7)}' businessos/te
 [[gate]]
 regla = "sala_realtime_declarado"
 runner = "comando"
-comando = '''bash -c "grep -q 'alter publication supabase_realtime' businessos/supabase-sala-a2a.sql"'''
+comando = '''bash -c "grep -q 'alter publication supabase_realtime' businessos/migrations/supabase-sala-a2a.sql"'''
 
 [[gate]]
 regla = "sala_app_registry_sincronizado"

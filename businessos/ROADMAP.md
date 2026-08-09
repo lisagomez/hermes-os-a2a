@@ -1697,6 +1697,50 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
 
 ---
 
+## Línea Sala A2A — sala conversacional con departamentos 🔴 BLOQUEADA: faltan dos respuestas de Elisa (2026-08-08)
+
+Superficie de chat por canales e hilos donde humanos y departamentos agénticos conversan, y
+donde las compuertas de aprobación dejan de vivir en un hilo de Telegram y pasan a ser una
+fila en base de datos. Sustituye al piloto de Slack, que **no se marca-blanca bien**.
+
+| Documento | Dónde | Estado |
+|---|---|---|
+| Especificación | `SPEC-sala-a2a.md` (raíz, junto a `SPEC-buzon-a2a.md`) | r2 — revisada contra el código real |
+| Plan de la Fase A | `.claude/PRPs/prp-sala-a2a-fase-a.md` | r2.1 — gates validados con el motor del Supervisor |
+| Revisión técnica | `docs/revision-sala-a2a.md` | 10 hallazgos, dos comprobados ejecutando |
+
+**Nada construido.** Lo hecho hasta aquí es la revisión que hizo el plan encolable: se
+corrigió que la política del invariante de aprobación **no lo imponía** (probado contra
+Postgres 16: un rol de tenant firmó una aprobación a nombre de otra persona y la fila entró;
+se cierra con `as restrictive`), que el bloque de reglas **habría impedido arrancar al
+Supervisor**, y que seis compuertas eran imposibles de correr dentro del contenedor del juez
+(suben al CI de tenencia, que ya las cubre). PRs #262 (fusionado) y #291.
+
+> ### 🔴 Dos preguntas para Elisa — la Fase A no se puede encolar sin ellas
+>
+> No son trámite: el Ejecutor las necesita en la **primera sub-tarea**, y si no las
+> encuentra escritas, las inventará.
+>
+> 1. **¿De qué tabla sale la identidad de un humano cuando aprueba algo con un botón?**
+>    `usuarios` no tiene vínculo con `auth.users` y **nadie la puebla en todo el
+>    repositorio**; `profiles` sí lo tiene, pero es de la cabina `control-interno` y ya
+>    provocó una colisión entre superficies (2026-07-15). De la respuesta dependen la clave
+>    foránea, la política de aprobación y su prueba. *(Decisión 5 de la spec §14, con las
+>    dos salidas y sus costos.)*
+> 2. **¿El inicio de sesión de Supabase incluye el identificador de la organización
+>    (`org_id`) en el token?** Sin él, `app.tenant_actual()` devuelve nulo desde el
+>    navegador, las políticas niegan todo y el frontal no vería un solo mensaje. Se
+>    comprueba en minutos contra el Supabase real.
+>
+> Menor, también suya: el **nombre definitivo del servicio** (hoy `sala-a2a`, puerto 5300).
+
+Y una pregunta para quien tenga administración del repositorio: **¿es "Tenencia" un check
+obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo
+avisa y no bloquea, es una red que informa pero no detiene. La consulta a la protección de
+rama devuelve 404 sin permiso de administración.
+
+---
+
 ## Propuestas en revisión — tenencia B2B, respaldos y endurecimiento A2A 🔵 SIN APLICAR (2026-08-05)
 
 Ocho documentos entregados por la dueña el 2026-08-04, incorporados al repo **tal cual**
