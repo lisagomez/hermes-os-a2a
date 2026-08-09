@@ -427,3 +427,30 @@ Los consumidores internos siguen en grafo:3000 sin token. Vercel: GRAFO_URL + GR
 (sensitive, server-only — /api/grafo/* además queda detrás del login del copiloto). El
 token se genera EN el server (`openssl rand` → .env) y viaja a Vercel por pipe ssh→vercel
 env add, sin tocar el transcript. 10 tests del gate + gates del copiloto verdes.
+
+## Sector legal transversal — categoría SERVICIOS_LEGALES (2026-08-08)
+El caso Baker (pre-discovery) mostraba VACÍO DEL GRAFO con giro "Legal": las fases A-D
+sembraron las ÁREAS DE PRÁCTICA pero nada cubría el hecho transversal de OPERAR como
+despacho. Se sembró SERVICIOS_LEGALES (transversal, NO área de práctica — respeta la
+doctrina anti-etiquetas-amplias del vocabulario 2026-08-08) con 2 reglas leídas de los
+PDF oficiales: MX-LRART5-24-26-EJERCICIO-PROFESIONAL (título registrado + patente de
+ejercicio; Art. 26 rechaza asesores sin título; bandera: materia LOCAL, la ley citada es
+CDMX; vigente_desde 2018-01-19 = última reforma del texto citado, lo que además la hace
+RECTORA del dictamen por encima de la de lavado) y MX-LFPIORPI-17-XI-ACTIVIDAD-VULNERABLE
+(servicios profesionales independientes como actividad vulnerable si preparan/ejecutan
+operaciones de los incisos a-e por cuenta del cliente; Aviso solo al ejecutar en nombre
+del cliente; obligaciones Art. 18; texto vigente últ. reforma DOF 16-07-2025). Grafo:
+68 reglas / 43 categorías.
+
+**Lección de keywords (ataque adversarial antes del PR):** la keyword desnuda "legal"
+sobre-clasificaba 10 frases adjetivales plausibles ("capacidad legal", "domicilio legal",
+"validez legal del contrato" → dictamen de despacho). El discriminador lingüístico que
+funcionó: el uso SUSTANTIVO de la práctica legal casi siempre aparece como "de legal"
+("Operación de Legal en México", el patrón del concepto del pre-discovery), mientras el
+uso adjetival nunca lleva "de" antes. Keyword `de legal` + compuestos = 14/14 en la
+sonda (4 positivos, 10 adversariales). En el espejo SECTORES del meeting-copilot, el
+regex de sector JS casa por SUBCADENA (a diferencia de `_casa` en python, que tiene
+frontera): "ilegales" contiene "legal" → usar `\blegal\b`, y el sector legal va AL FINAL
+del arreglo para que logística/seguros/drones ganen con señal propia. El mock fiel de
+grafo.ts ganó su regla legal espejo. PENDIENTE runtime: aplicar el seed al grafo vivo
+(upsert psql + restart + smoke, procedimiento 2026-08-04) — desde la máquina con SSH.

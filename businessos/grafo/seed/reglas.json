@@ -2,7 +2,7 @@
   "_meta": {
     "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes)",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble').",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble'). servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -683,6 +683,44 @@
         "diseños industriales",
         "invencion",
         "invenciones"
+      ]
+    },
+    {
+      "clave": "SERVICIOS_LEGALES",
+      "nombre": "Servicios legales (operacion de despacho de abogados)",
+      "descripcion": "Operar como despacho/bufete de abogados en Mexico: ejercicio profesional (titulo y cedula) y obligaciones transversales del despacho (prevencion de lavado). Transversal al despacho, NO un area de practica",
+      "keywords": [
+        "de legal",
+        "abogados",
+        "abogacia",
+        "bufete",
+        "bufetes",
+        "despacho de abogados",
+        "despachos de abogados",
+        "despacho juridico",
+        "despacho legal",
+        "firma de abogados",
+        "firma legal",
+        "law firm",
+        "servicios legales",
+        "servicios juridicos",
+        "asesoria juridica",
+        "asesoria legal",
+        "litigio",
+        "litigios",
+        "legal services",
+        "lawyer",
+        "lawyers",
+        "attorney",
+        "attorneys"
+      ],
+      "exclusiones": [
+        "reserva legal",
+        "representante legal",
+        "apoderado legal",
+        "marco legal",
+        "requisitos legales",
+        "fundamento legal"
       ]
     }
   ],
@@ -2590,6 +2628,68 @@
           ],
           "parametros": {
             "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LRART5-24-26-EJERCICIO-PROFESIONAL",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Ejercicio de la abogacia: titulo registrado y patente de ejercicio (cedula)",
+      "texto_resumen": "El ejercicio profesional es la realizacion habitual (onerosa o gratuita) de actos propios de la profesion, incluida la simple consulta o la ostentacion del caracter de profesionista (Art. 24). Para ejercer se requiere pleno goce de derechos civiles, titulo legalmente expedido y debidamente registrado, y patente de ejercicio de la Direccion General de Profesiones (Art. 25). Las autoridades judiciales y contencioso-administrativas rechazan como patronos o asesores a quien no tenga titulo profesional registrado, y el mandato judicial solo puede otorgarse a profesionistas con titulo registrado, con excepciones en materia obrera, agraria, cooperativa y amparo penal (Art. 26). NORMA de ambito Ciudad de Mexico: el ejercicio profesional es materia LOCAL.",
+      "fuente_cita": "Ley Reglamentaria del Articulo 5o. Constitucional, relativo al ejercicio de las profesiones en la Ciudad de Mexico, Arts. 24, 25 y 26 (texto vigente, ultima reforma DOF 19-01-2018)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf_mov/Ley_Reglamentaria_del_Articulo_5o-ejercicio-profesiones-Ciudad_de_Mexico.pdf",
+      "vigente_desde": "2018-01-19",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "SERVICIOS_LEGALES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Titulo profesional legalmente expedido y debidamente registrado de cada abogado que ejerce (Art. 25-II)",
+            "Patente de ejercicio (cedula profesional) expedida por la Direccion General de Profesiones (Art. 25-III)",
+            "Para intervenir como patrono o asesor en juicios y asuntos contencioso-administrativos: titulo profesional registrado — la autoridad rechaza a quien no lo tenga (Art. 26)",
+            "El mandato judicial solo puede recaer en profesionistas con titulo debidamente registrado (Art. 26, segundo parrafo)"
+          ],
+          "banderas": [
+            "La ley citada rige en la Ciudad de Mexico; el ejercicio profesional es materia LOCAL — cotejar la ley de profesiones de la entidad federativa donde opera el despacho",
+            "Excepciones del Art. 26: gestores en asuntos obreros, agrarios y cooperativos, y amparos en materia penal (Arts. 27 y 28)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LFPIORPI-17-XI-ACTIVIDAD-VULNERABLE",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Servicios legales independientes como actividad vulnerable (prevencion de lavado)",
+      "texto_resumen": "La prestacion de servicios profesionales de manera independiente (sin relacion laboral con el cliente) es Actividad Vulnerable cuando se prepara para un cliente o se lleva a cabo en su nombre y representacion cualquiera de: a) compraventa de inmuebles o cesion de derechos sobre estos; b) administracion y manejo de recursos, valores u otros activos; c) manejo de cuentas bancarias, de ahorro o de valores; d) organizacion de aportaciones para constitucion/operacion/administracion de sociedades mercantiles; e) constitucion, escision, fusion, operacion y administracion de personas morales o vehiculos corporativos (incluido el fideicomiso) y compraventa de entidades mercantiles. El Aviso ante la Secretaria procede cuando el prestador lleva a cabo, en nombre y representacion del cliente, una operacion financiera relacionada, con respeto al secreto profesional y garantia de defensa (Art. 17-XI, ultimo parrafo). Quien realiza Actividades Vulnerables asume las obligaciones del Art. 18 (identificar al cliente, conocer su actividad, identificar al Beneficiario Controlador).",
+      "fuente_cita": "Ley Federal para la Prevencion e Identificacion de Operaciones con Recursos de Procedencia Ilicita, Arts. 17 fraccion XI y 18 (texto vigente, ultima reforma DOF 16-07-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPIORPI.pdf",
+      "vigente_desde": "2013-07-17",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "SERVICIOS_LEGALES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Determinar si el despacho prepara o ejecuta por cuenta de clientes alguna operacion de los incisos a)-e) del Art. 17-XI (inmuebles, administracion de activos, cuentas, aportaciones societarias, constitucion/fusion/escision de personas morales o fideicomisos)",
+            "Si realiza Actividad Vulnerable: cumplir las obligaciones del Art. 18 — identificar y conocer al cliente con documentos oficiales, solicitar informacion de su actividad u ocupacion, e identificar al Beneficiario Controlador de personas morales y fideicomisos",
+            "Presentar Aviso ante la Secretaria cuando lleve a cabo, en nombre y representacion de un cliente, una operacion financiera relacionada con las operaciones de la fraccion (Art. 17-XI, ultimo parrafo)"
+          ],
+          "banderas": [
+            "Reforma DOF 16-07-2025: el regimen de actividades vulnerables fue reformado recientemente (Arts. 17 y 18 con fracciones reformadas en esa fecha) — cotejar reglas de caracter general y plazos vigentes emitidos por la Secretaria antes de operar el cumplimiento",
+            "El Aviso respeta el secreto profesional y la garantia de defensa en los terminos de la propia Ley (Art. 17-XI, ultimo parrafo): la frontera exacta requiere criterio de especialista PLD",
+            "El incumplimiento del regimen de actividades vulnerables es sancionable; este dictamen NO sustituye una evaluacion PLD del despacho"
+          ],
+          "parametros": {
+            "verificar": false
           }
         }
       ]
