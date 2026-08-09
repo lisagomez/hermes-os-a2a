@@ -88,6 +88,40 @@ const SECTORES: DefSector[] = [
       },
     ],
   },
+  // Al FINAL a propósito: "legal" aparece de pasada en sitios de otros sectores
+  // ("departamento legal", "aviso legal") — los sectores con señal más específica
+  // ganan por orden, y "legal" lleva frontera de palabra (\b) para que "ilegales"
+  // o "legalidad" no disparen el sector (hallazgo del ataque adversarial 2026-08-08).
+  {
+    sector: 'Servicios legales (bufete / despacho jurídico)',
+    patron: /(bufete|despacho (de abogados|jur[ií]dico)|law ?firm|abogad|attorney|lawyer|firma legal|servicios (legales|jur[ií]dicos)|asesor[ií]a (jur[ií]dica|legal)|litig|\blegal\b)/i,
+    expectativas: [
+      {
+        categoria: 'SERVICIOS_LEGALES',
+        esperadaPor: 'operar como despacho de abogados (cédula profesional + PLD/LFPIORPI)',
+        senal: /(\blegal\b|abogad|bufete|jur[ií]dic|law ?firm|attorney|lawyer|litig)/i,
+        severidadVacio: 'alta',
+      },
+      {
+        categoria: 'CONSTITUCION_SOCIEDADES',
+        esperadaPor: 'práctica corporativa / constitución de sociedades',
+        senal: /(corporativ|societari|constituci[oó]n de sociedad|acta constitutiva|mercantil|corporate)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'COMPRAVENTA_INMUEBLES',
+        esperadaPor: 'práctica inmobiliaria',
+        senal: /(inmobiliari|inmueble|bienes ra[ií]ces|real estate|property law)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'TESTAMENTOS_SUCESIONES',
+        esperadaPor: 'práctica sucesoria (testamentos y herencias)',
+        senal: /(testament|sucesi[oó]n|sucesori|herencia|estate planning)/i,
+        severidadVacio: 'baja',
+      },
+    ],
+  },
 ]
 
 function textoObservado(intake: IntakeLead, sitio: DatosSitio | null): string {

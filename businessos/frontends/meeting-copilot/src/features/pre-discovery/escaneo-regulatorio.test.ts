@@ -69,6 +69,37 @@ describe('escaneoRegulatorio — cruce DECLARADO vs ESPERADO (Hermes-Regulatory-
     expect(e.cobertura).toBe('baja')
   })
 
+  it('giro "Legal" (caso bufete): sector legal detectado, expectativa SERVICIOS_LEGALES con evidencia del dictamen', () => {
+    const intakeLegal = { ...intakeForwarder, giro: 'Legal' }
+    const evaluacion = mockEvaluacionGrafo(['Operación de Legal en México (MX)'], 'regulatorio')
+    const e = escaneoRegulatorio(intakeLegal, null, evaluacion)
+    expect(e.sector).toContain('legales')
+    expect(e.vacioDelGrafo).toBeNull()
+    const legales = e.matriz.find((m) => m.categoria === 'SERVICIOS_LEGALES')
+    expect(legales?.estado).toBe('evidencia')
+  })
+
+  it('sector legal con práctica corporativa declarada y sin dictamen → hipótesis sobre CONSTITUCION_SOCIEDADES', () => {
+    const intakeLegal = { ...intakeForwarder, giro: 'Bufete de abogados', notas: 'práctica de derecho corporativo' }
+    const evaluacion = mockEvaluacionGrafo(['Operación de Bufete de abogados en México'], 'regulatorio')
+    const e = escaneoRegulatorio(intakeLegal, null, evaluacion)
+    const corp = e.matriz.find((m) => m.categoria === 'CONSTITUCION_SOCIEDADES')
+    expect(corp?.estado).toBe('hipotesis')
+  })
+
+  it('frontera de palabra: "prácticas ilegales" NO dispara el sector legal (hallazgo adversarial 2026-08-08)', () => {
+    const intakeOtro = { ...intakeForwarder, giro: 'comercio electrónico', notas: 'combate prácticas ilegales en su industria' }
+    const e = escaneoRegulatorio(intakeOtro, null, mockEvaluacionGrafo(['x'], 'regulatorio'))
+    expect(e.sector).toBeNull()
+    expect(e.vacioDelGrafo).toContain('VACÍO DEL GRAFO')
+  })
+
+  it('precedencia: un forwarder que menciona su "departamento legal" sigue siendo sector Logística', () => {
+    const intakeMixto = { ...intakeForwarder, notas: 'cuentan con departamento legal interno' }
+    const e = escaneoRegulatorio(intakeMixto, sitioConEawb, mockEvaluacionGrafo(['agencia de carga'], 'regulatorio'))
+    expect(e.sector).toContain('Logística')
+  })
+
   it('sector sin categorías en el grafo → VACÍO DEL GRAFO, jamás se inventan marcos', () => {
     const intakeDental = { ...intakeForwarder, giro: 'clínica dental' }
     const evaluacion = mockEvaluacionGrafo(['operación de clínica dental'], 'regulatorio')
