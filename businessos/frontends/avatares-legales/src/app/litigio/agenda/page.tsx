@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { HearingsAgenda } from '@/features/litigio/components/hearings-agenda'
+import { getHearingsAgenda } from '@/features/litigio/services'
 
-export default function VistaAgendaPlazos() {
+export default async function VistaAgendaPlazos() {
+  const agenda = await getHearingsAgenda()
   return (
-    <EmptyState
-      titulo="Agenda y plazos"
-      descripcion="Vista en construcción — se llena en la fase F4 (Avatar de Litigio)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Agenda y plazos"
+        descripcion="Audiencias, vencimientos y promociones del mes en una cuadrícula única. El punto de color marca el riesgo de perder el plazo."
+      />
+      <HearingsAgenda agenda={agenda} />
+    </section>
   )
 }

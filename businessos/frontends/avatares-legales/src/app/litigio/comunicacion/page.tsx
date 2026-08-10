@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { ClientCommsPanel } from '@/features/litigio/components/client-comms-panel'
+import { getClientCommunications } from '@/features/litigio/services'
 
-export default function VistaComunicacion() {
+export default async function VistaComunicacion() {
+  const comunicaciones = await getClientCommunications()
   return (
-    <EmptyState
-      titulo="Comunicación con clientes"
-      descripcion="Vista en construcción — se llena en la fase F4 (Avatar de Litigio)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Comunicación con clientes"
+        descripcion="Bitácora de actualizaciones por caso. Los borradores que redacta Hermes quedan marcados como sugeridos y requieren aprobación humana antes de enviarse."
+      />
+      <ClientCommsPanel comunicaciones={comunicaciones} />
+    </section>
   )
 }
