@@ -1345,7 +1345,7 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   (pyannote), corrida real de la cosecha Pre-Discovery→erp (máquina con credenciales
   cli_fin).
 
-### Captura en eventos presenciales (gafetes por QR) 🟡 Fase 1 de 5 (2026-08-07)
+### Captura en eventos presenciales (gafetes por QR) 🟡 Fases 1-2 de 5 (2026-08-08)
 
 Pedido de Victor: el equipo también hace negocio **de pie en un stand**, donde no hay audio
 que transcribir sino gafetes que capturar. El eje ya estaba abierto en el tipo
@@ -1370,6 +1370,10 @@ Dos hallazgos del ataque reordenaron el plan y **son la parte importante de esta
    cuando lo habitual en ferias es un identificador opaco del organizador (que vende el
    servicio de recuperación). Comprobarlo cuesta una llamada; construir el intérprete y la
    cámara cuesta ~2 días. La validación pasó a ser el primer paso y **condiciona** la Fase 3.
+   **Resuelto el 2026-08-08**: Victor confirmó que los gafetes traen **nombre, empresa,
+   correo de contacto y sitio web** — datos estructurados, no un identificador opaco. La
+   Fase 3 queda justificada. Falta una muestra del texto crudo para fijar el formato exacto
+   (vCard / MECARD / enlace / texto suelto); el intérprete tolera los cuatro por diseño.
 
 - [x] **Fase 1 — tipo y andamio (2026-08-07)**: `OrigenReunion` con `presencial` +
   `ETIQUETA_ORIGEN_REUNION` (`Record`, para que un origen futuro no salga sin nombre) +
@@ -1378,10 +1382,25 @@ Dos hallazgos del ataque reordenaron el plan y **son la parte importante de esta
   4 vistas de análisis: `VistaReunion` corta con *"procesa su audio"*, que ahí sería un mensaje
   permanentemente falso. Control de reversión ejecutado (sabotaje → rojo → restaurado). 271
   pruebas verdes.
+- [x] **Fase 2 — pantalla de captura sin cámara (2026-08-08)**: ruta
+  `/reuniones/[id]/gafetes` con vista propia (no `VistaReunion`), cuarta vía "Evento
+  presencial" en Nueva conversación, ficha con los 4 campos confirmados al frente y
+  puesto/teléfono/notas detrás de "Más campos". **Antiduplicados por huella** (sha256 del
+  texto crudo normalizado — misma clave que usará el índice único de la tabla): el mismo
+  gafete dos veces es una fila con el contador en 2. **Una corrección hecha a mano nunca se
+  pisa por un re-escaneo** (perder trabajo humano en silencio sería el peor fallo de esta
+  pantalla). El texto crudo se conserva íntegro aunque se corrijan los campos: si mañana
+  mejora el intérprete, se reprocesa sin haber perdido nada. Sin relleno automático todavía
+  —eso es la Fase 3— y los datos viven **solo en el navegador**, lo que la pantalla dice con
+  un contador de "sin sincronizar", no en un comentario. 32 pruebas nuevas + 1 de extremo a
+  extremo; 4 sabotajes de reversión, los 4 cazados.
 - [ ] **Fase 0 — bloqueada por terceros**: aviso de privacidad publicado + buzón de bajas con
-  responsable, y respuesta escrita sobre qué codifican los gafetes del evento objetivo.
-- [ ] Fase 2 — pantalla de captura sin cámara (sin relleno automático todavía; ya bate al papel).
-- [ ] Fase 3 — intérprete (vCard/MECARD/URL) + cámara. **Condicionada a la Fase 0.**
+  responsable nombrado. Mientras no exista, la pantalla muestra una alerta roja permanente y
+  las filas quedan marcadas `SIN-AVISO` (marca fea a propósito: si aparece en producción,
+  alguien capturó sin cumplir y debe poder encontrarse con una consulta).
+- [ ] Fase 3 — intérprete (vCard/MECARD/URL) + cámara. **Desbloqueada** (la premisa quedó
+  confirmada el 08-ago). Pendiente barato que afina las pruebas: una muestra del texto crudo
+  de un gafete real, para saber el formato exacto en vez de suponerlo.
 - [ ] Fase 4 — `supabase-fase15-gafetes.sql` (`evento_asistentes`, tabla propia: **no** se
   toca el CHECK de `leads`, cuyo estado real en prod no se puede verificar desde el repo) +
   ruta de servidor con `server-only`. Bloqueada por el token de administración de Supabase.
@@ -1715,6 +1734,50 @@ gate LFPDPPP (grafo) → rfc_offline → DENUE (INEGI) → gate 69-B CFF → pat
   protocolo real, y `vigilancia-69b.py` cableado en `nightly-jobs.sh`. El detalle
   operativo y los fixes del QA (#213) viven en la entrada `enriquecimiento-a2a` de la
   Fase 9 (adquisición) y en `.claude/memory/project/app-a-enriquecimiento.md`.
+
+---
+
+## Línea Sala A2A — sala conversacional con departamentos 🔴 BLOQUEADA: faltan dos respuestas de Elisa (2026-08-08)
+
+Superficie de chat por canales e hilos donde humanos y departamentos agénticos conversan, y
+donde las compuertas de aprobación dejan de vivir en un hilo de Telegram y pasan a ser una
+fila en base de datos. Sustituye al piloto de Slack, que **no se marca-blanca bien**.
+
+| Documento | Dónde | Estado |
+|---|---|---|
+| Especificación | `SPEC-sala-a2a.md` (raíz, junto a `SPEC-buzon-a2a.md`) | r2 — revisada contra el código real |
+| Plan de la Fase A | `.claude/PRPs/prp-sala-a2a-fase-a.md` | r2.1 — gates validados con el motor del Supervisor |
+| Revisión técnica | `docs/revision-sala-a2a.md` | 10 hallazgos, dos comprobados ejecutando |
+
+**Nada construido.** Lo hecho hasta aquí es la revisión que hizo el plan encolable: se
+corrigió que la política del invariante de aprobación **no lo imponía** (probado contra
+Postgres 16: un rol de tenant firmó una aprobación a nombre de otra persona y la fila entró;
+se cierra con `as restrictive`), que el bloque de reglas **habría impedido arrancar al
+Supervisor**, y que seis compuertas eran imposibles de correr dentro del contenedor del juez
+(suben al CI de tenencia, que ya las cubre). PRs #262 (fusionado) y #291.
+
+> ### 🔴 Dos preguntas para Elisa — la Fase A no se puede encolar sin ellas
+>
+> No son trámite: el Ejecutor las necesita en la **primera sub-tarea**, y si no las
+> encuentra escritas, las inventará.
+>
+> 1. **¿De qué tabla sale la identidad de un humano cuando aprueba algo con un botón?**
+>    `usuarios` no tiene vínculo con `auth.users` y **nadie la puebla en todo el
+>    repositorio**; `profiles` sí lo tiene, pero es de la cabina `control-interno` y ya
+>    provocó una colisión entre superficies (2026-07-15). De la respuesta dependen la clave
+>    foránea, la política de aprobación y su prueba. *(Decisión 5 de la spec §14, con las
+>    dos salidas y sus costos.)*
+> 2. **¿El inicio de sesión de Supabase incluye el identificador de la organización
+>    (`org_id`) en el token?** Sin él, `app.tenant_actual()` devuelve nulo desde el
+>    navegador, las políticas niegan todo y el frontal no vería un solo mensaje. Se
+>    comprueba en minutos contra el Supabase real.
+>
+> Menor, también suya: el **nombre definitivo del servicio** (hoy `sala-a2a`, puerto 5300).
+
+Y una pregunta para quien tenga administración del repositorio: **¿es "Tenencia" un check
+obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo
+avisa y no bloquea, es una red que informa pero no detiene. La consulta a la protección de
+rama devuelve 404 sin permiso de administración.
 
 ---
 

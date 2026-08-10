@@ -8,6 +8,10 @@
 #
 #  Uso:  businessos/tenancy/control-reversion.sh
 #  Tarda unos minutos: cada sabotaje reconstruye el esquema desde cero.
+#
+#  Hereda el modo de conexión de replay.sh (PG_MODO / PGHOST…): por TCP, la
+#  base virgen de cada sabotaje la garantiza el drop/create que replay.sh hace
+#  al arrancar, no un contenedor nuevo.
 # ============================================================================
 set -uo pipefail
 
@@ -107,7 +111,7 @@ saboteo_estado "NOT NULL retirado de una tabla slug_text" "T11" \
 saboteo "trigger de captura que no asigna tenant" "T13" \
   's/if new\.tenant_id is null then/if false then/'
 
-docker rm -f pg-reversion >/dev/null 2>&1
+command -v docker >/dev/null 2>&1 && docker rm -f pg-reversion >/dev/null 2>&1
 
 echo
 if (( fallos > 0 )); then

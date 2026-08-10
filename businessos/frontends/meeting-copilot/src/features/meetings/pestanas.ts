@@ -20,6 +20,10 @@ const PESTANAS_CON_AUDIO: PestanaReunion[] = [
   { seg: 'resumen', etiqueta: 'Resumen' },
 ]
 
+/** En un evento presencial lo que hay que hacer es capturar contactos, así que
+ *  esa es la vista — y la única. */
+const PESTANAS_PRESENCIAL: PestanaReunion[] = [{ seg: 'gafetes', etiqueta: 'Contactos' }]
+
 /** Pestañas de una reunión.
  *
  *  Una reunión `presencial` no devuelve las cuatro de audio a propósito: nunca
@@ -28,10 +32,9 @@ const PESTANAS_CON_AUDIO: PestanaReunion[] = [
  *  falso. Mejor no ofrecer la puerta que ofrecer una que no lleva a ningún
  *  lado.
  *
- *  Hoy devuelve lista vacía para `presencial`; la pestaña de captura de gafetes
- *  se añade aquí cuando exista su ruta, no antes: una pestaña que apunta a un
- *  404 es peor que ninguna. */
+ *  Lo que sí ofrece es la captura de contactos, que es lo que se hace de pie en
+ *  un stand. */
 export function pestanasDeReunion(origen: OrigenReunion): PestanaReunion[] {
-  if (origen === 'presencial') return []
+  if (origen === 'presencial') return PESTANAS_PRESENCIAL
   return PESTANAS_CON_AUDIO
 }

@@ -1,0 +1,348 @@
+<title>Plan: voz a texto autoalojado para A2A</title>
+<style>
+  :root {
+    --bg: #f4f5f3;
+    --surface: #ffffff;
+    --surface-2: #eceeea;
+    --ink: #1a2332;
+    --ink-soft: #4c5769;
+    --ink-faint: #7a8494;
+    --accent: #1f4e79;
+    --accent-soft: #dce6ef;
+    --amber: #a06a1e;
+    --amber-soft: #f3e8d4;
+    --line: #d5d9d2;
+    --ok: #2e6b4f;
+    --ok-soft: #ddeae3;
+    --no: #93412e;
+    --no-soft: #f0e0da;
+    --term-underline: #9db4c8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+      --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+      --accent: #8db4d8; --accent-soft: #24384c;
+      --amber: #d9a55a; --amber-soft: #3a2f1c;
+      --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+      --no: #cf8a74; --no-soft: #3a2620;
+      --term-underline: #4c6f8e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --surface: #1a2028; --surface-2: #222a34;
+    --ink: #e6e9ed; --ink-soft: #aab3bf; --ink-faint: #7d8794;
+    --accent: #8db4d8; --accent-soft: #24384c;
+    --amber: #d9a55a; --amber-soft: #3a2f1c;
+    --line: #313a45; --ok: #7cbb9d; --ok-soft: #223529;
+    --no: #cf8a74; --no-soft: #3a2620;
+    --term-underline: #4c6f8e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f3; --surface: #ffffff; --surface-2: #eceeea;
+    --ink: #1a2332; --ink-soft: #4c5769; --ink-faint: #7a8494;
+    --accent: #1f4e79; --accent-soft: #dce6ef;
+    --amber: #a06a1e; --amber-soft: #f3e8d4;
+    --line: #d5d9d2; --ok: #2e6b4f; --ok-soft: #ddeae3;
+    --no: #93412e; --no-soft: #f0e0da;
+    --term-underline: #9db4c8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 600;
+    margin: .5rem 0 .75rem;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 .5rem; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 2.8rem 0 .35rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h2 .num {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .8rem;
+    color: var(--ink-faint);
+    margin-right: .6rem;
+    vertical-align: .15em;
+  }
+  h3 { font-size: 1rem; margin: 1.4rem 0 .3rem; }
+  p { margin: .6rem 0; }
+  ul { margin: .5rem 0; padding-left: 1.2rem; }
+  li { margin: .35rem 0; }
+
+  .t { border-bottom: 1px dotted var(--term-underline); cursor: help; font-style: normal; }
+
+  .verdicts { display: flex; flex-direction: column; gap: .6rem; margin: 1rem 0; }
+  .verdict {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .8rem;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .85rem 1rem;
+  }
+  .pill {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .25em .7em;
+    border-radius: 999px;
+    white-space: nowrap;
+    margin-top: .2rem;
+  }
+  .pill.si  { background: var(--ok-soft);  color: var(--ok); }
+  .pill.no  { background: var(--no-soft);  color: var(--no); }
+  .pill.tal { background: var(--amber-soft); color: var(--amber); }
+  .verdict h3 { margin: 0; font-size: .98rem; }
+  .verdict p { margin: .3rem 0 0; font-size: .89rem; color: var(--ink-soft); }
+
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .warn {
+    background: var(--amber-soft);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    font-size: .92rem;
+    margin: 1rem 0;
+  }
+  .note b, .warn b { display: block; margin-bottom: .15rem; }
+  .warn b { color: var(--amber); }
+  .note b { color: var(--accent); }
+
+  .fases { display: flex; flex-direction: column; gap: .55rem; margin: 1rem 0; counter-reset: fase -1; }
+  .fase {
+    display: grid;
+    grid-template-columns: 2.1rem 1fr;
+    gap: .8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .8rem .95rem;
+  }
+  .fase::before {
+    counter-increment: fase;
+    content: counter(fase);
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--accent);
+    text-align: center;
+    padding-top: .05rem;
+  }
+  .fase h3 { margin: 0; font-size: .95rem; }
+  .fase p { margin: .25rem 0 0; font-size: .87rem; color: var(--ink-soft); }
+  .fase .done {
+    display: inline-block;
+    margin-top: .4rem;
+    font-size: .78rem;
+    color: var(--ok);
+  }
+  .fase .done::before { content: "✓ Terminada cuando: "; font-weight: 600; }
+
+  code {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: .84em;
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .tabla-scroll { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; min-width: 34rem; }
+  th, td { text-align: left; padding: .5rem .65rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .7rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+
+  dl.glosario { margin: 1rem 0 0; }
+  dl.glosario > div {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .75rem .95rem;
+    margin-bottom: .55rem;
+  }
+  dt { font-weight: 650; font-size: .92rem; }
+  dt small { font-weight: 400; color: var(--ink-faint); font-size: .8rem; margin-left: .3rem; }
+  dd { margin: .2rem 0 0; font-size: .89rem; color: var(--ink-soft); }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Plan de adopción de herramientas · Proyecto A2A / Hermes OS · 5 de agosto de 2026</p>
+  <h1>Voz a texto autoalojado: qué motor conviene y cómo desplegarlo</h1>
+  <p class="lede">Basado en la «Investigación sobre speech-to-text open source autoalojado para A2A», cruzada con la infraestructura real del proyecto. Las palabras con <span class="t">subrayado punteado</span> están en el glosario del final.</p>
+
+  <h2><span class="num">01</span>El problema que resolvemos</h2>
+  <p>Legal y logística generan audio todos los días: notas de voz por Telegram y WhatsApp, llamadas, dictados jurídicos, grabaciones de reuniones, evidencias habladas de embarques. Hoy no hay una pieza central que convierta ese audio en texto útil (<span class="t">STT</span>). Y por tratarse de audio sensible —clientes, estrategias, expedientes— la regla del proyecto es clara: <strong>no se envía a servicios externos en la nube</strong>; se procesa en infraestructura propia.</p>
+
+  <h2><span class="num">02</span>La recomendación, en una frase</h2>
+  <div class="note">
+    <b>Desplegar un servicio central de transcripción con Whisper en su variante optimizada para CPU (faster-whisper), como un contenedor más dentro de la red interna del proyecto.</b>
+    Licencia libre (MIT), español de calidad probada, cero costo por uso — y el equipo ya lo usa a diario en pequeño: el dictado por voz de la máquina de desarrollo corre con Whisper local desde julio.
+  </div>
+
+  <h2><span class="num">03</span>Veredicto por opción evaluada</h2>
+  <div class="verdicts">
+    <div class="verdict">
+      <span class="pill si">Adoptar</span>
+      <div>
+        <h3>Whisper (variante faster-whisper, para CPU)</h3>
+        <p>El modelo de referencia en calidad de transcripción multilingüe, robusto con audio imperfecto (celular, ruido de fondo, acentos) — justo el audio real de abogados y operadores. El informe recomienda GPU para los modelos grandes, pero nuestro servidor no tiene GPU: la variante <em>faster-whisper</em> re-implementa el mismo modelo optimizado para CPU (4–8× más rápido que el original) y sus tamaños pequeño/mediano corren bien en el servidor actual. Se expone como servicio con API dentro de la red interna, siguiendo el mismo patrón que el grafo regulatorio.</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill tal">Esperar</span>
+      <div>
+        <h3>Vosk (motor ligero para dispositivos de borde)</h3>
+        <p>Buena pieza para transcribir sin conexión en equipos modestos (bodegas, puntos de cruce). Pero hoy el proyecto no tiene ningún dispositivo de borde operando — sería resolver un problema que aún no existe. Queda anotado como la opción a probar el día que logística lo pida.</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill no">Descartar por ahora</span>
+      <div>
+        <h3>Modelos avanzados con GPU (Canary-Qwen, Qwen3-ASR, Kaldi)</h3>
+        <p>Exigen tarjetas gráficas y experiencia en aprendizaje automático que el equipo no tiene ni necesita hoy. Whisper cubre la calidad requerida sin esa inversión. Se reevalúa solo si un caso de uso concreto demuestra que Whisper se queda corto.</p>
+      </div>
+    </div>
+    <div class="verdict">
+      <span class="pill no">Otro proyecto</span>
+      <div>
+        <h3>Texto a voz (TTS: Kokoro, Piper, etc.)</h3>
+        <p>El informe lo menciona como complemento para diálogos completos voz–texto–voz. Es valioso, pero es un proyecto distinto con decisiones propias. Se documenta como futuro; no se mezcla en este plan.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2><span class="num">04</span>Por qué encaja con lo que ya existe</h2>
+  <ul>
+    <li><strong>Ya hay consumidores esperando.</strong> El Copiloto de Reuniones procesa transcripciones (hoy con proveedor de prueba), el buzón agéntico recibe notas de voz, y existe una rutina de ingesta de reuniones que extrae tareas de transcripciones. Un servicio STT central les da insumo real a todos.</li>
+    <li><strong>Ya hay precedente interno.</strong> El dictado por voz de la máquina de desarrollo usa Whisper local desde el 30 de julio — la calidad en español ya se conoce de primera mano.</li>
+    <li><strong>Mismo patrón de despliegue del proyecto.</strong> Un contenedor Docker en la red interna (hermes-net), sin puerto expuesto a internet, con la opción de darle su <span class="t">agent card</span> (patrón A2A, como el grafo) para que los agentes lo descubran y usen con contrato verificable.</li>
+    <li><strong>Los agentes no tocan el audio crudo.</strong> Igual que con documentos: un <span class="t">host-job</span> o servicio de confianza transcribe, y los agentes trabajan sobre el texto y sus metadatos. El audio original tiene política explícita de retención y borrado.</li>
+  </ul>
+
+  <h2><span class="num">05</span>Comparación resumida</h2>
+  <div class="tabla-scroll">
+    <table>
+      <tr><th>Criterio</th><th>faster-whisper (CPU)</th><th>Vosk</th><th>Modelos GPU</th><th>Nube externa</th></tr>
+      <tr><td>Calidad en español</td><td>Alta (referencia del mercado)</td><td>Media (modelos ligeros)</td><td>Alta o superior</td><td>Alta</td></tr>
+      <tr><td>Hardware necesario</td><td>CPU del servidor actual</td><td>Hasta una Raspberry Pi</td><td>GPU dedicada (no tenemos)</td><td>Ninguno propio</td></tr>
+      <tr><td>Costo</td><td>$0 licencias, solo cómputo propio</td><td>$0</td><td>GPU + operación ML</td><td>Pago por minuto</td></tr>
+      <tr><td>Datos sensibles</td><td>Nunca salen del servidor</td><td>Nunca salen del equipo</td><td>Nunca salen</td><td><strong>Salen a un tercero</strong></td></tr>
+      <tr><td>Encaje hoy</td><td>Alto</td><td>Sin caso de uso aún</td><td>Sobredimensionado</td><td>Contra la doctrina</td></tr>
+    </table>
+  </div>
+
+  <h2><span class="num">06</span>El plan por fases</h2>
+  <div class="fases">
+    <div class="fase"><div>
+      <h3>Inventario de casos de uso y muestras (media jornada)</h3>
+      <p>Listar con el equipo qué audio se transcribe y con qué urgencia: notas de voz del buzón, reuniones, dictados legales, audios de logística. Reunir 15–20 muestras reales variadas (celular con ruido, llamada, dictado limpio) que servirán de examen.</p>
+      <span class="done">existe la lista priorizada y la carpeta de muestras.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Verificar capacidad del servidor</h3>
+      <p>La misma medición de memoria pendiente que pide el plan de gestión documental (una sola medición sirve a los dos planes). El modelo mediano de faster-whisper necesita ~2–3 GB al transcribir; hay que confirmar que caben junto a lo ya desplegado o dimensionar el ajuste.</p>
+      <span class="done">sabemos si cabe, con qué modelo, o cuánto costaría que quepa.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Prueba de concepto en la máquina de desarrollo (1 día)</h3>
+      <p>Levantar el servicio en Docker local y transcribir las muestras con los tamaños pequeño y mediano del modelo. Calificar precisión en español mexicano (términos jurídicos y logísticos incluidos) y medir cuántos minutos de audio procesa por minuto de reloj en CPU.</p>
+      <span class="done">hay calificación y tiempos documentados por tipo de audio y tamaño de modelo.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Decisión de forma del servicio</h3>
+      <p>Elegir con evidencia: qué tamaño de modelo por caso de uso (pequeño para notas rápidas, mediano para reuniones) y si se usa una imagen de servicio ya existente o un servicio propio ligero con contrato verificable (patrón del grafo). Definir la política de retención y borrado del audio original.</p>
+      <span class="done">decisión y política escritas en la documentación viva.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Despliegue en el servidor</h3>
+      <p>Contenedor en la red interna, sin exposición a internet, con cola de trabajos para audios largos (transcribir una reunión de una hora toma minutos: el que pide no debe quedarse esperando ni cancelar el trabajo — lección ya aprendida en el proyecto). Cablear al respaldo y a la vigilancia estándar.</p>
+      <span class="done">una muestra real transcrita de punta a punta en el servidor, con su tiempo registrado.</span>
+    </div></div>
+    <div class="fase"><div>
+      <h3>Integración con los consumidores</h3>
+      <p>Conectar en orden de valor: primero el buzón y la ingesta de reuniones (texto listo para extraer tareas), luego el Copiloto de Reuniones (sustituir el proveedor de prueba por el real — cuidando que el real jamás pise datos ya capturados), y después los botones de «nota de voz» en los front-ends de avatares.</p>
+      <span class="done">un flujo real completo funciona: audio entra, texto útil sale, un agente lo aprovecha.</span>
+    </div></div>
+  </div>
+
+  <h2><span class="num">07</span>Ajustes respecto al informe</h2>
+  <p>El informe es sólido y su conclusión central se adopta (Whisper como motor principal). Tres ajustes al aterrizarlo:</p>
+  <ul>
+    <li><strong>Variante CPU, no el Whisper original</strong>: el informe asume GPU para los modelos grandes; nuestro servidor no la tiene. faster-whisper da la misma calidad por tamaño de modelo con una fracción del cómputo.</li>
+    <li><strong>Vosk se pospone</strong>: el informe lo propone para dispositivos de borde que hoy no existen en la operación. Sin caso de uso, sería mantenimiento sin beneficio.</li>
+    <li><strong>TTS se separa</strong>: la interacción voz–texto–voz completa es un proyecto futuro con su propia evaluación, no un anexo de este.</li>
+  </ul>
+
+  <div class="warn">
+    <b>Riesgo a vigilar</b>
+    La transcripción en CPU es lenta con audios largos: una reunión de una hora puede tomar varios minutos con el modelo mediano. La mitigación está en el diseño: cola de trabajos con aviso al terminar (nunca espera bloqueante), modelo pequeño para lo corto y urgente, y si el volumen crece de verdad, ahí sí evaluar una GPU con datos de uso reales — no antes.
+  </div>
+
+  <h2><span class="num">08</span>Glosario</h2>
+  <dl class="glosario">
+    <div><dt>STT <small>speech-to-text / voz a texto</small></dt><dd>Tecnología que convierte audio hablado en texto escrito. Es la primera capa de cualquier flujo donde alguien habla y un sistema procesa.</dd></div>
+    <div><dt>Whisper</dt><dd>Modelo de reconocimiento de voz publicado por OpenAI como software libre (licencia MIT). Se descarga y corre en servidores propios: el audio nunca viaja a OpenAI.</dd></div>
+    <div><dt>faster-whisper</dt><dd>Re-implementación optimizada de Whisper que produce el mismo resultado usando mucho menos cómputo — clave para servidores sin tarjeta gráfica.</dd></div>
+    <div><dt>Modelo (tamaños)</dt><dd>Whisper viene en tallas (pequeño, mediano, grande): a más talla, mejor precisión pero más memoria y tiempo. Se elige por caso de uso, no «el más grande porque sí».</dd></div>
+    <div><dt>GPU / CPU</dt><dd>La GPU (tarjeta gráfica) acelera modelos de IA pero es cara; la CPU es el procesador normal de cualquier servidor. Nuestro servidor solo tiene CPU — por eso importa la variante optimizada.</dd></div>
+    <div><dt>Licencia MIT / Apache</dt><dd>Licencias de software libre que permiten uso comercial sin pagar, con requisitos mínimos (conservar el aviso de licencia).</dd></div>
+    <div><dt>hermes-net</dt><dd>La red interna de contenedores del proyecto en el servidor. Los servicios se hablan entre sí ahí dentro, sin exponerse a internet.</dd></div>
+    <div><dt>Agent card <small>carta de agente</small></dt><dd>Ficha estándar del patrón A2A que describe qué sabe hacer un servicio (p. ej. «transcribir-audio») para que otros agentes lo descubran y lo usen con contrato claro.</dd></div>
+    <div><dt>Cola de trabajos</dt><dd>Mecanismo donde las tareas largas se forman y procesan una a una, avisando al terminar — en vez de dejar a alguien (o a un agente) esperando con el riesgo de que la espera cancele el trabajo.</dd></div>
+    <div><dt>Host-job</dt><dd>Patrón del proyecto: un programa de confianza en el anfitrión hace el trabajo con credenciales; los agentes solo consumen el resultado.</dd></div>
+    <div><dt>Edge <small>borde</small></dt><dd>Cómputo que corre en dispositivos pequeños en campo (una bodega, un punto de cruce) en vez del servidor central. Útil cuando no hay conexión confiable.</dd></div>
+    <div><dt>TTS <small>text-to-speech / texto a voz</small></dt><dd>Lo inverso del STT: el sistema habla. Junto con STT permitiría conversaciones de voz completas con los avatares — proyecto futuro.</dd></div>
+  </dl>
+
+  <footer>
+    Plan sujeto a discusión con el equipo · Fuente: <code>Investigación sobre speech-to-text open source autoalojado para A2A.md</code> (Descargas) cruzada con la infraestructura real del repositorio · Recomendación: faster-whisper como servicio central en hermes-net; Vosk en espera; modelos GPU y TTS fuera por ahora.
+  </footer>
+</div>

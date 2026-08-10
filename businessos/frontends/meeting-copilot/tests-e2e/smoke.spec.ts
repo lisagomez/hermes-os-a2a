@@ -530,3 +530,71 @@ test('ecosistema: secciones del sidebar, waffle cross-app con la app actual resa
   await expect(page.getByTestId('sidebar').getByRole('link', { name: 'Conversaciones' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByTestId('breadcrumb')).toContainText('Conversaciones')
 })
+
+test('evento presencial: crear, capturar contactos, corregir y detectar el gafete repetido', async ({ page }) => {
+  await page.goto('/reuniones/nueva')
+  await page.getByTestId('tab-presencial').click()
+
+  // Los tres campos identifican dónde y con quién se capturó cada contacto.
+  await page.getByTestId('crear-evento-presencial').click()
+  await expect(page.getByTestId('error-nueva-presencial')).toBeVisible()
+
+  await page.getByTestId('input-titulo-presencial').fill('Expo Logística 2026')
+  await page.getByTestId('input-cuenta-presencial').fill('Centro Citibanamex')
+  await page.getByTestId('input-asesor-presencial').fill('Valeria')
+  await page.getByTestId('crear-evento-presencial').click()
+
+  // Aterriza en la captura, y una reunión presencial NO ofrece las vistas de
+  // audio: nunca va a tener transcripción que analizar.
+  await expect(page).toHaveURL(/\/reuniones\/r-[^/]+\/gafetes$/)
+  await expect(page.getByTestId('tab-reunion-gafetes')).toBeVisible()
+  await expect(page.getByTestId('tab-reunion-transcripcion')).toHaveCount(0)
+  await expect(page.getByTestId('tab-reunion-insights')).toHaveCount(0)
+
+  // Sin aviso de privacidad configurado, la pantalla lo dice antes de capturar.
+  await expect(page.getByTestId('aviso-privacidad-falta')).toBeVisible()
+  await expect(page.getByTestId('tabla-asistentes')).toHaveCount(0)
+
+  // El nombre es lo único obligatorio.
+  await page.getByTestId('guardar-gafete').click()
+  await expect(page.getByTestId('error-ficha')).toBeVisible()
+
+  // Captura pegando el contenido del gafete.
+  const gafete = 'Marco Díaz\nTranslogika SA de CV\nmarco@translogika.mx\nhttps://translogika.mx'
+  await page.getByTestId('input-texto-crudo').fill(gafete)
+  await page.getByTestId('gafete-nombre').fill('Marco Díaz')
+  await page.getByTestId('gafete-empresa').fill('Translogika SA de CV')
+  await page.getByTestId('gafete-email').fill('marco@translogika.mx')
+  await page.getByTestId('gafete-sitio').fill('translogika.mx')
+  await page.getByTestId('guardar-gafete').click()
+
+  await expect(page.getByTestId('captura-guardada')).toBeVisible()
+  await expect(page.getByTestId('tabla-asistentes')).toContainText('Marco Díaz')
+  await expect(page.getByTestId('aviso-sin-sincronizar')).toContainText('1 contacto vive')
+
+  // El MISMO gafete otra vez: sube el contador, no duplica la fila.
+  await page.getByTestId('input-texto-crudo').fill(gafete)
+  await page.getByTestId('gafete-nombre').fill('Marco Díaz')
+  await page.getByTestId('guardar-gafete').click()
+  await expect(page.getByTestId('captura-repetida')).toBeVisible()
+  await expect(page.getByTestId('tabla-asistentes').locator('tbody tr')).toHaveCount(1)
+  await expect(page.getByTestId('tabla-asistentes')).toContainText('2 escaneos')
+
+  // Un contacto sin forma de contactarlo se avisa, pero no se bloquea.
+  await page.getByTestId('gafete-nombre').fill('Lucía Ramos')
+  await expect(page.getByTestId('aviso-sin-contacto')).toBeVisible()
+  await page.getByTestId('guardar-gafete').click()
+  await expect(page.getByTestId('tabla-asistentes').locator('tbody tr')).toHaveCount(2)
+
+  // Corregir queda marcado y sobrevive a recargar (persistencia local).
+  const filaLucia = page.getByTestId('tabla-asistentes').locator('tbody tr').filter({ hasText: 'Lucía Ramos' })
+  await filaLucia.getByRole('button', { name: 'Corregir' }).click()
+  await page.getByTestId('gafete-email').fill('lucia@translogika.mx')
+  await page.getByTestId('guardar-gafete').click()
+  await expect(page.getByTestId('tabla-asistentes')).toContainText('corregido')
+
+  await page.reload()
+  await expect(page.getByTestId('tabla-asistentes')).toContainText('lucia@translogika.mx')
+  await expect(page.getByTestId('tabla-asistentes')).toContainText('2 escaneos')
+  await expect(page.getByTestId('tabla-asistentes').locator('tbody tr')).toHaveCount(2)
+})

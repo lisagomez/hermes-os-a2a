@@ -112,6 +112,23 @@ const REGLAS_MOCK: { patron: RegExp; dimension: DimensionGrafo; categoria: strin
     ],
   },
   {
+    patron: /(\blegal\b|abogad|bufete|law ?firm|attorney|lawyer|servicios legales|despacho jur[ií]dico|litig)/i,
+    dimension: 'regulatorio',
+    categoria: 'SERVICIOS_LEGALES',
+    estado: 'permitido',
+    razon: 'Ejercicio de la abogacia: titulo registrado y patente de ejercicio (cedula); la materia es local — cotejar la ley de profesiones de la entidad',
+    fuente: {
+      clave: 'MX-LRART5-24-26-EJERCICIO-PROFESIONAL',
+      cita: 'Ley Reglamentaria del Articulo 5o. Constitucional (CDMX), Arts. 24-26',
+      url: 'https://www.diputados.gob.mx/LeyesBiblio/pdf_mov/Ley_Reglamentaria_del_Articulo_5o-ejercicio-profesiones-Ciudad_de_Mexico.pdf',
+      vigencia: { desde: '2018-01-19', hasta: null },
+    },
+    banderas: [
+      'Si el despacho prepara o ejecuta operaciones del Art. 17-XI LFPIORPI por cuenta de clientes (inmuebles, cuentas, constitucion de sociedades), es Actividad Vulnerable: obligaciones de identificacion y Aviso (LFPIORPI Arts. 17-XI y 18)',
+    ],
+    checklist: ['Cedula profesional (patente de ejercicio) de los abogados que ejercen', 'Evaluacion PLD: determinar si realiza actividades del Art. 17-XI LFPIORPI'],
+  },
+  {
     patron: /(software|saas|plataforma|desarrollo|app|tecnolog[ií]a)/i,
     dimension: 'fiscal',
     categoria: 'MX-GASTOS-ESTRICTAMENTE-INDISPENSABLES',

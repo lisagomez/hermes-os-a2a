@@ -32,7 +32,9 @@ Y cuatro de andamiaje, en `businessos/tenancy/`:
   excluido: un manifiesto atrasado deja tablas fuera del efímero y T5 no puede
   echar en falta lo que no existe
 - `replay.sh` — levanta el efímero, replica, pre-siembra, migra dos veces,
-  verifica el backfill sobre las filas pre-sembradas y corre la suite
+  verifica el backfill sobre las filas pre-sembradas y corre la suite. Sabe
+  hablar con un Postgres propio por TCP además de levantar su contenedor
+  (ver «Correrlo sin Docker» más abajo)
 - `control-reversion.sh` — rompe la migración a propósito (6 sabotajes) y exige
   que el ciclo se ponga rojo
 
@@ -99,6 +101,41 @@ solo puede correr **una vez por base**. Corriéndola al final se verifica el
 aislamiento sobre una base que ya aguantó la migración dos veces, que es el
 estado real de producción tras un reintento. La suite aborta con un mensaje
 explícito si detecta que ya corrió.
+
+### Correrlo sin Docker (modo TCP)
+
+Hay máquinas de desarrollo con el cliente de Docker pero sin acceso al daemon.
+Ahí este gate era **inejecutable**, y un gate que no se puede correr no protege
+nada: se salta y se confía en que CI lo vea. `replay.sh` acepta por eso un
+segundo modo, que habla con un Postgres ya levantado usando el `psql` del
+anfitrión:
+
+```bash
+export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres PGDATABASE=tenencia_efimera
+businessos/tenancy/replay.sh            # y control-reversion.sh hereda el modo
+```
+
+El modo se elige solo (`PG_MODO=auto`): **con `PGHOST` definida va por TCP, sin
+ella levanta su contenedor como siempre**. CI no cambia de camino. Se puede
+forzar con `PG_MODO=docker|tcp`.
+
+Lo que hay que saber antes de usarlo:
+
+- **La base de `PGDATABASE` se destruye y se recrea en cada corrida.** No es un
+  detalle de implementación: `control-reversion.sh` ejecuta el ciclo siete
+  veces y cada sabotaje necesita una base virgen. En modo docker eso salía
+  gratis (contenedor nuevo cada vez); por TCP el servidor sobrevive, así que el
+  `drop database … with (force)` es el que sostiene el control. Comprobado por
+  reversión: sin él, la segunda corrida muere con «La suite ya corrió sobre
+  esta base».
+- Por eso mismo hay guardas: el destino tiene que ser **local** (`PG_TCP_REMOTO=1`
+  para saltárselo, a sabiendas), y la base de trabajo no puede ser la de
+  mantenimiento (`postgres`, que es donde suele haber datos de alguien). El
+  default de `PGDATABASE` es `tenencia_efimera` justamente para no apuntar por
+  omisión a una base que ya existe.
+- **Fidelidad**: CI corre `postgres:16-alpine`. Si tu Postgres local es de otra
+  versión, el verde local es una señal fuerte pero no idéntica; el veredicto que
+  cuenta sigue siendo el del job `Tenencia`.
 
 ---
 

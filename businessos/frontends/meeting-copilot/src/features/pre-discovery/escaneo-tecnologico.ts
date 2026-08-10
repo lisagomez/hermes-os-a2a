@@ -110,8 +110,10 @@ const CLASES: DefClase[] = [
     // regulatorio): los vacíos de esta matriz SON el pitch de una plataforma
     // legal especializada — portal de asuntos, firma electrónica, generación
     // documental y agenda en línea.
+    // Mismo patrón que el sector legal del escaneo regulatorio (una sola
+    // definición de "es un despacho" entre ambas dimensiones).
     clase: 'Servicios legales (despachos y firmas de abogados)',
-    patron: /(\blegal(es)?\b|abogad|abogac|bufete|law\s?firm|notar[ií]|despacho jur[ií]dico|despacho de abogados|(servicios|asesor[ií]a|firma) jur[ií]dic)/i,
+    patron: /(bufete|despacho (de abogados|jur[ií]dico)|law ?firm|abogad|attorney|lawyer|firma legal|servicios (legales|jur[ií]dicos)|asesor[ií]a (jur[ií]dica|legal)|litig|\blegal\b)/i,
     expectativas: [
       {
         capacidad: 'PORTAL_CLIENTES_EXPEDIENTES',

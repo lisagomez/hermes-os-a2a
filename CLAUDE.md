@@ -1716,4 +1716,29 @@ npm run lint         # ESLint
   verificación contra un server local: antes de concluir "no sirvió el cambio",
   confirmar QUÉ proceso sirve el puerto (hermano de 2026-07-16 y 2026-07-26).
 
+### 2026-08-08: Un gate inejecutable en la máquina de dev se salta — y el control de su propio reset puede dar un ROJO FALSO
+- **Contexto**: el gate de tenencia (`businessos/tenancy/replay.sh`) solo sabía levantar su
+  Postgres con Docker, y en esta máquina el cliente existe pero el daemon no. Un gate que no
+  se puede correr localmente no protege: se salta y se delega en CI. Ahora acepta modo TCP
+  contra un Postgres ya levantado (`PG_MODO=auto` → tcp si hay `PGHOST`, docker si no; CI
+  intacto).
+- **Lo que costó iteraciones**: (1) por TCP el servidor **sobrevive entre corridas**, y
+  `control-reversion.sh` ejecuta el ciclo SIETE veces esperando base virgen — en docker eso
+  salía gratis (contenedor nuevo), aquí hace falta un `drop database … with (force)` explícito
+  o del 2º sabotaje en adelante el control mide otra cosa. (2) **El control de reversión del
+  reset dio un rojo FALSO**: la copia saboteada del script se dejó en el scratchpad, y como
+  `replay.sh` calcula la raíz del repo desde `BASH_SOURCE`, falló con "no such file" — rojo,
+  sí, pero por la razón equivocada. Un script que se ubica por su propia ruta debe saborearse
+  **dentro del repo**; si no, se está probando el `cd`, no la lógica. Con la copia en su sitio
+  el control fue honesto: verde la 1ª corrida, y la 2ª muere con "La suite ya corrió sobre esta
+  base". (3) `apt-get download` + `dpkg-deb -x` deja en `usr/bin/psql` el **wrapper perl de
+  Debian** (`pg_wrapper`), que revienta con "Can't locate PgCommon.pm"; el binario de verdad
+  está en `usr/lib/postgresql/<N>/bin/`.
+- **Regla**: un rojo solo vale si sabes POR QUÉ es rojo — leer el error, no el código de salida
+  (hermano de "si borro el código, ¿el test se pone rojo?", 2026-07-13). Y todo modo nuevo de un
+  script destructivo nace con guardas: destino local salvo override explícito, y jamás la base de
+  mantenimiento como base de trabajo.
+- **Aplicar en**: todo gate que dependa de Docker en máquinas sin daemon, todo control que
+  ejecute una COPIA del script bajo prueba, y todo Postgres extraído de .deb sin instalar.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

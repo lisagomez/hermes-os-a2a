@@ -88,34 +88,43 @@ const SECTORES: DefSector[] = [
       },
     ],
   },
+  // Al FINAL a propósito: "legal" aparece de pasada en sitios de otros sectores
+  // ("departamento legal", "aviso legal") — los sectores con señal más específica
+  // ganan por orden, y "legal" lleva frontera de palabra (\b) para que "ilegales"
+  // o "legalidad" no disparen el sector (hallazgo del ataque adversarial 2026-08-08).
+  // Las categorías espejean el seed del grafo (SERVICIOS_LEGALES es la transversal
+  // que dictamina el giro; las demás son áreas de práctica que el seed YA cubre).
   {
-    // El seed del grafo YA cubre estas categorías (MX·regulatorio): un lead
-    // "Legal" caía en VACÍO DEL GRAFO solo porque este espejo no mapeaba el
-    // sector — el vacío era del mapa, no del grafo.
-    sector: 'Servicios legales (despachos y firmas de abogados)',
-    patron: /(\blegal(es)?\b|abogad|abogac|bufete|law\s?firm|notar[ií]|despacho jur[ií]dico|despacho de abogados|(servicios|asesor[ií]a|firma) jur[ií]dic)/i,
+    sector: 'Servicios legales (bufete / despacho jurídico)',
+    patron: /(bufete|despacho (de abogados|jur[ií]dico)|law ?firm|abogad|attorney|lawyer|firma legal|servicios (legales|jur[ií]dicos)|asesor[ií]a (jur[ií]dica|legal)|litig|\blegal\b)/i,
     expectativas: [
       {
-        categoria: 'CONSTITUCION_SOCIEDADES',
-        esperadaPor: 'derecho corporativo / constitución de sociedades',
-        senal: /(corporativ|societari|constituci[oó]n de sociedad|mercantil|company formation|incorporation)/i,
+        categoria: 'SERVICIOS_LEGALES',
+        esperadaPor: 'operar como despacho de abogados (cédula profesional + PLD/LFPIORPI)',
+        senal: /(\blegal\b|abogad|bufete|jur[ií]dic|law ?firm|attorney|lawyer|litig)/i,
         severidadVacio: 'alta',
       },
       {
+        categoria: 'CONSTITUCION_SOCIEDADES',
+        esperadaPor: 'práctica corporativa / constitución de sociedades',
+        senal: /(corporativ|societari|constituci[oó]n de sociedad|acta constitutiva|mercantil|corporate)/i,
+        severidadVacio: 'media',
+      },
+      {
         categoria: 'FUSION_ESCISION',
-        esperadaPor: 'fusiones y adquisiciones (M&A)',
+        esperadaPor: 'práctica de fusiones y adquisiciones (M&A)',
         senal: /(m&a|fusion|fusiones|adquisicion|escisi[oó]n|merger|acquisition)/i,
         severidadVacio: 'media',
       },
       {
         categoria: 'COMPRAVENTA_INMUEBLES',
-        esperadaPor: 'derecho inmobiliario / transacciones de inmuebles',
-        senal: /(inmobiliari|inmueble|real estate|bienes ra[ií]ces)/i,
+        esperadaPor: 'práctica inmobiliaria',
+        senal: /(inmobiliari|inmueble|bienes ra[ií]ces|real estate|property law)/i,
         severidadVacio: 'media',
       },
       {
         categoria: 'MARCAS_REGISTRO',
-        esperadaPor: 'propiedad intelectual / registro de marcas',
+        esperadaPor: 'práctica de propiedad intelectual / registro de marcas',
         senal: /(propiedad intelectual|intellectual property|marca|patente|\bip\b)/i,
         severidadVacio: 'media',
       },
@@ -127,8 +136,8 @@ const SECTORES: DefSector[] = [
       },
       {
         categoria: 'TESTAMENTOS_SUCESIONES',
-        esperadaPor: 'derecho familiar / sucesiones y testamentos',
-        senal: /(sucesi[oó]n|testament|herencia|patrimonial|familiar?\b|estate planning)/i,
+        esperadaPor: 'práctica sucesoria (testamentos y herencias)',
+        senal: /(testament|sucesi[oó]n|sucesori|herencia|estate planning)/i,
         severidadVacio: 'baja',
       },
     ],
