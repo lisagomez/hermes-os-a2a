@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { FiscalCriteriaPanel } from '@/features/fiscal/components/fiscal-criteria-panel'
+import { fetchFiscalCriteria } from '@/features/fiscal/services'
 
-export default function VistaCriteriosFiscales() {
+export default async function VistaCriteriosFiscales() {
+  const criterios = await fetchFiscalCriteria()
   return (
-    <EmptyState
-      titulo="Criterios aplicables"
-      descripcion="Vista en construcción — se llena en la fase F3 (Avatar Fiscal)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Criterios aplicables"
+        descripcion="Reglas del grafo regulatorio y criterios internos del despacho, con fuente, nivel de riesgo y estado de validación humana."
+      />
+      <FiscalCriteriaPanel criterios={criterios} />
+    </section>
   )
 }

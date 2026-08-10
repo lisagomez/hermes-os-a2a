@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { FiscalCaseSummary } from '@/features/fiscal/components/fiscal-case-summary'
+import { getFiscalCases } from '@/features/fiscal/services'
 
-export default function VistaResumenCaso() {
+export default async function VistaResumenCaso() {
+  const casos = await getFiscalCases()
   return (
-    <EmptyState
-      titulo="Resumen de caso"
-      descripcion="Vista en construcción — se llena en la fase F3 (Avatar Fiscal)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Resumen de cartera"
+        descripcion="Riesgos detectados, próximos vencimientos, tareas abiertas y notas de socios en una sola vista."
+      />
+      <FiscalCaseSummary casos={casos} />
+    </section>
   )
 }

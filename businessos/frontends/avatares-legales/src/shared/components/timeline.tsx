@@ -11,7 +11,7 @@ export type EventoTimeline = {
   /** Fecha ya formateada para mostrar (p. ej. "12 ago 2026"). */
   fecha: string
   titulo: string
-  descripcion?: string
+  descripcion?: ReactNode
   /** Adornos: RiskBadge, ValidacionChip, GrafoTag… */
   adorno?: ReactNode
 }

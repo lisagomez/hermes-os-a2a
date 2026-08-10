@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { RegulatoryAlertsTimeline } from '@/features/fiscal/components/regulatory-alerts-timeline'
+import { getRegulatoryAlerts } from '@/features/fiscal/services'
 
-export default function VistaAlertasRegulatorias() {
+export default async function VistaAlertasRegulatorias() {
+  const alertas = await getRegulatoryAlerts()
   return (
-    <EmptyState
-      titulo="Alertas regulatorias"
-      descripcion="Vista en construcción — se llena en la fase F3 (Avatar Fiscal)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Alertas regulatorias"
+        descripcion="Vigilancia del grafo sobre DOF, SAT, RMF y jurisprudencia, cruzada contra la cartera del despacho."
+      />
+      <RegulatoryAlertsTimeline alertas={alertas} />
+    </section>
   )
 }
