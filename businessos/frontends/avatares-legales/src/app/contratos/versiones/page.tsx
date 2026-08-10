@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { VersionApprovalsTimeline } from '@/features/contratos/components/version-approvals-timeline'
+import { getContractVersions } from '@/features/contratos/services'
 
-export default function VistaVersiones() {
+export default async function VistaVersiones() {
+  const historiales = await getContractVersions()
   return (
-    <EmptyState
-      titulo="Versiones y aprobaciones"
-      descripcion="Vista en construcción — se llena en la fase F5 (Avatar de Contratos)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Versiones y aprobaciones"
+        descripcion="Historial por contrato: qué cambió en cada versión, en qué estado quedó y quién aprobó qué, con fecha."
+      />
+      <VersionApprovalsTimeline historiales={historiales} />
+    </section>
   )
 }

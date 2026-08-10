@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { PrecedentRepository } from '@/features/contratos/components/precedent-repository'
+import { searchPrecedents } from '@/features/contratos/services'
 
-export default function VistaPrecedentes() {
+export default async function VistaPrecedentes() {
+  const precedentes = await searchPrecedents()
   return (
-    <EmptyState
-      titulo="Repositorio de precedentes"
-      descripcion="Vista en construcción — se llena en la fase F5 (Avatar de Contratos)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Repositorio de precedentes"
+        descripcion="Contratos anteriores del despacho con etiquetas y métricas de uso; base de las sugerencias de Hermes."
+      />
+      <PrecedentRepository precedentes={precedentes} />
+    </section>
   )
 }
