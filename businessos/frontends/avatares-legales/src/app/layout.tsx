@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono, Libre_Franklin, Source_Serif_4 } from 'next/font/google'
+import { AvatarShell } from '@/features/shell/components/avatar-shell'
 import './globals.css'
 
 // Las vars de fuente van en <html> (:root), no en <body>: si la var anidada no
@@ -39,7 +40,9 @@ export default function RootLayout({
       lang="es"
       className={`${sourceSerif.variable} ${libreFranklin.variable} ${plexMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <AvatarShell>{children}</AvatarShell>
+      </body>
     </html>
   )
 }
