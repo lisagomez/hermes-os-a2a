@@ -6,16 +6,35 @@ que la fase previa esté validada.
 
 ---
 
-## 🔴 Pendientes de decisión de Elisa (consolidado — 2026-08-09)
+## 🔴 Espera respuesta de Elisa — decisiones abiertas (consolidado, al día 2026-08-09)
 
-Todo lo que espera una respuesta o un visto bueno de Elisa, junto en un solo lugar.
-Cada fila apunta al documento donde vive la pregunta completa. **Fusionar un PR no es
-responder**: estas entradas siguen abiertas hasta que haya respuesta explícita, y se
-retiran de aquí cuando la haya (con fecha).
+Bandeja corta y arriba a propósito: lo que sigue no avanza aunque haya tiempo disponible,
+porque nadie más lo puede decidir. **Fusionar un PR no es responder**: estas entradas
+siguen abiertas hasta que haya respuesta explícita, y se retiran de aquí cuando la haya
+(con fecha).
+
+**Lo que hoy tiene trabajo detenido — Sala A2A, dos preguntas** *(pendientes desde el
+2026-08-08)*. Van enteras y no como puntero: mandar a alguien a la línea 1719 de un
+documento de 1900 reproduce el problema un nivel más arriba. No son trámite — el Ejecutor
+las necesita en la primera sub-tarea y, si no las encuentra escritas, las inventará.
+
+- **¿De qué tabla sale la identidad de un humano cuando aprueba algo con un botón:
+  `usuarios` o `profiles`?** La primera no la puebla nadie en todo el repositorio; la
+  segunda sí funciona, pero es de la cabina `control-interno` y ya provocó una colisión
+  entre superficies. De la respuesta cuelgan la clave foránea, la política de aprobación y
+  su prueba.
+- **¿El inicio de sesión de Supabase incluye el identificador de la organización (`org_id`)
+  en el token?** Sin él las políticas niegan todo y el frontal no vería un solo mensaje. Se
+  comprueba en minutos contra el Supabase real.
+- Menor, también suya: el **nombre definitivo del servicio** (hoy `sala-a2a`, puerto 5300).
+- *Las dos salidas y sus costos, en §Línea Sala A2A.*
+
+Y la lista completa de lo que espera su respuesta, cada fila con el documento donde vive
+la pregunta entera:
 
 | # | Decisión pendiente | Dónde está la pregunta completa | Qué desbloquea |
 |---|---|---|---|
-| 1 | **Sala A2A — dos preguntas**: (a) ¿de qué tabla sale la identidad del humano que aprueba con un botón? (b) ¿el token de sesión de Supabase trae el `org_id`? | Sección *"Línea Sala A2A"* de este roadmap + `SPEC-sala-a2a.md` §14 (decisión 5) | Encolar la Fase A de la sala |
+| 1 | **Sala A2A — dos preguntas**: (a) ¿de qué tabla sale la identidad del humano que aprueba con un botón? (b) ¿el token de sesión de Supabase trae el `org_id`? | Desarrolladas arriba; las salidas y sus costos en la sección *"Línea Sala A2A"* de este roadmap + `SPEC-sala-a2a.md` §14 (decisión 5) | Encolar la Fase A de la sala |
 | 2 | **Plan documental/OCR**: adoptar Paperless-ngx autoalojado (Google se queda para colaboración; Mayan como plan B) | `docs/planes/plan-suites-docs-ocr.html` | Fase 1 del plan (inventario + `docker stats` del servidor) |
 | 3 | **Plan voz-a-texto (STT)**: adoptar faster-whisper como servicio central en hermes-net | `docs/planes/plan-speech-to-text.html` | Activar el motor STT real — hoy `transcripcion-a2a` tiene el motor groq implementado pero **inactivo** (gate de la dueña, ver Fase 9) |
 | 4 | **Marketing B2B — decisiones D1–D7** (gates de la Ola 0, desplegar CRM-4, puente Copilot→leads, scoring como vista, tableros, conciliación de precios, validación del plan completo) | Memo de una página: `docs/planes/memo-decisiones-marketing.html`; detalle en `businessos/PLAN-marketing-b2b.md` §16 | Ejecutar las olas del plan (el plan ya está fusionado; falta el visto bueno de contenido) |
@@ -23,6 +42,7 @@ retiran de aquí cuando la haya (con fecha).
 | 6 | **Tenencia: ¿convertir las 17 tablas con `tenant_id` slug a uuid?** Tocaría CancioBot, la guardia de presupuesto, agendamiento y el buzón | Sección *"Propuestas en revisión"* de este roadmap, punto 1 | Unificar los 3 modelos de tenencia que hoy conviven |
 | 7 | **Techo formal de gasto de infra** (los $30/mes son de tokens; el hosting ~$9/mes no tiene techo declarado) | Sección *"Línea Reuniones (App B)"*, paso 0 | Que la alerta de presupuesto cubra el gasto completo, no solo tokens |
 | 8 | **Dictamen legal del caso Baker (grafo)**: revisar el bloque "Marco regulatorio" regenerado con la categoría nueva `SERVICIOS_LEGALES` (cédula profesional + evaluación PLD/LFPIORPI) antes de usarlo con el lead — es contenido regulatorio de cara al cliente | Sección *"Línea Grafo"* de este roadmap (entrada 2026-08-08) + `.claude/memory/project/fase8-grafo-regulatorio.md` | Usar el Pre-Discovery del caso Baker en la conversación real. *Antes hay un pendiente operativo: aplicar el seed 68 reglas al runtime (máquina con SSH) y regenerar el caso* |
+| 9 | **Administración del repositorio: ¿es "Tenencia" un check obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo avisa y no bloquea, es una red que informa pero no detiene | Consultar la protección de rama (devuelve 404 sin permiso de administración) | Que el gate de tenencia detenga de verdad lo que hoy solo señala |
 
 Insumo compartido pendiente: el **`docker stats` del servidor** (pedido en el paso 0 de
 App B) alimenta a la vez las filas 2 y 3 (fase de capacidad de OCR y STT).
@@ -30,6 +50,10 @@ App B) alimenta a la vez las filas 2 y 3 (fase de capacidad de OCR y STT).
 Nota: el prototipo **avatares-legales** (las 8 fases del plan del equipo) salió de esta
 lista — está **en ejecución** desde el 2026-08-09 (rama `feat/avatares-legales`, puerto
 3005, solo datos de muestra; lo multi-inquilino sigue esperando la fila 5).
+
+Queda fuera a propósito el *"dogfood real = decisión de la dueña"* del encabezado de la
+Fase 6: está rancio — el dogfood real se aprobó el 2026-07-11 y la propia Fase 7 lo dice.
+Subir un pendiente muerto es la forma más rápida de que nadie vuelva a mirar la bandeja.
 
 ---
 
