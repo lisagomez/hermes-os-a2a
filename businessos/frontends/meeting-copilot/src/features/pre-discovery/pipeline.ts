@@ -16,6 +16,7 @@ import { estadoBloqueAnalizado } from './competencia'
 import { escaneoTecnologico } from './escaneo-tecnologico'
 import { esBloqueLLM } from '@/features/agents/prompt-prediscovery'
 import { usePreDiscoveryStore } from './store'
+import { useAppStore } from '@/features/domain/store'
 import { costearTokens, hashContenido, useActivosStore } from '@/features/activos/store'
 import { useAdminPreDiscovery } from './admin-store'
 import { MOTOR_AGENTE } from '@/shared/lib/config'
@@ -97,16 +98,12 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
     // Waterfall por fuentes públicas (RFC → DENUE → gate 69-B → patrón de
     // dominio) detrás de su gate. Sin servicio no hay bloque: el catch de
     // correrBloque cae al mock DECLARADO, que no inventa contacto alguno.
+    //
+    const lead = useAppStore.getState().leads.find((l) => l.leadId === caso.leadId)
     const respuesta = await fetch('/api/pre-discovery/enriquecer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        leadId: caso.leadId,
-        empresa: caso.intake.giro,
-        contacto: caso.intake.email,
-        telefono: caso.intake.telefono,
-        campos: ['email', 'telefono'],
-      }),
+      body: JSON.stringify(cuerpoEnriquecimiento(caso, lead)),
     })
     const data = (await respuesta.json().catch(() => ({}))) as { datos?: SalidaEnriquecimiento; error?: string }
     if (!respuesta.ok || !data.datos) throw new Error(data.error ?? `HTTP ${respuesta.status}`)
@@ -185,6 +182,38 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
  *  las notas. El campo `linkedin` tiene su propia casilla en el formulario: si no
  *  se incluye aquí, se captura y nunca se lee. Lo que resulte bloqueado (LinkedIn
  *  suele responder 999) se DECLARA como fuente bloqueada, no se omite. */
+/** RFC mexicano (persona moral o física) si el asesor lo dejó en las notas.
+ *  Además de la forma, la fecha embebida (AAMMDD) debe ser plausible: sin eso,
+ *  un folio interno tipo "REF123456ABC" viajaría como RFC al waterfall y podría
+ *  traer datos de un tercero equivocado (forma válida ≠ dato válido). */
+export function extraerRfc(notas: string): string | undefined {
+  for (const m of notas.toUpperCase().matchAll(/\b[A-ZÑ&]{3,4}(\d{2})(\d{2})(\d{2})[A-Z0-9]{3}\b/g)) {
+    const mes = Number(m[2])
+    const dia = Number(m[3])
+    if (mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31) return m[0]
+  }
+  return undefined
+}
+
+/** Petición al waterfall de enriquecimiento: TODO lo que el intake sabe — la
+ *  EMPRESA real del lead (no el giro: buscar "Legal" en RFC/DENUE no devuelve
+ *  nada), el nombre del contacto, y el RFC si viene en las notas. Pura y
+ *  testeable: es el contrato con /api/pre-discovery/enriquecer. */
+export function cuerpoEnriquecimiento(
+  caso: CasoPreDiscovery,
+  lead: { empresa: string; contacto: string } | undefined
+): Record<string, unknown> {
+  const rfc = extraerRfc(caso.intake.notas)
+  return {
+    leadId: caso.leadId,
+    empresa: lead?.empresa || caso.intake.giro,
+    contacto: lead?.contacto || caso.intake.email,
+    telefono: caso.intake.telefono,
+    ...(rfc ? { rfc } : {}),
+    campos: ['email', 'telefono', 'razon_social'],
+  }
+}
+
 export function extraerUrls(caso: CasoPreDiscovery): string[] {
   const urls = new Set<string>()
   if (caso.intake.web.trim()) urls.add(caso.intake.web.trim())
@@ -202,10 +231,12 @@ async function compilarFuentes(caso: CasoPreDiscovery): Promise<{ texto: string 
   const fuentes: import('./types').FuenteCompilada[] = []
   const textos: string[] = []
   // Escaneo quirúrgico: los enlaces internos relevantes del sitio (/services,
-  // /compliance, /legal…) se suman a la cola — máximo 2 extra, declarados.
+  // /compliance, /areas-de-practica…) se suman a la cola — hasta 5 extra,
+  // declarados. Con 2, un sitio con áreas de práctica + equipo + aviso de
+  // privacidad dejaba fuera justo las páginas con la señal.
   const cola = [...urls]
   const vistas = new Set(urls)
-  let extrasRestantes = 2
+  let extrasRestantes = 5
   for (let i = 0; i < cola.length; i++) {
     const url = cola[i]
     try {
@@ -233,7 +264,9 @@ async function compilarFuentes(caso: CasoPreDiscovery): Promise<{ texto: string 
       fuentes.push({ url, estado: 'error', detalle: e instanceof Error ? e.message : String(e) })
     }
   }
-  return { texto: textos.length > 0 ? textos.join('\n\n').slice(0, 18_000) : null, fuentes }
+  // 24k: por debajo del tope del contrato del API (25k) y suficiente para
+  // home + 5 páginas internas de un sitio corporativo típico.
+  return { texto: textos.length > 0 ? textos.join('\n\n').slice(0, 24_000) : null, fuentes }
 }
 
 /** Asegura el activo del caso y appendea el costo de una corrida al ledger. */

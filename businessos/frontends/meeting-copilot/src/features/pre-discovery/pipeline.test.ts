@@ -55,3 +55,34 @@ describe('pipeline de Pre-Discovery (fallback mock declarado)', () => {
     expect(versionesDespues).toBe(versionesAntes)
   })
 })
+
+describe('contrato con el waterfall de enriquecimiento', () => {
+  it('manda la EMPRESA y el CONTACTO reales del lead, pide razon_social, y saca el RFC de las notas', async () => {
+    const { cuerpoEnriquecimiento, extraerRfc } = await import('./pipeline')
+    const casoId = usePreDiscoveryStore.getState().crearCaso('lead-enr', {
+      ...INTAKE_GAL,
+      giro: 'Legal',
+      notas: 'RFC de la firma: VWS860101AB1. Buscan plataforma legal.',
+    })
+    const caso = usePreDiscoveryStore.getState().casos.find((c) => c.id === casoId)!
+    const cuerpo = cuerpoEnriquecimiento(caso, { empresa: 'Von Wobeser y Sierra, S.C.', contacto: 'Socio Director' })
+    expect(cuerpo.empresa).toBe('Von Wobeser y Sierra, S.C.')
+    expect(cuerpo.contacto).toBe('Socio Director')
+    expect(cuerpo.rfc).toBe('VWS860101AB1')
+    expect(cuerpo.campos).toEqual(['email', 'telefono', 'razon_social'])
+
+    // Sin lead registrado, degrada a lo que el intake tenga — jamás revienta.
+    expect(cuerpoEnriquecimiento(caso, undefined).empresa).toBe('Legal')
+    // Sin RFC en las notas, el campo no viaja (el waterfall no recibe basura).
+    expect(extraerRfc('sin rfc aquí')).toBeUndefined()
+  })
+})
+
+describe('extraerRfc — la forma no basta, la fecha embebida debe ser plausible', () => {
+  it('rechaza folios internos con forma de RFC pero fecha imposible', async () => {
+    const { extraerRfc } = await import('./pipeline')
+    expect(extraerRfc('referencia REF123456ABC del caso')).toBeUndefined() // mes 34
+    expect(extraerRfc('folio ABC999999XY1')).toBeUndefined() // mes 99
+    expect(extraerRfc('RFC real: VWS860101AB1 y folio REF123456ABC')).toBe('VWS860101AB1')
+  })
+})

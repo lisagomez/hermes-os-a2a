@@ -92,6 +92,8 @@ const SECTORES: DefSector[] = [
   // ("departamento legal", "aviso legal") — los sectores con señal más específica
   // ganan por orden, y "legal" lleva frontera de palabra (\b) para que "ilegales"
   // o "legalidad" no disparen el sector (hallazgo del ataque adversarial 2026-08-08).
+  // Las categorías espejean el seed del grafo (SERVICIOS_LEGALES es la transversal
+  // que dictamina el giro; las demás son áreas de práctica que el seed YA cubre).
   {
     sector: 'Servicios legales (bufete / despacho jurídico)',
     patron: /(bufete|despacho (de abogados|jur[ií]dico)|law ?firm|abogad|attorney|lawyer|firma legal|servicios (legales|jur[ií]dicos)|asesor[ií]a (jur[ií]dica|legal)|litig|\blegal\b)/i,
@@ -109,9 +111,27 @@ const SECTORES: DefSector[] = [
         severidadVacio: 'media',
       },
       {
+        categoria: 'FUSION_ESCISION',
+        esperadaPor: 'práctica de fusiones y adquisiciones (M&A)',
+        senal: /(m&a|fusion|fusiones|adquisicion|escisi[oó]n|merger|acquisition)/i,
+        severidadVacio: 'media',
+      },
+      {
         categoria: 'COMPRAVENTA_INMUEBLES',
         esperadaPor: 'práctica inmobiliaria',
         senal: /(inmobiliari|inmueble|bienes ra[ií]ces|real estate|property law)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'MARCAS_REGISTRO',
+        esperadaPor: 'práctica de propiedad intelectual / registro de marcas',
+        senal: /(propiedad intelectual|intellectual property|marca|patente|\bip\b)/i,
+        severidadVacio: 'media',
+      },
+      {
+        categoria: 'PODERES_REPRESENTACION',
+        esperadaPor: 'representación legal / litigio y controversias',
+        senal: /(litigio|litigation|arbitraje|arbitration|controversia|juicio|poder notarial)/i,
         severidadVacio: 'media',
       },
       {

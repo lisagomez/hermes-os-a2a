@@ -25,7 +25,11 @@ export function htmlATexto(html: string): { titulo: string; descripcionMeta: str
  *  /services, /compliance, /certifications, /legal, /privacy, /terms, /aviso…
  *  Solo mismo host, dedupe, máximo 5 — el pipeline decide cuántos compilar. */
 export function extraerEnlacesRelevantes(html: string, baseUrl: string): string[] {
-  const RELEVANTE = /(servic|solucion|solution|compliance|regulat|certif|licen|legal|privac|aviso|terms|t[ée]rminos|about|nosotros)/i
+  // Los términos nuevos son específicos de despachos (práctica/abogados/
+  // expertise); nada de 'equipo'/'area'/'sector' pelados: son tan genéricos que
+  // inflarían la cola de fetches de TODOS los sectores.
+  const RELEVANTE =
+    /(servic|solucion|solution|compliance|regulat|certif|licen|legal|privac|aviso|terms|t[ée]rminos|about|nosotros|practice|pr[aá]ctica|expertise|especialidad|abogad|attorney)/i
   const enlaces = new Set<string>()
   let base: URL
   try {
@@ -44,7 +48,7 @@ export function extraerEnlacesRelevantes(html: string, baseUrl: string): string[
     } catch {
       // href malformado: se ignora
     }
-    if (enlaces.size >= 5) break
+    if (enlaces.size >= 8) break
   }
   return [...enlaces]
 }

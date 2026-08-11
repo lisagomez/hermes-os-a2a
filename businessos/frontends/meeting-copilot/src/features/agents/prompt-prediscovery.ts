@@ -151,13 +151,19 @@ export function describirEsquema(esquema: z.ZodTypeAny): string {
   }
 }
 
+// Presupuesto de texto del sitio POR BLOQUE: `sitio` y `perfil` leen el material
+// crudo (más texto = más hechos citables); los bloques derivados razonan sobre
+// los bloques previos y con 6k les alcanza. La compilación junta hasta 24k —
+// truncar todo a 6k tiraba dos tercios de lo compilado justo donde más pesa.
+const PRESUPUESTO_SITIO: Partial<Record<BloqueLLM, number>> = { sitio: 14_000, perfil: 10_000, tecnologia: 10_000 }
+
 export function construirUsuarioBloque(bloque: BloqueLLM, c: ContextoAnalisis): string {
   const partes = [
     `TAREA: ${INSTRUCCION_BLOQUE[bloque]}`,
     '',
     `INTAKE DEL LEAD: empresa/giro: ${c.intake.giro} · modelo de negocio: ${c.intake.modeloNegocio || 'no proporcionado'} · tamaño: ${c.intake.tamano} · país: ${c.intake.pais} · dirección: ${c.intake.direccion || 'no proporcionada'} · web: ${c.intake.web || 'no proporcionada'} · linkedin del contacto: ${c.intake.linkedin || 'no proporcionado'} · notas: ${c.intake.notas || '—'}`,
   ]
-  if (c.textoSitio) partes.push('', `TEXTO DEL SITIO DEL LEAD (extracto):`, c.textoSitio.slice(0, 6000))
+  if (c.textoSitio) partes.push('', `TEXTO DEL SITIO DEL LEAD (extracto):`, c.textoSitio.slice(0, PRESUPUESTO_SITIO[bloque] ?? 6000))
   else partes.push('', 'SIN TEXTO DEL SITIO: no marques nada como hecho salvo lo que venga del intake.')
   if (c.perfilPrevio) partes.push('', `PERFIL YA CONSOLIDADO: ${JSON.stringify(c.perfilPrevio).slice(0, 1500)}`)
   if (c.competenciaPrevia) partes.push('', `BENCHMARK YA PRODUCIDO: ${JSON.stringify(c.competenciaPrevia).slice(0, 2500)}`)
