@@ -13,6 +13,7 @@ cliente · A2A).
 | `cliente-web2/` | **Cliente web2** | clientes finales, web tradicional | Next.js 16 + Supabase + Tailwind v4 + `@a2a/design-system` | ✅ integrado (landing bilingüe + cotizador + leads + chat; deploy Vercel — ver `DEPLOY-web2.md`) |
 | `meeting-copilot/` | **Meeting Copilot** | agentes de ventas/discovery/CS (marca blanca) | Next.js 16 + Tailwind v4, mock-first (seams STT/LLM/Supabase) | ✅ MVP (transcripción→insights→score→guided→manager; ver `meeting-copilot/README.md` y `SPEC.md`) |
 | `cliente-a2a-web3/` | **Cliente A2A-card web3** | clientes vía A2A card / web3 | web3 + A2A card (identidad de agente) | 🎨 diseño + scaffold (demo de la Tarjeta A2A; app en scaffold) |
+| `avatares-legales/` | **Avatares Legales** | despachos legales (demo de producto) | Next.js 16 + Tailwind v4, mock-first (piel legal sobria propia) | 🧪 prototipo (4 tableros × 4 vistas con datos de muestra; ver `avatares-legales/README.md`) |
 
 ## Rol de cada superficie
 
@@ -25,6 +26,10 @@ cliente · A2A).
   audio/transcripción en insights con evidencia, score de discovery explicable, guided
   meeting y salidas listas para CRM. Corre 100% local con motor determinista; los seams
   (STT real, LLM, Supabase) están diseñados en su `SPEC.md`.
+- **Avatares Legales** — prototipos navegables de los 4 avatares para despachos (fiscal,
+  litigio, contratos, dirección multipráctica), con datos de muestra y costura de servicios
+  documentada para la integración futura (Hermes + grafo). Es el prototipo del plan bufete
+  B2B (`docs/planes/`); la parte multi-inquilino es Fase 9+ y espera decisiones de Elisa.
 - **Cliente A2A-card web3** — la superficie web3 donde el cliente interactúa vía **A2A card**
   (la tarjeta de agente del protocolo agente-a-agente) — el puente hacia el pago/identidad
   agéntica (Circle/USDC, contratos, verificación) que el roadmap contempla como capa futura.
