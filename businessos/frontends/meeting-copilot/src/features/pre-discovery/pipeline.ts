@@ -12,6 +12,7 @@ import { ORDEN_BLOQUES } from './types'
 import { mockBloque } from './mock'
 import { mockEvaluacionGrafo, type EvaluacionGrafo } from './grafo'
 import { escaneoRegulatorio } from './escaneo-regulatorio'
+import { estadoBloqueAnalizado } from './competencia'
 import { escaneoTecnologico } from './escaneo-tecnologico'
 import { esBloqueLLM } from '@/features/agents/prompt-prediscovery'
 import { usePreDiscoveryStore } from './store'
@@ -156,9 +157,15 @@ async function analizarBloqueReal(caso: CasoPreDiscovery, bloque: BloqueId, text
   }
   const requiereValidacion =
     (data.degradados ?? 0) > 0 ? [`${data.degradados} afirmación(es) sin evidencia degradadas a hipótesis`] : []
+  const estado = estadoBloqueAnalizado(bloque, data.datos)
+  if (estado === 'no_concluyente') {
+    requiereValidacion.push(
+      'El modelo no identificó competidores con confianza — añade nombres conocidos a las notas del intake y re-analiza, o verifica que el deep research (:online) esté activo.'
+    )
+  }
   return {
     bloque: {
-      estado: 'listo',
+      estado,
       datos: data.datos,
       confianza: textoSitio ? 'alta' : 'media',
       procedencia: {

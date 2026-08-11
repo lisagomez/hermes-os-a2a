@@ -8,6 +8,7 @@ import { useCaso } from './store'
 import { useAppStore } from '@/features/domain/store'
 import { useActivo } from '@/features/activos/store'
 import { correrBloque, correrPipeline } from './pipeline'
+import { competenciaNoConcluyente } from './competencia'
 import { briefAMarkdown, descargarArchivo } from './export'
 import {
   AvisosValidacion,
@@ -174,7 +175,7 @@ export function VistaCaso() {
       {tab === 'benchmark' && (
         <Card className="p-4">
           {cabecera('competencia')}
-          {caso.bloques.competencia.estado === 'no_concluyente' && !caso.bloques.competencia.datos ? (
+          {caso.bloques.competencia.estado === 'no_concluyente' && competenciaNoConcluyente(caso.bloques.competencia.datos) ? (
             <p className="rounded-s bg-warning-muted px-3 py-2 text-[12px] text-warning" data-testid="competencia-no-concluyente">
               Competencia no identificada con confianza suficiente — no se inventa. Corre el análisis real (con sitio) o
               añade competidores conocidos en las notas del intake y re-analiza.
