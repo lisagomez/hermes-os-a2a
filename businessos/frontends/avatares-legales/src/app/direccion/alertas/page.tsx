@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { ExecutiveAlertsPanel } from '@/features/direccion/components/executive-alerts-panel'
+import { getExecutiveAlerts } from '@/features/direccion/services'
 
-export default function VistaAlertasEjecutivas() {
+export default async function VistaAlertasEjecutivas() {
+  const alertas = await getExecutiveAlerts()
   return (
-    <EmptyState
-      titulo="Alertas ejecutivas"
-      descripcion="Vista en construcción — se llena en la fase F6 (Avatar Director)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Alertas ejecutivas"
+        descripcion="Lo que socios y gerencia deben ver hoy: cambios regulatorios de alto impacto, señales operativas e hitos."
+      />
+      <ExecutiveAlertsPanel alertas={alertas} />
+    </section>
   )
 }

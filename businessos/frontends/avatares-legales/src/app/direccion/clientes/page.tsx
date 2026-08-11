@@ -1,10 +1,16 @@
-import { EmptyState } from '@/shared/components/ui'
+import { SectionHeader } from '@/shared/components/ui'
+import { StrategicClientsTable } from '@/features/direccion/components/strategic-clients-table'
+import { getStrategicClients } from '@/features/direccion/services'
 
-export default function VistaClientesEstrategicos() {
+export default async function VistaClientesEstrategicos() {
+  const clientes = await getStrategicClients()
   return (
-    <EmptyState
-      titulo="Clientes estratégicos"
-      descripcion="Vista en construcción — se llena en la fase F6 (Avatar Director)."
-    />
+    <section>
+      <SectionHeader
+        titulo="Clientes estratégicos"
+        descripcion="Cuentas clave: servicios activos por práctica, riesgo y oportunidades de venta cruzada detectadas."
+      />
+      <StrategicClientsTable clientes={clientes} />
+    </section>
   )
 }
