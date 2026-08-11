@@ -74,8 +74,30 @@ Dos gotchas pagados al montarlo (2026-07-28):
 | `GRAFO_URL` | runtime | `https://grafo.167-233-233-56.sslip.io` — puente al grafo real vía `grafo-gate` (edge Caddy en Hetzner). Sin ella el bloque regulatorio cae al mock fiel (503 declarado) |
 | `GRAFO_TOKEN` | runtime | **sensitive**; el Bearer del `grafo-gate` (vive en `~/repo/businessos/.env` del server como `GRAFO_GATE_TOKEN`). Server-only: jamás toca el navegador |
 | `PREDISCOVERY_ONLINE` | runtime | deep research de competidores (`:online` de OpenRouter). **Encendido por defecto desde 2026-08-09** — fijar `0` solo para apagarlo (control de costo) |
-| `ENRIQUECIMIENTO_URL` | runtime | `https://enriquecimiento.167-233-233-56.sslip.io` — puente al waterfall de enriquecimiento vía `enriquecimiento-gate` (edge Caddy). Sin ella el bloque responde 503 y la UI lo declara no disponible (jamás inventa contacto). **Puesta en `production` desde el 2026-08-08**; en *preview* no está, a propósito |
-| `ENRIQUECIMIENTO_TOKEN` | runtime | **sensitive**; Bearer del `enriquecimiento-gate` (en `~/repo/businessos/.env` del server, como `ENRIQUECIMIENTO_GATE_TOKEN`). Server-only. **Puesta en `production` desde el 2026-08-08**. Al ser *sensitive* NO se puede leer de vuelta: para comprobar que la guardada es la buena, no la compares — mira el rastro real (`docker logs enriquecimiento-gate \| grep "POST /rpc"` y la tabla `enriquecimiento_intento`) |
+| `ENRIQUECIMIENTO_URL` | runtime | `https://enriquecimiento.167-233-233-56.sslip.io` — puente al waterfall de enriquecimiento vía `enriquecimiento-gate` (edge Caddy). Sin ella el bloque responde 503 y la UI lo declara no disponible (jamás inventa contacto). En `production` desde el 2026-08-08 y **también en `preview` desde el 2026-08-11** |
+| `ENRIQUECIMIENTO_TOKEN` | runtime | **sensitive**; Bearer del `enriquecimiento-gate` (en `~/repo/businessos/.env` del server, como `ENRIQUECIMIENTO_GATE_TOKEN`). Server-only. Mismos ámbitos que la anterior. Al ser *sensitive* NO se puede leer de vuelta: para comprobar que la guardada es la buena, no la compares — mira el rastro real (`docker logs enriquecimiento-gate \| grep "POST /rpc"` y la tabla `enriquecimiento_intento`) |
+
+> ⚠️ **Ampliar una variable a `preview` no se hace borrando y recreando**: `PATCH
+> /v9/projects/{id}/env/{envId}` con `{"target": ["preview","production"]}` añade el ámbito
+> **conservando el valor**. Para una var *sensitive* es además la única vía sensata — su
+> valor no se puede leer de vuelta, así que recrearla obligaría a sacar el secreto del
+> servidor y pasarlo por las manos de quien lo haga.
+
+> ⚠️ **Qué hace falta para que un `preview` sirva de verdad** (comprobado el 2026-08-11):
+> el bloque de enriquecimiento necesita una cadena completa, y sus eslabones de Supabase
+> siguen siendo **solo de `production`** — con lo cual, hoy, un preview:
+>
+> 1. redirige TODA ruta a `/login?error=config`, porque el middleware no encuentra
+>    `NEXT_PUBLIC_SUPABASE_URL` ni `NEXT_PUBLIC_SUPABASE_ANON_KEY` (fail-closed honesto);
+> 2. aunque se llegara a la ruta, `asegurarLead` corta antes del gate — `supabaseUrl()`
+>    resuelve a `undefined` y devuelve *"Supabase no configurado en este entorno"*;
+> 3. y `PANEL_ALLOWED_EMAILS` vacía = **nadie entra**, que es lo correcto por diseño.
+>
+> Es decir: tener `ENRIQUECIMIENTO_*` en preview es **necesario pero no suficiente**.
+> Habilitar los previews de verdad es una decisión deliberada — pasarían de no renderizar
+> nada a mostrar el negocio entero (leen con `service_role`) detrás de dos puertas: el SSO
+> de Vercel, que ya protege todo `*-lisagomezs-projects.vercel.app`, y la allowlist de la
+> app. Mientras no se tome, los previews son útiles para la UI mock, no para el pipeline.
 
 ## 3. Auth (activa desde 2026-07-28) — patrón Mission Control
 

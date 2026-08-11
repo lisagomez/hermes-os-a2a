@@ -1381,9 +1381,12 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   rancia. **Verificado el 2026-08-11**: el `enriquecimiento-gate` lleva 8 llamadas
   `POST /rpc` con 200, la última hoy para `lead-msob7ag2-1` (el lead del caso real
   `caso-msob7ag2-2`), y ninguna máquina de desarrollo tiene el token → esas llamadas
-  salieron de producción. Solo están en el ámbito `production`: en los despliegues de
-  *preview* el bloque responde 503 declarado, que es el comportamiento correcto (no hay
-  modo demo) y de paso no gasta el waterfall en ramas.
+  salieron de producción. **Ampliadas a `preview` el 2026-08-11** (por `PATCH` del ámbito,
+  conservando el valor). Ojo: eso es necesario pero **no suficiente** para que un preview
+  ejercite el bloque — las tres variables de Supabase del middleware y del registro del
+  lead siguen siendo solo de `production`, así que hoy un preview redirige todo a
+  `/login?error=config`. Abrirlos del todo es una decisión pendiente: pasarían de no
+  renderizar nada a mostrar el negocio entero tras el SSO de Vercel y la allowlist.
 - [x] **Benchmark vacío = no concluyente, no "listo" (2026-08-11)**: tercer defecto del
   mismo caso real. El contrato zod acepta `{competidores: [], comparativa: []}` **a
   propósito** (el modelo no debe inventar competidores sin señal), pero el pipeline
