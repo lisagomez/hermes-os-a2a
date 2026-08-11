@@ -1327,6 +1327,16 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   Marcos pasó de "vacío del grafo" a la matriz sectorial completa con severidades).
   Pendiente de Vercel: `ENRIQUECIMIENTO_URL`/`ENRIQUECIMIENTO_TOKEN` (el edge ya publica
   `enriquecimiento.167-233-233-56.sslip.io`; sin las vars el bloque queda 503 declarado).
+- [x] **Benchmark vacío = no concluyente, no "listo" (2026-08-11)**: tercer defecto del
+  mismo caso real. El contrato zod acepta `{competidores: [], comparativa: []}` **a
+  propósito** (el modelo no debe inventar competidores sin señal), pero el pipeline
+  marcaba esa salida como `listo` y la UI pintaba una **tabla fantasma** de solo
+  encabezados — un vacío disfrazado de análisis, la misma familia del fallback mudo del
+  2026-08-08. Ahora la salida sin una sola fila degrada el bloque a `no_concluyente`,
+  dispara el aviso honesto que ya existía y añade a `requiereValidacion` qué hacer
+  (nombres conocidos en las notas del intake, o verificar que el deep research `:online`
+  esté activo). Lógica pura en `competencia.ts` para testearla sin navegador; control de
+  reversión ejecutado (con el helper saboteado la suite se pone roja).
 - [ ] **Hallazgo abierto, NO aplicado**: el grafo no reconoce frases naturales de servicio
   (*"Especialistas en derecho inmobiliario"*, *"Gestión de juicios sucesorios
   intestamentarios"* → `dudoso`), aunque sí reconoce *"compraventa de inmueble"* y
