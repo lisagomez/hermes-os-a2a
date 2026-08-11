@@ -1357,6 +1357,27 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   listados) la mitad se fue en *"Más de 50 años de experiencia"* y *"Laborando desde hace
   dos generaciones"*. Corregido: los **servicios mandan** (son la actividad regulada) y los
   claims solo rellenan huecos — se preserva el caso e-AWB que motivó incluirlos.
+- [x] **Cuarta pasada — el waterfall de enriquecimiento a todo lo que da (2026-08-09)**: el
+  diagnóstico de un lead legal seguía saliendo básico aunque los bloques ya corrieran. QA
+  con Playwright (caso firma legal MX real) destapó cuatro fugas y sus fixes: (a) el bloque
+  de enriquecimiento buscaba en RFC/DENUE una empresa llamada **"Legal"** — mandaba el giro
+  como empresa; ahora viaja la EMPRESA y el CONTACTO reales del lead, pide también
+  `razon_social` y saca el **RFC de las notas** si el asesor lo dejó
+  (`cuerpoEnriquecimiento`, puro y testeado); (b) los espejos curados de los escaneos
+  regulatorio/tecnológico NO tenían sector legal → todo lead "Legal" caía en "VACÍO DEL
+  MAPA/GRAFO" **con el grafo lleno de categorías legales** (CONSTITUCION_SOCIEDADES,
+  MARCAS_REGISTRO, FUSION_ESCISION…): sector nuevo en ambos mapas — 6 marcos regulatorios
+  + 4 capacidades tecnológicas (portal de expedientes, e.firma/NOM-151, document assembly,
+  agenda en línea) cuyos vacíos SON el pitch de la plataforma legal; (c) la compilación
+  multi-fuente juntaba 18k y el prompt lo truncaba a 6k: presupuesto POR BLOQUE (sitio 14k,
+  perfil/tecnología 10k, derivados 6k), 5 enlaces internos extra (antes 2) y paths de
+  despacho (`/practice`, `/areas`, `/abogados`, `/equipo`) en el radar de enlaces
+  relevantes; (d) el deep research de competidores (`:online`) era opt-in y nadie lo
+  encendió → benchmark de arquetipos; ahora es **por defecto** (`PREDISCOVERY_ONLINE=0`
+  para apagarlo). 318 tests verdes + validación Playwright antes/después (la pestaña
+  Marcos pasó de "vacío del grafo" a la matriz sectorial completa con severidades).
+  Pendiente de Vercel: `ENRIQUECIMIENTO_URL`/`ENRIQUECIMIENTO_TOKEN` (el edge ya publica
+  `enriquecimiento.167-233-233-56.sslip.io`; sin las vars el bloque queda 503 declarado).
 - [ ] **Hallazgo abierto, NO aplicado**: el grafo no reconoce frases naturales de servicio
   (*"Especialistas en derecho inmobiliario"*, *"Gestión de juicios sucesorios
   intestamentarios"* → `dudoso`), aunque sí reconoce *"compraventa de inmueble"* y

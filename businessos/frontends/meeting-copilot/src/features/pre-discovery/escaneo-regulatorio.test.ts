@@ -150,3 +150,63 @@ describe('extraerEnlacesRelevantes — escaneo quirúrgico de enlaces internos',
     expect(extraerEnlacesRelevantes('<p>sin enlaces</p>', 'https://lead.mx')).toEqual([])
   })
 })
+
+describe('sector legal — el grafo ya tenía las categorías; el mapa las estrena', () => {
+  const intakeLegal: IntakeLead = {
+    telefono: '',
+    email: '',
+    web: 'https://firma.mx',
+    tamano: '11-50',
+    giro: 'Legal',
+    pais: 'México (MX)',
+    notas: 'Firma de abogados full-service; quieren plataforma legal especializada',
+  }
+
+  it('giro "Legal" ya NO cae en VACÍO DEL GRAFO: hay sector con expectativas', () => {
+    const e = escaneoRegulatorio(intakeLegal, null, mockEvaluacionGrafo(['x'], 'regulatorio'))
+    expect(e.vacioDelGrafo).toBeNull()
+    expect(e.sector).toContain('legales')
+    expect(e.matriz.length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('servicios del sitio disparan señal (hipótesis) por área de práctica; lo no declarado queda como vacío', () => {
+    const sitioFirma: DatosSitio = {
+      servicios: [
+        { texto: 'Derecho corporativo: constitución de sociedades y M&A', naturaleza: 'hecho', evidencia: 'sitio' },
+        { texto: 'Registro de marcas y propiedad intelectual', naturaleza: 'hecho', evidencia: 'sitio' },
+      ],
+      propuestaValor: { texto: 'Asesoría integral', naturaleza: 'hecho' },
+      claims: [],
+      segmentosObjetivo: [],
+      madurezDigital: { nivel: 'media', senales: [] },
+      vacios: [],
+    }
+    const e = escaneoRegulatorio(intakeLegal, sitioFirma, mockEvaluacionGrafo(['algo sin categoría'], 'regulatorio'))
+    const porCategoria = Object.fromEntries(e.matriz.map((m) => [m.categoria, m.estado]))
+    expect(porCategoria.CONSTITUCION_SOCIEDADES).toBe('hipotesis')
+    expect(porCategoria.MARCAS_REGISTRO).toBe('hipotesis')
+    expect(porCategoria.COMPRAVENTA_INMUEBLES).toBe('vacio')
+  })
+})
+
+describe('el patrón legal NO secuestra giros ajenos (falsos positivos del ataque adversarial)', () => {
+  const base: IntakeLead = { telefono: '', email: '', web: '', tamano: '11-50', giro: '', pais: 'México (MX)', notas: '' }
+
+  it('"Despacho contable" y un depto. jurídico interno NO son sector legal (van a vacío del grafo)', () => {
+    const contable = escaneoRegulatorio({ ...base, giro: 'Despacho contable' }, null, mockEvaluacionGrafo(['x'], 'regulatorio'))
+    expect(contable.sector).toBeNull()
+    expect(contable.vacioDelGrafo).not.toBeNull()
+
+    const manufactura = escaneoRegulatorio(
+      { ...base, giro: 'Manufactura de autopartes', notas: 'Su departamento jurídico interno revisa contratos' },
+      null,
+      mockEvaluacionGrafo(['x'], 'regulatorio')
+    )
+    expect(manufactura.sector).toBeNull()
+  })
+
+  it('"despacho jurídico" y "bufete" SÍ disparan el sector', () => {
+    expect(escaneoRegulatorio({ ...base, giro: 'Despacho jurídico' }, null, mockEvaluacionGrafo(['x'], 'regulatorio')).sector).toContain('legales')
+    expect(escaneoRegulatorio({ ...base, giro: 'Bufete de abogados' }, null, mockEvaluacionGrafo(['x'], 'regulatorio')).sector).toContain('legales')
+  })
+})

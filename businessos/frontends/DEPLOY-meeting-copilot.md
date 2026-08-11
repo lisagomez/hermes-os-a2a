@@ -73,6 +73,9 @@ Dos gotchas pagados al montarlo (2026-07-28):
 | `AUTH_DISABLED` | runtime | **JAMÁS en Vercel** — escape solo para dev local mock-first |
 | `GRAFO_URL` | runtime | `https://grafo.167-233-233-56.sslip.io` — puente al grafo real vía `grafo-gate` (edge Caddy en Hetzner). Sin ella el bloque regulatorio cae al mock fiel (503 declarado) |
 | `GRAFO_TOKEN` | runtime | **sensitive**; el Bearer del `grafo-gate` (vive en `~/repo/businessos/.env` del server como `GRAFO_GATE_TOKEN`). Server-only: jamás toca el navegador |
+| `PREDISCOVERY_ONLINE` | runtime | deep research de competidores (`:online` de OpenRouter). **Encendido por defecto desde 2026-08-09** — fijar `0` solo para apagarlo (control de costo) |
+| `ENRIQUECIMIENTO_URL` | runtime | `https://enriquecimiento.167-233-233-56.sslip.io` — puente al waterfall de enriquecimiento vía `enriquecimiento-gate` (edge Caddy). Sin ella el bloque responde 503 y la UI lo declara no disponible (jamás inventa contacto) |
+| `ENRIQUECIMIENTO_TOKEN` | runtime | **sensitive**; Bearer del `enriquecimiento-gate` (en `~/repo/businessos/.env` del server). Server-only |
 
 ## 3. Auth (activa desde 2026-07-28) — patrón Mission Control
 

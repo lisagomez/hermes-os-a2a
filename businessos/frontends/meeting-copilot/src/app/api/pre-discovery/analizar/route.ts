@@ -36,10 +36,12 @@ export async function POST(req: Request) {
 
   const { bloque, intake, textoSitio, perfilPrevio, competenciaPrevia, bloquesPrevios } = parsed.data
   let modelo = process.env.ASESOR_LLM_MODEL ?? MODELO_DEFAULT
-  // Deep research de competidores: con PREDISCOVERY_ONLINE=1, el bloque de
-  // competencia corre con búsqueda web del proveedor (sufijo :online de
-  // OpenRouter) — investiga el sector real del lead, no arquetipos.
-  if (bloque === 'competencia' && process.env.PREDISCOVERY_ONLINE === '1' && !modelo.includes(':online')) {
+  // Deep research de competidores: el bloque de competencia corre con búsqueda
+  // web del proveedor (sufijo :online de OpenRouter) — investiga el sector real
+  // del lead, no arquetipos. Encendido POR DEFECTO: sin él, el benchmark salía
+  // genérico ("arquetipos del segmento") y era la queja #1 del diagnóstico.
+  // PREDISCOVERY_ONLINE=0 lo apaga explícitamente (control de costo).
+  if (bloque === 'competencia' && process.env.PREDISCOVERY_ONLINE !== '0' && !modelo.includes(':online')) {
     modelo = `${modelo}:online`
   }
 
