@@ -9,7 +9,7 @@
 // + línea en CHANGELOG.md — todo en el MISMO commit.
 
 /** Entero monotónico; el sync lo estampa en la cabecera de cada copia vendored. */
-export const REGISTRY_VERSION = 2
+export const REGISTRY_VERSION = 3
 
 export type AudienciaApp = 'interna' | 'publica'
 
@@ -93,6 +93,19 @@ export const APPS: AppEcosistema[] = [
     urlDevDefault: 'http://localhost:3004',
     envVarUrl: 'NEXT_PUBLIC_APP_CLIENTE_A2A_WEB3_URL',
     docUrl: 'businessos/frontends/cliente-a2a-web3/INTEGRATION.md',
+  },
+  {
+    id: 'avatares-legales',
+    nombre: 'Avatares Legales',
+    descripcion:
+      'Prototipos de los 4 avatares para despachos: fiscal, litigio, contratos y dirección (datos de muestra)',
+    glifo: '⚖',
+    iconoLucide: 'Scale',
+    audiencia: 'publica',
+    urlProd: '',
+    urlDevDefault: 'http://localhost:3005',
+    envVarUrl: 'NEXT_PUBLIC_APP_AVATARES_LEGALES_URL',
+    docUrl: 'businessos/frontends/avatares-legales/README.md',
   },
 ]
 

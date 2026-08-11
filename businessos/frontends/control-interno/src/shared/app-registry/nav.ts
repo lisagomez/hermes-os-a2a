@@ -1,4 +1,4 @@
-// VENDORED-FROM businessos/frontends/app-registry/src/nav.ts (v2, 534d2b8ae204)
+// VENDORED-FROM businessos/frontends/app-registry/src/nav.ts (v3, 33b6b25d052f)
 // NO editar aquí: editar el canónico y correr node scripts/sync-vendored.mjs
 // @a2a/app-registry — SCHEMA del árbol de navegación jerárquica (Sección →
 // Página → Subpágina, máx 3 niveles) + funciones PURAS compartidas: activo,

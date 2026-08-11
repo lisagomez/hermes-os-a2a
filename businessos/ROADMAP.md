@@ -1884,6 +1884,21 @@ abandone `service_role` y adopte `app_tenant`.
   en `businessos/migrations/README.md`. ERP, grafo y control-interno conservan
   sus carpetas propias (tenencia/convención distintas, a propósito).
 
+## Línea Avatares Legales (prototipo del plan bufete) 🧪 fases 1–7 de 8 construidas (2026-08-10)
+
+Prototipo navegable de los **4 avatares para despachos** (fiscal, litigio, contratos,
+dirección multipráctica) pedido por el equipo — es la ejecución de las 8 fases del plan
+conciliado en `docs/planes/ADENDA-conciliacion-avatares-legales.md` (PR #235). App
+`businessos/frontends/avatares-legales/` (Next 16, puerto dev 3005, piel legal sobria
+propia, **solo datos de muestra**): 4 tableros × 4 vistas con indicadores de confianza
+(fuente GRAFO/HERMES, estado de validación humana, disclaimer) y costura de servicios
+documentada para la integración futura. Decisión C4 resuelta: el color codifica SOLO la
+escala de riesgo. Alta en `app-registry` v3 (pública → jamás pinta launcher). Rama
+`feat/avatares-legales`; falta F8 (capturas + PR). **Lo multi-inquilino del plan bufete
+(Fase 9+, decisiones B1/B5) sigue esperando a Elisa** — este prototipo no lo toca.
+
+---
+
 ## Descartados (con motivo)
 
 - **agent-commerce-kit (pagos agénticos en USDC):** introduce una línea de

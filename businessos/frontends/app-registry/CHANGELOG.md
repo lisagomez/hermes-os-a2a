@@ -6,6 +6,9 @@ versión+hash en la cabecera de cada copia vendored.
 - **v1** (2026-07-29): registro inicial — 5 superficies (3 internas: mission-control,
   control-interno, meeting-copilot; 2 públicas: cliente-web2, cliente-a2a-web3) +
   schema NavNodo/NavArbol con esRutaActiva/rastroDe/aplanarNav/validarArbol.
+- **v3** (2026-08-10): alta de `avatares-legales` (pública, puerto dev 3005, sin
+  deploy — prototipo con datos de muestra de los 4 avatares para despachos;
+  como pública, jamás pinta launcher).
 - **v2** (2026-07-30, hotfix del ataque adversarial al PR #194): control-interno
   queda sin urlProd (127.0.0.1 era una URL de producción imposible — el tile pasa
   a "en construcción" con nota, habilitable por env override); los tiles en
