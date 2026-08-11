@@ -1376,8 +1376,14 @@ aditiva). Spec: `businessos/frontends/meeting-copilot/SPEC.md` · PRP:
   encendió → benchmark de arquetipos; ahora es **por defecto** (`PREDISCOVERY_ONLINE=0`
   para apagarlo). 318 tests verdes + validación Playwright antes/después (la pestaña
   Marcos pasó de "vacío del grafo" a la matriz sectorial completa con severidades).
-  Pendiente de Vercel: `ENRIQUECIMIENTO_URL`/`ENRIQUECIMIENTO_TOKEN` (el edge ya publica
-  `enriquecimiento.167-233-233-56.sslip.io`; sin las vars el bloque queda 503 declarado).
+  `ENRIQUECIMIENTO_URL`/`ENRIQUECIMIENTO_TOKEN` **ya están puestas en Vercel** (production,
+  el token como *sensitive*) desde el 2026-08-08 — la nota que decía "pendiente" nació
+  rancia. **Verificado el 2026-08-11**: el `enriquecimiento-gate` lleva 8 llamadas
+  `POST /rpc` con 200, la última hoy para `lead-msob7ag2-1` (el lead del caso real
+  `caso-msob7ag2-2`), y ninguna máquina de desarrollo tiene el token → esas llamadas
+  salieron de producción. Solo están en el ámbito `production`: en los despliegues de
+  *preview* el bloque responde 503 declarado, que es el comportamiento correcto (no hay
+  modo demo) y de paso no gasta el waterfall en ramas.
 - [x] **Benchmark vacío = no concluyente, no "listo" (2026-08-11)**: tercer defecto del
   mismo caso real. El contrato zod acepta `{competidores: [], comparativa: []}` **a
   propósito** (el modelo no debe inventar competidores sin señal), pero el pipeline
