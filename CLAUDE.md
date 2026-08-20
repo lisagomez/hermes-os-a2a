@@ -1741,4 +1741,32 @@ npm run lint         # ESLint
 - **Aplicar en**: todo gate que dependa de Docker en máquinas sin daemon, todo control que
   ejecute una COPIA del script bajo prueba, y todo Postgres extraído de .deb sin instalar.
 
+### 2026-08-20: "Mergeado ≠ corriendo" no es un gotcha, es una CLASE — y ya tiene detector
+- **Error (cuatro a la vez, en un solo barrido)**: el repo llevaba 9 días sin sesión y el
+  runtime había derivado por cuatro caminos distintos: (1) el grafo servía **66 reglas
+  con 68 fusionadas** — la categoría `SERVICIOS_LEGALES` del PR #294 llevaba 11 días sin
+  aplicarse al runtime; (2) el checkout del servidor (del que salen TODOS los crons) iba
+  **61 commits atrás**; (3) el `SOUL.md` de negocio llevaba **26 días** sin el bloque
+  "Enfoque de ventas" que el repo tenía desde el 2026-07-25; (4) `chat-web2` corría una
+  imagen **18 días** anterior a su fix, así que el chat de la landing **seguía pisando la
+  etapa del CRM** (`etapa='nuevo'` en cada upsert) — un bug vivo que nadie reportó porque
+  el síntoma (un lead que retrocede) parece un error de alguien más. Ninguna es nueva:
+  son las de 2026-07-12 (volumen), 2026-07-23 (imagen), 2026-08-02 (migración) y
+  2026-08-04 (seed) — la misma clase, descubierta a mano y tarde, otra vez.
+- **Fix**: `businessos/drift-runtime.py` en el cron nocturno — compara checkout vs
+  `origin/master`, imágenes vivas vs la fecha de lo que su Dockerfile **realmente COPIA**,
+  reglas del grafo vs `seed/reglas.json`, doctrina del volumen vs el repo (ignorando los
+  bloques `AUTO`) y las copias de `~/bin`. Solo LEE y NOMBRA la acción; desplegar sigue
+  siendo humano. Deja snapshot en el volumen de negocio para que el bot pueda responder
+  "¿hay algo sin desplegar?".
+- **Gotcha del propio detector**: fechar un servicio por su **directorio de contexto** da
+  falsos positivos en cascada — la mitad del trío construye con contexto `.`/`..` y
+  Dockerfile de COPY explícitos, así que cualquier commit del repo los marcaba desfasados
+  (5 falsos positivos en la 1ª corrida, y un detector ruidoso es un detector que nadie
+  mira). La señal correcta son las fuentes del COPY, ignorando `--from=` (otra etapa) y
+  uniendo las continuaciones con `\`.
+- **Aplicar en**: toda sesión que empiece tras días sin tocar el proyecto (correr el
+  detector ANTES de planear trabajo nuevo), y todo mecanismo de vigilancia: si su señal
+  es un proxy cómodo en vez del hecho real, produce ruido y muere de desuso.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
