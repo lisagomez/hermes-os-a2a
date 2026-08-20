@@ -36,5 +36,10 @@ mkdir -p /home/hermes/logs
   # expedientes de promoción A1->A2 del CRM (plan D-40): el sistema arma los números
   # y los PRESENTA a la dueña por Telegram; promover es botón humano, jamás del job.
   python3 expediente-promocion.py
+  # deriva repo->runtime: lo fusionado que NO está corriendo (imágenes viejas, seed sin
+  # aplicar, doctrina que no llegó al volumen, checkout atrasado). Solo LEE y NOMBRA;
+  # desplegar sigue siendo decisión humana. Nace de las cuatro derivas simultáneas del
+  # 2026-08-20, una de ellas un bug vivo con 12 días de antigüedad.
+  python3 drift-runtime.py
   echo "=== $(date -Is) nightly fin ==="
 } >> /home/hermes/logs/host-jobs.log 2>&1

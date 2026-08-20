@@ -1993,6 +1993,21 @@ abandone `service_role` y adopte `app_tenant`.
   en `businessos/migrations/README.md`. ERP, grafo y control-interno conservan
   sus carpetas propias (tenencia/convención distintas, a propósito).
 
+- [x] **Detector de deriva repo→runtime** (`businessos/drift-runtime.py`, 2026-08-20):
+  un barrido manual encontró **cuatro derivas simultáneas** — el grafo servía 66 reglas
+  con 68 fusionadas (la categoría `SERVICIOS_LEGALES` del PR #294 llevaba 11 días sin
+  aplicarse), el checkout del servidor iba 61 commits atrás, el `SOUL.md` de negocio
+  llevaba **26 días** sin el bloque "Enfoque de ventas", y `chat-web2` corría una imagen
+  de 18 días antes que su fix, así que **el chat de la landing seguía regresando a
+  'nuevo' leads ya avanzados en el CRM**. Todo aplicado y verificado el mismo día
+  (runtime en `SIN DERIVA`). El detector queda en el cron nocturno: revisa checkout,
+  imágenes vivas contra la fecha de lo que su Dockerfile realmente COPIA (mirar el
+  directorio de contexto da falsos positivos: la mitad del trío construye con contexto
+  `.`), reglas del grafo, doctrina de los volúmenes (ignorando bloques AUTO) y las
+  copias de `~/bin`. Solo LEE y NOMBRA: desplegar sigue siendo decisión humana.
+  Snapshot en `negocio:/opt/data/workspace/drift-runtime.json`. 11 pruebas con control
+  de reversión (4 sabotajes).
+
 ## Línea Avatares Legales (prototipo del plan bufete) 🧪 fases 1–7 de 8 construidas (2026-08-10)
 
 Prototipo navegable de los **4 avatares para despachos** (fiscal, litigio, contratos,

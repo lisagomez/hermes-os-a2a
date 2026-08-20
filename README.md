@@ -74,7 +74,7 @@ funden: ese es el primer principio del proyecto.
 
 ---
 
-## Estado actual (2026-08-04)
+## Estado actual (2026-08-20)
 
 Las **fases 0–10 están vivas en producción** (Hetzner cx33, `167.233.233.56`) y la
 línea CRM arrancó. En corto:
@@ -84,8 +84,9 @@ línea CRM arrancó. En corto:
   **costeo por tarea** del trío/enjambre (vistas `v_costeo_tarea`/`v_costeo_departamento`
   + recálculo nocturno de tarifas; 2026-07-29).
 - **Fases 2–3** ✅ — **grafo** regulatorio multi-país (fiscal MX/CO; contable,
-  contractual, regulatorio y datos-personales MX; todo citado — 33 reglas / 5
-  dimensiones vivas en runtime desde 2026-08-04), cobros Polar y contratos validados.
+  contractual, regulatorio y datos-personales MX; todo citado — **68 reglas / 43
+  categorías / 5 dimensiones** vivas en runtime desde 2026-08-20, con la expansión
+  legal MX de agosto ya aplicada), cobros Polar y contratos validados.
 - **Fases 4–5** ✅ — dashboard **Mission Control** (skin ejecutiva light+dark
   compartida con Meeting Copilot desde 2026-08-08; 5 vistas: Pantheon, AI Spend,
   Grafo, Desarrollo y **Contratos SC** — paquete de revisión con banderas G1;

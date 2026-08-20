@@ -7,6 +7,7 @@
 - [Elisa](user/elisa.md) — dueña-operadora única; Telegram user_id 7022378429; prefiere el patrón correcto sobre atajos.
 
 ## project/ — Proyectos y decisiones activas
+- [Deriva repo→runtime](project/deriva-repo-runtime.md) — la clase de fallo más repetida (mergeado ≠ corriendo) ya tiene detector nocturno `drift-runtime.py`; correrlo al empezar sesión tras días sin tocar el proyecto.
 - [Plan de marketing B2B](project/plan-marketing-b2b.md) — `businessos/PLAN-marketing-b2b.md` (2026-08-07) extiende el GTM: funnel A–F, 5 segmentos, 7 servicios, scoring como vista, 90 días; PROPUESTA, espera validación de Elisa (D1–D7); no promete P2/salientes/tenants que no existen.
 - [Despliegue en Hetzner](project/despliegue-hetzner.md) — decisión 2026-07-04: runtime de bajo presupuesto va a Hetzner Cloud (CX32 8GB ~€6.80/mes corre todo incl. grafo, más barato que DO 4GB); runbook delta en `businessos/FASE0-hetzner.md`; Cloud Firewall a nivel de red resuelve el gotcha Docker/UFW.
 - [Estado de Fase 0](project/fase0-estado.md) — COMPLETA (2026-07-08): las 3 verticales viven en Hetzner 24/7 con respaldo nocturno de los 3 volúmenes; solo voz queda como futuro.
