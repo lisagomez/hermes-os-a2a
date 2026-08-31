@@ -23,7 +23,10 @@ const aspect = getArg("aspect") || "1:1";
 // desde 2026-08. Para ver los vigentes:
 //   curl -H 'User-Agent: curl/8.0' https://openrouter.ai/api/v1/models
 //   | jq -r '.data[] | select(.architecture.output_modalities[]? == "image") | .id'
-const model = getArg("model") || "google/gemini-3.1-flash-image";
+const AUTO = "openrouter/auto";
+const modeloPedido = getArg("model") || "google/gemini-3.1-flash-image";
+// `--model auto` = deja elegir a OpenRouter (ver el respaldo automatico mas abajo).
+const model = modeloPedido === "auto" ? AUTO : modeloPedido;
 
 if (!prompt) {
   console.error("Usage: npx tsx generate-image.ts --prompt 'description'");
@@ -84,21 +87,43 @@ async function generateImage() {
   console.error(`Prompt: ${prompt}`);
   console.error(`Aspect: ${aspect}`);
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://saas-factory.dev",
-      "X-Title": "SaaS Factory Image Generation",
-    },
-    body: JSON.stringify({
-      model,
-      // Sin esto, algunos modelos responden solo texto.
-      modalities: ["image", "text"],
-      messages: [{ role: "user", content }],
-    }),
-  });
+  const pedir = (modelId: string) =>
+    fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://saas-factory.dev",
+        "X-Title": "SaaS Factory Image Generation",
+      },
+      body: JSON.stringify({
+        model: modelId,
+        // Sin esto, algunos modelos responden solo texto.
+        modalities: ["image", "text"],
+        messages: [{ role: "user", content }],
+      }),
+    });
+
+  let response = await pedir(model);
+
+  // Respaldo: si el modelo fijado ya no existe (OpenRouter los retira — es
+  // exactamente lo que dejo este skill muerto), se reintenta con el Auto Router
+  // en vez de morir. Verificado: openrouter/auto SI genera imagenes.
+  // No es el default a proposito — el Auto Router elige modelo por su cuenta, y un
+  // juego de ilustraciones necesita que TODAS salgan del mismo modelo para que
+  // compartan estilo. Ademas suele elegir el "pro", ~7x el precio del flash.
+  if (!response.ok && model !== AUTO) {
+    const errorText = await response.text();
+    if (response.status === 400 && /not a valid model ID/i.test(errorText)) {
+      console.error(`WARN: el modelo "${model}" ya no existe en OpenRouter.`);
+      console.error(`WARN: reintentando con ${AUTO}; fija --model con uno vigente para tener estilo estable.`);
+      response = await pedir(AUTO);
+    } else {
+      console.error(`ERROR: OpenRouter API returned ${response.status}`);
+      console.error(errorText);
+      process.exit(1);
+    }
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -187,6 +212,13 @@ async function generateImage() {
 
   const buffer = Buffer.from(imageBase64, "base64");
   fs.writeFileSync(outFile, buffer);
+
+  // Con el Auto Router el modelo lo elige OpenRouter: se informa cual salio, o no
+  // hay forma de reproducir el resultado.
+  const modeloUsado = (data as { model?: string }).model;
+  if (modeloUsado && modeloUsado !== model) {
+    console.error(`Modelo usado: ${modeloUsado}`);
+  }
 
   // Output results (machine-readable)
   console.log(`IMAGE:${outFile}`);

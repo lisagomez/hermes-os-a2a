@@ -35,7 +35,7 @@ npx tsx .claude/skills/image-generation/scripts/generate-image.ts \
 | `--image` | NO | Path a imagen de entrada (para editar/transformar una imagen existente) |
 | `--output` | NO | Path de salida personalizado. Default: `generated/img-{timestamp}.png` |
 | `--aspect` | NO | Aspect ratio: `1:1` (default), `16:9`, `9:16`, `4:3`, `3:2` |
-| `--model` | NO | Model ID de OpenRouter. Default: `google/gemini-3.1-flash-image` |
+| `--model` | NO | Model ID de OpenRouter, o `auto` para que elija OpenRouter. Default: `google/gemini-3.1-flash-image` |
 
 ### Modelos Disponibles
 
@@ -54,6 +54,28 @@ curl -s -H 'User-Agent: curl/8.0' https://openrouter.ai/api/v1/models \
 ```
 
 (El `User-Agent` no es opcional: Cloudflare responde `1010` al de por defecto de urllib/python.)
+
+### Auto Router: respaldo automático, no default
+
+Si el modelo fijado ya no existe, el script **no muere**: avisa y reintenta con
+`openrouter/auto`, que sí genera imágenes (verificado 2026-08-31). También puedes pedirlo a
+propósito con `--model auto`. El modelo que acabó usándose se imprime como `Modelo usado: …`.
+
+**Por qué no es el default**, aunque sea inmune a las retiradas:
+
+- El Auto Router **elige el modelo por su cuenta y puede cambiar entre llamadas**. Un juego de
+  ilustraciones necesita que todas salgan del mismo modelo o no comparten estilo — para un
+  deck de 7 imágenes eso es descalificante.
+- Suele elegir el **pro** (`gemini-3-pro-image-preview`), unas **7× el precio** del flash.
+- ⚠️ **`cost_tier` no lo frena**: con `cost_tier: "low"` siguió eligiendo el pro. Lo que sí
+  manda es `allowed_models`:
+
+```jsonc
+"plugins": [{ "id": "auto-router", "allowed_models": ["google/gemini-3.1-flash-image"] }]
+```
+
+Ojo: el respaldo también salta si te **equivocas al escribir** el nombre del modelo — sale
+imagen igual, de otro modelo. Por eso el aviso nombra el modelo rechazado: léelo.
 
 ---
 
