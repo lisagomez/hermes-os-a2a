@@ -941,6 +941,40 @@ solo cuando hay un proceso vivo que rediseñar; greenfield va directo a Software
 
 ---
 
+## Material comercial — Deck A2A para logística y comercio exterior ✅ (2026-08-31)
+
+Presentación ejecutiva de 7 diapositivas para un lead del sector (un *forwarder* y un
+fabricante de *fasteners*), marca genérica A2A, **sin cliente nombrado**. Fuente en
+`generadas/`: guion con notas del presentador, los 7 prompts sketchnote calibrados y el
+deck HTML (tokens del design system; la plantilla `pitch-deck-whitelabel.html`, bajo gate
+`politica_intocable`, NO se tocó). Publicado como Artifact privado.
+
+**Lo que este material corrige del encargo original, y por qué importa fuera de él:** el
+documento de partida vendía en presente tres pilares de los que **dos no tienen respaldo
+hoy** — no existe ningún agente sectorial (documentación aduanera, rastreo, regulatorio),
+lo que opera es el trío que fabrica software; la cadena de bloques está construida y
+probada pero **no desplegada**; y el grafo tiene motor vivo con **cero cobertura de
+aduanas, pedimento, carta porte o incoterms** (68 reglas, MX/CO, 5 dimensiones, ninguna de
+comercio exterior). El deck cuenta el valor completo pero encabeza los dos casos con *"así
+queda tu operación al terminar el piloto"*, marca las cifras del encargo (40–60 %, "de días
+a horas") como **objetivo del piloto** y traslada el semáforo de madurez al cierre, como
+camino de implementación que cierra por resultado verificado y no por calendario. El guion
+incluye la **respuesta preparada** a *"¿me lo enseñas funcionando hoy?"* — la pregunta que
+el propio cierre provoca.
+
+**Regla que deja para el resto de la fábrica:** todo material comercial que salga de aquí
+declara lo que opera y lo que se configura en el piloto. Una promesa que no se puede
+enseñar cuando la piden cuesta la cuenta, no la reunión. Mismo criterio que el §0 de
+`PLAN-marketing-b2b.md`.
+
+**Gotchas de generación de imágenes** (en `generadas/PROMPTS.md`, ya pagados): el modelo NO
+destroza los acentos — los escribe bien si la etiqueta viene acentuada en el prompt, porque
+copia literalmente lo entrecomillado; lo que sí falla es pedir "cada elemento con su
+etiqueta" sin dictar el texto (se lo inventa, y en inglés). Los objetos dibujados (libros,
+tablillas) también hablan: hay que dictarles la palabra o salen en inglés.
+
+---
+
 ## Corriente transversal — Ecosistema de frontends: App Launcher + navegación jerárquica ✅ (2026-07-29)
 
 Primer puente cross-app de las superficies: **waffle** (launcher de apps INTERNAS —
