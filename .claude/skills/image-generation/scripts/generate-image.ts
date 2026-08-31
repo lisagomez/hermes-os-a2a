@@ -18,8 +18,12 @@ const prompt = getArg("prompt");
 const inputImage = getArg("image");
 const outputPath = getArg("output");
 const aspect = getArg("aspect") || "1:1";
-const model =
-  getArg("model") || "google/gemini-2.5-flash-preview-image-generation";
+// OpenRouter retira modelos: el anterior default
+// (google/gemini-2.5-flash-preview-image-generation) devuelve 400 "not a valid model ID"
+// desde 2026-08. Para ver los vigentes:
+//   curl -H 'User-Agent: curl/8.0' https://openrouter.ai/api/v1/models
+//   | jq -r '.data[] | select(.architecture.output_modalities[]? == "image") | .id'
+const model = getArg("model") || "google/gemini-3.1-flash-image";
 
 if (!prompt) {
   console.error("Usage: npx tsx generate-image.ts --prompt 'description'");
@@ -90,6 +94,8 @@ async function generateImage() {
     },
     body: JSON.stringify({
       model,
+      // Sin esto, algunos modelos responden solo texto.
+      modalities: ["image", "text"],
       messages: [{ role: "user", content }],
     }),
   });
@@ -101,10 +107,13 @@ async function generateImage() {
     process.exit(1);
   }
 
+  type ParteContenido = { type: string; text?: string; image_url?: { url: string } };
   const data = await response.json() as {
     choices: Array<{
       message: {
-        content: Array<{ type: string; text?: string; image_url?: { url: string } }> | string;
+        // OpenRouter entrega la imagen generada AQUI (y deja content en null).
+        images?: Array<{ type?: string; image_url?: { url: string } }>;
+        content: ParteContenido[] | string | null;
       };
     }>;
   };
@@ -121,7 +130,20 @@ async function generateImage() {
   let imageBase64: string | null = null;
   let textResponse: string | null = null;
 
-  if (Array.isArray(message.content)) {
+  // Forma vigente de OpenRouter: message.images[].image_url.url con un data URL.
+  // Se mira PRIMERO; el resto queda como respaldo para respuestas multimodales
+  // al estilo antiguo, que algunos modelos todavia devuelven.
+  for (const img of message.images ?? []) {
+    const url = img.image_url?.url;
+    if (!url) continue;
+    const match = url.match(/^data:image\/\w+;base64,(.+)$/);
+    imageBase64 = match ? match[1] : url;
+    break;
+  }
+
+  if (imageBase64) {
+    // ya esta
+  } else if (Array.isArray(message.content)) {
     for (const part of message.content) {
       if (part.type === "image_url" && part.image_url?.url) {
         // Extract base64 from data URL
@@ -142,9 +164,15 @@ async function generateImage() {
   }
 
   if (!imageBase64) {
+    // Volcar la respuesta entera enterraba el motivo bajo miles de lineas de
+    // razonamiento del modelo. Se dice QUE falto y donde mirar.
     console.error("ERROR: No image in response");
-    if (textResponse) console.error(`Model said: ${textResponse}`);
-    console.error(JSON.stringify(data, null, 2));
+    if (textResponse) console.error(`Model said: ${textResponse.slice(0, 500)}`);
+    console.error(
+      `Response had: images=${message.images?.length ?? 0}, ` +
+      `content=${Array.isArray(message.content) ? "array" : typeof message.content}`
+    );
+    console.error("If images=0, the model returned no image: check the model ID supports image output.");
     process.exit(1);
   }
 
