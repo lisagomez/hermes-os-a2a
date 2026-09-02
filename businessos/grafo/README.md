@@ -3,9 +3,12 @@
 Servicio Docker en `hermes-net` que evalúa conceptos contra reglas citadas y devuelve
 veredicto por concepto **con fuente**, banderas rojas y checklist. **Señala riesgos; NO asesora.**
 Ámbitos: **fiscal MX** (deducibilidad, PM Título II), **fiscal CO** (Estatuto Tributario),
-**contable MX** (NIF/CFF), **contractual MX** (cláusulas: CCF/CCo/LFPDPPP) y **regulatorio MX**
-(permisos/cumplimiento operativo — veredicto `permitido`/`no_permitido`/`dudoso`; hoy
-drones-delivery e intermediación de seguros; Fase 8). Pasa `jurisdiccion`/`dimension`/`regimen`
+**contable MX** (NIF/CFF), **contractual MX** (cláusulas: CCF/CCo), **datos-personales MX**
+(LFPDPPP 2025, prospección B2B) y **regulatorio MX** (permisos/cumplimiento operativo —
+veredicto `permitido`/`no_permitido`/`dudoso`; drones-delivery, intermediación de seguros,
+corporativo-mercantil, fiduciario/inmobiliario, ambiental, cabildeo, propiedad industrial,
+servicios legales y **comercio exterior** —Ley Aduanera y Ley de Comercio Exterior—;
+Fase 8). Pasa `jurisdiccion`/`dimension`/`regimen`
 en el contexto; `GENERAL` en un impacto aplica a cualquier régimen. La clasificación solo
 considera categorías del ámbito consultado.
 
@@ -31,7 +34,7 @@ curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application
 
 | Pieza | Qué es |
 |-------|--------|
-| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: 29 reglas / 32 impactos (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo/LFPDPPP, LAC/NOM-107/LISF regulatorio MX) |
+| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: **81 reglas / 84 impactos / 53 categorías** (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo, LFPDPPP 2025, y regulatorio MX: LAC/NOM-107/LISF, LGSM/LFCE, LGTOC/LIE, LGEEPA/LGPGIR/LFRA, LMV, LFPPI, LRArt5/LFPIORPI y **Ley Aduanera / Ley de Comercio Exterior**) |
 | `seed/gen_seed_sql.py` | Valida el seed (gate de procedencia) y genera `02-seed.sql`. `--check` = solo validar |
 | `PLANTILLA-INVESTIGACION-SEED.md` | Método investigación→seed: aterriza una investigación regulatoria a la Salida B sembrable (esquema real, gate, frontera Salida A vs B). Para dominios nuevos, p. ej. documentación de exportación logística |
 | `seed/01-schema.sql`, `seed/02-seed.sql` | Corren vía initdb de postgres (orden alfabético) |
