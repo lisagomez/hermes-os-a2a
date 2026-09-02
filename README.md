@@ -87,10 +87,12 @@ línea CRM arrancó. En corto:
   contractual, regulatorio y datos-personales MX; todo citado — 68 reglas / 43
   categorías / 5 dimensiones vivas en runtime desde 2026-08-20, con la expansión
   legal MX de agosto ya aplicada), cobros Polar y contratos validados.
-  En el repo el seed va ya en **81 reglas / 53 categorías** tras sembrar
-  **comercio exterior MX** (Ley Aduanera + Ley de Comercio Exterior, 2026-09-02):
-  padrón, despacho, representación, valor en aduana, origen, clasificación,
-  regulaciones no arancelarias, prácticas desleales, regímenes e infracciones.
+  En el repo el seed va ya en **83 reglas / 55 categorías** tras sembrar
+  **comercio exterior MX** (Ley Aduanera + Ley de Comercio Exterior): padrón,
+  despacho, representación, valor en aduana, origen, clasificación, regulaciones
+  no arancelarias, prácticas desleales, regímenes e infracciones; y **logística MX**
+  (LCPAF + Ley de Aviación Civil): autotransporte federal de carga y carga aérea,
+  que cierran las dos categorías que el Pre-Discovery esperaba y no existían.
   🚧 **Pendiente de aplicar al runtime** (el servidor está incomunicado).
 - **Fases 4–5** ✅ — dashboard **Mission Control** (skin ejecutiva light+dark
   compartida con Meeting Copilot desde 2026-08-08; 5 vistas: Pantheon, AI Spend,

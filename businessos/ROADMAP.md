@@ -1667,10 +1667,26 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   Cobertura del dominio medida con el propio clasificador: **0/24 → 13/24**; la periferia
   se mantiene en 13/18. Fuera de alcance a propósito: RGCE (cambian cada año), Tarifa de
   la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras.
-- [ ] **Seed de comercio exterior PENDIENTE de aplicar al runtime**: `psql < 02-seed.sql`
+- [x] **Logística MX sembrada** (2026-09-02, mismo día): cierra la deuda que destapó el seed
+  de comercio exterior. El escaneo regulatorio del Pre-Discovery esperaba para el sector
+  logística las categorías `CARGA_AEREA_EAWB` y `AUTOTRANSPORTE_CARGA` y **el seed no las
+  tenía**; su mock sí las dictaminaba, citando IATA Res. 672 **sin ningún anclaje en ley
+  mexicana** — divergencia silenciosa mock-vs-real. 2 reglas y 2 categorías desde
+  **LCPAF** (Arts. 8o. fr. I/IV/XI, 50, 66 y 68) y **Ley de Aviación Civil** (Arts. 11, 55
+  y 56), ambas texto vigente DOF 14-11-2025, leídas del PDF oficial con `pypdf`. El
+  hallazgo que cambia el dictamen: **la base mexicana de la guía aérea es el Art. 55 LAC**
+  —el contrato *debe* constar en carta de porte o guía de carga aérea— y el **formato lo
+  fija una NOM que no está sembrada**, así que la forma ELECTRÓNICA (e-AWB) queda como
+  bandera declarada y la Resolución 672 de IATA baja a **estándar sectorial, no exigencia
+  de autoridad**. `carta porte` clasifica y declara que el complemento del CFDI es
+  obligación fiscal distinta, fuera del grafo. Seed 81→**83 reglas / 55 categorías**;
+  gate OK; 119 tests del grafo (13 nuevos) con 4 sabotajes de control de reversión.
+  El **mock del copiloto se alineó** al seed real (claves, citas y vigencias) junto con sus
+  2 tests, que fijaban las citas viejas: 364 vitest verdes.
+- [ ] **Seed de comercio exterior y logística PENDIENTE de aplicar al runtime**: `psql < 02-seed.sql`
   (idempotente) + `docker restart grafo` —obligatorio: `db.py` cachea con `lru_cache` y
   sin reinicio el runtime sigue sirviendo lo viejo **sin error**— + smoke de conteos
-  (esperado 81 reglas / 53 categorías, `evaluaciones` intactas; procedimiento 2026-08-04).
+  (esperado 83 reglas / 55 categorías, `evaluaciones` intactas; procedimiento 2026-08-04).
   🚫 **Bloqueado**: el servidor de Hetzner tiene la red cortada por el proveedor desde
   ~27-28 de agosto (`ipv4.blocked` e `ipv6.blocked` en su API; la máquina corre, pero
   está incomunicada). `drift-runtime.py` lo marcará como deriva en cuanto vuelva.

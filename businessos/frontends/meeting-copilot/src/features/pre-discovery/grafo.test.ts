@@ -6,7 +6,7 @@ describe('mockEvaluacionGrafo — fiel al contrato del grafo real', () => {
   it('concepto con regla: veredicto + fuente con clave/cita/url + checklist', () => {
     const e = mockEvaluacionGrafo(['Servicios de agencia de carga y transporte internacional'], 'regulatorio')
     expect(e.estado).toBe('permitido')
-    expect(e.conceptos[0].fuente?.clave).toBe('MX-LCPAF-PERMISO-SICT')
+    expect(e.conceptos[0].fuente?.clave).toBe('MX-LCPAF-8-50-66-68-AUTOTRANSPORTE')
     expect(e.conceptos[0].checklist.length).toBeGreaterThan(0)
     expect(e.disclaimer).toBe(DISCLAIMER_GRAFO)
     expect(e.conexion).toBe('mock')
@@ -20,15 +20,21 @@ describe('mockEvaluacionGrafo — fiel al contrato del grafo real', () => {
   })
 
 
-  it('escaneo quirúrgico: el claim e-AWB observado dispara el marco IATA/Montreal', () => {
+  it('escaneo quirúrgico: el claim e-AWB se ancla en ley mexicana, no en IATA', () => {
+    // El mock citaba IATA Res. 672 como fuente, sin anclaje nacional. La base real es
+    // el Art. 55 LAC (el contrato DEBE constar en carta de porte o guia de carga aerea);
+    // IATA baja a bandera como estandar sectorial. Espeja el seed del grafo (2026-09-02).
     const e = mockEvaluacionGrafo(['Emisión de guía aérea electrónica (e-AWB) — «Elaborate Electronics AWB for you»'], 'regulatorio')
     const c = e.conceptos[0]
     expect(c.categoria).toBe('CARGA_AEREA_EAWB')
-    expect(c.fuente?.clave).toBe('IATA-CSC-672-MEA')
-    expect(c.razon).toContain('Convenio de Montreal')
-    expect(c.checklist.join(' ')).toContain('MeA')
-    expect(c.checklist.join(' ')).toContain('FWB/FHL')
-    expect(c.checklist.join(' ')).toContain('informacion anticipada')
+    expect(c.fuente?.clave).toBe('MX-LAC-55-56-CARGA-AEREA')
+    expect(c.fuente?.cita).toContain('Ley de Aviacion Civil')
+    expect(c.fuente?.url).toContain('diputados.gob.mx')
+    expect(c.checklist.join(' ')).toContain('carta de porte o guia de carga aerea')
+    // el limite queda DECLARADO: la NOM del formato no esta sembrada y IATA no es autoridad
+    expect(c.banderas.join(' ')).toContain('norma oficial mexicana')
+    expect(c.banderas.join(' ')).toContain('estandar SECTORIAL')
+    expect(c.banderas.join(' ')).toContain('PARALELA')
     expect(e.disclaimer).toBe(DISCLAIMER_GRAFO)
   })
 
