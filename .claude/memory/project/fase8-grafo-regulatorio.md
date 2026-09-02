@@ -454,3 +454,83 @@ frontera): "ilegales" contiene "legal" → usar `\blegal\b`, y el sector legal v
 del arreglo para que logística/seguros/drones ganen con señal propia. El mock fiel de
 grafo.ts ganó su regla legal espejo. PENDIENTE runtime: aplicar el seed al grafo vivo
 (upsert psql + restart + smoke, procedimiento 2026-08-04) — desde la máquina con SSH.
+
+---
+
+## Comercio exterior MX (2026-09-02) — Ley Aduanera + Ley de Comercio Exterior
+
+Primer ámbito nacido de un **caso de estudio de negocio** (importación-exportación MX con
+corredores USA/China/LATAM), no de un Pre-Discovery. Lo disparó una medición: el
+clasificador del propio grafo daba **0/24 en conceptos del núcleo aduanero** y 13/18 en la
+periferia corporativa. El grafo no podía dictaminar el negocio, y su silencio era
+indistinguible de su ignorancia.
+
+**Resultado:** 13 reglas, 10 categorías, seed 68→**81 reglas / 84 impactos / 53
+categorías**. Cobertura del dominio **0/24 → 13/24** (los 11 restantes son lo declarado
+fuera de alcance). 106 tests del grafo (13 nuevos). Dimensión `regulatorio`, régimen
+`GENERAL` — igual que los siete dominios anteriores; el repo **nunca** ha añadido una 6ª
+dimensión y la `PLANTILLA-INVESTIGACION-SEED.md` lo prescribe literal para este dominio.
+
+### Método de extracción de fuente primaria (reusable, y ya pagó)
+
+`WebFetch` **no sirve para leer leyes**: devuelve el PDF como binario comprimido
+(FlateDecode) y no lo decodifica — correctamente se niega a reconstruirlo de memoria. La
+cadena que funciona es: descargar de `diputados.gob.mx/LeyesBiblio/pdf/` + extraer con
+**`pypdf`, que está en `businessos/.venv`**.
+
+La diferencia no es cosmética. El índice HTML del sitio, resumido por un modelo pequeño,
+daba *"Ley Aduanera, última reforma DOF 27/12/2025"*. El **texto real** dice
+`Última reforma publicada DOF 19-11-2025`; el 27-12-2025 es la actualización de cantidades
+por Reglas Generales de Comercio Exterior. El resumen conflacionó dos fechas distintas, y
+esa fecha habría entrado en `fuente_cita` y `vigente_desde` de **cada** regla del ámbito.
+Hermano de la lección 2026-08-02: *nada normativo se transcribe desde un intermediario*.
+
+Gotchas del parseo: **cada ley usa un formato de encabezado distinto** — Ley Aduanera
+`ARTICULO 59.` (mayúsculas sin acento, 277 ocurrencias) y LCE `Artículo 15.-` /
+`Artículo 1o.-`. Un extractor por regex debe aceptar ambos, y **anclar al encabezado real**:
+buscar `ARTICULO 59` a secas engancha la referencia cruzada *"artículo 59-A de la presente
+Ley"* dentro de otro artículo. El desempate que funcionó: de todas las apariciones, el
+encabezado verdadero es el que abre el **bloque más largo**.
+
+Para artículos sin anotación de reforma, `vigente_desde` sale del transitorio de la propia
+ley: Ley Aduanera **1996-01-01**, LCE **1993-07-28** (día siguiente a su publicación).
+
+### `dudoso` DECLARADO vs `dudoso` accidental — la distinción que hay que testear
+
+Dos de las diez categorías salen `dudoso` **a propósito**, y eso es distinto de "sin regla
+aplicable": `CLASIFICACION_ARANCELARIA` (la Tarifa de la LIGIE no está sembrada — y es una
+tabla, no reglas) y `PRACTICAS_DESLEALES` (que una mercancía concreta esté gravada con
+cuota compensatoria depende de una resolución por producto y origen que vive en el DOF).
+Ambas devuelven `dudoso` **con fuente y con bandera que nombra el hueco**, no
+`razon == "sin regla aplicable"`. Los tests fijan justo esa diferencia, porque es la que
+convierte un límite honesto en información útil en vez de un vacío mudo.
+
+`INFRACCIONES_ADUANERAS` es el único `no_permitido` y va **solo en su categoría** — la
+lección de Fase B: dos veredictos distintos vivos sobre la misma categoría disparan la
+bandera de contradicción. Las cuatro reglas de `REGULACIONES_NO_ARANCELARIAS` comparten
+veredicto `permitido` y por eso solo suman checklist, sin conflicto.
+
+### Vocabulario
+
+Cero colisiones entre 35 términos candidatos y las 348 keywords existentes: el dominio
+aduanero estaba libre. Convivencia resuelta por longitud: `aduana` (DESPACHO_ADUANERO) y
+`valor en aduana` (VALOR_ADUANA) coexisten porque el clasificador toma la keyword **más
+larga** — hay test que lo fija. `ORIGEN_MERCANCIAS` excluye *"origen de los recursos"* para
+no chocar con el lenguaje de prevención de lavado ya sembrado. Se **descartaron** a
+propósito keywords amplias como `importacion` o `exportacion` desnudas: clasificarían
+cualquier mención genérica en una sola categoría y darían un dictamen seguro de sí mismo
+sobre una pregunta que nadie hizo (doctrina anti-etiquetas-amplias, 2026-08-08).
+
+### Deuda que este trabajo destapó y NO cierra
+
+El escáner del Pre-Discovery (`meeting-copilot/src/features/pre-discovery/
+escaneo-regulatorio.ts`) espera para el sector logística las categorías
+`CARGA_AEREA_EAWB` y `AUTOTRANSPORTE_CARGA`, **que no existen en el seed**; su mock
+(`grafo.ts`) sí las inventa con citas IATA/LCPAF. Con el grafo real un forwarder sale
+`sin regla aplicable`; con el mock sale `permitido` **con fuentes**. Divergencia silenciosa
+mock-vs-real en el sector vecino a este ámbito. Salen de Ley de Caminos e IATA, fuera de
+las dos leyes sembradas aquí.
+
+**PENDIENTE runtime:** aplicar `02-seed.sql` (idempotente) + `docker restart grafo`
+—obligatorio por el `lru_cache` de `db.py`— + smoke de conteos. Bloqueado: el servidor de
+Hetzner tiene la red cortada por el proveedor desde ~2026-08-27.

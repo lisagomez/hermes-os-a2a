@@ -41,7 +41,7 @@ la pregunta entera:
 | 5 | **Plan bufete B2B (Fase 9+)** — decisiones B1 (modelo de tenencia uuid vs slug) y B5 (ZDR para el dato privilegiado) | `docs/planes/PLAN-frontend-bufete-copilot.md` §"decisiones" + `docs/planes/ADENDA-conciliacion-avatares-legales.md` | Pasar del prototipo con datos de muestra al producto multi-inquilino |
 | 6 | **Tenencia: ¿convertir las 17 tablas con `tenant_id` slug a uuid?** Tocaría CancioBot, la guardia de presupuesto, agendamiento y el buzón | Sección *"Propuestas en revisión"* de este roadmap, punto 1 | Unificar los 3 modelos de tenencia que hoy conviven |
 | 7 | **Techo formal de gasto de infra** (los $30/mes son de tokens; el hosting ~$9/mes no tiene techo declarado) | Sección *"Línea Reuniones (App B)"*, paso 0 | Que la alerta de presupuesto cubra el gasto completo, no solo tokens |
-| 8 | **Dictamen legal del caso Baker (grafo)**: revisar el bloque "Marco regulatorio" regenerado con la categoría nueva `SERVICIOS_LEGALES` (cédula profesional + evaluación PLD/LFPIORPI) antes de usarlo con el lead — es contenido regulatorio de cara al cliente | Sección *"Línea Grafo"* de este roadmap (entrada 2026-08-08) + `.claude/memory/project/fase8-grafo-regulatorio.md` | Usar el Pre-Discovery del caso Baker en la conversación real. *Antes hay un pendiente operativo: aplicar el seed 68 reglas al runtime (máquina con SSH) y regenerar el caso* |
+| 8 | **Dictamen legal del caso Baker (grafo)**: revisar el bloque "Marco regulatorio" regenerado con la categoría nueva `SERVICIOS_LEGALES` (cédula profesional + evaluación PLD/LFPIORPI) antes de usarlo con el lead — es contenido regulatorio de cara al cliente | Sección *"Línea Grafo"* de este roadmap (entrada 2026-08-08) + `.claude/memory/project/fase8-grafo-regulatorio.md` | Usar el Pre-Discovery del caso Baker en la conversación real. *El seed de 68 reglas ya se aplicó al runtime el 2026-08-20; queda regenerar el caso* |
 | 9 | **Administración del repositorio: ¿es "Tenencia" un check obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo avisa y no bloquea, es una red que informa pero no detiene | Consultar la protección de rama (devuelve 404 sin permiso de administración) | Que el gate de tenencia detenga de verdad lo que hoy solo señala |
 
 Insumo compartido pendiente: el **`docker stats` del servidor** (pedido en el paso 0 de
@@ -1646,12 +1646,34 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   + regla en el mock fiel (con `\b`, porque las regex de JS casan por subcadena).
   Leído del PDF oficial de Diputados, no de memoria. Seed 66→68 reglas / 43 categorías;
   gate `--check` OK; 93 tests del grafo + 315 vitest del copiloto.
-- [ ] **Seed PENDIENTE de aplicar al runtime** (Fase E LFPPI + SERVICIOS_LEGALES: el
-  grafo vivo sigue en 63 reglas): psql + `docker restart grafo` + smoke (procedimiento
-  2026-08-04; esperado 68 reglas / 43 categorías, evaluaciones intactas) desde la
-  máquina con SSH. Después: regenerar el caso Baker en el copiloto (fila 8 de la tabla
-  de Elisa) y revisar su bloque de fuentes — el sitio del lead nunca compiló y los
-  conceptos salían solo del texto del intake.
+- [x] **Seed Fase E aplicado al runtime** el 2026-08-20 (66→68 reglas / 43 categorías),
+  junto con las otras tres derivas que destapó el barrido de ese día. Queda por
+  regenerar el caso Baker en el copiloto (fila 8 de la tabla de Elisa) y revisar su
+  bloque de fuentes — el sitio del lead nunca compiló y los conceptos salían solo del
+  texto del intake.
+- [x] **Comercio exterior MX sembrado** (2026-09-02): **Ley Aduanera** (texto vigente,
+  última reforma DOF 19-11-2025) y **Ley de Comercio Exterior** (DOF 01-05-2026), leídas
+  del PDF oficial de Diputados extraído con `pypdf` — no de resúmenes: el índice HTML del
+  sitio daba 27-12-2025 como última reforma de la Ley Aduanera, pero esa fecha es la
+  actualización de cantidades por Reglas Generales. 13 reglas y 10 categorías nuevas
+  (padrón, despacho, representación aduanal, valor en aduana, origen, clasificación
+  arancelaria, regulaciones no arancelarias, prácticas desleales, regímenes e
+  infracciones). Seed 68→**81 reglas / 53 categorías**; gate `--check` OK; 106 tests del
+  grafo (13 nuevos) con control de reversión de 6 sabotajes. Dos veredictos son `dudoso`
+  por **fail-safe declarado**, no por hueco accidental: `CLASIFICACION_ARANCELARIA` (la
+  Tarifa de la LIGIE no está sembrada) y `PRACTICAS_DESLEALES` (la resolución de cuota
+  compensatoria por producto y origen vive en el DOF). `INFRACCIONES_ADUANERAS` es el
+  único `no_permitido` y va solo en su categoría, sin conflicto de veredictos.
+  Cobertura del dominio medida con el propio clasificador: **0/24 → 13/24**; la periferia
+  se mantiene en 13/18. Fuera de alcance a propósito: RGCE (cambian cada año), Tarifa de
+  la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras.
+- [ ] **Seed de comercio exterior PENDIENTE de aplicar al runtime**: `psql < 02-seed.sql`
+  (idempotente) + `docker restart grafo` —obligatorio: `db.py` cachea con `lru_cache` y
+  sin reinicio el runtime sigue sirviendo lo viejo **sin error**— + smoke de conteos
+  (esperado 81 reglas / 53 categorías, `evaluaciones` intactas; procedimiento 2026-08-04).
+  🚫 **Bloqueado**: el servidor de Hetzner tiene la red cortada por el proveedor desde
+  ~27-28 de agosto (`ipv4.blocked` e `ipv6.blocked` en su API; la máquina corre, pero
+  está incomunicada). `drift-runtime.py` lo marcará como deriva en cuanto vuelva.
 - [x] **Puente Vercel→grafo VIVO** (`grafo-gate`, 2026-08-07, PR #259): gate con token
   Bearer fail-closed (solo `POST /evaluaciones`) desplegado en Hetzner y publicado por
   el edge en `grafo.167-233-233-56.sslip.io` (TLS ACME; sin puertos nuevos). Smokes:

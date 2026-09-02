@@ -44,7 +44,7 @@ def test_endpoint_salud_conocimiento():
     r = client.get("/salud-conocimiento")
     assert r.status_code == 200
     body = r.json()
-    assert body["reglas_total"] == 68  # Fases A-D + LMV 225 + LFPPI + servicios legales transversal (LRArt5 + LFPIORPI)
+    assert body["reglas_total"] == 81  # Fases A-D + LMV 225 + LFPPI + servicios legales transversal (LRArt5 + LFPIORPI) + comercio exterior MX (LAdua + LCE)
     assert body["reglas_vencidas"] == []  # el seed v3 no trae derogadas
     assert body["verificar_pendientes"], "el seed v2 tiene montos por cotejar"
     ambitos = {(a["jurisdiccion"], a["dimension"]) for a in body["ambitos"]}

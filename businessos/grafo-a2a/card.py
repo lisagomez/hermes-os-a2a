@@ -37,7 +37,10 @@ def build_card() -> AgentCard:
             "sale 'dudoso'. La respuesta SIEMPRE incluye disclaimer: senala riesgos, "
             "NO es asesoria."
         ),
-        tags=["fiscal", "contable", "contractual", "LATAM", "MX", "CO", "compliance"],
+        tags=[
+            "fiscal", "contable", "contractual", "regulatorio", "datos-personales",
+            "comercio-exterior", "aduanas", "LATAM", "MX", "CO", "compliance",
+        ],
         examples=[
             EJEMPLO_ESTRUCTURADO,
             "Honorarios de consultoria fiscal por 12000 MXN",
@@ -49,9 +52,10 @@ def build_card() -> AgentCard:
     return AgentCard(
         name="grafo-a2a",
         description=(
-            "Evaluo impacto fiscal/contable/contractual en LATAM (hoy MX y CO) con "
-            "veredicto por concepto y fuente citada. Senalo riesgos; NO asesoro: "
-            "toda respuesta incluye disclaimer y fuentes."
+            "Evaluo impacto fiscal, contable, contractual, regulatorio, de datos "
+            "personales y de comercio exterior en LATAM (hoy MX y CO) con veredicto "
+            "por concepto y fuente citada. Senalo riesgos; NO asesoro: toda respuesta "
+            "incluye disclaimer y fuentes."
         ),
         version="1.0.0",
         supported_interfaces=[

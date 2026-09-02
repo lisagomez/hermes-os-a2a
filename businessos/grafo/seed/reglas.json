@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes)",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes) + comercio exterior MX (Ley Aduanera y Ley de Comercio Exterior: padron, despacho, representacion, valor en aduana, origen, clasificacion, regulaciones no arancelarias, practicas desleales, regimenes e infracciones).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble'). servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble'). servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado. comercio exterior MX 2026-09-02: Ley Aduanera (texto vigente, ultima reforma DOF 19-11-2025, Ley publicada DOF 15-12-1995 y en vigor el 01-01-1996 por su Transitorio Primero) y Ley de Comercio Exterior (texto vigente, ultima reforma DOF 01-05-2026, Ley publicada DOF 27-07-1993 y en vigor al dia siguiente). Arts. 36-A, 40, 59, 64, 90 y 176 de la Ley Aduanera y Arts. 15, 16, 17, 21, 23, 24, 26, 28, 62 y 63 de la Ley de Comercio Exterior leidos del PDF oficial de Diputados (LeyesBiblio) extraido con pypdf, no de memoria ni de resumenes: el indice HTML del sitio daba 27-12-2025 como ultima reforma de la Ley Aduanera, pero esa fecha es la actualizacion de cantidades por Reglas Generales de Comercio Exterior y el texto vigente es DOF 19-11-2025. Dos veredictos son dudoso por fail-safe declarado: CLASIFICACION_ARANCELARIA (la Tarifa de la LIGIE no esta sembrada) y PRACTICAS_DESLEALES (la resolucion de cuota compensatoria por producto y origen vive en el DOF, no aqui). INFRACCIONES_ADUANERAS es la unica categoria con veredicto no_permitido y va sola en su categoria, sin conflicto de veredictos (leccion Fase B). Fuera de alcance a proposito: Reglas Generales de Comercio Exterior (cambian cada ano), Tarifa de la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -722,6 +722,172 @@
         "requisitos legales",
         "fundamento legal"
       ]
+    },
+    {
+      "clave": "PADRON_IMPORTADORES",
+      "nombre": "Padron de Importadores y obligaciones de quien importa o exporta",
+      "descripcion": "Inscripcion en el Padron de Importadores, padrones sectoriales y obligaciones de control de inventarios y expediente electronico de quienes introducen o extraen mercancias",
+      "keywords": [
+        "padron de importadores",
+        "padron de exportadores",
+        "padron sectorial",
+        "padron de sectores especificos",
+        "importador de registro",
+        "expediente electronico"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "DESPACHO_ADUANERO",
+      "nombre": "Despacho aduanero: pedimento y documentacion anexa",
+      "descripcion": "Transmision del pedimento y sus anexos en documento electronico o digital ante el sistema electronico aduanero",
+      "keywords": [
+        "despacho aduanero",
+        "pedimento",
+        "pedimentos",
+        "aduana",
+        "aduanas",
+        "documento aduanero",
+        "anexos al pedimento",
+        "sistema electronico aduanero"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "REPRESENTACION_ADUANAL",
+      "nombre": "Representacion ante la aduana: agente aduanal, agencia aduanal o representante legal",
+      "descripcion": "Quien puede promover los tramites del despacho aduanero y con que requisitos",
+      "keywords": [
+        "agente aduanal",
+        "agentes aduanales",
+        "agencia aduanal",
+        "agencias aduanales",
+        "apoderado aduanal",
+        "mandatario aduanal",
+        "representante legal aduanero"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "CLASIFICACION_ARANCELARIA",
+      "nombre": "Clasificacion arancelaria de la mercancia",
+      "descripcion": "Identificacion de la mercancia por su fraccion arancelaria y la nomenclatura de la Tarifa; la tarifa vigente NO forma parte de este grafo",
+      "keywords": [
+        "clasificacion arancelaria",
+        "fraccion arancelaria",
+        "fracciones arancelarias",
+        "arancel",
+        "aranceles",
+        "tarifa arancelaria",
+        "nomenclatura arancelaria"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "VALOR_ADUANA",
+      "nombre": "Valor en aduana y base gravable de la importacion",
+      "descripcion": "Determinacion de la base gravable del impuesto general de importacion a partir del valor de transaccion",
+      "keywords": [
+        "valor en aduana",
+        "valoracion aduanera",
+        "base gravable",
+        "valor de transaccion",
+        "precio estimado",
+        "cuenta aduanera de garantia"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "ORIGEN_MERCANCIAS",
+      "nombre": "Origen y procedencia de las mercancias",
+      "descripcion": "Documentacion de origen y procedencia para preferencias arancelarias, marcado de pais de origen, cuotas compensatorias y cupos",
+      "keywords": [
+        "certificado de origen",
+        "regla de origen",
+        "reglas de origen",
+        "prueba de origen",
+        "pais de origen",
+        "marcado de pais de origen",
+        "preferencia arancelaria",
+        "preferencias arancelarias"
+      ],
+      "exclusiones": [
+        "origen de los recursos",
+        "origen de los fondos",
+        "origen licito"
+      ]
+    },
+    {
+      "clave": "REGULACIONES_NO_ARANCELARIAS",
+      "nombre": "Regulaciones y restricciones no arancelarias (permisos previos, cupos, NOM)",
+      "descripcion": "Medidas de regulacion y restriccion no arancelarias a la exportacion, importacion, circulacion o transito de mercancias",
+      "keywords": [
+        "regulacion no arancelaria",
+        "regulaciones no arancelarias",
+        "restriccion no arancelaria",
+        "restricciones no arancelarias",
+        "permiso previo",
+        "permisos previos",
+        "cupo",
+        "cupos",
+        "cupo de importacion",
+        "cupo de exportacion",
+        "norma oficial mexicana",
+        "normas oficiales mexicanas"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "PRACTICAS_DESLEALES",
+      "nombre": "Practicas desleales de comercio internacional y cuotas compensatorias",
+      "descripcion": "Importacion en condiciones de discriminacion de precios o de subvenciones y la cuota compensatoria que la grava",
+      "keywords": [
+        "cuota compensatoria",
+        "cuotas compensatorias",
+        "practica desleal",
+        "practicas desleales",
+        "dumping",
+        "antidumping",
+        "discriminacion de precios",
+        "subvencion",
+        "subvenciones"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "REGIMENES_ADUANEROS",
+      "nombre": "Regimenes aduaneros",
+      "descripcion": "Regimen al que se destina la mercancia: definitivo, temporal, deposito fiscal, transito, recinto fiscalizado y recinto fiscalizado estrategico",
+      "keywords": [
+        "regimen aduanero",
+        "regimenes aduaneros",
+        "importacion temporal",
+        "importacion definitiva",
+        "exportacion temporal",
+        "exportacion definitiva",
+        "deposito fiscal",
+        "transito de mercancias",
+        "transito interno",
+        "transito internacional",
+        "recinto fiscalizado",
+        "recinto fiscalizado estrategico",
+        "programa de maquila",
+        "maquila"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "INFRACCIONES_ADUANERAS",
+      "nombre": "Infracciones relacionadas con la importacion o exportacion",
+      "descripcion": "Introducir o extraer mercancias omitiendo contribuciones, sin permiso, sin cumplir regulaciones no arancelarias o cuando esta prohibido",
+      "keywords": [
+        "infraccion aduanera",
+        "infracciones aduaneras",
+        "importacion prohibida",
+        "exportacion prohibida",
+        "mercancia prohibida"
+      ],
+      "exclusiones": []
     }
   ],
   "reglas": [
@@ -2687,6 +2853,429 @@
             "Reforma DOF 16-07-2025: el regimen de actividades vulnerables fue reformado recientemente (Arts. 17 y 18 con fracciones reformadas en esa fecha) — cotejar reglas de caracter general y plazos vigentes emitidos por la Secretaria antes de operar el cumplimiento",
             "El Aviso respeta el secreto profesional y la garantia de defensa en los terminos de la propia Ley (Art. 17-XI, ultimo parrafo): la frontera exacta requiere criterio de especialista PLD",
             "El incumplimiento del regimen de actividades vulnerables es sancionable; este dictamen NO sustituye una evaluacion PLD del despacho"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-59-PADRON-IMPORTADORES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Padron de Importadores: inscripcion, control de inventarios y expediente electronico",
+      "texto_resumen": "Quienes introduzcan o extraigan mercancias del territorio nacional deben estar inscritos en el Padron de Importadores y, en su caso, en el Padron de Importadores de Sectores Especificos o en el Padron de Exportadores Sectorial, a cargo del SAT, para lo cual deben estar al corriente en sus obligaciones fiscales y acreditar su inscripcion en el RFC (Art. 59, fraccion IV). Ademas deben llevar el control de inventarios automatizado y permanente (fraccion I), obtener la documentacion que compruebe origen y procedencia (fraccion II), entregar a la agencia o al agente aduanal la manifestacion de valor bajo protesta de decir verdad (fraccion III) y formar un expediente electronico por cada pedimento, conservado como parte de la contabilidad (fraccion V). No aplica a pasajeros, mensajeria y paqueteria ni via postal despachados conforme a los Arts. 88 y 88 bis.",
+      "fuente_cita": "Ley Aduanera, Art. 59, fracciones I a V (texto vigente, ultima reforma DOF 19-11-2025; fraccion IV reformada DOF 30-12-2002 y 09-12-2013; incisos de la fraccion V adicionados DOF 19-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2025-11-19",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "PADRON_IMPORTADORES",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Estar inscrito en el Padron de Importadores del SAT y, en su caso, en el Padron de Importadores de Sectores Especificos o en el Padron de Exportadores Sectorial (Art. 59, fraccion IV)",
+            "Encontrarse al corriente en el cumplimiento de las obligaciones fiscales y acreditar la inscripcion en el registro federal de contribuyentes (Art. 59, fraccion IV)",
+            "Llevar los sistemas de control de inventarios en forma automatizada y permanente, con el registro actualizado de los datos de control de las mercancias de comercio exterior a disposicion de la autoridad aduanera (Art. 59, fraccion I)",
+            "Obtener la informacion, documentacion y medios de prueba que comprueben el pais de origen y de procedencia de las mercancias, y proporcionarlos a la autoridad cuando los requiera (Art. 59, fraccion II)",
+            "Entregar a la agencia aduanal o al agente aduanal que promueva el despacho la manifestacion, bajo protesta de decir verdad, con los elementos que exigen la Ley y las reglas del SAT (Art. 59, fraccion III)",
+            "Formar un expediente electronico de cada pedimento, aviso consolidado o documento aduanero, con sus anexos y acuses, y conservarlo como parte de la contabilidad por los plazos del Codigo Fiscal de la Federacion (Art. 59, fraccion V)",
+            "Incorporar al expediente electronico la documentacion que acredite los recursos empleados en la operacion: garantia del Art. 36-A fraccion I inciso e), CFDI, facturas comerciales o documentos equivalentes, transferencias o cartas de credito, gastos de transporte y seguros, contratos y la documentacion que sustente los conceptos de los Arts. 65 y 66 (Art. 59, fraccion V, incisos a a h)"
+          ],
+          "banderas": [
+            "Incumplir el control de inventarios de la fraccion I hace presumir que las mercancias del contribuyente, analogas o iguales a las importadas, son de procedencia extranjera (Art. 59, fraccion I, tercer parrafo)",
+            "El Reglamento y las reglas del SAT anaden requisitos de inscripcion que NO estan en esta ficha: cotejarlos contra su texto vigente antes de concluir que el padron esta en regla",
+            "El articulo no aplica a importaciones y exportaciones de pasajeros, empresas de mensajeria y paqueteria ni via postal despachadas conforme a los Arts. 88 y 88 bis de la Ley Aduanera"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-36A-DESPACHO-ANEXOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Despacho aduanero: informacion que debe transmitirse como anexo al pedimento",
+      "texto_resumen": "El agente aduanal, la agencia aduanal y quienes introduzcan o extraigan mercancias para destinarlas a un regimen aduanero estan obligados a transmitir en documento electronico o digital, como anexos al pedimento, la informacion que describe el Art. 36-A, la cual se tiene por presentada con el acuse generado por el sistema electronico aduanero. En importacion comprende el valor y datos de comercializacion contenidos en el comprobante fiscal digital o documento equivalente, los documentos de transporte, la comprobacion de las regulaciones y restricciones no arancelarias, la documentacion de procedencia y origen, la garantia en cuenta aduanera cuando el valor declarado sea inferior al precio estimado, y el dictamen de peso o volumen cuando el SAT lo establezca.",
+      "fuente_cita": "Ley Aduanera, Art. 36-A, fraccion I, incisos a) a f) (texto vigente, ultima reforma DOF 19-11-2025; parrafo primero e incisos a), b) reformados DOF 25-06-2018; incisos d) y f) reformados DOF 19-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2025-11-19",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "DESPACHO_ADUANERO",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Transmitir la informacion en documento electronico o digital como anexo al pedimento y conservar el acuse generado por el sistema electronico aduanero, conforme al cual se tiene por transmitida y presentada (Art. 36-A, parrafo primero)",
+            "Transmitir el valor y demas datos de comercializacion contenidos en el comprobante fiscal digital o documento equivalente cuando el valor en aduana se determine conforme al valor de transaccion, declarando el acuse del Art. 59-A (Art. 36-A, fraccion I, inciso a)",
+            "Transmitir la informacion del conocimiento de embarque, lista de empaque, guia o demas documentos de transporte que requiera el SAT mediante reglas, declarando el acuse del Art. 20 fraccion VII o el numero de documento de transporte (Art. 36-A, fraccion I, inciso b)",
+            "Transmitir la que compruebe el cumplimiento de las regulaciones y restricciones no arancelarias expedidas conforme a la Ley de Comercio Exterior, publicadas en el DOF e identificadas por fraccion arancelaria y nomenclatura de la Tarifa (Art. 36-A, fraccion I, inciso c)",
+            "Transmitir la que determine la procedencia y el origen para preferencias arancelarias conforme a tratados, cuotas compensatorias, cupos y marcado de pais de origen (Art. 36-A, fraccion I, inciso d)",
+            "Transmitir el documento digital de la garantia en la cuenta aduanera de garantia del Art. 84-A cuando el valor declarado sea inferior al precio estimado que establezca la Secretaria (Art. 36-A, fraccion I, inciso e)",
+            "Transmitir el dictamen que avale peso, volumen u otras caracteristicas, o el certificado vigente de calibracion de los mecanismos de medicion, en los despachos que el SAT establezca mediante reglas (Art. 36-A, fraccion I, inciso f)",
+            "Consignar, en mercancias susceptibles de identificarse individualmente, los numeros de serie, parte, marca, modelo o las especificaciones tecnicas o comerciales que las distingan de otras similares, cuando esos datos existan (Art. 36-A, fraccion I, parrafo final)"
+          ],
+          "banderas": [
+            "Si la mercancia originaria estuvo en transito por territorio de paises no Parte del tratado aplicable, debe acreditarse que permanecio bajo control de las autoridades aduaneras conforme a las reglas (Art. 36-A, fraccion I, inciso d, segundo parrafo, reformado DOF 19-11-2025)",
+            "El detalle operativo de la transmision lo fijan las Reglas Generales de Comercio Exterior, que NO forman parte de este grafo y cambian cada ano: cotejar la regla vigente antes de operar"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-40-REPRESENTACION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Quien puede promover el despacho aduanero: por si mismo, por agente o por agencia aduanal",
+      "texto_resumen": "Los tramites relacionados con el despacho de las mercancias se promueven por los importadores o exportadores, o por conducto de los agentes aduanales o agencias aduanales que actuen como sus consignatarios o mandatarios. Las personas morales que promuevan el despacho sin intervencion de agente o agencia aduanal deben hacerlo a traves de su representante legal acreditado ante el SAT, quien debe cumplir cuatro requisitos minimos. Quien opta por despachar por si mismo asume las obligaciones del despacho previstas en la Ley.",
+      "fuente_cita": "Ley Aduanera, Art. 40 (texto vigente; articulo reformado DOF 09-12-2013 y 25-06-2018)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2018-06-25",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REPRESENTACION_ADUANAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Promover el despacho por si mismo (importador o exportador) o por conducto de agente aduanal o agencia aduanal que actue como consignatario o mandatario (Art. 40, parrafo primero)",
+            "Si es persona moral y despacha sin agente o agencia aduanal: acreditar un representante legal ante el Servicio de Administracion Tributaria en los terminos del Reglamento (Art. 40, parrafo segundo)",
+            "El representante legal debe ser persona fisica y estar al corriente en el cumplimiento de sus obligaciones fiscales (Art. 40, fraccion I)",
+            "El representante legal debe ser de nacionalidad mexicana (Art. 40, fraccion II)",
+            "El representante legal debe acreditar la existencia de una relacion laboral con el importador o exportador (Art. 40, fraccion III)",
+            "El representante legal debe acreditar experiencia o conocimientos en materia de comercio exterior (Art. 40, fraccion IV)",
+            "Si es persona fisica y despacha sin agente o agencia aduanal: cumplir los requisitos y condiciones del Reglamento (Art. 40, parrafo cuarto)"
+          ],
+          "banderas": [
+            "Despachar por cuenta propia NO reduce obligaciones: importadores, exportadores, agentes y agencias aduanales quedan sujetos por igual a las obligaciones del despacho aduanero previstas en la Ley (Art. 40, parrafo final)",
+            "La figura de agencia aduanal convive con la de agente aduanal en el texto vigente; el regimen de patente, autorizacion y responsabilidad de cada una vive en otros articulos que NO estan en esta ficha"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-64-VALOR-ADUANA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Valor en aduana: la base gravable de la importacion es el valor de transaccion",
+      "texto_resumen": "La base gravable del impuesto general de importacion es el valor en aduana de las mercancias, salvo que la ley de la materia establezca otra base. El valor en aduana es el valor de transaccion, salvo lo dispuesto en el Art. 71. Se entiende por valor de transaccion el precio pagado por las mercancias, siempre que concurran todas las circunstancias del Art. 67 y que se vendan para ser exportadas a territorio nacional por compra efectuada por el importador, ajustado en los terminos del Art. 65. Precio pagado es el pago total que el importador haya efectuado o vaya a efectuar de manera directa o indirecta al vendedor o en beneficio de este.",
+      "fuente_cita": "Ley Aduanera, Art. 64 (texto vigente, sin reforma anotada; Ley publicada DOF 15-12-1995, en vigor el 1o. de enero de 1996 conforme a su Transitorio Primero)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "1996-01-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "VALOR_ADUANA",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Determinar la base gravable del impuesto general de importacion como el valor en aduana de las mercancias, salvo que la ley de la materia establezca otra base (Art. 64, parrafo primero)",
+            "Usar el valor de transaccion como valor en aduana, salvo los casos del Art. 71 (Art. 64, parrafo segundo)",
+            "Acreditar que concurren todas las circunstancias del Art. 67 y que las mercancias se venden para ser exportadas a territorio nacional por compra efectuada por el importador (Art. 64, parrafo tercero)",
+            "Aplicar al precio pagado los ajustes que corresponda conforme al Art. 65 (Art. 64, parrafo tercero)"
+          ],
+          "banderas": [
+            "El precio pagado comprende el pago total efectuado o por efectuar de manera directa o indirecta al vendedor o en beneficio de este: los pagos indirectos tambien forman parte de la base (Art. 64, parrafo cuarto)",
+            "Cuando el valor declarado sea inferior al precio estimado que establezca la Secretaria se exige garantia en la cuenta aduanera de garantia (Arts. 36-A fraccion I inciso e y 84-A)",
+            "Los metodos alternativos de valoracion del Art. 71 y los conceptos de los Arts. 65 a 67 NO estan desarrollados en esta ficha: cotejarlos antes de concluir sobre una operacion concreta"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-90-REGIMENES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Regimenes aduaneros a los que puede destinarse la mercancia",
+      "texto_resumen": "Las mercancias que se introduzcan al territorio nacional o se extraigan del mismo pueden destinarse a alguno de los regimenes aduaneros del Art. 90: definitivos de importacion y exportacion; temporales de importacion, para retornar al extranjero en el mismo estado o para elaboracion, transformacion o reparacion en programas de maquila o de exportacion, y temporales de exportacion; deposito fiscal; transito de mercancias, interno o internacional; elaboracion, transformacion o reparacion en recinto fiscalizado; y recinto fiscalizado estrategico.",
+      "fuente_cita": "Ley Aduanera, Art. 90, apartados A a F (texto vigente; apartado F adicionado DOF 30-12-2002)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2002-12-30",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGIMENES_ADUANEROS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Destinar la mercancia a alguno de los regimenes del Art. 90: definitivos de importacion o de exportacion (apartado A)",
+            "Regimenes temporales: de importacion, para retornar al extranjero en el mismo estado o para elaboracion, transformacion o reparacion en programas de maquila o de exportacion; y de exportacion, para retornar al pais en el mismo estado o para elaboracion, transformacion o reparacion (apartado B)",
+            "Regimen de deposito fiscal (apartado C)",
+            "Regimen de transito de mercancias, interno o internacional (apartado D)",
+            "Regimen de elaboracion, transformacion o reparacion en recinto fiscalizado (apartado E) o de recinto fiscalizado estrategico (apartado F)",
+            "Quien introduzca mercancias bajo importacion temporal para elaboracion, transformacion o reparacion en programas de maquila o de exportacion, deposito fiscal, recinto fiscalizado estrategico o elaboracion en recinto fiscalizado debe llevar en forma automatizada el sistema de control de inventarios (Art. 59, fraccion I, parrafo segundo)"
+          ],
+          "banderas": [
+            "Los requisitos, plazos y condiciones de cada regimen viven en articulos que NO estan en esta ficha: el Art. 90 solo enumera el catalogo",
+            "El decreto del programa que autoriza la industria manufacturera, maquiladora y de servicios de exportacion NO forma parte de este grafo: cotejarlo antes de concluir sobre una operacion bajo programa"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-176-INFRACCIONES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Infracciones por importar o exportar sin cubrir contribuciones, sin permiso o cuando esta prohibido",
+      "texto_resumen": "Comete infraccion relacionada con la importacion o exportacion quien introduzca al pais o extraiga de el mercancias omitiendo el pago total o parcial de los impuestos al comercio exterior y, en su caso, de las cuotas compensatorias; sin permiso de las autoridades competentes o sin la firma electronica en el pedimento que demuestre el descargo del permiso antes del despacho, o sin cumplir cualesquiera otras regulaciones o restricciones no arancelarias emitidas conforme a la Ley de Comercio Exterior; cuando su importacion o exportacion este prohibida; cuando se ejecuten actos idoneos inequivocamente dirigidos a realizar esas operaciones sin consumarse por causas ajenas al agente; y cuando se internen mercancias extranjeras de la franja o region fronteriza al resto del territorio nacional.",
+      "fuente_cita": "Ley Aduanera, Art. 176, fracciones I a V (texto vigente, ultima reforma DOF 19-11-2025; fraccion II reformada DOF 01-01-2002, 25-06-2018 y 19-11-2025; fraccion III reformada DOF 31-12-1998 y 09-04-2012)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2025-11-19",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "INFRACCIONES_ADUANERAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "no_permitido",
+          "requisitos": [
+            "Cubrir el pago total de los impuestos al comercio exterior y, en su caso, de las cuotas compensatorias que deban pagarse (Art. 176, fraccion I)",
+            "Contar con el permiso de las autoridades competentes y con la firma electronica en el pedimento que demuestre el descargo total o parcial del permiso ANTES de realizar los tramites del despacho aduanero (Art. 176, fraccion II)",
+            "Cumplir cualesquiera otras regulaciones o restricciones no arancelarias emitidas conforme a la Ley de Comercio Exterior, compromisos internacionales, requerimientos de orden publico o cualquier otra regulacion (Art. 176, fraccion II)",
+            "No introducir ni extraer mercancia cuya importacion o exportacion este prohibida (Art. 176, fraccion III)",
+            "Las maquiladoras y empresas con programa autorizado por la Secretaria de Economia no deben realizar importaciones temporales de mercancias no amparadas por su programa (Art. 176, fraccion III, en relacion con el Art. 108)"
+          ],
+          "banderas": [
+            "La tentativa tambien es infraccion: ejecutar actos idoneos inequivocamente dirigidos a realizar esas operaciones, aunque no se consumen por causas ajenas a la voluntad del agente (Art. 176, fraccion IV)",
+            "Internar mercancia extranjera de la franja o region fronteriza al resto del territorio nacional queda comprendido en el mismo articulo (Art. 176, fraccion V)",
+            "Las sanciones aplicables a cada fraccion viven en articulos distintos que NO estan en esta ficha; el delito de contrabando se rige por el Codigo Fiscal de la Federacion, fuera de este grafo"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-17-21-RRNA-PERMISOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Regulaciones y restricciones no arancelarias: instrumentos, publicacion y permisos previos",
+      "texto_resumen": "Las medidas de regulacion y restriccion no arancelarias a la exportacion, importacion, circulacion o transito de mercancias deben someterse previamente a la opinion de la Comision y publicarse en el Diario Oficial de la Federacion; las dependencias competentes publican los procedimientos para su expedicion o cumplimiento. Esas medidas se expiden por acuerdo de la Secretaria o, en su caso, conjuntamente con la autoridad competente, y consisten en permisos previos, cupos maximos, marcado de pais de origen, certificaciones, cuotas compensatorias y los demas instrumentos adecuados a los fines de la Ley. Corresponde a la Secretaria sujetar la exportacion e importacion a permisos previos y expedirlos con los requisitos del Art. 21.",
+      "fuente_cita": "Ley de Comercio Exterior, Arts. 17 y 21 (texto vigente, ultima reforma de la Ley DOF 01-05-2026; articulos sin reforma anotada; Ley publicada DOF 27-07-1993, en vigor al dia siguiente conforme a su Transitorio Primero)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "1993-07-28",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGULACIONES_NO_ARANCELARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "La medida no arancelaria debe haberse sometido previamente a la opinion de la Comision y publicado en el Diario Oficial de la Federacion (Art. 17, parrafo primero)",
+            "La dependencia competente debe haber publicado en el DOF los procedimientos para la expedicion o cumplimiento de la medida (Art. 17, parrafo primero)",
+            "La medida debe expedirse por acuerdo de la Secretaria o, en su caso, conjuntamente con la autoridad competente (Art. 17, parrafo segundo)",
+            "Verificar cual de los instrumentos aplica a la mercancia: permisos previos, cupos maximos, marcado de pais de origen, certificaciones o cuotas compensatorias (Art. 17, parrafo segundo)",
+            "La sujecion a permiso previo debe someterse a la opinion de la Comision, y el formato de solicitud, los requerimientos de informacion y los procedimientos de tramite deben publicarse en el DOF (Art. 21, fracciones I y II)",
+            "El permiso previo indica las modalidades, condiciones y vigencia a que se sujeta, asi como el valor y la cantidad o volumen de la mercancia a exportar o importar (Art. 21, fraccion IV)"
+          ],
+          "banderas": [
+            "Las cuotas compensatorias solo se aplican en el caso de practicas desleales previsto en la fraccion V del Art. 16 (Art. 17, parrafo segundo, parte final)",
+            "El plazo maximo de resolucion del permiso previo es un dato numerico de la ley y debe cotejarse contra el DOF vigente antes de usarse operativamente",
+            "Que mercancia concreta esta sujeta a permiso, cupo o certificacion depende de acuerdos publicados en el DOF por fraccion arancelaria que NO forman parte de este grafo"
+          ],
+          "parametros": {
+            "plazo_resolucion_permiso_dias": 15,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-15-16-RRNA-CASOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Casos en que proceden las regulaciones y restricciones no arancelarias",
+      "texto_resumen": "Las medidas no arancelarias a la exportacion solo pueden establecerse en los casos del Art. 15: asegurar el abasto de productos de consumo basico y el abastecimiento de materias primas a productores nacionales o controlar recursos naturales no renovables; conforme a tratados; productos con restricciones constitucionales; preservar fauna y flora en riesgo o peligro de extincion, asegurar la conservacion o aprovechamiento de especies o prevenir la deforestacion y el cambio de uso de suelo en terrenos forestales sin autorizacion; conservar bienes de valor historico, artistico o arqueologico; y situaciones no previstas por las normas oficiales mexicanas en seguridad nacional, salud publica, sanidad fitopecuaria o ecologia. A la importacion, circulacion o transito proceden en los casos del Art. 16.",
+      "fuente_cita": "Ley de Comercio Exterior, Arts. 15 y 16 (texto vigente, ultima reforma de la Ley DOF 01-05-2026; Art. 15 fraccion IV reformada DOF 01-05-2026)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "2026-05-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGULACIONES_NO_ARANCELARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "A la exportacion: verificar que la medida cae en alguno de los casos del Art. 15, fracciones I a VI",
+            "A la importacion, circulacion o transito: verificar que la medida cae en alguno de los casos del Art. 16, fracciones I a VI (desequilibrio temporal de balanza de pagos conforme a tratados; entrada de productos usados, de desecho o sin mercado sustancial en su pais de origen o procedencia; lo dispuesto en tratados; respuesta a restricciones aplicadas unilateralmente por otros paises a exportaciones mexicanas; impedir la concurrencia de mercancias en condiciones de practicas desleales; y situaciones no previstas por las normas oficiales mexicanas en seguridad nacional, salud publica, sanidad fitopecuaria o ecologia)",
+            "Comprobar que la medida invocada se publico en el Diario Oficial de la Federacion antes de aplicarla a la operacion (Art. 17)"
+          ],
+          "banderas": [
+            "La lista de casos es cerrada: una restriccion no arancelaria que no encuadre en el Art. 15 o en el Art. 16 carece de sustento en esta Ley",
+            "La fraccion IV del Art. 15 (fauna y flora, deforestacion y cambio de uso de suelo) fue reformada DOF 01-05-2026 y es la reforma mas reciente de este ambito"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-23-24-CUPOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Cupos de exportacion e importacion y su asignacion",
+      "texto_resumen": "Cupo de exportacion o importacion es el monto de una mercancia que podra ser exportado o importado, ya sea maximo o dentro de un arancel-cupo; su administracion se puede hacer por medio de permisos previos. La Secretaria especifica y publica en el Diario Oficial de la Federacion la cantidad, volumen o valor total del cupo, los requisitos para presentar solicitudes, la vigencia del permiso y el procedimiento de asignacion, previa opinion de la Comision. Los cupos se asignan por licitacion publica, aunque la Secretaria puede optar de manera fundada y razonada por otros procedimientos que promuevan la competitividad de las cadenas productivas y garanticen acceso a nuevos solicitantes, o por los previstos en tratados.",
+      "fuente_cita": "Ley de Comercio Exterior, Arts. 23 y 24 (texto vigente, ultima reforma de la Ley DOF 01-05-2026; parrafo del Art. 23 adicionado DOF 13-03-2003)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "2003-03-13",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGULACIONES_NO_ARANCELARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Verificar en el Diario Oficial de la Federacion la cantidad, volumen o valor total del cupo, los requisitos de solicitud, la vigencia del permiso y el procedimiento de asignacion (Art. 23, parrafo segundo)",
+            "Participar por el cupo mediante licitacion publica, salvo que la Secretaria haya optado de manera fundada y razonada por otro procedimiento de asignacion o que este previsto en un tratado (Art. 24)",
+            "Si la administracion del cupo se hace por permisos previos, cumplir ademas los requisitos del Art. 21"
+          ],
+          "banderas": [
+            "La determinacion, modificaciones y procedimientos de asignacion de los cupos deben someterse previamente a la opinion de la Comision (Art. 23, parrafo segundo)",
+            "Los cupos vigentes por mercancia y su calendario NO forman parte de este grafo: viven en acuerdos y convocatorias publicados en el DOF"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-26-NOM-IMPORTACION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Normas oficiales mexicanas aplicables a la importacion, circulacion o transito",
+      "texto_resumen": "En todo caso, la importacion, circulacion o transito de mercancias estan sujetos a las normas oficiales mexicanas de conformidad con la ley de la materia. No pueden establecerse disposiciones de normalizacion a la importacion, circulacion o transito distintas de las normas oficiales mexicanas. Las mercancias sujetas a normas oficiales mexicanas se identifican en terminos de sus fracciones arancelarias y de la nomenclatura que les corresponda conforme a la tarifa respectiva. La Secretaria determina que normas oficiales mexicanas deben hacer cumplir las autoridades aduaneras en el punto de entrada de la mercancia al pais, previa opinion de la Comision y con publicacion en el DOF.",
+      "fuente_cita": "Ley de Comercio Exterior, Art. 26 (texto vigente, ultima reforma de la Ley DOF 01-05-2026; articulo sin reforma anotada; Ley en vigor desde el 28-07-1993)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "1993-07-28",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REGULACIONES_NO_ARANCELARIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Verificar si la mercancia esta sujeta a norma oficial mexicana, identificandola por su fraccion arancelaria y la nomenclatura de la tarifa respectiva (Art. 26, parrafo primero)",
+            "Comprobar cuales normas oficiales mexicanas debe hacer cumplir la autoridad aduanera en el punto de entrada, conforme a la determinacion de la Secretaria publicada en el DOF (Art. 26, parrafo segundo)",
+            "Acreditar el cumplimiento de la norma oficial mexicana aplicable como parte de las regulaciones y restricciones no arancelarias del despacho (Art. 36-A, fraccion I, inciso c de la Ley Aduanera)"
+          ],
+          "banderas": [
+            "No pueden imponerse disposiciones de normalizacion a la importacion, circulacion o transito distintas de las normas oficiales mexicanas (Art. 26, parrafo primero)",
+            "El catalogo de normas oficiales mexicanas y su contenido tecnico NO forman parte de este grafo: se cotejan contra la ley de la materia y el DOF"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-28-62-63-PRACTICAS-DESLEALES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Practicas desleales de comercio internacional y cuota compensatoria",
+      "texto_resumen": "Se consideran practicas desleales de comercio internacional la importacion de mercancias en condiciones de discriminacion de precios o de subvenciones en el pais exportador, sea el de origen o el de procedencia, que causen dano a una rama de produccion nacional de mercancias identicas o similares en los terminos del Art. 39. Quienes importen en esas condiciones estan obligados al pago de una cuota compensatoria. Corresponde a la Secretaria determinar las cuotas compensatorias, equivalentes a la diferencia entre el valor normal y el precio de exportacion en discriminacion de precios, o al monto del beneficio en subvenciones; pueden ser menores siempre que basten para desalentar la importacion. Las cuotas compensatorias se consideran aprovechamientos conforme al Art. 3o. del Codigo Fiscal de la Federacion.",
+      "fuente_cita": "Ley de Comercio Exterior, Arts. 28, 62 y 63 (texto vigente, ultima reforma de la Ley DOF 01-05-2026; Art. 28 reformado DOF 13-03-2003)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "2003-03-13",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "PRACTICAS_DESLEALES",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Verificar si la mercancia, por su descripcion y su pais de origen o de procedencia, esta sujeta a una cuota compensatoria determinada por la Secretaria: la resolucion concreta NO forma parte de este grafo y debe consultarse en el Diario Oficial de la Federacion",
+            "Si aplica una cuota compensatoria, cubrir su pago: quienes importan en condiciones de practicas desleales estan obligados a ello (Art. 28)",
+            "Considerar la cuota compensatoria como aprovechamiento para efectos fiscales, conforme al Art. 3o. del Codigo Fiscal de la Federacion (Art. 63)",
+            "Declarar la cuota compensatoria junto con los impuestos al comercio exterior: omitir su pago total o parcial es infraccion (Ley Aduanera, Art. 176, fraccion I)"
+          ],
+          "banderas": [
+            "Fail-safe: el grafo NO puede determinar si una mercancia concreta esta gravada con cuota compensatoria. Eso depende de una resolucion de la Secretaria por producto y origen, publicada en el DOF, que no esta sembrada aqui. Por eso el veredicto es dudoso y no permitido",
+            "La cuota puede ser menor al margen de discriminacion de precios o al monto de la subvencion, siempre que baste para desalentar la importacion (Art. 62, parrafo segundo)",
+            "Puede aplicarse cuota compensatoria definitiva de forma retroactiva sobre importaciones de los tres meses anteriores a las medidas provisionales cuando se cumplen los supuestos del Art. 65 A: una operacion ya despachada puede quedar gravada despues",
+            "El corredor de origen importa: la determinacion es por producto y pais, de modo que dos embarques identicos de origenes distintos pueden tener tratamiento opuesto"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LADUA-59-36A-ORIGEN",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Origen y procedencia: documentacion para preferencias arancelarias y marcado de pais de origen",
+      "texto_resumen": "Quienes introduzcan o extraigan mercancias deben obtener la informacion, documentacion y demas medios de prueba necesarios para comprobar el pais de origen y de procedencia, para efectos de preferencias arancelarias, marcado de pais de origen, aplicacion de cuotas compensatorias, cupos y otras medidas conforme a la Ley de Comercio Exterior y a los tratados de los que Mexico sea parte, y proporcionarlos a la autoridad aduanera cuando esta los requiera. Esa documentacion se transmite como anexo al pedimento conforme al Art. 36-A, fraccion I, inciso d).",
+      "fuente_cita": "Ley Aduanera, Arts. 59 fraccion II y 36-A fraccion I inciso d) (texto vigente, ultima reforma DOF 19-11-2025; el segundo parrafo del inciso d) fue reformado DOF 19-11-2025)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LAdua.pdf",
+      "vigente_desde": "2025-11-19",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "ORIGEN_MERCANCIAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Obtener y conservar la informacion, documentacion y medios de prueba que comprueben el pais de origen y de procedencia de las mercancias (Ley Aduanera, Art. 59, fraccion II)",
+            "Proporcionar esa documentacion a las autoridades aduaneras cuando la requieran (Art. 59, fraccion II)",
+            "Transmitir como anexo al pedimento la documentacion que determine la procedencia y el origen para la aplicacion de preferencias arancelarias conforme a los tratados de los que Mexico sea Parte (Art. 36-A, fraccion I, inciso d)",
+            "Si la mercancia originaria estuvo en transito por territorio de paises no Parte del tratado aplicable, acreditar que permanecio bajo control de las autoridades aduaneras conforme a las reglas (Art. 36-A, fraccion I, inciso d, segundo parrafo)"
+          ],
+          "banderas": [
+            "Las reglas de origen concretas viven en cada tratado y NO estan sembradas en este grafo: que una mercancia califique para trato preferencial no se puede determinar aqui",
+            "La documentacion de origen no sirve solo para preferencias: tambien sustenta marcado de pais de origen, cuotas compensatorias y cupos (Art. 59, fraccion II)",
+            "El origen puede verificarse despues del despacho, incluso ante el exportador en el extranjero: la carga de conservar la prueba es del importador"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-LCE-26-LADUA-36A-CLASIFICACION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "Clasificacion arancelaria: la mercancia se identifica por fraccion arancelaria y nomenclatura de la tarifa",
+      "texto_resumen": "Tanto las mercancias sujetas a normas oficiales mexicanas como las sujetas a regulaciones y restricciones no arancelarias se identifican en terminos de su fraccion arancelaria y de la nomenclatura que les corresponda conforme a la tarifa respectiva. La clasificacion determina, por tanto, que medidas no arancelarias y que trato aplican a una operacion. La tarifa vigente y los criterios de clasificacion de una mercancia concreta NO forman parte de este grafo.",
+      "fuente_cita": "Ley de Comercio Exterior, Art. 26 parrafo primero, y Ley Aduanera, Art. 36-A fraccion I inciso c) (textos vigentes; LCE ultima reforma DOF 01-05-2026, Ley Aduanera ultima reforma DOF 19-11-2025; el inciso c) fue reformado DOF 25-06-2018)",
+      "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LCE.pdf",
+      "vigente_desde": "2018-06-25",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "CLASIFICACION_ARANCELARIA",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Identificar la mercancia por su fraccion arancelaria y por la nomenclatura que le corresponda conforme a la tarifa respectiva (Ley de Comercio Exterior, Art. 26, parrafo primero)",
+            "Verificar que las regulaciones y restricciones no arancelarias aplicables se publicaron en el DOF identificadas en terminos de esa fraccion arancelaria y nomenclatura (Ley Aduanera, Art. 36-A, fraccion I, inciso c)",
+            "Conservar los elementos que sustenten la clasificacion declarada como parte del expediente electronico de la operacion (Ley Aduanera, Art. 59, fraccion V)"
+          ],
+          "banderas": [
+            "Fail-safe: la Tarifa de la Ley de los Impuestos Generales de Importacion y de Exportacion NO esta sembrada en este grafo. La clasificacion correcta de una mercancia concreta requiere la tarifa vigente y, en su caso, criterio de la autoridad, de modo que aqui el veredicto es dudoso",
+            "Una diferencia de criterio en la clasificacion cambia la base de contribuciones y las medidas no arancelarias aplicables sobre operaciones ya despachadas, incluso anos despues",
+            "La clasificacion es el eje del que cuelgan arancel, regulaciones no arancelarias, normas oficiales mexicanas y cuotas compensatorias: un error en ella se propaga a todas"
           ],
           "parametros": {
             "verificar": false
