@@ -521,7 +521,7 @@ propósito keywords amplias como `importacion` o `exportacion` desnudas: clasifi
 cualquier mención genérica en una sola categoría y darían un dictamen seguro de sí mismo
 sobre una pregunta que nadie hizo (doctrina anti-etiquetas-amplias, 2026-08-08).
 
-### Deuda que este trabajo destapó y NO cierra
+### Deuda que este trabajo destapó y NO cierra — ✅ CERRADA el mismo día (ver sección siguiente)
 
 El escáner del Pre-Discovery (`meeting-copilot/src/features/pre-discovery/
 escaneo-regulatorio.ts`) espera para el sector logística las categorías
@@ -534,3 +534,68 @@ las dos leyes sembradas aquí.
 **PENDIENTE runtime:** aplicar `02-seed.sql` (idempotente) + `docker restart grafo`
 —obligatorio por el `lru_cache` de `db.py`— + smoke de conteos. Bloqueado: el servidor de
 Hetzner tiene la red cortada por el proveedor desde ~2026-08-27.
+
+## Logística MX (2026-09-02) — LCPAF + Ley de Aviación Civil, y la deuda que se cierra
+
+Mismo día que comercio exterior, y consecuencia directa suya: al sembrar ese ámbito quedó
+nombrada una deuda —el escaneo regulatorio del Pre-Discovery esperaba para el sector
+logística las categorías `CARGA_AEREA_EAWB` y `AUTOTRANSPORTE_CARGA`, **el seed no las
+tenía**, y su mock sí las dictaminaba **citando IATA Res. 672 sin ningún anclaje en ley
+mexicana**. Con el grafo real un forwarder salía `sin regla aplicable`; con el mock salía
+`permitido` con fuentes. Divergencia silenciosa, del mismo linaje que el fallback del
+Pre-Discovery (2026-08-08).
+
+**Resultado:** 2 reglas, 2 categorías, seed 81→**83 reglas / 86 impactos / 55 categorías**.
+Las tres expectativas del sector logística del escáner (`CARGA_AEREA_EAWB`,
+`AUTOTRANSPORTE_CARGA`, `AGENTES_SEGUROS`) quedan satisfechas. 119 tests del grafo.
+
+### El hallazgo que cambia el dictamen: la guía aérea SÍ tiene base mexicana
+
+El mock —y la plantilla, que anticipaba `dudoso` por "estándar sectorial ≠ exigencia de
+autoridad"— asumían que del lado mexicano no había nada. Leyendo la Ley de Aviación Civil
+apareció el **Art. 55**: el contrato de transporte de carga *"deberá constar en una carta
+de porte o guía de carga aérea"* que el concesionario expide al embarcador, *"cuyo formato
+se sujetará a lo especificado en la norma oficial mexicana respectiva"*.
+
+Eso reordena todo: el veredicto es `permitido` **con base nacional**, y lo que queda como
+bandera declarada es la parte que de verdad no se puede afirmar — **que la forma
+ELECTRÓNICA (e-AWB) satisfaga el requisito de forma del Art. 55**, porque esa NOM no está
+sembrada. La Resolución 672 de IATA baja a donde le corresponde: estándar sectorial que
+acredita práctica de la industria, no cumplimiento del Art. 55. Lección: antes de declarar
+un hueco de conocimiento, **buscar la ley nacional** — la plantilla acertó en el método y
+se equivocó en el supuesto.
+
+### LCPAF: el límite de responsabilidad es una decisión económica
+
+`AUTOTRANSPORTE_CARGA` sale de LCPAF Arts. 8o. fr. I/IV/XI (permiso de la Secretaría para
+autotransporte federal de carga, paquetería y mensajería, y transporte privado), 50
+(alcance y permiso especial por objetos voluminosos), 66 (responsabilidad desde la
+recepción hasta la entrega, con cinco excepciones) y 68 (garantía de daños; en materiales
+peligrosos, cobertura de puerta a puerta).
+
+El dato con filo del Art. 66 fr. V: si el usuario **no declara el valor**, la
+responsabilidad queda limitada a **15 días de salario mínimo por tonelada**. Declarar el
+valor no es un trámite, es una decisión económica. Y el texto refiere el *"salario mínimo
+general vigente en el Distrito Federal"*, denominación anterior a la UMA → bandera de
+conversión pendiente, mismo patrón que los 365 salarios mínimos del CCF (Fase B).
+
+### Vocabulario: dos modos que comparten término
+
+`carta de porte` la usan LCPAF y LAC ("carta de porte o guía de carga aérea"). Como las
+keywords son globalmente únicas, se asignó a `AUTOTRANSPORTE_CARGA` y el aéreo se protege
+por dos vías: keyword más larga (`carta de porte aerea` gana a `carta de porte`) y
+**exclusiones cruzadas** entre modos, con test que fija ambas. `carta porte` (sin "de") se
+añadió a propósito **con su hueco declarado**: el complemento Carta Porte del CFDI es
+obligación fiscal de la RMF/RGCE, fuera del grafo — clasificar y nombrar el límite es mejor
+que quedarse mudo ante un término que todo transportista usa.
+
+### El mock se alineó, y sus tests cazaron el cambio
+
+`grafo.ts` del copiloto declara en su encabezado ser *"mock FIEL (mismas claves de regla
+del seed real)"* y llevaba tiempo sin serlo. Se actualizaron claves, citas y vigencias
+(entre ellas LCPAF, que el mock fechaba el 22-12-1993, su publicación, cuando entró en
+vigor **al día siguiente**). Dos vitest fijaban las citas viejas y se pusieron rojos — buena
+señal: existían para eso. 364 vitest verdes tras actualizarlos.
+
+**PENDIENTE runtime:** igual que comercio exterior, bloqueado por la red cortada del
+servidor. Esperado al aplicar: 83 reglas / 55 categorías.
