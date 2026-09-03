@@ -152,6 +152,13 @@ def test_toda_regla_comex_cita_ley_primaria_y_trae_disclaimer():
         r for r in REGLAS
         if any(imp.get("categoria") in CATS_COMEX for imp in r["impactos"])
     ]
+    # El T-MEC tambien aterriza en una categoria de este ambito (Art. 7.20 en
+    # REPRESENTACION_ADUANAL): es fuente primaria, pero NO vive en diputados.gob.mx.
+    # Se separa por clave y se afirma cual es, para que la excepcion no se trague
+    # manana una regla mal citada (tiene su propio gate en test_tmec.py).
+    tratado = [r for r in comex if r["clave"].startswith("MX-TMEC-")]
+    assert [r["clave"] for r in tratado] == ["MX-TMEC-7.20-AGENTES-ADUANALES"]
+    comex = [r for r in comex if not r["clave"].startswith("MX-TMEC-")]
     assert len(comex) == 13, f"se esperaban 13 reglas de comercio exterior, hay {len(comex)}"
     for r in comex:
         assert r["jurisdiccion"] == "MX"

@@ -123,6 +123,32 @@ const REGLAS_MOCK: { patron: RegExp; dimension: DimensionGrafo; categoria: strin
     ],
   },
   {
+    // Vocabulario del tratado, NO de la exportacion en general: el grafo real solo
+    // clasifica en T-MEC cuando el texto lo nombra (o nombra su certificacion).
+    patron: /(t-?mec|usmca|trato arancelario preferencial|certificaci[oó]n de origen)/i,
+    dimension: 'regulatorio',
+    categoria: 'TMEC_TRATO_PREFERENCIAL',
+    estado: 'permitido',
+    razon: 'T-MEC: obligaciones del importador que solicita trato arancelario preferencial',
+    fuente: {
+      clave: 'MX-TMEC-5.4-OBLIGACIONES-IMPORTADOR',
+      cita: 'T-MEC, Capitulo 5 (Procedimientos de Origen), Art. 5.4 (Obligaciones Referentes a las Importaciones), parrafos 1 a 3 — texto final publicado por la Secretaria de Economia; promulgado por decreto DOF 29-06-2020, en vigor el 01-07-2020',
+      url: 'https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf',
+      vigencia: { desde: '2020-07-01', hasta: null },
+    },
+    banderas: [
+      'El trato preferencial NO es automatico por ser mercancia de la region: depende de que la mercancia califique como originaria conforme al Capitulo 4 y de que exista certificacion valida',
+      'Las reglas de origen ESPECIFICAS POR PRODUCTO (Anexo 4-B) no estan sembradas: si una mercancia concreta califica se responde dudoso, nunca se adivina',
+      'El T-MEC no tiene certificado de origen de formato oficial como el TLCAN: quien exija el formato viejo pide un documento que el tratado ya no contempla',
+    ],
+    checklist: [
+      'Hacer la declaracion de que la mercancia califica como originaria, como parte de la documentacion de importacion (Art. 5.4.1(a))',
+      'Tener en su poder una certificacion de origen valida AL MOMENTO de hacer la declaracion, no despues (Art. 5.4.1(b))',
+      'Entregar copia de la certificacion de origen a la administracion aduanera cuando la requiera (Art. 5.4.1(c))',
+      'Conservar la documentacion por al menos cinco anos desde la importacion (Art. 5.8.1)',
+    ],
+  },
+  {
     patron: /(\blegal\b|abogad|bufete|law ?firm|attorney|lawyer|servicios legales|despacho jur[ií]dico|litig)/i,
     dimension: 'regulatorio',
     categoria: 'SERVICIOS_LEGALES',

@@ -1683,10 +1683,47 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   gate OK; 119 tests del grafo (13 nuevos) con 4 sabotajes de control de reversión.
   El **mock del copiloto se alineó** al seed real (claves, citas y vigencias) junto con sus
   2 tests, que fijaban las citas viejas: 364 vitest verdes.
-- [ ] **Seed de comercio exterior y logística PENDIENTE de aplicar al runtime**: `psql < 02-seed.sql`
+- [x] **T-MEC sembrado** (2026-09-03): el tratado que las dos siembras anteriores dejaron
+  declarado como hueco. La regla de origen doméstica (Ley Aduanera 59/36-A) decía —con
+  razón entonces— que *"las reglas de origen concretas viven en cada tratado y NO están
+  sembradas en este grafo"*; ahora el marco sí lo está. **15 reglas y 6 categorías nuevas**
+  desde los **Capítulos 4 (Reglas de Origen), 5 (Procedimientos de Origen) y 7
+  (Administración Aduanera y Facilitación del Comercio)** del texto final publicado por la
+  Secretaría de Economía (promulgado DOF 29-06-2020, en vigor 01-07-2020), leídos del PDF
+  oficial con `pypdf`. **La numeración real desmiente a los resúmenes**: 5.2 es *Solicitudes
+  de Trato Preferencial*, 5.3 *Bases de la Certificación*, 5.5 *Excepciones* y 5.11
+  *Devoluciones* — quien siembre de memoria cita artículos que no existen.
+  Cubre: obligaciones del importador (5.4), quién certifica —exportador, productor o
+  importador, con la nota al pie que difiere la certificación por el importador en México
+  al 01-01-2024— (5.2), los 9 elementos mínimos del **Anexo 5-A** sin formato oficial,
+  cobertura de 12 meses y aceptación por 4 años (5.3), excepción de US$1,000 (5.5),
+  errores menores y 5 días hábiles para corregir (5.7), conservación 5 años (5.8),
+  verificación (5.9), devolución hasta un año después (5.11), mercancía originaria y VCR
+  60/50 (4.2), de minimis 10% (4.12), tránsito y transbordo (4.18), envíos de entrega
+  rápida (7.8) y resoluciones anticipadas (7.5).
+  El **Art. 7.20 (auto-declaración sin agente aduanal)** entra como impacto en la categoría
+  YA existente `REPRESENTACION_ADUANAL`: complementa a la Ley Aduanera 40 en vez de pelearle
+  —va con `veredicto_base` nulo y la regla doméstica sigue siendo la rectora—.
+  Dos veredictos `dudoso` por **fail-safe declarado**: `TMEC_REGLAS_ORIGEN` (el **Anexo 4-B**,
+  reglas específicas por producto, NO está sembrado: el grafo no puede decir si una mercancía
+  concreta califica) y `TMEC_ENVIOS_ENTREGA_RAPIDA` (el Art. 7.8 obliga a México a un **piso**
+  de 117 USD para aranceles y 50 para impuestos, pero lo que paga un envío concreto lo fija el
+  ordenamiento doméstico vigente, que ha cambiado varias veces desde 2020).
+  **El invariante que este ámbito casi rompe**: el motor reporta *contradicción* y degrada a
+  `dudoso` cuando dos veredictos distintos viven en la misma categoría (`evaluar_concepto`),
+  y el gate `--check` **no puede verlo** porque valida regla por regla. De ahí el patrón: una
+  sola rectora por categoría y las complementarias con `veredicto_base` nulo, más un test que
+  lo fija. Seed 83→**98 reglas / 61 categorías**; gate OK; **132 tests del grafo** (13 nuevos)
+  con control de reversión verificado —saboteadas las dos cosas, el gate siguió en verde y
+  los tests en rojo—. Mock del copiloto alineado (+2 tests, 366 vitest verdes): el patrón
+  exige vocabulario del tratado, así que *"exportamos autopartes"* sigue saliendo *sin regla
+  aplicable* en vez de recibir un dictamen que nadie pidió.
+  Fuera de alcance a propósito: Anexo 4-B y su apéndice automotriz, Capítulo 6 (textiles),
+  Reglamentaciones Uniformes, RGCE y los demás tratados.
+- [ ] **Seed de comercio exterior, logística y T-MEC PENDIENTE de aplicar al runtime**: `psql < 02-seed.sql`
   (idempotente) + `docker restart grafo` —obligatorio: `db.py` cachea con `lru_cache` y
   sin reinicio el runtime sigue sirviendo lo viejo **sin error**— + smoke de conteos
-  (esperado 83 reglas / 55 categorías, `evaluaciones` intactas; procedimiento 2026-08-04).
+  (esperado 98 reglas / 61 categorías, `evaluaciones` intactas; procedimiento 2026-08-04).
   🚫 **Bloqueado**: el servidor de Hetzner tiene la red cortada por el proveedor desde
   ~27-28 de agosto (`ipv4.blocked` e `ipv6.blocked` en su API; la máquina corre, pero
   está incomunicada). `drift-runtime.py` lo marcará como deriva en cuanto vuelva.

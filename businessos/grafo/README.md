@@ -7,7 +7,9 @@ veredicto por concepto **con fuente**, banderas rojas y checklist. **Señala rie
 (LFPDPPP 2025, prospección B2B) y **regulatorio MX** (permisos/cumplimiento operativo —
 veredicto `permitido`/`no_permitido`/`dudoso`; drones-delivery, intermediación de seguros,
 corporativo-mercantil, fiduciario/inmobiliario, ambiental, cabildeo, propiedad industrial,
-servicios legales, **comercio exterior** —Ley Aduanera y Ley de Comercio Exterior— y **logística** —autotransporte federal de carga y carga aérea—;
+servicios legales, **comercio exterior** —Ley Aduanera y Ley de Comercio Exterior—, **logística**
+—autotransporte federal de carga y carga aérea— y **T-MEC** —origen, certificación, verificación,
+envíos de entrega rápida y resoluciones anticipadas—;
 Fase 8). Pasa `jurisdiccion`/`dimension`/`regimen`
 en el contexto; `GENERAL` en un impacto aplica a cualquier régimen. La clasificación solo
 considera categorías del ámbito consultado.
@@ -34,7 +36,7 @@ curl -s http://127.0.0.1:3000/evaluaciones -X POST -H 'content-type: application
 
 | Pieza | Qué es |
 |-------|--------|
-| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: **83 reglas / 86 impactos / 55 categorías** (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo, LFPDPPP 2025, y regulatorio MX: LAC/NOM-107/LISF, LGSM/LFCE, LGTOC/LIE, LGEEPA/LGPGIR/LFRA, LMV, LFPPI, LRArt5/LFPIORPI **Ley Aduanera / Ley de Comercio Exterior**, y **LCPAF / Ley de Aviación Civil** para logística) |
+| `seed/reglas.json` | FUENTE DE VERDAD del conocimiento: **98 reglas / 101 impactos / 61 categorías** (LISR/CFF/SAT/NIF MX, ET CO, CCF/CCo, LFPDPPP 2025, y regulatorio MX: LAC/NOM-107/LISF, LGSM/LFCE, LGTOC/LIE, LGEEPA/LGPGIR/LFRA, LMV, LFPPI, LRArt5/LFPIORPI **Ley Aduanera / Ley de Comercio Exterior**, y **LCPAF / Ley de Aviación Civil** para logística; más el **T-MEC** —Caps. 4, 5 y 7, texto oficial de la Secretaría de Economía, DOF 29-06-2020—) |
 | `seed/gen_seed_sql.py` | Valida el seed (gate de procedencia) y genera `02-seed.sql`. `--check` = solo validar |
 | `PLANTILLA-INVESTIGACION-SEED.md` | Método investigación→seed: aterriza una investigación regulatoria a la Salida B sembrable (esquema real, gate, frontera Salida A vs B). Para dominios nuevos, p. ej. documentación de exportación logística |
 | `seed/01-schema.sql`, `seed/02-seed.sql` | Corren vía initdb de postgres (orden alfabético) |

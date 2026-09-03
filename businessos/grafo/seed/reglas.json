@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes) + comercio exterior MX (Ley Aduanera y Ley de Comercio Exterior: padron, despacho, representacion, valor en aduana, origen, clasificacion, regulaciones no arancelarias, practicas desleales, regimenes e infracciones) + logistica MX (autotransporte federal de carga y carga aerea).",
+    "descripcion": "Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes) + comercio exterior MX (Ley Aduanera y Ley de Comercio Exterior: padron, despacho, representacion, valor en aduana, origen, clasificacion, regulaciones no arancelarias, practicas desleales, regimenes e infracciones) + logistica MX (autotransporte federal de carga y carga aerea). + T-MEC (Capitulos 4, 5 y 7: reglas de origen, certificacion y procedimientos de origen, verificacion, envios de entrega rapida y resoluciones anticipadas).",
     "disclaimer": "DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
-    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble'). servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado. comercio exterior MX 2026-09-02: Ley Aduanera (texto vigente, ultima reforma DOF 19-11-2025, Ley publicada DOF 15-12-1995 y en vigor el 01-01-1996 por su Transitorio Primero) y Ley de Comercio Exterior (texto vigente, ultima reforma DOF 01-05-2026, Ley publicada DOF 27-07-1993 y en vigor al dia siguiente). Arts. 36-A, 40, 59, 64, 90 y 176 de la Ley Aduanera y Arts. 15, 16, 17, 21, 23, 24, 26, 28, 62 y 63 de la Ley de Comercio Exterior leidos del PDF oficial de Diputados (LeyesBiblio) extraido con pypdf, no de memoria ni de resumenes: el indice HTML del sitio daba 27-12-2025 como ultima reforma de la Ley Aduanera, pero esa fecha es la actualizacion de cantidades por Reglas Generales de Comercio Exterior y el texto vigente es DOF 19-11-2025. Dos veredictos son dudoso por fail-safe declarado: CLASIFICACION_ARANCELARIA (la Tarifa de la LIGIE no esta sembrada) y PRACTICAS_DESLEALES (la resolucion de cuota compensatoria por producto y origen vive en el DOF, no aqui). INFRACCIONES_ADUANERAS es la unica categoria con veredicto no_permitido y va sola en su categoria, sin conflicto de veredictos (leccion Fase B). Fuera de alcance a proposito: Reglas Generales de Comercio Exterior (cambian cada ano), Tarifa de la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras. logistica MX 2026-09-02: Ley de Caminos, Puentes y Autotransporte Federal (texto vigente, ultima reforma DOF 14-11-2025, Ley publicada DOF 22-12-1993 y en vigor al dia siguiente) y Ley de Aviacion Civil (texto vigente, ultima reforma DOF 14-11-2025, publicada DOF 12-05-1995 y en vigor al dia siguiente), Arts. 8o./50/66/68 LCPAF y 11/55/56 LAC leidos del PDF oficial de Diputados con pypdf. Cierran las dos categorias que el escaneo regulatorio del Pre-Discovery esperaba y el seed no tenia (AUTOTRANSPORTE_CARGA y CARGA_AEREA_EAWB), cuyo mock las dictaminaba con fuente IATA sin anclaje nacional. La base mexicana de la guia aerea es el Art. 55 LAC —el contrato DEBE constar en carta de porte o guia de carga aerea— y el formato lo fija una NOM que NO esta sembrada: por eso la forma ELECTRONICA (e-AWB) queda como bandera y la Resolucion 672 de IATA se declara estandar sectorial, no exigencia de autoridad. Fuera de alcance: reglamentos de materiales peligrosos, la NOM del formato de la guia, el Convenio de Montreal y las Reglas Generales de Comercio Exterior.",
+    "source_version": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion; regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros. Fase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal). datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD. corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria. fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado. ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos. cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B). frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md. propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos. vocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble'). servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado. comercio exterior MX 2026-09-02: Ley Aduanera (texto vigente, ultima reforma DOF 19-11-2025, Ley publicada DOF 15-12-1995 y en vigor el 01-01-1996 por su Transitorio Primero) y Ley de Comercio Exterior (texto vigente, ultima reforma DOF 01-05-2026, Ley publicada DOF 27-07-1993 y en vigor al dia siguiente). Arts. 36-A, 40, 59, 64, 90 y 176 de la Ley Aduanera y Arts. 15, 16, 17, 21, 23, 24, 26, 28, 62 y 63 de la Ley de Comercio Exterior leidos del PDF oficial de Diputados (LeyesBiblio) extraido con pypdf, no de memoria ni de resumenes: el indice HTML del sitio daba 27-12-2025 como ultima reforma de la Ley Aduanera, pero esa fecha es la actualizacion de cantidades por Reglas Generales de Comercio Exterior y el texto vigente es DOF 19-11-2025. Dos veredictos son dudoso por fail-safe declarado: CLASIFICACION_ARANCELARIA (la Tarifa de la LIGIE no esta sembrada) y PRACTICAS_DESLEALES (la resolucion de cuota compensatoria por producto y origen vive en el DOF, no aqui). INFRACCIONES_ADUANERAS es la unica categoria con veredicto no_permitido y va sola en su categoria, sin conflicto de veredictos (leccion Fase B). Fuera de alcance a proposito: Reglas Generales de Comercio Exterior (cambian cada ano), Tarifa de la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras. logistica MX 2026-09-02: Ley de Caminos, Puentes y Autotransporte Federal (texto vigente, ultima reforma DOF 14-11-2025, Ley publicada DOF 22-12-1993 y en vigor al dia siguiente) y Ley de Aviacion Civil (texto vigente, ultima reforma DOF 14-11-2025, publicada DOF 12-05-1995 y en vigor al dia siguiente), Arts. 8o./50/66/68 LCPAF y 11/55/56 LAC leidos del PDF oficial de Diputados con pypdf. Cierran las dos categorias que el escaneo regulatorio del Pre-Discovery esperaba y el seed no tenia (AUTOTRANSPORTE_CARGA y CARGA_AEREA_EAWB), cuyo mock las dictaminaba con fuente IATA sin anclaje nacional. La base mexicana de la guia aerea es el Art. 55 LAC —el contrato DEBE constar en carta de porte o guia de carga aerea— y el formato lo fija una NOM que NO esta sembrada: por eso la forma ELECTRONICA (e-AWB) queda como bandera y la Resolucion 672 de IATA se declara estandar sectorial, no exigencia de autoridad. Fuera de alcance: reglamentos de materiales peligrosos, la NOM del formato de la guia, el Convenio de Montreal y las Reglas Generales de Comercio Exterior. T-MEC 2026-09-03: textos finales del Tratado entre Mexico, Estados Unidos y Canada publicados por la Secretaria de Economia (gob.mx), promulgado por decreto DOF 29-06-2020 y en vigor el 01-07-2020. Capitulo 4 (Reglas de Origen), Capitulo 5 (Procedimientos de Origen) y Capitulo 7 (Administracion Aduanera y Facilitacion del Comercio) leidos de los PDF oficiales con pypdf, no de memoria ni de resumenes: la numeracion real desmiente la de los blogs (5.2 es Solicitudes de Trato Preferencial, 5.3 Bases de la Certificacion, 5.5 Excepciones y 5.11 Devoluciones; no la del TLCAN). Seis categorias nuevas TMEC_* mas un impacto del Art. 7.20 en la categoria existente REPRESENTACION_ADUANAL. Convencion de veredictos respetada: una sola regla rectora por categoria y las complementarias con veredicto_base null (solo aportan requisitos, banderas y fuente), porque el motor reporta CONTRADICCION cuando dos veredictos distintos viven en la misma categoria. Dos veredictos dudoso por fail-safe declarado: TMEC_REGLAS_ORIGEN (el Anexo 4-B, reglas especificas por producto, NO esta sembrado, de modo que el grafo no puede decir si una mercancia concreta califica) y TMEC_ENVIOS_ENTREGA_RAPIDA (el Art. 7.8 obliga a Mexico a un PISO de 117 USD para aranceles y 50 USD para impuestos, pero lo que paga un envio concreto lo fija el ordenamiento domestico vigente, que cambia). Fuera de alcance a proposito: Anexo 4-B y su apendice automotriz, Capitulo 6 (textiles), Reglamentaciones Uniformes, Reglas Generales de Comercio Exterior y los demas tratados de los que Mexico es parte.",
     "regimen_default": "PM_TITULO_II"
   },
   "_bajas": [
@@ -936,6 +936,91 @@
         "autotransporte",
         "carta de porte terrestre"
       ]
+    },
+    {
+      "clave": "TMEC_TRATO_PREFERENCIAL",
+      "nombre": "T-MEC: solicitud de trato arancelario preferencial",
+      "descripcion": "Obligaciones de quien solicita trato arancelario preferencial al amparo del T-MEC y devolucion de aranceles pagados en exceso",
+      "keywords": [
+        "t-mec",
+        "tmec",
+        "usmca",
+        "trato arancelario preferencial",
+        "trato preferencial",
+        "tratado entre mexico estados unidos y canada",
+        "arancel preferencial"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "TMEC_CERTIFICACION_ORIGEN",
+      "nombre": "T-MEC: certificacion de origen (Anexo 5-A)",
+      "descripcion": "Quien llena la certificacion de origen del T-MEC, elementos minimos de informacion, cobertura y excepciones",
+      "keywords": [
+        "certificacion de origen",
+        "certificacion de origen t-mec",
+        "certificado de origen t-mec",
+        "anexo 5-a",
+        "elementos minimos de informacion",
+        "autocertificacion de origen"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "TMEC_REGLAS_ORIGEN",
+      "nombre": "T-MEC: reglas de origen (calificacion de la mercancia)",
+      "descripcion": "Criterios por los que una mercancia es originaria conforme al Capitulo 4 del T-MEC; las reglas especificas por producto del Anexo 4-B NO estan sembradas",
+      "keywords": [
+        "mercancia originaria",
+        "mercancias originarias",
+        "valor de contenido regional",
+        "de minimis",
+        "anexo 4-b",
+        "reglas de origen especificas por producto",
+        "cambio de clasificacion arancelaria",
+        "transbordo",
+        "acumulacion de origen"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "TMEC_VERIFICACION_ORIGEN",
+      "nombre": "T-MEC: verificacion de origen y conservacion de registros",
+      "descripcion": "Facultades de verificacion de la autoridad aduanera sobre una solicitud de trato preferencial y plazos de conservacion de registros",
+      "keywords": [
+        "verificacion de origen",
+        "visita de verificacion",
+        "cuestionario de verificacion",
+        "determinacion de origen",
+        "conservacion de registros",
+        "conservar registros"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "TMEC_ENVIOS_ENTREGA_RAPIDA",
+      "nombre": "T-MEC: envios de entrega rapida y de minimis aduanero",
+      "descripcion": "Piso de facilitacion pactado para envios de entrega rapida (courier); el monto que efectivamente aplica lo fija el ordenamiento juridico mexicano",
+      "keywords": [
+        "envio de entrega rapida",
+        "envios de entrega rapida",
+        "de minimis aduanero",
+        "courier",
+        "mensajeria internacional",
+        "entrega rapida"
+      ],
+      "exclusiones": []
+    },
+    {
+      "clave": "TMEC_RESOLUCIONES_ANTICIPADAS",
+      "nombre": "T-MEC: resoluciones anticipadas en materia aduanera",
+      "descripcion": "Resoluciones anticipadas sobre clasificacion, valoracion, origen y cupos que la administracion aduanera emite antes de la importacion",
+      "keywords": [
+        "resolucion anticipada",
+        "resoluciones anticipadas",
+        "criterio anticipado"
+      ],
+      "exclusiones": []
     }
   ],
   "reglas": [
@@ -3290,7 +3375,7 @@
             "Si la mercancia originaria estuvo en transito por territorio de paises no Parte del tratado aplicable, acreditar que permanecio bajo control de las autoridades aduaneras conforme a las reglas (Art. 36-A, fraccion I, inciso d, segundo parrafo)"
           ],
           "banderas": [
-            "Las reglas de origen concretas viven en cada tratado y NO estan sembradas en este grafo: que una mercancia califique para trato preferencial no se puede determinar aqui",
+            "El marco de origen del T-MEC (Capitulos 4 y 5) SI esta sembrado desde 2026-09-03 en las categorias TMEC_*; lo que sigue sin sembrarse son las reglas ESPECIFICAS POR PRODUCTO (Anexo 4-B) y las de los demas tratados: que una mercancia concreta califique para trato preferencial no se puede determinar aqui",
             "La documentacion de origen no sirve solo para preferencias: tambien sustenta marcado de pais de origen, cuotas compensatorias y cupos (Art. 59, fraccion II)",
             "El origen puede verificarse despues del despacho, incluso ante el exportador en el extranjero: la carga de conservar la prueba es del importador"
           ],
@@ -3397,6 +3482,489 @@
             "En transporte aereo internacional rigen ademas los tratados (Convenio de Montreal), que NO forman parte de este grafo",
             "El porteador tiene derecho de retener la carga hasta que se cubra el precio indicado en la carta de porte o guia de carga aerea (Art. 56)",
             "La transmision de informacion anticipada de carga ante la autoridad aduanera es una obligacion PARALELA y distinta: vive en la Ley Aduanera y en las Reglas Generales de Comercio Exterior"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.4-OBLIGACIONES-IMPORTADOR",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: obligaciones del importador que solicita trato arancelario preferencial",
+      "texto_resumen": "Para solicitar trato arancelario preferencial al amparo del T-MEC, el importador debe hacer una declaracion que forme parte de la documentacion de importacion basada en una certificacion de origen valida, TENER en su poder esa certificacion al momento de hacer la declaracion, y proporcionar copia a la administracion aduanera cuando la solicite (Art. 5.4.1). Si el importador tiene razones para creer que la certificacion se baso en informacion incorrecta, debe corregir con prontitud el documento de importacion y pagar los aranceles: hacerlo lo exime de sanciones por la declaracion incorrecta (Art. 5.4.2). La Parte importadora puede exigir prueba documental de que el embarque cumplio el Art. 4.18 (transito y transbordo).",
+      "fuente_cita": "T-MEC, Capitulo 5 (Procedimientos de Origen), Art. 5.4 (Obligaciones Referentes a las Importaciones), parrafos 1 a 3 — texto final publicado por la Secretaria de Economia; promulgado por decreto DOF 29-06-2020, en vigor el 01-07-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_TRATO_PREFERENCIAL",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Hacer la declaracion de que la mercancia califica como originaria, como parte de la documentacion de importacion (Art. 5.4.1(a))",
+            "Tener en su poder una certificacion de origen valida AL MOMENTO de hacer la declaracion, no despues (Art. 5.4.1(b))",
+            "Entregar copia de la certificacion de origen a la administracion aduanera cuando la requiera (Art. 5.4.1(c))",
+            "Si la certificacion la lleno el propio importador, demostrar a solicitud de la autoridad que la mercancia es originaria (Art. 5.4.1(d) y Art. 5.3.3)",
+            "Si la certificacion la lleno un productor que no es el exportador, demostrar a solicitud que la mercancia no fue sometida a produccion ulterior fuera de las Partes (Art. 5.4.1(e))",
+            "Ante informacion incorrecta: corregir con prontitud el documento de importacion y pagar los aranceles correspondientes (Art. 5.4.2)",
+            "Conservar la documentacion de transporte que acredite la ruta y los puntos de transbordo si la autoridad lo requiere (Art. 5.4.3)"
+          ],
+          "banderas": [
+            "El trato preferencial NO es automatico por ser mercancia de la region: depende de que la mercancia califique como originaria conforme al Capitulo 4 y de que exista certificacion valida",
+            "La correccion espontanea protege de sanciones solo si es PRONTA y va acompanada del pago de aranceles (Art. 5.4.2)",
+            "Este grafo no sustituye al agente aduanal ni a la asesoria en comercio exterior: la calificacion de una mercancia concreta exige revisar el Anexo 4-B, que no esta sembrado"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.2-SOLICITUD-BASE-CERTIFICACION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: la solicitud de trato preferencial se basa en certificacion del exportador, productor o importador",
+      "texto_resumen": "El T-MEC sustituyo el certificado de origen de formato oficial del TLCAN por una certificacion que puede llenar el exportador, el productor O el importador (Art. 5.2.1). Para Mexico, la implementacion de la certificacion POR EL IMPORTADOR aplica a mas tardar tres anos y seis meses despues de la entrada en vigor, es decir desde el 01-01-2024 (nota al pie 1 del Art. 5.2.1). La certificacion no requiere formato preestablecido, puede constar en la factura o en cualquier otro documento, se puede llenar en espanol, ingles o frances, y se acepta enviada electronicamente con firma electronica o digital (Art. 5.2.3, 5.2.5 y 5.2.6). NORMA: la factura puede emitirse en un pais no Parte sin que se rechace la solicitud, pero la certificacion NO puede constar en un documento comercial emitido en un pais no Parte (Art. 5.2.4).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.2 (Solicitudes de Trato Arancelario Preferencial), parrafos 1 a 6 y nota al pie 1 (plazo de implementacion para Mexico) — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_TRATO_PREFERENCIAL",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Definir quien certifica: exportador, productor o importador (Art. 5.2.1); la certificacion por el importador es exigible en Mexico desde el 01-01-2024 conforme al plazo de la nota al pie 1",
+            "No exigir ni emitir un formato oficial preestablecido: basta un documento que contenga los elementos minimos del Anexo 5-A (Art. 5.2.3(a) y (b))",
+            "Cuidar que la certificacion NO se emita en una factura o documento comercial expedido en un pais no Parte (Art. 5.2.4)",
+            "Si la certificacion no esta en espanol, prever la traduccion que la autoridad puede requerir (Art. 5.2.5)"
+          ],
+          "banderas": [
+            "Confusion frecuente: el T-MEC no tiene 'certificado de origen' de formato oficial como el TLCAN; quien exija el formato viejo esta pidiendo un documento que el tratado ya no contempla",
+            "Que la factura provenga de un pais no Parte no invalida por si sola la solicitud (Art. 5.2.4), pero la certificacion sobre ese documento si la invalida",
+            "La Parte importadora puede condicionar en su ordenamiento juridico quien puede certificar como importador y prohibirlo a quien incumpla (Art. 5.2.2)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.11-DEVOLUCION-POSTERIOR",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: solicitud de trato preferencial y devolucion de aranceles despues de la importacion",
+      "texto_resumen": "Si el importador no solicito trato arancelario preferencial al momento de la importacion, puede solicitarlo despues y pedir la devolucion de los aranceles pagados en exceso, siempre que la mercancia hubiera calificado como originaria cuando se importo (Art. 5.11.1). La Parte importadora puede exigir la solicitud, una declaracion de que la mercancia era originaria al momento de la importacion, copia de la certificacion de origen y la documentacion adicional que requiera, a mas tardar UN ANO posterior a la fecha de importacion, o en el plazo mayor que fije su ordenamiento juridico (Art. 5.11.2).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.11 (Devoluciones y Solicitudes de Trato Arancelario Preferencial despues de la Importacion), parrafos 1 y 2 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_TRATO_PREFERENCIAL",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Presentar la solicitud posterior dentro del plazo: a mas tardar un ano despues de la fecha de importacion, salvo plazo mayor en el ordenamiento juridico mexicano (Art. 5.11.2)",
+            "Acompanar declaracion de que la mercancia ERA originaria al momento de la importacion y copia de la certificacion de origen (Art. 5.11.2(b) y (c))",
+            "Cotejar el procedimiento domestico de devolucion aplicable (Ley Aduanera y Reglas Generales de Comercio Exterior vigentes) antes de presentar: el tratado fija el derecho, no el tramite"
+          ],
+          "banderas": [
+            "Haber pagado el arancel general no cierra la puerta: hay ventana de un ano para reclamar la preferencia y la devolucion (Art. 5.11.1)",
+            "El plazo de un ano corre desde la FECHA DE IMPORTACION, no desde que se obtuvo la certificacion de origen"
+          ],
+          "parametros": {
+            "plazo_solicitud_posterior_anios": 1,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5A-ELEMENTOS-MINIMOS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: elementos minimos de la certificacion de origen (Anexo 5-A)",
+      "texto_resumen": "La certificacion de origen que sustenta una solicitud de trato preferencial debe incluir nueve elementos: (1) si el certificador es exportador, productor o importador; (2) datos del certificador; (3) del exportador; (4) del productor; (5) del importador; (6) descripcion y clasificacion arancelaria en el SA a nivel de 6 digitos; (7) criterio de origen conforme al Art. 4.2; (8) periodo global si ampara multiples embarques; y (9) firma autorizada y fecha, acompanada de la declaracion de que las mercancias califican como originarias y de que el certificador asume la responsabilidad de comprobarlo y conservar la documentacion (Anexo 5-A). NORMA: no hay formato oficial; la certificacion puede ir en la factura o en cualquier otro documento (Art. 5.2.3).",
+      "fuente_cita": "T-MEC, Anexo 5-A (Elementos Minimos de Informacion), elementos 1 a 9, en relacion con el Art. 5.2.3 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_CERTIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Indicar expresamente si quien certifica es el exportador, el productor o el importador (Anexo 5-A, elemento 1)",
+            "Incluir nombre, cargo, direccion con pais, telefono y correo del certificador (elemento 2) y los datos de exportador, productor e importador cuando sean distintos (elementos 3 a 5)",
+            "Describir la mercancia con detalle suficiente y senalar su clasificacion arancelaria del Sistema Armonizado a 6 digitos (elemento 6)",
+            "Especificar el criterio de origen conforme al Art. 4.2 bajo el cual califica la mercancia (elemento 7)",
+            "Si ampara multiples embarques, indicar el periodo global de hasta 12 meses (elemento 8)",
+            "Firmar y fechar, incluyendo la declaracion de responsabilidad del Anexo 5-A (elemento 9)"
+          ],
+          "banderas": [
+            "Si el productor desea reservar su identidad puede indicar 'Disponible a solicitud de las autoridades importadoras' (elemento 4); omitirlo sin esa leyenda deja incompleta la certificacion",
+            "El criterio de origen (elemento 7) remite al Anexo 4-B, que NO esta sembrado en este grafo: la eleccion del criterio para una mercancia concreta requiere revisar la regla especifica de su fraccion",
+            "Firmar la declaracion del elemento 9 obliga al certificador a conservar y presentar la documentacion de soporte, incluso en visita de verificacion"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.3-BASES-COBERTURA-VIGENCIA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: bases de la certificacion de origen, cobertura de multiples embarques y aceptacion por cuatro anos",
+      "texto_resumen": "El productor certifica sobre la base de que tiene informacion que demuestra que la mercancia es originaria; el exportador que no es productor puede certificar con base en su propia informacion o en la confianza razonable en la declaracion escrita del productor; y el importador, con base en informacion que lo demuestre (Art. 5.3.1 a 5.3.3). Ninguna Parte puede obligar a un exportador o productor a llenar una certificacion o entregarla a otra persona (Art. 5.3.4). Una certificacion puede amparar un solo embarque o multiples embarques de mercancias identicas dentro de un plazo que no exceda 12 MESES, y la administracion aduanera la acepta durante CUATRO ANOS posteriores a la fecha en que fue llenada (Art. 5.3.5 y 5.3.6).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.3 (Bases para una Certificacion de Origen), parrafos 1 a 6 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_CERTIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Documentar la base de la certificacion: informacion propia del productor o exportador, o declaracion escrita del productor en la que se confia razonablemente (Art. 5.3.1 y 5.3.2)",
+            "Si se usa una certificacion de cobertura, fijar en el documento el periodo, que no puede exceder 12 meses (Art. 5.3.5(b))",
+            "Tener presente que la certificacion se acepta por cuatro anos desde que fue llenada (Art. 5.3.6): vencido ese plazo, se requiere una nueva",
+            "Verificar que la certificacion de cobertura ampare mercancias IDENTICAS; mercancias distintas requieren certificacion propia (Art. 5.3.5(b))"
+          ],
+          "banderas": [
+            "Un proveedor no esta obligado a entregar certificacion de origen (Art. 5.3.4): si el negocio depende de la preferencia arancelaria, hay que pactarlo en el contrato de compraventa",
+            "Confiar en la declaracion escrita del productor es una base valida para el exportador, pero no traslada la responsabilidad de la certificacion"
+          ],
+          "parametros": {
+            "cobertura_maxima_meses": 12,
+            "aceptacion_anios": 4,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.5-EXCEPCION-CERTIFICACION",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: cuando NO se requiere certificacion de origen (envios de hasta 1,000 dolares)",
+      "texto_resumen": "No se requiere certificacion de origen si el valor de la importacion no excede 1,000 dolares estadounidenses o su equivalente en la moneda de la Parte importadora, o un monto mayor que esta establezca; la Parte puede, aun asi, requerir una declaracion escrita de que la mercancia califica como originaria (Art. 5.5(a)). Tampoco se requiere para mercancias respecto de las cuales la Parte importadora haya exceptuado ese requisito (Art. 5.5(b)). NORMA: la excepcion NO aplica si la importacion forma parte de una serie de importaciones realizadas o planeadas con el efecto de evadir el cumplimiento de las leyes o procedimientos que regulan las solicitudes de trato preferencial.",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.5 (Excepciones a la Certificacion de Origen), incisos (a) y (b) y parrafo final — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_CERTIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Verificar el valor de la importacion contra el umbral de 1,000 dolares estadounidenses o el monto mayor que fije el ordenamiento juridico mexicano (Art. 5.5(a))",
+            "Prever que la autoridad puede exigir, en lugar de la certificacion, una declaracion escrita de que la mercancia califica como originaria (Art. 5.5(a))",
+            "No fraccionar embarques para quedar bajo el umbral: la excepcion se pierde si la importacion forma parte de una serie con efecto de evasion (Art. 5.5, parrafo final)",
+            "Cotejar el umbral aplicable en Mexico contra las Reglas Generales de Comercio Exterior vigentes: el tratado fija un piso y Mexico puede establecer un monto mayor"
+          ],
+          "banderas": [
+            "Que no se requiera certificacion NO significa que la mercancia sea originaria: la calificacion sustantiva del Capitulo 4 sigue siendo condicion del trato preferencial",
+            "El fraccionamiento de envios para caer bajo el umbral es precisamente la conducta que el parrafo final del Art. 5.5 anula"
+          ],
+          "parametros": {
+            "umbral_usd": 1000,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.7-ERRORES-DISCREPANCIAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: errores menores en la certificacion de origen y plazo para corregir",
+      "texto_resumen": "Una Parte no puede rechazar una certificacion de origen por errores o discrepancias menores que no generen dudas sobre la exactitud de la documentacion de importacion (Art. 5.7.1). Si la administracion aduanera determina que la certificacion es ilegible, defectuosa en sus paginas o no fue llenada conforme al Capitulo 5, debe conceder al importador un plazo de NO MENOS de cinco dias habiles para presentar una copia corregida (Art. 5.7.2).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.7 (Errores o Discrepancias), parrafos 1 y 2 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_CERTIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Ante un requerimiento por certificacion ilegible o defectuosa, presentar copia corregida dentro del plazo concedido, que no puede ser menor a cinco dias habiles (Art. 5.7.2)",
+            "Documentar que el error es menor y que no afecta la exactitud de la documentacion de importacion, para invocar el Art. 5.7.1"
+          ],
+          "banderas": [
+            "Un error de captura no justifica por si solo negar la preferencia arancelaria (Art. 5.7.1): es un argumento oponible ante la autoridad",
+            "El plazo de cinco dias habiles es un PISO del tratado; la autoridad mexicana puede conceder mas, no menos"
+          ],
+          "parametros": {
+            "plazo_correccion_dias_habiles": 5,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-4.2-MERCANCIA-ORIGINARIA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: cuando una mercancia es originaria (las reglas por producto del Anexo 4-B no estan sembradas)",
+      "texto_resumen": "Una mercancia es originaria si es totalmente obtenida o producida en el territorio de una o mas Partes; o producida enteramente en ellas con materiales no originarios que cumplan los requisitos del Anexo 4-B (reglas de origen especificas por producto); o producida exclusivamente con materiales originarios; o, salvo para los Capitulos 61 a 63 del SA, si no cumple el cambio de clasificacion porque mercancia y materiales se clasifican en la misma subpartida y el valor de contenido regional no es inferior a 60 por ciento por valor de transaccion o 50 por ciento por costo neto (Art. 4.2). FAIL-SAFE DECLARADO: este grafo NO tiene sembrado el Anexo 4-B, de modo que no puede afirmar si una mercancia concreta califica; el veredicto es dudoso por diseno, no por un hueco accidental.",
+      "fuente_cita": "T-MEC, Capitulo 4 (Reglas de Origen), Art. 4.2 (Mercancias Originarias), incisos (a) a (d), en relacion con el Art. 4.5 (Valor de Contenido Regional) y el Anexo 4-B — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465788/04ESPReglasdeOrigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_REGLAS_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Identificar la fraccion arancelaria de la mercancia y consultar SU regla especifica en el Anexo 4-B: sin eso no hay calificacion posible (Art. 4.2(b))",
+            "Determinar por cual de los cuatro supuestos del Art. 4.2 pretende calificar la mercancia y documentar el sustento",
+            "Si se invoca el Art. 4.2(d), calcular el valor de contenido regional conforme al Art. 4.5 y verificar que no sea inferior a 60 por ciento por valor de transaccion o 50 por ciento por costo neto",
+            "Para mercancias textiles y prendas de vestir (Capitulos 61 a 63 del SA), aplicar el Capitulo 6 del Tratado: el Art. 4.2(d) esta expresamente excluido",
+            "Conservar la informacion que demuestre el origen: es la base de cualquier certificacion posterior (Art. 5.3)"
+          ],
+          "banderas": [
+            "Este grafo NO puede decir si una mercancia concreta es originaria: el Anexo 4-B (reglas especificas por producto) no esta sembrado; la respuesta es dudoso por fail-safe declarado",
+            "Ser fabricado en Mexico no equivale a ser originario del T-MEC: el origen depende de la regla del producto, no de la ubicacion de la planta",
+            "Las mercancias automotrices tienen reglas propias (Art. 4.10 y Anexo 4-B, apendice) mas exigentes que la regla general; no estan sembradas"
+          ],
+          "parametros": {
+            "vcr_valor_transaccion_pct": 60,
+            "vcr_costo_neto_pct": 50,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-4.12-DE-MINIMIS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: regla de minimis del 10 por ciento para materiales no originarios",
+      "texto_resumen": "Una mercancia es originaria si el valor de los materiales no originarios que NO cumplen el cambio de clasificacion arancelaria del Anexo 4-B no excede el 10 por ciento del valor de transaccion de la mercancia ajustado para excluir el envio internacional, o del costo total de la mercancia, siempre que cumpla los demas requisitos del Capitulo (Art. 4.12.1). Si la mercancia tambien esta sujeta a valor de contenido regional, esos materiales se suman al valor de los no originarios (Art. 4.12.2); y no se exige cumplir el requisito de contenido regional si el valor de todos los materiales no originarios no excede ese 10 por ciento (Art. 4.12.3). EXCEPCIONES: el Anexo 4-A excluye de la regla varios materiales, y para textiles y prendas de vestir aplican los Arts. 6.1.2 y 6.1.3 en lugar del parrafo 1 (Art. 4.12.4).",
+      "fuente_cita": "T-MEC, Capitulo 4, Art. 4.12 (De Minimis), parrafos 1 a 4, y Anexo 4-A (Excepciones al Articulo 4.12) — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465788/04ESPReglasdeOrigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_REGLAS_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Calcular el valor de los materiales no originarios que incumplen el cambio de clasificacion y contrastarlo contra el 10 por ciento del valor de transaccion ajustado o del costo total (Art. 4.12.1)",
+            "Revisar el Anexo 4-A antes de invocar de minimis: hay materiales excluidos, entre ellos los de las partidas 04.01 a 04.06 y preparaciones lacteas (Anexo 4-A)",
+            "Para textiles y prendas de vestir, aplicar los Arts. 6.1.2 y 6.1.3 en lugar de la regla general de minimis (Art. 4.12.4)",
+            "Excluir del valor de transaccion los costos de envio internacional al hacer el calculo (Art. 4.12.1(a))"
+          ],
+          "banderas": [
+            "De minimis NO es una excepcion general: el Anexo 4-A la desactiva para materiales especificos y el Capitulo 6 la sustituye para textiles",
+            "Que un material no originario sea marginal en importe no basta si tambien hay un requisito de valor de contenido regional que la mercancia no cumple (Art. 4.12.2)"
+          ],
+          "parametros": {
+            "de_minimis_pct": 10,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-4.18-TRANSITO-TRANSBORDO",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: la mercancia originaria pierde su caracter si sale del control aduanero al transitar por un pais no Parte",
+      "texto_resumen": "Una mercancia originaria mantiene ese caracter si se transporta a la Parte importadora sin pasar por territorio de una no Parte (Art. 4.18.1). Si se transporta fuera de los territorios de las Partes, conserva su caracter originario solo si permanece bajo control aduanero en el pais no Parte y no es sometida a operacion alguna distinta de descarga, recarga, separacion de un embarque a granel, almacenamiento, etiquetado o marcado requerido por la Parte importadora, o cualquier otra operacion necesaria para preservarla en buenas condiciones o transportarla (Art. 4.18.2). NORMA relacionada: el importador puede tener que acreditarlo con documentos de transporte y de control aduanero (Art. 5.4.3).",
+      "fuente_cita": "T-MEC, Capitulo 4, Art. 4.18 (Transito y Transbordo), parrafos 1 y 2, en relacion con el Art. 5.4.3 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465788/04ESPReglasdeOrigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_REGLAS_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Conservar documentos de transporte que muestren la ruta completa y todos los puntos de embarque y transbordo previos a la importacion (Art. 5.4.3(a))",
+            "Si hubo almacenaje o transbordo en un pais no Parte, obtener documentos de almacenaje o copia de los documentos de control aduanero que prueben que la mercancia permanecio bajo control aduanero (Art. 5.4.3(b))",
+            "Verificar que en el pais no Parte no se realizo ninguna operacion distinta de las permitidas por el Art. 4.18.2(b)"
+          ],
+          "banderas": [
+            "Una escala logistica mal documentada tumba la preferencia arancelaria aunque la mercancia sea plenamente originaria",
+            "Reetiquetar o marcar en el pais no Parte solo esta permitido si lo REQUIERE la Parte importadora (Art. 4.18.2(b)); hacerlo por conveniencia comercial rompe la cadena"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.9-VERIFICACION-ORIGEN",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: como verifica la autoridad una solicitud de trato preferencial",
+      "texto_resumen": "La Parte importadora puede verificar una solicitud de trato arancelario preferencial mediante solicitud escrita o cuestionario dirigido al importador, exportador o productor; visita de verificacion a las instalaciones del exportador o productor; los procedimientos del Art. 6.6 para textiles y prendas de vestir; o cualquier otro procedimiento que decidan las Partes (Art. 5.9.1). La verificacion puede iniciarse con el importador o con quien lleno la certificacion (Art. 5.9.2) y la autoridad acepta informacion directamente del importador, exportador o productor (Art. 5.9.3). Si la certificacion la lleno el exportador o productor y el importador no aporta informacion suficiente, la autoridad DEBE requerir al exportador o productor antes de poder negar la preferencia (Art. 5.9.4).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.9 (Verificacion de Origen), parrafos 1 a 4 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_VERIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Responder los cuestionarios o solicitudes escritas de la autoridad con la informacion y documentos que sustentan el origen (Art. 5.9.1(a))",
+            "Estar en condiciones de recibir una visita de verificacion en las instalaciones del exportador o productor, incluida la observacion del proceso productivo (Art. 5.9.1(b))",
+            "Si la certificacion la lleno el exportador o productor extranjero, coordinar con el la respuesta: la autoridad debe requerirle antes de negar la preferencia (Art. 5.9.4)",
+            "Para textiles y prendas de vestir, prever el procedimiento especial de verificacion del Art. 6.6"
+          ],
+          "banderas": [
+            "La verificacion puede dirigirse al exportador o productor en el extranjero, no solo al importador (Art. 5.9.2): la exposicion es de toda la cadena",
+            "Negar la preferencia sin haber requerido al exportador o productor, cuando la certificacion es suya, contradice el Art. 5.9.4 y es un argumento de defensa",
+            "Cada Parte mantiene sanciones penales, civiles o administrativas por infracciones relacionadas con este Capitulo (Art. 5.13)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-5.8-CONSERVAR-REGISTROS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: conservacion de registros por cinco anos (importador, exportador y productor)",
+      "texto_resumen": "El importador que solicita trato preferencial debe conservar, por un plazo NO MENOR A CINCO ANOS despues de la fecha de importacion, la documentacion relacionada con la importacion incluida la certificacion de origen, los registros que demuestren que la mercancia es originaria si el mismo lleno la certificacion, y la informacion necesaria para acreditar el cumplimiento del Art. 5.4.1(e) (Art. 5.8.1). El exportador o productor que llena una certificacion, o el productor que emite una declaracion escrita, conserva en su territorio por CINCO ANOS posteriores a la fecha en que se lleno, todos los registros necesarios para demostrar que la mercancia es originaria (Art. 5.8.2).",
+      "fuente_cita": "T-MEC, Capitulo 5, Art. 5.8 (Requisitos para Conservar Registros), parrafos 1 y 2 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465786/05ESPProcedimientosdeorigen.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_VERIFICACION_ORIGEN",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Conservar por al menos cinco anos desde la importacion la certificacion de origen y la documentacion de importacion (Art. 5.8.1(a))",
+            "Si la certificacion la lleno el propio importador, conservar ademas todos los registros que demuestren que la mercancia es originaria (Art. 5.8.1(b))",
+            "El exportador o productor conserva sus registros cinco anos desde que lleno la certificacion, en su propio territorio (Art. 5.8.2)",
+            "Definir el soporte de conservacion: el tratado permite conservar la certificacion en cualquier medio y enviarla electronicamente (Art. 5.6.5)"
+          ],
+          "banderas": [
+            "El plazo del exportador corre desde que LLENO la certificacion, no desde el embarque: con certificaciones de cobertura de 12 meses las fechas no coinciden",
+            "Cinco anos es el piso del tratado; el plazo de conservacion domestico puede ser mayor y cada Parte debe fijarlo en su ordenamiento (Art. 7.13.7)"
+          ],
+          "parametros": {
+            "conservacion_anios": 5,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-7.8-ENVIOS-ENTREGA-RAPIDA",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: de minimis para envios de entrega rapida — el tratado fija un piso, el monto aplicable lo fija Mexico",
+      "texto_resumen": "Cada Parte debe mantener procedimientos aduaneros expeditos para envios de entrega rapida y disponer que, en circunstancias normales, no se fijen aranceles ni impuestos ni se exijan procedimientos formales de entrada para envios valorados en o por debajo de un monto fijo establecido en SU ordenamiento juridico, que sera de al menos: 800 dolares para Estados Unidos; para Mexico, 117 dolares estadounidenses para aranceles aduaneros y 50 dolares estadounidenses para impuestos; y para Canada, 150 y 40 dolares canadienses respectivamente (Art. 7.8.1(f)). Ademas debe haber procedimientos con menos formalidades para envios de menos de 2,500 dolares estadounidenses en Mexico y Estados Unidos (Art. 7.8.2). FAIL-SAFE: el tratado obliga a un PISO; lo que efectivamente paga un envio concreto lo determina el ordenamiento juridico mexicano vigente (Ley Aduanera, Reglas Generales de Comercio Exterior y decretos aplicables a mensajeria y paqueteria), que este grafo no tiene sembrado.",
+      "fuente_cita": "T-MEC, Capitulo 7 (Administracion Aduanera y Facilitacion del Comercio), Art. 7.8 (Envios de Entrega Rapida), parrafos 1(f), 2 y 3 y notas al pie 2 y 3 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465789/07ESPAdministracionAduanerayFacilitaciondelComercio.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_ENVIOS_ENTREGA_RAPIDA",
+          "regimen": "GENERAL",
+          "veredicto_base": "dudoso",
+          "requisitos": [
+            "Cotejar el monto vigente en Mexico contra las Reglas Generales de Comercio Exterior y los decretos aplicables a mensajeria y paqueteria: el tratado fija un piso, no la regla domestica aplicable al envio",
+            "Verificar que el envio no forme parte de una serie de envios realizados o planeados para evadir aranceles, impuestos o procedimientos formales de entrada (Art. 7.8.1(f))",
+            "Para envios por debajo de 2,500 dolares estadounidenses, identificar el procedimiento con menos formalidades aduaneras que corresponda (Art. 7.8.2)",
+            "Recordar que la facilitacion no aplica a mercancias restringidas o controladas, que siguen sujetas a documentos, aranceles e impuestos (Art. 7.8.3)"
+          ],
+          "banderas": [
+            "Veredicto dudoso por fail-safe declarado: el Art. 7.8 obliga a Mexico a mantener un monto MINIMO, no otorga por si mismo la exencion a un envio concreto",
+            "Los montos del tratado (117 dolares para aranceles y 50 para impuestos) son un piso reciproco: la nota al pie 3 permite a una Parte imponer un monto menor reciproco si la otra Parte fija uno inferior",
+            "La regulacion domestica de mensajeria y paqueteria ha cambiado varias veces desde 2020: usar el monto del tratado como si fuera la regla vigente es el error tipico de esta materia"
+          ],
+          "parametros": {
+            "de_minimis_aranceles_usd": 117,
+            "de_minimis_impuestos_usd": 50,
+            "umbral_formalidades_reducidas_usd": 2500,
+            "verificar": true
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-7.5-RESOLUCIONES-ANTICIPADAS",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: derecho a pedir una resolucion anticipada sobre clasificacion, valoracion, origen y cupos",
+      "texto_resumen": "Cada Parte, por conducto de su administracion aduanera, emite por escrito y ANTES de la importacion una resolucion anticipada que indica el trato que dara a la mercancia (Art. 7.5.1). Puede solicitarla un exportador, importador, productor o cualquier persona con causa justificable, o su representante (Art. 7.5.2), y ninguna Parte puede exigir, como condicion para solicitarla, que el exportador o productor de otra Parte mantenga una relacion contractual con alguien en el territorio de la Parte importadora (Art. 7.5.3). Las materias son: clasificacion arancelaria; aplicacion de criterios de valoracion aduanera conforme al Acuerdo de Valoracion Aduanera; origen, incluido si la mercancia califica como originaria conforme al Tratado; si la mercancia esta sujeta a cupo o contingente arancelario; y otros asuntos que las Partes acuerden (Art. 7.5.4).",
+      "fuente_cita": "T-MEC, Capitulo 7, Art. 7.5 (Resoluciones Anticipadas), parrafos 1 a 6 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465789/07ESPAdministracionAduanerayFacilitaciondelComercio.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "TMEC_RESOLUCIONES_ANTICIPADAS",
+          "regimen": "GENERAL",
+          "veredicto_base": "permitido",
+          "requisitos": [
+            "Presentar la solicitud ANTES de la importacion, ante la administracion aduanera, describiendo la mercancia y el asunto sobre el que se pide certeza (Art. 7.5.1)",
+            "Identificar la materia entre las cinco del Art. 7.5.4: clasificacion, valoracion, origen, sujecion a cupo o contingente, u otra acordada por las Partes",
+            "Prever que la autoridad puede requerir informacion adicional durante la evaluacion de la solicitud (Art. 7.5.6(a))",
+            "Consultar el procedimiento domestico aplicable en Mexico para la solicitud, que este grafo no tiene sembrado"
+          ],
+          "banderas": [
+            "La resolucion anticipada es la via para eliminar la incertidumbre que este grafo NO puede resolver (calificacion de origen de una mercancia concreta bajo el Anexo 4-B)",
+            "Un exportador o productor extranjero puede pedirla directamente: no se le puede exigir una relacion contractual con alguien en Mexico (Art. 7.5.3)"
+          ],
+          "parametros": {
+            "verificar": false
+          }
+        }
+      ]
+    },
+    {
+      "clave": "MX-TMEC-7.20-AGENTES-ADUANALES",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "titulo": "T-MEC: derecho a presentar la declaracion aduanera sin agente aduanal (auto-declaracion)",
+      "texto_resumen": "Cada Parte debe permitir que un importador y cualquier otra persona que considere adecuada, conforme a sus leyes y regulaciones, presente POR SI MISMA la declaracion aduanera y demas documentacion de importacion o transito sin los servicios de un agente aduanal; para la presentacion electronica, la auto-declaracion incluye el acceso a los sistemas electronicos, directo o a traves de un proveedor de servicios, en condiciones no discriminatorias (Art. 7.20.1). Si la Parte establece requisitos de licencia o registro para agentes aduanales, deben ser transparentes, basados en criterios objetivos y administrados de manera uniforme (Art. 7.20.2), y no puede imponer limites arbitrarios al numero de puertos en que un agente puede operar (Art. 7.20.3). Complementa la regla domestica de representacion ante la aduana (Ley Aduanera, Art. 40).",
+      "fuente_cita": "T-MEC, Capitulo 7, Art. 7.20 (Agentes Aduanales), parrafos 1 a 3 — texto final de la Secretaria de Economia; DOF 29-06-2020",
+      "fuente_url": "https://www.gob.mx/cms/uploads/attachment/file/465789/07ESPAdministracionAduanerayFacilitaciondelComercio.pdf",
+      "vigente_desde": "2020-07-01",
+      "vigente_hasta": null,
+      "impactos": [
+        {
+          "categoria": "REPRESENTACION_ADUANAL",
+          "regimen": "GENERAL",
+          "veredicto_base": null,
+          "requisitos": [
+            "Si se opta por auto-declarar, verificar los requisitos que la legislacion mexicana impone a quien promueve el despacho por si mismo (Ley Aduanera, Art. 40) antes de prescindir del agente aduanal",
+            "Gestionar el acceso a los sistemas electronicos aduaneros, directo o mediante proveedor de servicios, que el Art. 7.20.1 obliga a otorgar en condiciones no discriminatorias"
+          ],
+          "banderas": [
+            "El T-MEC respalda la auto-declaracion, pero remite a las leyes y regulaciones de cada Parte: no es una habilitacion automatica para operar sin agente aduanal en Mexico",
+            "Los requisitos para ser agente aduanal deben ser transparentes y objetivos (Art. 7.20.2): un requisito arbitrario es impugnable con base en el Tratado"
           ],
           "parametros": {
             "verificar": false

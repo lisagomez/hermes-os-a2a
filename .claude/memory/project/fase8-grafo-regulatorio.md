@@ -599,3 +599,67 @@ señal: existían para eso. 364 vitest verdes tras actualizarlos.
 
 **PENDIENTE runtime:** igual que comercio exterior, bloqueado por la red cortada del
 servidor. Esperado al aplicar: 83 reglas / 55 categorías.
+
+
+## T-MEC (2026-09-03) — el hueco que las dos siembras anteriores dejaron declarado
+
+La regla doméstica de origen (Ley Aduanera 59 y 36-A) traía una bandera honesta: *"las
+reglas de origen concretas viven en cada tratado y NO están sembradas en este grafo"*.
+Esta siembra la cierra a medias y **lo dice**: entra el marco del T-MEC (Capítulos 4, 5 y
+7), no las reglas por producto. La bandera vieja se reescribió en el mismo cambio, con
+test que la fija — una bandera que se vuelve falsa es peor que no tenerla, porque el grafo
+sigue sonando seguro mientras miente.
+
+15 reglas y 6 categorías (`TMEC_TRATO_PREFERENCIAL`, `TMEC_CERTIFICACION_ORIGEN`,
+`TMEC_REGLAS_ORIGEN`, `TMEC_VERIFICACION_ORIGEN`, `TMEC_ENVIOS_ENTREGA_RAPIDA`,
+`TMEC_RESOLUCIONES_ANTICIPADAS`), más un impacto del Art. 7.20 en la categoría existente
+`REPRESENTACION_ADUANAL`. Fuente: textos finales de la Secretaría de Economía (gob.mx),
+promulgados DOF 29-06-2020, en vigor 01-07-2020; PDF leídos con `pypdf`.
+
+### La numeración real desmiente a los resúmenes
+
+Escribir de memoria habría citado artículos inexistentes: en el T-MEC **5.2 es Solicitudes
+de Trato Preferencial**, 5.3 Bases de la Certificación, **5.5 Excepciones** (no 5.3) y
+**5.11 Devoluciones** (no 5.5). El hábito del repo —leer el PDF oficial, no el blog— es lo
+único que separa una cita correcta de una plausible.
+
+### El invariante que este ámbito casi rompe: un veredicto por categoría
+
+`evaluador.evaluar_concepto` reporta **contradicción** y degrada el dictamen a `dudoso`
+cuando dos veredictos distintos viven en la misma categoría. El gate `gen_seed_sql.py
+--check` **no puede verlo**: valida regla por regla, y la contradicción solo nace al
+juntarlas. Patrón adoptado (que el seed ya usaba en Fase B con las prohibiciones del
+LGTOC 394): **una sola regla rectora por categoría** y las complementarias con
+`veredicto_base: null` — siguen aportando requisitos, banderas y su fuente al dictamen,
+sin votar. Por eso el Art. 7.20 entra sin veredicto en `REPRESENTACION_ADUANAL`: la Ley
+Aduanera 40 sigue siendo la rectora y el tratado suma su cita. Verificado en el control de
+reversión: al darle veredicto propio a una complementaria, el gate siguió **verde** y dos
+tests se pusieron **rojos**.
+
+### Dos `dudoso` por fail-safe declarado
+
+- `TMEC_REGLAS_ORIGEN`: el **Anexo 4-B** (reglas específicas por producto) no está
+  sembrado, así que el grafo no puede decir si una mercancía concreta califica. La salida
+  útil no es un veredicto: es el checklist + la ruta del Art. 7.5 (resolución anticipada),
+  que es exactamente la vía para resolver lo que el grafo no puede.
+- `TMEC_ENVIOS_ENTREGA_RAPIDA`: el Art. 7.8 obliga a México a un **piso** (117 USD para
+  aranceles, 50 para impuestos), no otorga la exención a un envío concreto; el monto
+  aplicable lo fija el ordenamiento doméstico, que ha cambiado varias veces desde 2020.
+  Tratar el número del tratado como si fuera la regla vigente es el error típico del tema.
+
+### Vocabulario: el tratado entra por su propia puerta
+
+`certificacion de origen` (T-MEC) y `certificado de origen` (Ley Aduanera) son términos
+distintos y así se repartieron; `certificado de origen t-mec` gana por keyword más larga.
+Test explícito de que el T-MEC **no le roba** consultas al ámbito doméstico ya sembrado
+(pedimento, valor en aduana, carta porte, guía aérea, agente aduanal siguen donde estaban).
+En el mock del copiloto el patrón exige vocabulario del tratado: *"exportamos autopartes a
+Estados Unidos"* sigue saliendo **sin regla aplicable**, en vez de recibir un dictamen que
+nadie pidió.
+
+Seed 83→**98 reglas / 61 categorías**; gate OK; **132 tests** del grafo (13 nuevos) y 366
+vitest del copiloto (+2).
+
+**PENDIENTE runtime:** se suma a la cola de comercio exterior y logística, bloqueada por la
+red cortada del servidor (Hetzner, `ipv4.blocked` desde ~27-28 de agosto). Esperado al
+aplicar: **98 reglas / 61 categorías**, `evaluaciones` intactas.
