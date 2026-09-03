@@ -953,7 +953,7 @@ deck HTML (tokens del design system; la plantilla `pitch-deck-whitelabel.html`, 
 documento de partida vendía en presente tres pilares de los que **dos no tienen respaldo
 hoy** — no existe ningún agente sectorial (documentación aduanera, rastreo, regulatorio),
 lo que opera es el trío que fabrica software; la cadena de bloques está construida y
-probada pero **no desplegada**; y el grafo tiene motor vivo con **cero cobertura de
+probada pero **no desplegada**; y el grafo tenía motor vivo con **cero cobertura de
 aduanas, pedimento, carta porte o incoterms** (68 reglas, MX/CO, 5 dimensiones, ninguna de
 comercio exterior). El deck cuenta el valor completo pero encabeza los dos casos con *"así
 queda tu operación al terminar el piloto"*, marca las cifras del encargo (40–60 %, "de días
@@ -961,6 +961,17 @@ a horas") como **objetivo del piloto** y traslada el semáforo de madurez al cie
 camino de implementación que cierra por resultado verificado y no por calendario. El guion
 incluye la **respuesta preparada** a *"¿me lo enseñas funcionando hoy?"* — la pregunta que
 el propio cierre provoca.
+
+⚠️ **Corregido el 2026-09-03, dos días después de escribir el deck:** los PRs #307/#308/#309
+sembraron comercio exterior (Ley Aduanera + LCE), logística (LCPAF + Ley de Aviación Civil) y
+el T-MEC — el seed va en **98 reglas / 61 categorías** y el grafo **sí** cubre despacho
+aduanero y pedimento, valor en aduana, origen de mercancías, autotransporte de carga y guía
+aérea (e-AWB). La disciplina del deck sigue siendo la correcta, pero su tabla de "lo que opera
+vs. lo que se configura en el piloto" quedó **conservadora justo en la capacidad más relevante
+para este lead**: vender de menos también desinforma. `generadas/GUION.md` ya está corregido.
+Matiz que importa para la llamada: esas reglas están en el repositorio y **pendientes de
+aplicar al runtime** mientras el servidor tenga la red cortada, así que una demo contra el
+grafo en vivo todavía respondería *sin regla aplicable* — verificar antes de enseñarlo.
 
 **Regla que deja para el resto de la fábrica:** todo material comercial que salga de aquí
 declara lo que opera y lo que se configura en el piloto. Una promesa que no se puede

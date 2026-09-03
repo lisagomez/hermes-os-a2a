@@ -15,8 +15,16 @@ cuenta entera. Por eso:
 | Se puede decir en **presente** | Hay que decirlo como **lo que se implementa contigo** |
 |---|---|
 | La plataforma de agentes opera hoy (el equipo la usa a diario para fabricar su propio software) | Cualquier agente **de tu operación**: documentación aduanera, rastreo, regulatorio, comercial, coordinación |
-| El motor del mapa de reglas está vivo y en uso | La **cobertura de aduanas, pedimento, carta porte e incoterms** — hoy el mapa cubre otras materias, no comercio exterior |
+| El motor del mapa de reglas está vivo y **cubre comercio exterior**: Ley Aduanera, Ley de Comercio Exterior, LCPAF, Ley de Aviación Civil y T-MEC (98 reglas, 61 categorías) | Tus **reglas propias** y lo que el mapa declara fuera de alcance: la clasificación arancelaria de tu catálogo (Tarifa LIGIE), las reglas de origen por producto (Anexo 4-B del T-MEC) y el complemento fiscal Carta Porte |
 | La bitácora compartida está construida y probada de extremo a extremo | Que esté **sellando tus embarques** — eso se activa en tu implementación |
+
+> **Actualizado el 2026-09-03.** Cuando se escribió este guion (2026-08-31) el mapa tenía 68 reglas
+> y **cero** comercio exterior; los PRs #307/#308/#309 sembraron aduanas, logística y el T-MEC. La
+> fila de arriba ya lo refleja: es la capacidad más relevante para este lead y venderla de menos
+> también desinforma. Sigue **sin** cambiar lo demás: no existe ningún agente sectorial y la
+> bitácora no está desplegada. ⚠️ Antes de enseñar el mapa en vivo, verificar que las reglas nuevas
+> ya estén aplicadas al servicio — están en el repositorio, y el runtime quedó pendiente mientras el
+> servidor tiene la red cortada.
 
 Ninguna diapositiva afirma en presente que exista un agente que despache aduanas hoy. El valor no se
 pierde: se cuenta como **lo que queda montado al terminar el piloto**, que es lo que el lead compra.
