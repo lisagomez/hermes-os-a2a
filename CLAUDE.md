@@ -1790,4 +1790,54 @@ npm run lint         # ESLint
 - **Aplicar en**: todo skill/host-job contra OpenRouter, Polar, Supabase o cualquier API de
   terceros, y todo manejador de error que vuelque una respuesta cruda en vez de nombrar la causa.
 
+### 2026-09-03: Tres ámbitos del grafo (aduanero, logística, T-MEC) — lo que sobrevive al dominio
+- **El gate valida REGLAS; el invariante nace al JUNTARLAS.** `evaluador.evaluar_concepto`
+  reporta contradicción y degrada el dictamen a `dudoso` cuando dos veredictos distintos
+  viven en la misma categoría, y `gen_seed_sql.py --check` **no puede verlo**: valida regla
+  por regla. Patrón obligatorio: **una sola regla rectora por categoría**, las
+  complementarias con `veredicto_base: null` — siguen aportando requisitos, banderas y su
+  fuente al dictamen, sin votar (así entró el Art. 7.20 del T-MEC en
+  `REPRESENTACION_ADUANAL` sin desbancar a la Ley Aduanera 40, rectora). Control de
+  reversión: al darle veredicto propio a una complementaria, el gate siguió **verde** y dos
+  tests se pusieron **rojos**. Generaliza: un gate que valida unidades no ve las
+  invariantes de la composición — esas se fijan con tests, o no están fijadas.
+- **Nada normativo se lee de un intermediario** (hermano del 2026-08-02, "nada
+  criptográfico se transcribe desde una imagen"). `WebFetch` **no sirve para leer leyes**:
+  devuelve el PDF binario (FlateDecode) y se niega —con razón— a reconstruirlo de memoria.
+  La cadena que funciona: descargar de `diputados.gob.mx/LeyesBiblio/pdf/` + extraer con
+  `pypdf` (ya instalado en `businessos/.venv`). El índice HTML del sitio, resumido por un
+  modelo pequeño, daba *"Ley Aduanera, última reforma DOF 27/12/2025"*; el texto real dice
+  **19-11-2025** (el 27-12 es la actualización de cantidades por Reglas Generales de
+  Comercio Exterior) — esa fecha habría entrado en el `fuente_cita` y el `vigente_desde` de
+  **cada** regla del ámbito. Al parsear: cada ley usa encabezado distinto (`ARTICULO 59.`
+  en Ley Aduanera, `Artículo 15.-` en LCE) y una regex simple engancha las **referencias
+  cruzadas** ("artículo 59-A de la presente Ley") dentro de otro artículo; el desempate que
+  funciona es que el encabezado verdadero abre el **bloque más largo**. Y la numeración de
+  los resúmenes miente: en el T-MEC 5.5 es Excepciones (no 5.3) y 5.11 Devoluciones (no
+  5.5).
+- **Un mock que se declara "fiel" y deja de serlo es una divergencia silenciosa.**
+  `meeting-copilot/.../pre-discovery/grafo.ts` dictaminaba el sector logística con
+  categorías que el seed **no tenía**, citando IATA Res. 672 sin ningún anclaje en ley
+  mexicana: con el mock un forwarder salía `permitido` **con fuentes**; con el grafo real,
+  `sin regla aplicable`. Nadie lo veía porque cada lado era coherente por separado (linaje
+  del fallback del Pre-Discovery, 2026-08-08). Al sembrarlas de verdad, dos vitest que
+  fijaban las citas viejas se pusieron **rojos**: existían para eso. Regla: un mock que se
+  declara espejo de un sistema real necesita un test que compare contra la fuente, no una
+  promesa en su encabezado.
+- **Antes de declarar un hueco de conocimiento, buscar la ley nacional; y cuando el hueco
+  es real, declararlo con fuente.** La plantilla anticipaba `dudoso` para la guía aérea
+  ("estándar sectorial ≠ exigencia de autoridad") y el **Art. 55 de la Ley de Aviación
+  Civil** sí la exige → el veredicto es `permitido` con base nacional y la bandera se
+  reduce a lo que de verdad no se puede afirmar (que el e-AWB satisfaga el requisito de
+  forma del 55, cuya NOM no está sembrada). Del otro lado, `dudoso` **declarado** —con
+  fuente y con bandera que nombra el hueco: `CLASIFICACION_ARANCELARIA`,
+  `PRACTICAS_DESLEALES`, `TMEC_REGLAS_ORIGEN`— es información útil; `sin regla aplicable`
+  es un vacío mudo. Los tests fijan justo esa diferencia. Corolario del T-MEC: un piso de
+  tratado (117 USD del Art. 7.8) **no es** la regla vigente para un envío concreto; el
+  monto lo fija el ordenamiento doméstico.
+- **Aplicar en**: toda siembra del grafo (PRs #307/#308/#309 llevaron el seed de 68 a
+  **98 reglas / 61 categorías**, pendientes de aplicar al runtime mientras Hetzner tenga la
+  red cortada), todo gate que valide unidades de un conjunto con invariantes de
+  composición, y todo mock que se declare espejo de un sistema real.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
