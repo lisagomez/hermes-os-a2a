@@ -99,3 +99,13 @@ token.json
 
 # Paquetes de sistema descargados (apt-get download)
 *.deb
+
+# Material de presentación (generadas/): se versiona la FUENTE — guion, prompts,
+# deck-fuente.html y los dos scripts — porque es lo reutilizable. Quedan fuera las
+# ilustraciones (6 MB de PNG/JPG de un deck concreto) y deck-a2a-logistica.html,
+# que es un artefacto construido: 2 MB de imágenes incrustadas que construir.py
+# regenera desde la fuente.
+generadas/*.png
+generadas/*.jpg
+generadas/opt/
+generadas/deck-a2a-logistica.html

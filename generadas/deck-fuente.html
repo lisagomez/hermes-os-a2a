@@ -1,0 +1,631 @@
+<title>A2A para Comercio Exterior</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/*
+  Deck A2A — logistica y comercio exterior.
+  Metodologia y CSS heredados de businessos/departamentos/adquisicion/plantillas/
+  pitch-deck-whitelabel.html (esa plantilla NO se toca: esta bajo gate politica_intocable).
+  Colores: tokens reales de businessos/frontends/design-system/tokens/colors.css.
+
+  Tema unico deliberado: es un deck de venta que debe verse igual en la pantalla de
+  quien lo presente, sin importar el tema del navegador. Por eso NO hay bloques
+  prefers-color-scheme: cada color se pinta explicitamente desde un token propio,
+  incluido el fondo del body, para que la pagina no herede el fondo del anfitrion.
+*/
+:root{
+  --bg:#0B0A10;
+  --surface-1:#0E0C15; --surface-2:#12101A; --surface-3:#15121E;
+  --border-1:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.12);
+  --text-1:#EDEAF4; --text-2:#B4ADC7; --text-3:#9A93AC; --text-dim:#7A7390;
+  --violet:#9F7BFF; --pink:#FF4D8D; --lilac:#B9A6FF;
+  --energy:#E8A320; --success:#28C840;
+  --cream:#F5F0E8;
+  --grad-brand:linear-gradient(120deg,var(--violet),var(--pink));
+  --font-display:'Space Grotesk',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+  --radius-m:12px; --radius-l:16px; --radius-xl:22px; --radius-pill:999px;
+  --shadow-card:0 24px 60px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text-2);font-family:var(--font-display);
+     font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+.slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;
+       justify-content:center;padding:72px clamp(24px,6vw,96px);position:relative;
+       overflow:hidden}
+.slide+.slide{border-top:1px solid var(--border-1)}
+
+.kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;
+        text-transform:uppercase;color:var(--text-3);margin-bottom:20px}
+.kicker b{color:var(--violet);font-weight:500}
+h1,h2{color:var(--text-1);line-height:1.08;font-weight:700;text-wrap:balance}
+h1{font-size:clamp(32px,5vw,58px)}
+h2{font-size:clamp(25px,3.3vw,38px)}
+h3{color:var(--text-1);font-size:17px;font-weight:600;line-height:1.3}
+.grad{background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;
+      color:transparent}
+.lead{font-size:clamp(15px,1.5vw,18px);max-width:62ch;color:var(--text-2)}
+.sub{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+     text-transform:uppercase;color:var(--text-dim)}
+
+/* --- estructura de dos columnas: texto + ilustracion --- */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+       gap:clamp(28px,4vw,60px);align-items:center;width:100%}
+.split.narrow{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)}
+/* La 3 lleva tres tarjetas de texto: manda el texto, no la ilustracion. */
+.split.texto-ancho{grid-template-columns:minmax(0,1.22fr) minmax(0,.78fr)}
+@media (max-width:900px){
+  .split,.split.narrow{grid-template-columns:1fr;gap:26px}
+  .split .art{order:-1}
+}
+
+/* La ilustracion crema sobre el fondo casi-negro: el contraste es intencional,
+   la ilustracion es lo que atrae la vista primero. */
+.art{background:var(--cream);border-radius:var(--radius-xl);
+     box-shadow:var(--shadow-card);overflow:hidden;aspect-ratio:16/9;
+     display:flex;align-items:center;justify-content:center}
+.art img{width:100%;height:100%;object-fit:cover;display:block}
+.art .ph{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;
+         text-transform:uppercase;color:#8A8275;text-align:center;padding:24px;
+         line-height:1.8}
+.art .ph b{display:block;color:#4A4438;font-size:13px;margin-bottom:8px}
+
+/* --- visor de ilustraciones a pantalla completa --- */
+/* El detalle de un sketchnote (etiquetas de 11 px en el original) se pierde en la
+   columna del deck: pulsando la ilustracion se abre completa. Solo se activa por JS,
+   asi que el rol y el foco se ponen desde ahi — sin JS no se anuncia un boton que no existe. */
+.art[data-ampliable]{cursor:zoom-in}
+.art[data-ampliable]:focus-visible{outline:2px solid var(--lilac);outline-offset:4px}
+
+#visor{position:fixed;inset:0;z-index:100;display:none;place-items:center;
+       background:rgba(6,5,10,.94);padding:clamp(16px,3vw,44px);cursor:zoom-out}
+#visor[open]{display:grid}
+#visor img{max-width:100%;max-height:calc(100vh - 168px);width:auto;height:auto;
+           border-radius:var(--radius-l);box-shadow:0 30px 90px rgba(0,0,0,.7);
+           background:var(--cream);cursor:default}
+#visor figure{display:flex;flex-direction:column;align-items:center;gap:14px;margin:0;
+              max-width:100%}
+#visor figcaption{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+                  text-transform:uppercase;color:var(--text-3);text-align:center;
+                  max-width:60ch}
+#visor .cerrar{position:absolute;top:clamp(10px,2vw,20px);right:clamp(10px,2vw,20px);
+               width:42px;height:42px;border-radius:50%;border:1px solid var(--border-2);
+               background:var(--surface-2);color:var(--text-1);font-size:20px;
+               line-height:1;cursor:pointer;display:grid;place-items:center;
+               font-family:var(--font-display)}
+#visor .cerrar:hover{background:var(--surface-3)}
+#visor .cerrar:focus-visible{outline:2px solid var(--lilac);outline-offset:3px}
+#visor .paso{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
+             border-radius:50%;border:1px solid var(--border-2);background:var(--surface-2);
+             color:var(--text-1);font-size:19px;cursor:pointer;display:grid;place-items:center;
+             font-family:var(--font-display)}
+#visor .paso:hover{background:var(--surface-3)}
+#visor .paso:focus-visible{outline:2px solid var(--lilac);outline-offset:3px}
+#visor .previa{left:clamp(8px,1.6vw,18px)}
+#visor .siguiente{right:clamp(8px,1.6vw,18px)}
+@media (max-width:640px){ #visor .paso{display:none} }
+body.visor-abierto{overflow:hidden}
+/* El fondo del visor es 94% opaco: la pista y los puntos se transparentaban detras. */
+body.visor-abierto .hint,body.visor-abierto .pager,body.visor-abierto .progress{display:none}
+
+/* --- viñetas --- */
+.bullets{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:26px}
+.bullets li{position:relative;padding-left:24px;color:var(--text-2);font-size:15px;
+            line-height:1.55}
+.bullets li::before{content:"◆";position:absolute;left:0;top:0;color:var(--violet);
+                    font-size:9px;line-height:2.6}
+.bullets li b{color:var(--text-1);font-weight:600}
+
+/* --- pasos numerados de los casos --- */
+.steps{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:24px;
+       counter-reset:paso}
+.steps li{position:relative;background:var(--surface-1);
+          border:1px solid var(--border-1);border-radius:var(--radius-m);
+          padding:13px 16px 13px 52px;font-size:14px;color:var(--text-2);
+          line-height:1.5}
+.steps li::before{counter-increment:paso;content:counter(paso);position:absolute;
+          left:16px;top:13px;
+          width:24px;height:24px;border-radius:50%;background:var(--grad-brand);
+          color:#0B0A10;font-family:var(--font-mono);font-size:12px;font-weight:700;
+          display:grid;place-items:center}
+.steps li b{color:var(--text-1);font-weight:600}
+
+/* --- banner de encabezado honesto en los casos --- */
+.banner{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;
+        border:1px solid rgba(232,163,32,.42);background:rgba(232,163,32,.09);
+        border-radius:var(--radius-pill);padding:8px 18px;font-family:var(--font-mono);
+        font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--energy)}
+.banner .dot{width:6px;height:6px;border-radius:50%;background:var(--energy);flex:none}
+
+/* --- tarjetas de pilares --- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+       gap:16px;margin-top:28px}
+/* En columna estrecha las tres van una sobre otra: cabe en una pantalla sin desplazar. */
+.cards.apiladas{grid-template-columns:1fr;gap:12px}
+.cards.apiladas .card{padding:16px 20px}
+.cards.apiladas .card .glyph{margin-bottom:6px;font-size:16px}
+.cards.apiladas .card .tag{margin-top:10px;padding-top:8px}
+.card{background:var(--surface-1);border:1px solid var(--border-1);
+      border-radius:var(--radius-l);padding:26px 24px;box-shadow:var(--shadow-card)}
+.card .glyph{font-size:19px;color:var(--violet);margin-bottom:12px;
+             font-family:var(--font-display),'DejaVu Sans','Segoe UI Symbol',sans-serif}
+.card h3{margin-bottom:9px}
+.card p{font-size:13.5px;color:var(--text-3)}
+.card .tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;
+           color:var(--text-dim);text-transform:uppercase;display:block;margin-top:15px;
+           padding-top:12px;border-top:1px dashed var(--border-1)}
+
+/* --- beneficios --- */
+.benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+          gap:14px;margin-top:26px}
+@media (max-width:520px){ .benefits{grid-template-columns:1fr} }
+.benefit{background:var(--surface-1);border:1px solid var(--border-1);
+         border-radius:var(--radius-l);padding:18px 20px}
+.benefit .glyph{font-size:24px;margin-bottom:12px;display:block;color:var(--violet);
+                font-family:var(--font-display),'DejaVu Sans','Segoe UI Symbol',sans-serif}
+.benefit h3{font-size:15.5px;margin-bottom:7px}
+.benefit p{font-size:13px;color:var(--text-3)}
+
+/* Marca "objetivo, no resultado medido": el matiz que hace honesto el deck. */
+.meta-tag{display:inline-block;font-family:var(--font-mono);font-size:9.5px;
+          letter-spacing:.14em;text-transform:uppercase;color:var(--energy);
+          border:1px solid rgba(232,163,32,.35);border-radius:var(--radius-pill);
+          padding:3px 9px;margin-top:9px}
+
+/* --- camino de implementacion (diapositiva 7) --- */
+.etapas{display:grid;grid-template-columns:1fr;gap:11px;margin-top:24px}
+.etapa{background:var(--surface-1);border:1px solid var(--border-1);
+       border-radius:var(--radius-l);padding:15px 20px;position:relative;overflow:hidden}
+.etapa::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;
+               background:var(--grad-brand)}
+.etapa .when{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;
+             text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.etapa h3{font-size:15px;margin-bottom:5px}
+.etapa p{font-size:13px;color:var(--text-3)}
+
+.rule{border:1px dashed var(--border-2);border-radius:var(--radius-l);
+      padding:14px 20px;margin-top:20px;max-width:66ch;background:var(--surface-1);
+      color:var(--text-2);font-size:14.5px}
+.rule b{color:var(--text-1)}
+.rule .chk{color:var(--success);font-family:var(--font-mono);margin-right:9px}
+
+.cta{display:inline-flex;align-items:center;gap:11px;margin-top:22px;
+     background:var(--grad-brand);color:#0B0A10;border-radius:var(--radius-pill);
+     padding:14px 28px;font-weight:700;font-size:15px;text-decoration:none}
+
+.brandmark{display:flex;align-items:center;gap:14px;margin-bottom:40px}
+.brandmark .logo{font-family:var(--font-mono);font-weight:700;font-size:15px;
+                 letter-spacing:.14em;padding:10px 18px;border-radius:var(--radius-m);
+                 background:var(--grad-brand);color:#0B0A10}
+.brandmark .who{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;
+                text-transform:uppercase;color:var(--text-3)}
+
+/* --- pantallas bajas: compactar antes que desbordar --------------------------
+   Una diapositiva mas alta que la ventana obliga a desplazar dentro de ella Y
+   descuadra el salto a la siguiente (el motor de scroll-snap re-encaja). */
+@media (max-height:960px){
+  .slide{padding-top:44px;padding-bottom:44px}
+  h1{font-size:clamp(28px,4.2vw,44px)}
+  h2{font-size:clamp(22px,2.8vw,30px)}
+  .bullets{gap:10px;margin-top:18px}
+  .bullets li{font-size:14px}
+  .steps{gap:8px;margin-top:16px}
+  .steps li{padding:10px 14px 10px 48px;font-size:13.5px}
+  .steps li::before{top:10px}
+  .cards.apiladas .card{padding:12px 16px}
+  .cards.apiladas .card p{font-size:13px}
+  .benefit{padding:14px 16px}
+  .etapa{padding:12px 16px}
+  .rule{padding:11px 16px;margin-top:14px;font-size:13.5px}
+  .cta{margin-top:16px;padding:11px 22px;font-size:14px}
+  .banner{margin-bottom:12px}
+}
+@media (max-height:800px){
+  .slide{padding-top:34px;padding-bottom:34px}
+  .card p,.benefit p,.etapa p{font-size:12.5px}
+  .cards.apiladas{gap:9px}
+  .cards.apiladas .card{padding:10px 15px}
+  .cards.apiladas .card .tag{margin-top:7px;padding-top:6px}
+  .kicker{margin-bottom:12px}
+}
+@media (max-height:700px){
+  .slide{padding-top:26px;padding-bottom:26px}
+  .cards.apiladas .card .tag{display:none}
+}
+
+/* --- progreso y navegacion --- */
+.progress{position:fixed;top:0;left:0;height:2px;background:var(--grad-brand);
+          width:0;z-index:50;transition:width .18s ease-out}
+.pager{position:fixed;right:clamp(14px,2.4vw,28px);top:50%;transform:translateY(-50%);
+       display:flex;flex-direction:column;gap:10px;z-index:50}
+.pager a{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);
+         border:1px solid transparent;display:block;transition:background .2s,transform .2s}
+.pager a:hover{background:var(--lilac);transform:scale(1.25)}
+.pager a.on{background:var(--violet);transform:scale(1.3)}
+.pager a:focus-visible,.cta:focus-visible{outline:2px solid var(--lilac);outline-offset:3px}
+@media (max-width:640px){.pager{display:none}}
+
+.hint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+      font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;
+      text-transform:uppercase;color:var(--text-dim);z-index:50;
+      transition:opacity .4s;pointer-events:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .progress,.pager a{transition:none}
+}
+</style>
+
+<div class="progress" id="progress"></div>
+<div id="visor" role="dialog" aria-modal="true" aria-label="Ilustración ampliada">
+  <button class="cerrar" type="button" aria-label="Cerrar (Esc)">✕</button>
+  <button class="paso previa" type="button" aria-label="Ilustración anterior">‹</button>
+  <button class="paso siguiente" type="button" aria-label="Ilustración siguiente">›</button>
+  <figure>
+    <img id="visor-img" alt="">
+    <figcaption id="visor-pie"></figcaption>
+  </figure>
+</div>
+<nav class="pager" id="pager" aria-label="Navegación de diapositivas">
+  <a href="#s1" class="on" aria-label="Portada"></a>
+  <a href="#s2" aria-label="El equipo digital"></a>
+  <a href="#s3" aria-label="Los tres pilares"></a>
+  <a href="#s4" aria-label="Caso forwarder"></a>
+  <a href="#s5" aria-label="Caso fabricante"></a>
+  <a href="#s6" aria-label="Beneficios"></a>
+  <a href="#s7" aria-label="El camino"></a>
+</nav>
+<div class="hint" id="hint">← → para navegar · pulsa una ilustración para ampliarla</div>
+
+<!-- 1 · PORTADA -->
+<section class="slide" id="s1">
+  <div class="split">
+    <div>
+      <div class="brandmark">
+        <span class="logo">A2A</span>
+        <span class="who">Factory</span>
+      </div>
+      <h1>Soluciones A2A para <span class="grad">logística y comercio exterior</span></h1>
+      <p class="lead" style="margin-top:22px">
+        Automatización inteligente para forwarders y fabricantes: un equipo digital que arma
+        la documentación, vigila el embarque y deja evidencia verificable de cada paso.
+      </p>
+      <p class="sub" style="margin-top:30px">Presentación ejecutiva · 7 secciones</p>
+    </div>
+    <div class="art">
+      <img src="01-portada.png" alt="Ilustración: contenedores, documentos y un cerebro digital conectados por flechas dibujadas a mano" data-ph="<b>Ilustración 1 · Portada</b>contenedores · documentos<br>cerebro digital · trazabilidad">
+    </div>
+  </div>
+</section>
+
+<!-- 2 · EL EQUIPO DIGITAL -->
+<section class="slide" id="s2">
+  <div class="split narrow">
+    <div>
+      <p class="kicker"><b>02</b> · ¿Qué es A2A?</p>
+      <h2>Un <span class="grad">equipo digital</span>, no un programa más</h2>
+      <ul class="bullets">
+        <li>Colaboradores especializados que trabajan coordinados, cada uno con su oficio</li>
+        <li>Cada agente domina <b>una</b> tarea: documentos, validación, rastreo, coordinación</li>
+        <li>Trabajan <b>en paralelo</b> y se pasan el trabajo entre ellos, sin esperar a que alguien reenvíe un correo</li>
+        <li>Cuando algo se sale de lo previsto, <b>escala a una persona</b> en vez de inventar</li>
+        <li>Resultado: procesos más rápidos, con menos errores y visibilidad de punta a punta</li>
+      </ul>
+    </div>
+    <div class="art">
+      <img src="02-equipo-digital.png" alt="Ilustración: cinco agentes-personaje en flujo circular, cada uno con su especialidad" data-ph="<b>Ilustración 2 · Equipo digital</b>cinco agentes en flujo circular<br>documentación · rastreo · regulatorio<br>comercial · coordinación">
+    </div>
+  </div>
+</section>
+
+<!-- 3 · LOS TRES PILARES -->
+<section class="slide" id="s3">
+  <div class="split narrow texto-ancho">
+    <div>
+  <p class="kicker"><b>03</b> · Elementos clave</p>
+  <h2>Tres pilares, explicados por lo que <span class="grad">hacen por tu operación</span></h2>
+  <div class="cards apiladas">
+    <div class="card">
+      <div class="glyph">◆</div>
+      <h3>Enjambre de agentes</h3>
+      <p>El equipo digital que ejecuta tareas en paralelo: cada agente toma su parte del
+         proceso y se la pasa al siguiente sin que nadie tenga que reenviar nada.</p>
+      <span class="tag">Equipo digital en paralelo</span>
+    </div>
+    <div class="card">
+      <div class="glyph">◉</div>
+      <h3>Bitácora compartida inmutable</h3>
+      <p>Cada paso queda sellado con evidencia verificable: quién hizo qué, cuándo, y sin que
+         nadie pueda editarlo después.</p>
+      <span class="tag">Trazabilidad de extremo a extremo</span>
+    </div>
+    <div class="card">
+      <div class="glyph">▣</div>
+      <h3>Mapa de reglas por país</h3>
+      <p>Un motor que responde qué exige cada jurisdicción y cita la fuente de cada respuesta.
+         Si no hay regla aplicable, lo dice en vez de opinar.</p>
+      <span class="tag">Cumplimiento con fuente</span>
+    </div>
+  </div>
+  <div class="rule">
+    <span class="chk">✓</span><b>Se conectan:</b> el agente consulta el mapa, ejecuta, y la bitácora guarda la evidencia.
+  </div>
+    </div>
+    <div class="art">
+    <img src="03-pilares.png" alt="Ilustración: tres columnas con enjambre de agentes, bitácora encadenada y mapa de reglas por país" data-ph="<b>Ilustración 3 · Tres pilares</b>enjambre · bitácora encadenada · mapa de reglas">
+    </div>
+  </div>
+</section>
+
+<!-- 4 · CASO FORWARDER -->
+<section class="slide" id="s4">
+  <div class="split narrow">
+    <div>
+      <p class="kicker"><b>04</b> · Caso 1 · Forwarder logístico</p>
+      <div class="banner"><span class="dot"></span>Así queda tu operación al terminar el piloto</div>
+      <h2>Documentación, rastreo y validación <span class="grad">coordinados</span></h2>
+      <ol class="steps">
+        <li>Entra la <b>solicitud de cotización</b> del cliente</li>
+        <li>El <b>agente de documentación</b> arma el expediente y revisa que no falte nada antes de que salga</li>
+        <li>El <b>agente de rastreo</b> vigila el embarque y avisa de la desviación, no del hecho consumado</li>
+        <li>El <b>agente regulatorio</b> contrasta requisitos de origen y destino contra el mapa de reglas</li>
+        <li>Cada paso queda <b>sellado en la bitácora</b>, disponible para tu cliente final</li>
+      </ol>
+    </div>
+    <div>
+      <div class="art">
+        <img src="04-forwarder.png" alt="Ilustración: flujo horizontal de cinco pasos del proceso de un forwarder" data-ph="<b>Ilustración 4 · Forwarder</b>flujo horizontal de cinco pasos<br>cotización → documentos → rastreo<br>→ reglas → bitácora">
+      </div>
+      <ul class="bullets" style="margin-top:22px">
+        <li>Llevar el tiempo de procesamiento de días a horas <span class="meta-tag">Objetivo del piloto</span></li>
+        <li>Menos errores de documentación, que son los que generan retenciones</li>
+        <li>Visibilidad total para el cliente final, sin llamadas de seguimiento</li>
+        <li>Cumplimiento verificable, con la fuente de cada requisito a la mano</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · CASO FABRICANTE -->
+<section class="slide" id="s5">
+  <div class="split narrow">
+    <div>
+      <p class="kicker"><b>05</b> · Caso 2 · Fabricante de fasteners</p>
+      <div class="banner"><span class="dot"></span>Así queda tu operación al terminar el piloto</div>
+      <h2>Del pedido internacional a la <span class="grad">recolección programada</span></h2>
+      <ol class="steps">
+        <li>Entra el <b>pedido internacional</b></li>
+        <li>El <b>agente comercial</b> valida especificaciones del producto contra lo que el cliente pidió</li>
+        <li>El <b>agente regulatorio</b> verifica requisitos de exportación en origen y de importación en destino</li>
+        <li>El <b>agente de coordinación</b> notifica al forwarder y programa la recolección</li>
+        <li>El ciclo completo queda <b>sellado en la bitácora</b>, listo para auditoría</li>
+      </ol>
+    </div>
+    <div>
+      <div class="art">
+        <img src="05-fasteners.png" alt="Ilustración: flujo vertical del ciclo de un pedido de fasteners" data-ph="<b>Ilustración 5 · Fasteners</b>flujo vertical del ciclo del pedido<br>pedido → especificaciones → reglas<br>→ recolección → auditoría">
+      </div>
+      <ul class="bullets" style="margin-top:22px">
+        <li>Detecta la discrepancia de especificación <b>antes</b> de que salga el contenedor</li>
+        <li>Menor riesgo de retención aduanera por un requisito que nadie vio a tiempo</li>
+        <li>Historial completo para auditorías, sin reconstruir nada a mano</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · BENEFICIOS -->
+<section class="slide" id="s6">
+  <div class="split narrow">
+    <div>
+  <p class="kicker"><b>06</b> · Beneficios transversales</p>
+  <h2>Dónde se nota: en <span class="grad">tiempo, plata y riesgo</span></h2>
+  <div class="benefits">
+    <div class="benefit">
+      <span class="glyph">◷</span>
+      <h3>Eficiencia operativa</h3>
+      <p>Procesos que hoy toman días, medidos en horas.</p>
+      <span class="meta-tag">Objetivo del piloto</span>
+    </div>
+    <div class="benefit">
+      <span class="glyph">◈</span>
+      <h3>Reducción de costos</h3>
+      <p>Menos reproceso, menos errores, menos gente en tareas repetitivas.</p>
+    </div>
+    <div class="benefit">
+      <span class="glyph">⬢</span>
+      <h3>Menor riesgo</h3>
+      <p>Cumplimiento verificable y trazabilidad completa de cada embarque.</p>
+    </div>
+    <div class="benefit">
+      <span class="glyph">↗</span>
+      <h3>Escalabilidad</h3>
+      <p>El equipo digital crece con la operación: más volumen no significa más nómina.</p>
+    </div>
+  </div>
+    </div>
+    <div class="art">
+    <img src="06-beneficios.png" alt="Ilustración: cuatro cuadrantes con reloj, costo, escudo y crecimiento" data-ph="<b>Ilustración 6 · Beneficios</b>reloj · costo · escudo · crecimiento">
+    </div>
+  </div>
+</section>
+
+<!-- 7 · EL CAMINO -->
+<section class="slide" id="s7">
+  <div class="split narrow">
+    <div>
+      <p class="kicker"><b>07</b> · El camino</p>
+      <h2>De tu operación de hoy a la <span class="grad">operación automatizada</span></h2>
+      <div class="etapas">
+        <div class="etapa">
+          <div class="when">Semanas 1–2</div>
+          <h3>Diagnóstico y carga de tus reglas</h3>
+          <p>Mapeamos tu operación real y cargamos tus requisitos de aduanas, incoterms y
+             documentación al mapa de reglas.</p>
+        </div>
+        <div class="etapa">
+          <div class="when">Semanas 3–6</div>
+          <h3>Piloto con trazabilidad verificada</h3>
+          <p>Uno o dos procesos corriendo de punta a punta, con la bitácora compartida activa
+             en tu ambiente de pruebas.</p>
+        </div>
+        <div class="etapa">
+          <div class="when">Semana 7 en adelante</div>
+          <h3>Producción</h3>
+          <p>Se amplía a los demás procesos, con la línea base ya medida desde la primera semana.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <span class="chk">✓</span><b>Cada etapa cierra por resultado verificado, no por calendario.</b>
+        Si el criterio no se cumple, no avanzamos de etapa.
+      </div>
+      <a class="cta" href="#s1">Próximo paso: sesión de descubrimiento de 1 a 2 horas →</a>
+    </div>
+    <div class="art">
+      <img src="07-camino.png" alt="Ilustración: camino serpenteante de la situación actual al futuro automatizado con tres hitos" data-ph="<b>Ilustración 7 · El camino</b>de HOY al futuro automatizado<br>tres hitos · cierre por resultado">
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var dots=[].slice.call(document.querySelectorAll('.pager a'));
+  var bar=document.getElementById('progress');
+  var hint=document.getElementById('hint');
+  var actual=0;
+
+  function marcar(i){
+    actual=i;
+    dots.forEach(function(d,n){ d.classList.toggle('on', n===i); });
+    bar.style.width=((i+1)/slides.length*100)+'%';
+  }
+  marcar(0);
+
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entradas){
+      entradas.forEach(function(e){
+        if(e.isIntersecting) marcar(slides.indexOf(e.target));
+      });
+    },{threshold:.55});
+    slides.forEach(function(s){ io.observe(s); });
+  }
+
+  function ir(i){
+    if(i<0||i>=slides.length) return;
+    slides[i].scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // Los puntos navegan con la MISMA logica que el teclado. Como enlaces de ancla
+  // el salto lo hacia el navegador y el motor de scroll-snap lo re-encajaba
+  // despues: de ahi el descuadre al pasar de una diapositiva a la siguiente.
+  dots.forEach(function(d,i){
+    d.addEventListener('click',function(e){ e.preventDefault(); ir(i); });
+  });
+
+  // Guarda: el anclaje obligatorio solo funciona si TODA diapositiva cabe en la
+  // ventana. Si alguna no cabe (contenido nuevo, ventana rara), se baja a
+  // 'proximity' — que deja desplazarse dentro de ella — en vez de pelear con quien
+  // presenta.
+  function ajustarAnclaje(){
+    var desborda=slides.some(function(sec){
+      return sec.getBoundingClientRect().height > window.innerHeight+2;
+    });
+    document.documentElement.style.scrollSnapType = desborda ? 'y proximity' : 'y mandatory';
+  }
+  ajustarAnclaje();
+  window.addEventListener('resize',ajustarAnclaje);
+  document.addEventListener('keydown',function(e){
+    // Con el visor abierto las flechas son suyas: recorren ilustraciones, no diapositivas.
+    if(visorAbierto()) return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'){ e.preventDefault(); ir(actual+1); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); ir(actual-1); }
+    else if(e.key==='Home'){ e.preventDefault(); ir(0); }
+    else if(e.key==='End'){ e.preventDefault(); ir(slides.length-1); }
+  });
+
+  // Respaldo de ilustracion: si el PNG no esta (vista previa antes de generarlas),
+  // se dibuja un marcador en el mismo marco crema en vez de un icono roto.
+  [].slice.call(document.querySelectorAll('.art img[data-ph]')).forEach(function(img){
+    img.addEventListener('error', function(){
+      var d=document.createElement('div');
+      d.className='ph';
+      d.innerHTML=img.getAttribute('data-ph');
+      img.replaceWith(d);
+    });
+    if(img.complete && img.naturalWidth===0){ img.dispatchEvent(new Event('error')); }
+  });
+
+  // --- Visor de ilustraciones -----------------------------------------------
+  // Solo se activa sobre las ilustraciones que EXISTEN: si una no cargo, su marco
+  // quedo con el marcador y no tiene nada que ampliar.
+  var visor=document.getElementById('visor');
+  var visorImg=document.getElementById('visor-img');
+  var visorPie=document.getElementById('visor-pie');
+  var marcos=[].slice.call(document.querySelectorAll('.art')).filter(function(m){
+    return m.querySelector('img');
+  });
+  var indice=0, disparador=null;
+
+  function visorAbierto(){ return visor.hasAttribute('open'); }
+
+  function mostrar(i){
+    if(i<0) i=marcos.length-1;
+    if(i>=marcos.length) i=0;
+    indice=i;
+    var img=marcos[i].querySelector('img');
+    visorImg.src=img.currentSrc||img.src;
+    visorImg.alt=img.alt;
+    visorPie.textContent=img.alt.replace(/^Ilustración:\s*/,'')+
+      '  ·  '+(i+1)+' de '+marcos.length;
+  }
+
+  function abrir(i,origen){
+    disparador=origen||null;
+    mostrar(i);
+    visor.setAttribute('open','');
+    document.body.classList.add('visor-abierto');
+    visor.querySelector('.cerrar').focus();
+  }
+
+  function cerrar(){
+    visor.removeAttribute('open');
+    document.body.classList.remove('visor-abierto');
+    visorImg.removeAttribute('src');
+    // Devolver el foco a donde estaba: si no, se pierde al principio de la pagina.
+    if(disparador) disparador.focus();
+    disparador=null;
+  }
+
+  marcos.forEach(function(marco,i){
+    marco.setAttribute('data-ampliable','');
+    marco.setAttribute('role','button');
+    marco.setAttribute('tabindex','0');
+    marco.setAttribute('aria-label','Ampliar ilustración '+(i+1));
+    marco.addEventListener('click',function(){ abrir(i,marco); });
+    marco.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); abrir(i,marco); }
+    });
+  });
+
+  visor.addEventListener('click',function(e){
+    // Pulsar el fondo cierra; pulsar la imagen no.
+    if(e.target===visor||e.target.classList.contains('cerrar')) cerrar();
+  });
+  visor.querySelector('.previa').addEventListener('click',function(e){
+    e.stopPropagation(); mostrar(indice-1);
+  });
+  visor.querySelector('.siguiente').addEventListener('click',function(e){
+    e.stopPropagation(); mostrar(indice+1);
+  });
+  document.addEventListener('keydown',function(e){
+    if(!visorAbierto()) return;
+    if(e.key==='Escape'){ e.preventDefault(); cerrar(); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); mostrar(indice+1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); mostrar(indice-1); }
+  });
+
+  setTimeout(function(){ if(hint) hint.style.opacity='0'; },4200);
+})();
+</script>
