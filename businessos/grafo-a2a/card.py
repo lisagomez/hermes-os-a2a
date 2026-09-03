@@ -39,7 +39,8 @@ def build_card() -> AgentCard:
         ),
         tags=[
             "fiscal", "contable", "contractual", "regulatorio", "datos-personales",
-            "comercio-exterior", "aduanas", "LATAM", "MX", "CO", "compliance",
+            "comercio-exterior", "aduanas", "t-mec", "reglas-de-origen",
+            "LATAM", "MX", "CO", "compliance",
         ],
         examples=[
             EJEMPLO_ESTRUCTURADO,
@@ -53,7 +54,8 @@ def build_card() -> AgentCard:
         name="grafo-a2a",
         description=(
             "Evaluo impacto fiscal, contable, contractual, regulatorio, de datos "
-            "personales y de comercio exterior en LATAM (hoy MX y CO) con veredicto "
+            "personales y de comercio exterior —incluido el marco de origen del T-MEC— "
+            "en LATAM (hoy MX y CO) con veredicto "
             "por concepto y fuente citada. Senalo riesgos; NO asesoro: toda respuesta "
             "incluye disclaimer y fuentes."
         ),

@@ -38,6 +38,30 @@ describe('mockEvaluacionGrafo — fiel al contrato del grafo real', () => {
     expect(e.disclaimer).toBe(DISCLAIMER_GRAFO)
   })
 
+  it('T-MEC: el trato preferencial se dictamina con el texto del tratado, y no se promete', () => {
+    // Espeja el seed del grafo (2026-09-03): el marco de origen del T-MEC ya vive en
+    // el grafo real, pero la calificacion de una mercancia concreta (Anexo 4-B) NO.
+    const e = mockEvaluacionGrafo(['Importamos bajo trato arancelario preferencial del T-MEC'], 'regulatorio')
+    const c = e.conceptos[0]
+    expect(c.categoria).toBe('TMEC_TRATO_PREFERENCIAL')
+    expect(c.fuente?.clave).toBe('MX-TMEC-5.4-OBLIGACIONES-IMPORTADOR')
+    expect(c.fuente?.cita).toContain('DOF 29-06-2020')
+    expect(c.fuente?.url).toContain('gob.mx')
+    expect(c.checklist.join(' ')).toContain('certificacion de origen valida AL MOMENTO')
+    // el limite queda DECLARADO: las reglas por producto no estan sembradas
+    expect(c.banderas.join(' ')).toContain('Anexo 4-B')
+    expect(c.banderas.join(' ')).toContain('NO es automatico')
+    expect(e.disclaimer).toBe(DISCLAIMER_GRAFO)
+  })
+
+  it('T-MEC: exportar sin nombrar el tratado NO recibe dictamen de T-MEC', () => {
+    // El mock imita al clasificador real: sin vocabulario del tratado no hay regla.
+    const e = mockEvaluacionGrafo(['Exportamos autopartes a Estados Unidos'], 'regulatorio')
+    expect(e.conceptos[0].categoria).toBeNull()
+    expect(e.conceptos[0].estado).toBe('dudoso')
+    expect(e.conceptos[0].razon).toBe('sin regla aplicable')
+  })
+
   it('veredictos mixtos → estado agregado dudoso (regla del grafo)', () => {
     const e = mockEvaluacionGrafo(['agencia de carga federal', 'Ajuste misterioso'], 'regulatorio')
     expect(e.estado).toBe('dudoso')
