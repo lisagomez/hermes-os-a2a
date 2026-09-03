@@ -1769,4 +1769,25 @@ npm run lint         # ESLint
   detector ANTES de planear trabajo nuevo), y todo mecanismo de vigilancia: si su señal
   es un proxy cómodo en vez del hecho real, produce ruido y muere de desuso.
 
+### 2026-08-31: Un skill que llama a una API de terceros caduca en silencio — y el volcado de error lo tapa
+- **Error**: `image-generation` llevaba meses inservible y nadie lo sabía: (1) su modelo por
+  omisión (`gemini-2.5-flash-preview-image-generation`) fue **retirado** por OpenRouter →
+  `400 "not a valid model ID"`; (2) el script leía la imagen en `message.content`, cuando
+  OpenRouter la entrega en **`message.images[0].image_url.url`** (y deja `content` en null).
+  Dos fallos independientes: arreglar solo uno deja el skill igual de muerto.
+- **Lo que agravó el diagnóstico**: ante "no image in response" el script hacía
+  `JSON.stringify(data)` de la respuesta ENTERA → miles de líneas de razonamiento del modelo
+  enterrando el motivo. Un error que no se puede leer es tan inútil como no tenerlo. Ahora
+  dice `images=N, content=<tipo>`: con `images=1` se ve al instante que la imagen SÍ vino y el
+  parseo la ignoró.
+- **Regla**: todo skill que dependa de una API externa envejece por su cuenta — su modelo por
+  omisión y la forma de su respuesta son supuestos con fecha de caducidad, no constantes. Al
+  arreglarlo, actualizar el `SKILL.md` en el MISMO cambio (si no, la doc sigue mandando al
+  modelo muerto) y dejar el comando que lista los vigentes, no solo el nombre del día.
+- **Verificación**: control de reversión con los dos defectos por separado — revertir el modelo
+  da `400`, revertir el parseo da `images=1` sin imagen. Un verde que nunca se vio en rojo no
+  informa (2026-07-13, 2026-08-05).
+- **Aplicar en**: todo skill/host-job contra OpenRouter, Polar, Supabase o cualquier API de
+  terceros, y todo manejador de error que vuelque una respuesta cruda en vez de nombrar la causa.
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
