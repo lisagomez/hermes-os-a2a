@@ -8,6 +8,17 @@
 # desde 2026-06-28 como doctrina; sin gate, era una costumbre — y una costumbre no es
 # una garantía (mismo criterio que el asyncio.Lock de la cola, 2026-07-13).
 #
+# Desde 2026-09-04 este gate hace DOS cosas, y la segunda es la que faltaba:
+#   (1) docs vivos  — código sustantivo debe dejar rastro en un documento vivo;
+#   (2) CDC (C1)    — tocar un skill, un subagente, prp-base.md o la config de MCP exige
+#       entrada en .claude/gobernanza/BITACORA-CDC.md.
+#
+# Antes, `.claude/*` estaba EXENTO por completo: justo el material que C1 vigila. Los
+# prompts y los skills son el mayor radio de cambio del sistema —cambian el comportamiento
+# de todo lo que se produzca después— y eran lo único que no pasaba por ningún gate. El
+# código generado (menos alcance) pasaba por typecheck, build y revisión; el prompt que lo
+# genera (todo el alcance) no pasaba por nada.
+#
 # Entradas (env, para poder correrlo fuera de CI):
 #   CHANGED_FILES  rutas cambiadas, una por línea
 #   PR_BODY        cuerpo del PR (para la escapatoria)
@@ -41,21 +52,79 @@ es_sustantivo() {
     *.md) return 1 ;;
     .github/*) return 1 ;;
     *package-lock.json|*.lock|*.lockb) return 1 ;;
-    .claude/*) return 1 ;;
+    .claude/*) return 1 ;;   # no es "sustantivo" para docs vivos: tiene su propia regla (CDC)
     *) return 0 ;;
+  esac
+}
+
+# --- Material de CDC: lo que cambia el comportamiento de los AGENTES ---------------
+#   Control C1 de .claude/gobernanza/GOBERNANZA.md. El radio no es este repo: es todo lo
+#   que la fábrica produzca después. Por eso no hay escapatoria por etiqueta — la entrada
+#   es barata y puede declarar "radio: menor"; lo que no vale es que no exista.
+es_material_cdc() {
+  case "$1" in
+    .claude/gobernanza/*) return 1 ;;   # la propia capa no se vigila a sí misma aquí
+    .claude/skills/*) return 0 ;;
+    .claude/agents/*) return 0 ;;
+    .claude/PRPs/prp-base.md) return 0 ;;
+    .claude/settings.json|.claude/settings.local.json) return 0 ;;
+    .claude/example.mcp.json|.mcp.json) return 0 ;;
+    CLAUDE.md|GEMINI.md) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
 sustantivos=""
 vivos=""
+cdc=""
+bitacora_tocada=0
 while IFS= read -r archivo; do
   [ -z "$archivo" ] && continue
+  if [ "$archivo" = ".claude/gobernanza/BITACORA-CDC.md" ]; then
+    bitacora_tocada=1
+  fi
+  if es_material_cdc "$archivo"; then
+    cdc="${cdc}${archivo}"$'\n'
+  fi
   if es_doc_vivo "$archivo"; then
     vivos="${vivos}${archivo}"$'\n'
   elif es_sustantivo "$archivo"; then
     sustantivos="${sustantivos}${archivo}"$'\n'
   fi
 done <<< "$CHANGED_FILES"
+
+# --- Gate 1: CDC (C1) -------------------------------------------------------------
+if [ -n "$cdc" ] && [ "$bitacora_tocada" -eq 0 ]; then
+  cat >&2 <<FINCDC
+❌ Gate CDC (control C1): este PR cambia el comportamiento de los agentes y no deja
+   entrada en .claude/gobernanza/BITACORA-CDC.md.
+
+Material de CDC tocado (primeros 15):
+$(printf '   · %s\n' $(echo "$cdc") | head -15)
+
+Un skill, un subagente, prp-base.md o la configuración del agente cambian TODO lo que el
+sistema produzca después. El código generado pasa por typecheck, build y revisión; el
+prompt que lo genera tiene que pasar por esto.
+
+Añade una entrada a .claude/gobernanza/BITACORA-CDC.md con este formato:
+
+   ### $(date +%Y-%m-%d) — <qué cambió> — radio: <sistema | skill | vertical | plantilla | menor>
+   - **Cambio**:
+   - **Motivo**:
+   - **Gate aplicado**: diff revisado ☐ · regresión verde ☐ · aprobación humana ☐ · pineo ☐
+   - **Regresión**: <salida de npm run regresion>
+   - **Runtime**: repo ☐ / volumen ☐ / n/a
+   - **Aprobado por**:
+
+No hay escapatoria por etiqueta, a propósito: la entrada es barata y puede declarar
+"radio: menor". Lo que no vale es que no exista.
+(Control C1 de .claude/gobernanza/GOBERNANZA.md §2.)
+FINCDC
+  exit 1
+fi
+if [ -n "$cdc" ]; then
+  echo "✅ Gate CDC (C1): material de agente tocado, con entrada en BITACORA-CDC.md."
+fi
 
 if [ -z "$sustantivos" ]; then
   echo "✅ Gate docs vivos: el PR no cambia código sustantivo. Nada que registrar."

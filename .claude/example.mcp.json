@@ -3,28 +3,28 @@
     "playwright": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest"
+        "@playwright/mcp@0.0.80"
       ]
     },
     "chrome-devtools": {
       "command": "npx",
       "args": [
         "-y",
-        "chrome-devtools-mcp@latest"
+        "chrome-devtools-mcp@1.8.0"
       ]
     },
     "next-devtools": {
       "command": "npx",
       "args": [
         "-y",
-        "next-devtools-mcp@latest"
+        "next-devtools-mcp@0.4.0"
       ]
     },
     "supabase": {
       "command": "npx",
       "args": [
         "-y",
-        "@supabase/mcp-server-supabase@latest",
+        "@supabase/mcp-server-supabase@0.11.0",
         "--project-ref=YOUR_SUPABASE_PROJECT_REF"
       ],
       "env": {
@@ -57,12 +57,17 @@
         "run",
         "-i",
         "--rm",
-        "-e", "MCP_MODE=stdio",
-        "-e", "LOG_LEVEL=error",
-        "-e", "DISABLE_CONSOLE_OUTPUT=true",
-        "-e", "N8N_API_URL=YOUR_N8N_API_URL",
-        "-e", "N8N_API_KEY=YOUR_N8N_API_KEY",
-        "ghcr.io/czlonkowski/n8n-mcp:latest"
+        "-e",
+        "MCP_MODE=stdio",
+        "-e",
+        "LOG_LEVEL=error",
+        "-e",
+        "DISABLE_CONSOLE_OUTPUT=true",
+        "-e",
+        "N8N_API_URL=YOUR_N8N_API_URL",
+        "-e",
+        "N8N_API_KEY=YOUR_N8N_API_KEY",
+        "ghcr.io/czlonkowski/n8n-mcp:2.4.2"
       ]
     },
     "sequential-thinking": {
@@ -77,20 +82,10 @@
       "command": "npx",
       "args": [
         "-y",
-        "firebase-tools@latest",
+        "firebase-tools@15.29.0",
         "mcp"
       ]
     },
-    "google-workspace": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@anthropic-ai/google-workspace-mcp@latest"
-      ],
-      "env": {
-        "GOOGLE_CLIENT_ID": "YOUR_GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET": "YOUR_GOOGLE_CLIENT_SECRET"
-      }
-    }
+    "_comment_google_workspace_retirado": "RETIRADO 2026-09-04: \"@anthropic-ai/google-workspace-mcp\" devuelve 404 en npm — el paquete no existe. Estaba aqui con un alias flotante, asi que nunca fue instalable y nadie lo noto. Si se necesita Workspace, anadir el servidor REAL y PINEADO (C1), no un alias."
   }
 }
