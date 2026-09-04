@@ -150,6 +150,26 @@ if (!modoTrampa) {
     conContrato >= minima,
     `bajo de ${minima} a ${conContrato}: borrar un contrato es un acto visible, no una reduccion silenciosa`,
   );
+
+  // Contar CLAVES no basta: `"supabase": []` deja la clave puesta, la cobertura intacta y
+  // el skill sin una sola regla vigilada. Es el mismo fallo que un bucle que recorre cero
+  // filas — verde sin ejercitar nada. Se cuentan tambien los contratos, y se prohibe el
+  // array vacio, que no es "menos vigilancia": es ninguna, disfrazada de entrada presente.
+  const vacios = Object.entries(contratos.skills ?? {}).filter(([, v]) => !Array.isArray(v) || v.length === 0);
+  anota(
+    'ningun skill contratado tiene su lista de contratos vacia',
+    vacios.length === 0,
+    `vacios: ${vacios.map(([k]) => k).join(', ')} — una clave sin contratos deja el skill sin vigilar `
+      + 'mientras la cobertura sigue cuadrando',
+  );
+  const totalContratos = Object.values(contratos.skills ?? {}).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0);
+  const minimoContratos = contratos._contratos_minimos ?? 0;
+  anota(
+    `el numero de contratos no bajo (${totalContratos}, minimo ${minimoContratos})`,
+    totalContratos >= minimoContratos,
+    `bajo de ${minimoContratos} a ${totalContratos}: se puede vaciar un skill sin borrar su clave, `
+      + 'y entonces la cobertura por claves no se entera',
+  );
 }
 
 // ---------------------------------------------------------------- reporte

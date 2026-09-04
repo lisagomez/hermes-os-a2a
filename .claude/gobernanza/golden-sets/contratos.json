@@ -4,6 +4,9 @@
   "_como_se_escribe_un_contrato": "Ancla la regla que NO se negocia, no una palabra bonita. Si el patron pasa con la regla borrada, no es un contrato: es cebo. Todos los de aqui se probaron contra el SKILL.md real antes de escribirlos, y el control negativo (borrar RLS de supabase) los pone en rojo.",
 
   "_cobertura_minima": 31,
+  "_contratos_minimos": 61,
+  "_contratos_minimos_porque": "Contar CLAVES no basta: `\"supabase\": []` deja la clave puesta, la cobertura intacta y el skill sin una sola regla vigilada. Este minimo cuenta los CONTRATOS.",
+
   "_cobertura_porque": "Numero de skills con contrato ESPECIFICO. El runner falla si baja, para que borrar un contrato sea un acto visible y no una reduccion silenciosa del numero de comprobaciones (el gemelo del bucle que recorre menos filas). Subirlo es libre; bajarlo exige justificarlo en el CDC.",
 
   "todos_los_skills": [
