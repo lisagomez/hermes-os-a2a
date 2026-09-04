@@ -1,0 +1,31 @@
+{
+  "_comentario": "Capa A del control C2: contratos estructurales de cada skill. Se comparan contra SKILL.md sin invocar al modelo, asi que son deterministas y corren en cada build y en cada PR. Un contrato roto = un skill que perdio una regla no negociable. Anadir un contrato es barato; quitarlo exige justificarlo en BITACORA-CDC.md.",
+
+  "_estado": "ESQUELETO — Fase 1 del plan de alineacion. El mapa 'skills' esta VACIO a proposito: poblarlo es la Fase 3, y medio-poblarlo produciria un verde que no significa nada. Hoy no hay falso verde porque el runner (scripts/regresion-skills.mjs) todavia no existe.",
+
+  "_requisito_para_fase_3": {
+    "skills_en_el_repo": 35,
+    "cobertura": "El verificador debe COMPROBAR la cobertura: un skill contratado que desaparece del mapa tiene que poner el gate en rojo, no reducir el numero de comprobaciones en silencio. Un bucle sobre menos filas es el gemelo del test que no prueba nada.",
+    "seis_contratos_que_arrancan_en_rojo": [
+      "new-app — le falta la seccion de gobernanza y la mencion de service_role (C4 y C7)",
+      "prp — el SKILL.md no pide 'Modelo de amenazas' ni 'Evaluacion de impacto', aunque prp-base.md SI los trae",
+      "playwright-cli — sintaxis de CLI antigua; necesita ademas un contrato PROHIBIDO que cace la forma falsa si vuelve"
+    ],
+    "material_ya_escrito_que_abarata_los_propios": [
+      "familia hermes-* de inteligencia comercial — declaran 'reglas no negociables' y 'contrato de evidencia' (cada afirmacion clasificada, procedencia visible, fallo declarado)",
+      "pipeline-comercial — sus invariantes",
+      "session-lifecycle — el gate humano de push",
+      "orquestar-agentes — su exclusion fail-closed de modelos (capa 1 del ruteo)",
+      "supabase — 'RLS siempre'",
+      "consejo, memory-manager, image-generation, ingesta-reunion — una o dos entradas cada uno"
+    ]
+  },
+
+  "todos_los_skills": [
+    { "patron": "^---\\s*$", "porque": "frontmatter YAML presente" },
+    { "patron": "^name:\\s*\\S+", "porque": "el skill declara su nombre" },
+    { "patron": "^description:", "porque": "sin description el agente no sabe cuando activarlo" }
+  ],
+
+  "skills": {}
+}
