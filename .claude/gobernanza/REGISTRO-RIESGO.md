@@ -104,6 +104,28 @@ que una firma bastaría.
   o (c) se entrega el repo a un cliente. En la revisión se decide qué porción de
   `businessos/` entra al gate, empezando por lo que más duela según los incidentes reales.
 
+### 2026-09-04 — C2 / buzón — el corpus entra a CI con 40 de 62 casos sin ejecutar
+- **Decisión**: cablear a CI el corpus de inyecciones del buzón tal y como está
+  (`tests/test_corpus.py`), sin extenderlo, y declarar su alcance real en vez de
+  presentarlo como "62 casos en verde".
+- **Riesgo aceptado**: de los 62 casos, unos 22 ejercitan de verdad el **saneador** (que el
+  contenido oculto no sobreviva) y los **~40 restantes son "solo gate"**: el test comprueba
+  que el gate que declaran exista, pero **nunca los ejecuta contra él**. La razón es de
+  forma, no de descuido: los gates reciben un `borrador` (correo saliente) y el corpus
+  guarda `correo` (entrante), así que ejecutarlos exigiría inventar un borrador por caso —
+  y un test cuyos datos inventa quien lo escribe se acerca peligrosamente al test que
+  reproduce la lógica que prueba. Mientras tanto, **la mitad de la defensa declarada del
+  buzón no está verificada por ningún gate**.
+- **Mitigaciones vigentes**: los ~22 casos de saneado sí corren en cada PR y su criterio es
+  cero escapes (fue este corpus el que destapó el texto blanco-sobre-blanco que 80 tests
+  verdes no vieron); el test valida que **todo** caso declare expectativa y que las diez
+  familias tengan al menos un caso, así que el corpus no puede vaciarse en silencio; los
+  gates sí se ejecutan en producción sobre cada saliente real, con aprobación humana
+  obligatoria detrás; y el buzón sigue en **modo espejo** (no envía).
+- **Firmado por** (nombre y rol): _pendiente de firma_
+- **Vigencia / próxima revisión**: **antes de activar el envío real** del buzón (hoy exige 7
+  días y 20 borradores). Ese es el momento en que los 40 casos de gate dejan de ser teoría.
+
 <!-- Añadir aquí las decisiones siguientes. NO editar las anteriores. -->
 
 ---

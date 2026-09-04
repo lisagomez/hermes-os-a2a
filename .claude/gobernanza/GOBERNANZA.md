@@ -114,7 +114,7 @@ ejecutarse. Esa distinción es el riesgo firmado de esta capa, no un descuido.
   criterio de cero escapes) prueba **el saneador**, no a los agentes. Es un artefacto
   excelente y **no lo corre nadie**: cablearlo a CI es el gate más barato del plan.
 - **El corpus de casos-trampa de C2 prueba al agente.** Es otra cosa. Hermes construye el
-  suyo, con **espacio de identificadores propio: `HT-01`, `HT-02`, …**
+  suyo, con **espacio de identificadores propio: `HT-nn`**
 
 > ⚠️ **Por qué el prefijo propio**: la regla de trazo grueso del protocolo ciego prohíbe
 > que cualquier archivo versionado contenga un identificador de caso. Con el espacio de

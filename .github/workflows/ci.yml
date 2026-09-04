@@ -58,6 +58,29 @@ jobs:
       - name: Regresión de skills (C2 capa A)
         run: npm run regresion
 
+  # Corpus de inyecciones del buzón agéntico — el PRIMER y ÚNICO puente a businessos/
+  # en esta adopción (el resto queda como riesgo aceptado firmado, ver REGISTRO-RIESGO).
+  # Existía desde el buzón, con diez familias y criterio de cero escapes, y NADIE lo corría:
+  # el gate más barato y de mayor rendimiento del plan.
+  #
+  # ⚠️ Alcance real, para no leerlo como más de lo que es: de los 62 casos, ~22 ejercitan
+  # el saneador (capa de escapes) y los ~40 restantes son "solo gate" — se valida que el
+  # gate que declaran exista, pero NO se ejecutan contra él, porque los gates reciben un
+  # `borrador` que el corpus no trae. Declarado en REGISTRO-RIESGO.md (2026-09-04).
+  corpus-buzon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # saneado.py y politicas.py son stdlib puro: la única dependencia es el runner.
+      - name: Instalar pytest
+        run: pip install pytest
+      - name: Corpus de inyecciones (cero escapes)
+        working-directory: businessos/buzon-a2a
+        run: python -m pytest tests/test_corpus.py -q -rs
+
   # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
   # (ROADMAP / CLAUDE.md / DECISIONES / README / memoria / BUSINESS_LOGIC).
   # Origen: 13 PRs seguidos (2026-07-30 → 08-02) dejaron el mapa de ruta congelado

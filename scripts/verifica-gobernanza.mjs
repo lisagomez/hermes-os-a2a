@@ -62,6 +62,30 @@ function existeEnRepo(basename, desde = raiz) {
   return false;
 }
 
+/** El corpus y sus reportes viven en la rama `golden-sets`, nunca en disco (protocolo
+ *  ciego): nombrarlos NO es un enlace roto. Se comprueba tambien alli. */
+const enRamaCorpus = (basename) => {
+  for (const ref of ['golden-sets', 'origin/golden-sets']) {
+    try {
+      execFileSync('git', ['cat-file', '-e', `${ref}:${basename}`], { cwd: raiz, stdio: 'ignore' });
+      return true;
+    } catch { /* la rama no existe o no tiene el archivo */ }
+  }
+  return false;
+};
+
+/** Listado del arbol versionado. `-z` es obligatorio: sin el, git ENTRECOMILLA y escapa en
+ *  octal toda ruta con acentos o espacios, y esa ruta escapada no existe en disco. */
+let _versionados = null;
+function versionadosTexto() {
+  if (_versionados !== null) return _versionados;
+  try {
+    _versionados = execFileSync('git', ['ls-files', '-z'], { cwd: raiz, encoding: 'utf8' })
+      .split('\0').filter(Boolean);
+  } catch { _versionados = []; }
+  return _versionados;
+}
+
 // --- 1. Los documentos de la capa existen -----------------------------------
 const documentos = [
   `${GOB}/GOBERNANZA.md`,
@@ -327,6 +351,51 @@ if (existsSync(dirSkills)) {
   }
 }
 
+// --- 3h. El corpus vive FUERA del arbol de trabajo, en su propia rama -------
+// Las DOS mitades importan y por eso son dos comprobaciones: que NO este en disco (si
+// reaparece, una sesion fria lo encuentra explorando el directorio) y que SI sea
+// recuperable de la rama (si la rama no viaja en un clon, C2 capa B queda inaccesible —
+// sin fallo ruidoso, pero inaccesible, que es peor).
+{
+  const enDisco = ['casos-trampa.md', '.claude/gobernanza/golden-sets/casos-trampa.md',
+    'corridas.md', '.claude/gobernanza/golden-sets/corridas.md']
+    .filter((f) => existsSync(ruta(f)));
+  comprueba(
+    'el corpus de casos-trampa NO esta en el arbol de trabajo',
+    enDisco.length === 0,
+    `${enDisco.join(', ')} — si esta en disco, una sesion fria lo encuentra leyendo el directorio: `
+      + 'paso dos veces en el proyecto de origen. Vive en la rama golden-sets',
+  );
+  comprueba(
+    'el corpus es recuperable desde la rama golden-sets',
+    enRamaCorpus('casos-trampa.md'),
+    'la rama no existe o no lo tiene: C2 capa B esta inaccesible. git fetch origin golden-sets:golden-sets',
+  );
+}
+
+// --- 3i. El arbol de trabajo no habla del corpus ---------------------------
+// Regla de trazo grueso a proposito: sacar el archivo NO basto en el proyecto de origen —
+// se siguio hablando de los casos desde el arbol (memoria, bitacora, incidentes) y eso quemo
+// tres corridas. Las versiones matizadas ("solo si revela que mide") exigian un juicio en
+// cada frase y fallaron cada vez. Fuera de la rama no aparece NINGUN identificador de caso.
+// La traza legitima es el commit de `corridas.md`; en la bitacora quedan veredicto y esa
+// referencia. `HT-nn` (el espacio, no un caso) no cuenta: por eso el patron exige digitos.
+{
+  const ID_CASO = /(?:^|[^A-Za-z0-9_-])HT-\d+(?![A-Za-z0-9_-])/;
+  const contaminados = [];
+  for (const archivo of versionadosTexto()) {
+    const contenido = lee(archivo);
+    if (contenido === null || contenido.includes(String.fromCharCode(0))) continue;
+    if (ID_CASO.test(contenido)) contaminados.push(archivo);
+  }
+  comprueba(
+    'ningun archivo versionado nombra un identificador de caso del corpus',
+    contaminados.length === 0,
+    `${contaminados.join(', ')} — un identificador fuera de la rama quema la corrida siguiente. `
+      + 'Usa "HT-nn" para hablar del espacio, nunca un caso concreto',
+  );
+}
+
 // --- 4. prp-base.md conserva sus secciones (el segundo cable) --------------
 const prpBase = lee('.claude/PRPs/prp-base.md') ?? '';
 comprueba(
@@ -360,17 +429,6 @@ for (const doc of documentos) {
     );
   }
 }
-/** El corpus y sus reportes viven en la rama `golden-sets`, nunca en disco (protocolo
- *  ciego): nombrarlos NO es un enlace roto. Se comprueba tambien alli. */
-const enRamaCorpus = (basename) => {
-  for (const ref of ['golden-sets', 'origin/golden-sets']) {
-    try {
-      execFileSync('git', ['cat-file', '-e', `${ref}:${basename}`], { cwd: raiz, stdio: 'ignore' });
-      return true;
-    } catch { /* la rama no existe o no tiene el archivo */ }
-  }
-  return false;
-};
 const refBacktick = /`((?:\.\.\/)?(?:plantillas\/)?[A-Za-z0-9_.-]+\.md)`/g;
 for (const [, destino] of gobernanza.matchAll(refBacktick)) {
   const resuelto = join(GOB, destino);

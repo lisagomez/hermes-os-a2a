@@ -123,7 +123,7 @@ componentes y pruebas de uno de los frontends, y hasta uno de los propios docume
 gobernanza. Portar el bloque tal cual obligaría a renombrar 27 archivos por una regla que no es
 suya.
 
-**Hermes necesita su propio espacio de identificadores** (`HT-01` y siguientes) y su propia rama
+**Hermes necesita su propio espacio de identificadores** (`HT-nn` y siguientes) y su propia rama
 de corpus. Lo que **no** se relaja es la comprobación de que el corpus no viva en el árbol de
 trabajo: esa es la que lo protege, y las dos contaminaciones que la produjeron aquí valen igual
 allá.

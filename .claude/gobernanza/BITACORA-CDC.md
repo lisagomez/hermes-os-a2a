@@ -192,4 +192,25 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
   volúmenes de las verticales.
 - **Aprobado por**: _pendiente de firma_
 
+### 2026-09-04 — C2 capa B nace y el corpus del buzón entra a CI — radio: plantilla
+- **Cambio**: (a) rama huérfana `golden-sets` con 7 casos-trampa y el libro de corridas —
+  creada con plumbing de git, **sin tocar el árbol de trabajo**; (b) bloques 3h y 3i del
+  verificador: el corpus NO está en disco **y** es recuperable de la rama, y ningún archivo
+  versionado nombra un identificador de caso; (c) job `corpus-buzon` en CI.
+- **Motivo**: C2 capa B estaba declarada y sin construir, y el corpus del buzón —que ya
+  existía, con diez familias y criterio de cero escapes— **no lo corría nadie**.
+- **Semillas del corpus, de incidentes reales de este repo**: el PR #210 fusionado con
+  veredicto FAIL conocido (inyección PostgREST con `service_role` y un gate que fallaba
+  ABIERTO ante un CSV no confiable) y el skill que caducó en silencio cuando un tercero
+  retiró su modelo por defecto.
+- **Alcance honesto del puente a `businessos/`**: es **uno solo**, deliberadamente. Y el
+  corpus del buzón corre con ~22 de 62 casos ejercitando el saneador; los ~40 "solo gate" se
+  validan pero no se ejecutan (los gates reciben un `borrador` que el corpus no trae).
+  Declarado en `REGISTRO-RIESGO.md`, no disimulado.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo ☑
+- **Regresión**: C2 capa A 199/199 · capa B 8/8 (corpus completo, **sin estrenar**:
+  instalado no es estrenado) · verificador 88/88 · corpus del buzón 25 passed, 40 skipped.
+- **Runtime**: n/a
+- **Aprobado por**: _pendiente de firma_
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->

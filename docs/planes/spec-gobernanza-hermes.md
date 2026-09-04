@@ -161,7 +161,7 @@ negativo**:
   (`businessos/buzon-a2a/corpus/`, diez familias, cero escapes) **y no lo corre nadie** —
   cablearlo a CI es el gate más barato y de mayor rendimiento del plan, y el primer puente a
   `businessos/`: deliberadamente uno solo. (2) El corpus de **casos-trampa prueba al agente**,
-  no al saneador; Hermes necesita el suyo, con **espacio de identificadores propio (`HT-01`…)**
+  no al saneador; Hermes necesita el suyo, con **espacio de identificadores propio (`HT-nn`…)**
   — el prefijo del template rompería 27 archivos versionados por una regla que no es suya.
   Lo que **no** se relaja: que el corpus no viva en el árbol de trabajo.
   Semillas reales: el merge del PR #210 con veredicto FAIL conocido, y el skill que caducó en
@@ -243,7 +243,7 @@ Este es el heartbeat contra el drift. No lo dejes para el final.
    están; la capa nueva **apunta** a ellos.
 6. **El gate no puede nacer rojo** ni nacer siempre-verde. Si un bloque portado no aplica a
    Hermes, se recorta y se registra — no se deja fallando "para arreglarlo luego".
-7. **Espacio de identificadores propio** para el corpus (`HT-01`…). El del template rompería
+7. **Espacio de identificadores propio** para el corpus (`HT-nn`…). El del template rompería
    27 archivos versionados.
 8. **Las cifras se escriben después de medirlas**, nunca antes.
 9. Español en todo el material nuevo, como el resto del repo.
