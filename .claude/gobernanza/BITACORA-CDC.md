@@ -239,4 +239,57 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 - **Runtime**: n/a
 - **Aprobado por**: _pendiente de firma_
 
+### 2026-09-04 — CIERRE de la adopción de la capa de gobernanza (Fases 0–7) — radio: sistema
+> Entrada de cierre. Las cifras son las medidas al terminar, no las estimadas al empezar.
+
+- **Qué queda operando**: los siete controles C1–C7 cableados al flujo de Hermes —reglas
+  inline en `CLAUDE.md`, secciones fijas en `prp-base.md`, `validate` en `package.json` y
+  tres jobs en CI (`gobernanza`, `corpus-buzon`, y el detector de C7 en `tenencia`)—, sin
+  duplicar ninguno de los nueve documentos de `businessos/gobernanza/`, que siguen siendo la
+  fuente y ahora tienen un puntero de vuelta vigilado por el bloque 2b.
+
+- **Cifras reales**:
+  - `npm run validate` → **exit 0** (typecheck · lint · build · gobernanza · regresión).
+  - Verificador: **96 de 96** comprobaciones en verde. La cifra se escribió en los README
+    **después** de correrlo, y el propio verificador la vigila.
+  - C2 capa A: **199/199** sobre los **35** skills (31 con contrato específico, 61 contratos
+    + 3 universales), con la cobertura como aserción.
+  - C2 capa B: **8/8** — corpus completo de **7 casos** en la rama `golden-sets`. **Sin
+    estrenar**: instalado no es estrenado.
+  - Corpus del buzón en CI: **25 passed, 40 skipped** (los 40 son "solo gate"; el alcance
+    real está declarado en `REGISTRO-RIESGO.md`, no disimulado).
+  - C7: **20 referencias en 11 archivos**, congeladas y clasificadas. Línea base contra
+    producción: `tenants = 1`.
+
+- **Controles negativos corridos, todos vistos en ROJO y restaurados en verde**:
+  1. retirar de `CLAUDE.md` la referencia a la capa → rojo nombrando el cable;
+  2. borrar **solo** la regla 8 (canales de chat) → rojo en esa regla, lo que prueba que el
+     ancla apunta a la regla y no a palabras que también salen en otro sitio;
+  3. borrar `RLS` del skill `supabase` → `regresion` roja nombrando el contrato;
+  4. reintroducir la sintaxis inventada del CLI de Playwright → los dos contratos
+     **prohibidos** en rojo;
+  5. tocar `.claude/skills/` sin entrada aquí → gate CDC en rojo; con entrada → verde;
+  6. materializar el corpus en el árbol → rojo (protocolo ciego);
+  7. nombrar un caso concreto en un archivo versionado → rojo;
+  8. dos tenants con superficies de negocio → detector en rojo enrutando al registro.
+
+- **Lo que NO está hecho, y por qué** (no es una lista de tareas: es el alcance):
+  - `businessos/` sigue fuera del gate salvo el corpus del buzón — **decisión de la dueña**,
+    con entrada firmada pendiente y revisión el 2026-12-04.
+  - C2 capa B existe pero **no se ha ejecutado nunca**: exige sesiones frías, que son trabajo
+    humano.
+  - El detector de C7 **no está verificando** hasta que exista el secreto: es una decisión de
+    alcance de credencial, no una tarea.
+  - Los hallazgos de §7 del plan **no se tocaron**, a propósito: son de seguridad, no de
+    gobernanza, y tres de ellos tocan datos de terceros — por el límite de C5 no son
+    firmables, así que se rediseñan o no se hacen.
+
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo ☑
+- **Aprobado por**: _pendiente de firma_
+
+> **Firmas pendientes al cerrar: 4 en `REGISTRO-RIESGO.md` y 8 aquí** (esta entrada incluida). Ninguna la puede poner
+> un agente: la firma es lo único de esta capa que el motor no puede fabricar, y fabricarla
+> vaciaría C5 de sentido. El verificador las lista en cada corrida para que no pasen
+> desapercibidas.
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->
