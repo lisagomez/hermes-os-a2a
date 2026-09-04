@@ -242,7 +242,7 @@ Sistemas de diseno visuales en `.claude/design-systems/`.
 
 ```
 .claude/
-├── skills/                    # Skills 2.0 (V4) - 19 skills
+├── skills/                    # Skills 2.0 (V4) - 35 skills
 │   ├── new-app/              # Entrevista de negocio
 │   ├── landing/              # Landing pages
 │   ├── primer/               # Context initialization
@@ -355,3 +355,30 @@ En tu dashboard de Vercel:
 ---
 
 *SaaS Factory V4: Todo es un Skill. Hot reload. Auto-discovery. Zero config.*
+
+---
+
+## Capa de gobernanza
+
+`.claude/gobernanza/` cablea los siete controles **C1-C7** al flujo de este repo. No duplica
+doctrina: cada control apunta al documento de `businessos/gobernanza/` que ya lo desarrolla.
+
+| Archivo | Que es |
+|---|---|
+| `GOBERNANZA.md` | Los siete controles y a que documento vivo apunta cada uno |
+| `BITACORA-CDC.md` | C1 - toda edicion de skill, subagente, modelo o config (append-only) |
+| `REGISTRO-RIESGO.md` | C5 - riesgos aceptados, con firma (append-only) |
+| `INCIDENTES.md` | C6 - incidentes del repositorio (append-only) |
+| `plantillas/` | C3 modelo de amenazas - C4 AISIA - C6 incidente |
+| `golden-sets/contratos.json` | C2 capa A - contratos estructurales de los 35 skills |
+
+Se verifica sola:
+
+```bash
+npm run verify:gobernanza   # el papel y el codigo dicen lo mismo
+npm run regresion           # C2 capa A sobre los 35 skills
+npm run validate            # typecheck + lint + build + las dos anteriores
+```
+
+Corre en cada PR a `master` (job `gobernanza` de `.github/workflows/ci.yml`): Hermes despliega
+por Vercel y Docker, asi que **CI es su ruta de deploy** y ahi es donde el gate tiene que vivir.

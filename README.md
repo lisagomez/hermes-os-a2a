@@ -160,6 +160,15 @@ El mapa completo de fases y principios está en
 [`businessos/FASE0-hetzner.md`](businessos/FASE0-hetzner.md); el estado por
 iniciativa en `.claude/memory/` (índice en `MEMORY.md`).
 
+La **gobernanza** del proyecto vive en dos capas que no se duplican:
+`businessos/gobernanza/` (nueve documentos de doctrina: modelo de amenazas, adenda
+ISO/IEC 42001, ciclo de vida, `service_role`, correo agéntico, incidentes de inyección) y
+**[`.claude/gobernanza/`](.claude/gobernanza/GOBERNANZA.md)**, que declara los siete
+controles **C1–C7**, apunta a los documentos anteriores y —lo que faltaba— los **cablea al
+flujo**: reglas inline en `CLAUDE.md`, secciones fijas en `prp-base.md`, y un verificador
+que corre en cada PR.
+
+
 ---
 
 ## Empezar (Fase 0)
