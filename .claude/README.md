@@ -13,7 +13,7 @@ Template **production-ready** para crear aplicaciones SaaS modernas con desarrol
 - Next.js 16 (App Router) + TypeScript
 - Supabase (Database + Auth)
 - Tailwind CSS + shadcn/ui
-- 19 Skills de Claude Code (V4 Skills 2.0)
+- 35 Skills de Claude Code (V4 Skills 2.0)
 - Arquitectura Feature-First optimizada para IA
 - Auto port detection (3000-3006)
 - Testing, linting y type checking configurados

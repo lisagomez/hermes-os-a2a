@@ -88,7 +88,11 @@ Usuario dice algo
 
 ---
 
-## Skills: 16 Herramientas Especializadas
+## Skills: Herramientas Especializadas
+
+> El repo tiene **35 skills**. Esta tabla lista los del nucleo de la fabrica;
+> el inventario completo esta en `.claude/README.md`, y sus contratos de C2 en
+> `.claude/gobernanza/golden-sets/contratos.json`.
 
 | # | Skill | Cuando usarlo |
 |---|-------|---------------|
@@ -349,7 +353,7 @@ npm run lint         # ESLint
 │   ├── project/              # Decisiones y estado de iniciativas
 │   └── reference/            # Patrones, soluciones, donde encontrar cosas
 │
-├── skills/                    # 15 skills especializados
+├── skills/                    # 35 skills especializados
 │   ├── new-app/              # Entrevista de negocio
 │   ├── add-login/            # Auth completo
 │   ├── website-3d/           # Landing pages cinematicas

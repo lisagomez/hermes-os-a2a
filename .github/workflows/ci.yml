@@ -34,6 +34,30 @@ jobs:
       - name: Tests (specs sin navegador + paridad app-registry)
         run: npx playwright test
 
+  # Capa de gobernanza (C1-C7). Hermes despliega por Vercel y por Docker, no con
+  # `npm run deploy`: su ruta de deploy ES el CI, y un gate que no corre aquí no es un
+  # gate — es un comando que alguien podría acordarse de correr.
+  #   · verify:gobernanza — que el papel y el código sigan diciendo lo mismo
+  #   · regresion         — C2 capa A: que ningún skill pierda una regla no negociable
+  gobernanza:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # El verificador resuelve referencias contra la rama `golden-sets` (protocolo
+          # ciego del corpus): sin historia completa no puede encontrarla.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Verificar cableado de gobernanza
+        run: npm run verify:gobernanza
+      - name: Regresión de skills (C2 capa A)
+        run: npm run regresion
+
   # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
   # (ROADMAP / CLAUDE.md / DECISIONES / README / memoria / BUSINESS_LOGIC).
   # Origen: 13 PRs seguidos (2026-07-30 → 08-02) dejaron el mapa de ruta congelado

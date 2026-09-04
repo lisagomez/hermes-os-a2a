@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "smoke": "playwright test -c playwright.e2e.config.ts"
+    "smoke": "playwright test -c playwright.e2e.config.ts",
+    "verify:gobernanza": "node scripts/verifica-gobernanza.mjs",
+    "regresion": "node scripts/regresion-skills.mjs",
+    "validate": "npm run typecheck && npm run lint && npm run build && npm run verify:gobernanza && npm run regresion"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.0",
