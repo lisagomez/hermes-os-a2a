@@ -292,4 +292,22 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 > vaciaría C5 de sentido. El verificador las lista en cada corrida para que no pasen
 > desapercibidas.
 
+### 2026-09-04 — dos huecos del propio cableado, cerrados — radio: plantilla
+- **Cambio**: (a) la regresión mide la cobertura por **contratos**, no por claves, y prohíbe
+  el array vacío; (b) el gate del CDC exige una **entrada nueva** (`### ` añadida en el diff),
+  no que el archivo aparezca en el cambio.
+- **Motivo**: los encontré auditando mi propio trabajo, y son el mismo fallo dos veces —
+  verificar el continente y no el contenido. `"supabase": []` dejaba el skill sin vigilar con
+  la cobertura cuadrando; una errata en la bitácora dejaba pasar un CDC sin declarar.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo ☑
+- **Regresión**: C2 capa A **201/201**. Controles negativos: vaciar `supabase` conservando la
+  clave → dos rojos; bitácora tocada sin entrada nueva → rojo; con entrada nueva → verde.
+- **Runtime**: n/a
+- **Aprobado por**: _pendiente de firma_
+> Esta entrada va **después** de la de cierre a propósito: se encontró auditando el propio
+> cableado ya cerrado. La de cierre decía "8 firmas pendientes aquí" y con ésta son **9** —
+> no se corrige allí porque el registro es append-only y una entrada firmada o no, pasada,
+> no se toca. La cifra vigente es la que lista el verificador en cada corrida, que es
+> justamente por qué se lista.
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->

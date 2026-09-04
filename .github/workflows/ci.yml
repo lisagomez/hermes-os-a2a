@@ -102,4 +102,7 @@ jobs:
         run: |
           export CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
           export PR_LABELS="$(printf '%s' "$LABELS_JSON" | python3 -c 'import sys,json; print("\n".join(json.load(sys.stdin)))')"
+          # Con el diff, el gate CDC exige una entrada NUEVA y no solo que el archivo
+          # aparezca en el cambio: una errata corregida dejaba el gate verde.
+          export BITACORA_DIFF="$(git diff "$BASE_SHA"...HEAD -- .claude/gobernanza/BITACORA-CDC.md)"
           bash scripts/gate-docs-vivos.sh

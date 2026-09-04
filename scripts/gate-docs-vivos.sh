@@ -20,9 +20,12 @@
 # genera (todo el alcance) no pasaba por nada.
 #
 # Entradas (env, para poder correrlo fuera de CI):
-#   CHANGED_FILES  rutas cambiadas, una por línea
-#   PR_BODY        cuerpo del PR (para la escapatoria)
-#   PR_LABELS      etiquetas del PR, una por línea
+#   CHANGED_FILES   rutas cambiadas, una por línea
+#   PR_BODY         cuerpo del PR (para la escapatoria)
+#   PR_LABELS       etiquetas del PR, una por línea
+#   BITACORA_DIFF   (opcional) diff de BITACORA-CDC.md. Con él se exige que la entrada sea
+#                   NUEVA; sin él solo se puede comprobar que el archivo fue tocado, y el
+#                   gate lo dice en voz alta en vez de aparentar que comprobó más.
 #
 # Salida: 0 = pasa, 1 = falla con explicación.
 set -uo pipefail
@@ -32,6 +35,7 @@ ESCAPE="sin-impacto-doc"
 CHANGED_FILES="${CHANGED_FILES:-}"
 PR_BODY="${PR_BODY:-}"
 PR_LABELS="${PR_LABELS:-}"
+BITACORA_DIFF="${BITACORA_DIFF:-}"
 
 # --- Documentos vivos: los que responden "¿en qué va el proyecto?" -----------------
 #   Un SPEC, un PROGRESS o un runbook NO cuentan: son de una iniciativa concreta y
@@ -122,8 +126,27 @@ No hay escapatoria por etiqueta, a propósito: la entrada es barata y puede decl
 FINCDC
   exit 1
 fi
+# Tocar la bitácora no es dejar una entrada: un cambio de espacios satisfacía el gate.
+# Con el diff delante se exige una cabecera de entrada NUEVA (una línea `### ` añadida).
 if [ -n "$cdc" ]; then
-  echo "✅ Gate CDC (C1): material de agente tocado, con entrada en BITACORA-CDC.md."
+  if [ -n "$BITACORA_DIFF" ]; then
+    if printf '%s' "$BITACORA_DIFF" | grep -qE '^\+### '; then
+      echo "✅ Gate CDC (C1): material de agente tocado, con entrada NUEVA en BITACORA-CDC.md."
+    else
+      cat >&2 <<FINENTRADA
+❌ Gate CDC (control C1): BITACORA-CDC.md cambió, pero el diff no añade ninguna entrada.
+
+Se esperaba al menos una línea nueva que empiece por '### ' (la cabecera de una entrada).
+Tocar el archivo no es registrar el cambio: corregir una errata dejaría el gate en verde
+con el CDC sin declarar, que es exactamente el agujero que esto cierra.
+FINENTRADA
+      exit 1
+    fi
+  else
+    echo "✅ Gate CDC (C1): material de agente tocado, con BITACORA-CDC.md en el cambio."
+    echo "   ⚠ Sin BITACORA_DIFF no se pudo comprobar que la entrada sea NUEVA (solo que el"
+    echo "     archivo fue tocado). En CI sí se comprueba."
+  fi
 fi
 
 if [ -z "$sustantivos" ]; then

@@ -1919,4 +1919,39 @@ npm run lint         # ESLint
   red cortada), todo gate que valide unidades de un conjunto con invariantes de
   composición, y todo mock que se declare espejo de un sistema real.
 
+### 2026-09-04: Un gate que cuenta la CAJA y no el CONTENIDO se puede vaciar en silencio
+- **Error (dos veces, en la misma capa de gobernanza, encontrados auditando el propio
+  trabajo)**: (1) la regresión de skills medía la cobertura contando **claves** de
+  `contratos.json` — dejar `"supabase": []` conservaba la clave, la cobertura cuadraba y el
+  skill se quedaba **sin una sola regla vigilada**; (2) el gate del CDC daba por buena
+  cualquier aparición de `BITACORA-CDC.md` en los archivos cambiados — corregir una errata
+  bastaba para pasar con el cambio de comportamiento **sin declarar**. Los dos son el mismo
+  fallo con dos disfraces: se verificaba el continente, no el contenido. Gemelos del bucle
+  que recorre cero filas (2026-08-06) y del test que reproduce la lógica que prueba
+  (2026-07-13): verde sin ejercitar nada.
+- **Fix**: la aserción cuenta lo que importa —contratos, no claves; una cabecera `### ` NUEVA
+  en el diff, no el nombre del archivo— y prohíbe explícitamente la forma vacía. Cuando falta
+  el insumo para comprobarlo (sin `BITACORA_DIFF` fuera de CI), el gate **dice en voz alta
+  que no pudo comprobarlo** en vez de aparentar que sí.
+- **Pregunta de control**: *si vacío la cosa sin borrarla, ¿el gate se pone rojo?* Si no,
+  está contando cajas.
+- **Aplicar en**: toda aserción de cobertura, todo gate que se satisfaga con "el archivo
+  aparece en el cambio", y todo mínimo declarado.
+
+### 2026-09-04: El binario instalado manda — y el reemplazo heredado también puede ser falso
+- **Error**: el skill `playwright-cli` documentaba `npx playwright` con verbos de
+  interacción y `screenshot --output`. **Ninguno existe ni existió**: son nombres del **MCP**,
+  y `screenshot` toma `<url> <filename>` posicionales. La misma sintaxis inventada estaba en
+  `CLAUDE.md` y en `GEMINI.md`, así que se propagaba a cualquier sesión.
+- **El giro**: el reemplazo "correcto" que traía el template de origen (`playwright cli -s=`)
+  **tampoco existe** en la versión instalada (1.61.1). Adoptarlo de buena fe habría encodeado
+  una segunda sintaxis falsa dentro de un contrato de regresión — con el sello de "verificado".
+- **Fix**: comprobar con `npx playwright --help` **antes** de escribir un comando en un skill,
+  y dejar contratos **PROHIBIDOS** que cacen la forma falsa si vuelve. Un contrato positivo no
+  caza una regresión por AÑADIDO: el skill puede seguir declarando lo correcto y traer de
+  vuelta, al lado, lo inventado.
+- **Aplicar en**: todo skill que documente comandos de una herramienta externa, y toda
+  doctrina heredada de otro repo — portarla no la vuelve cierta aquí.
+
+
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
