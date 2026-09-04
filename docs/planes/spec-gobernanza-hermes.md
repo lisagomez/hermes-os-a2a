@@ -7,6 +7,32 @@
 
 ---
 
+## ESTADO — qué ya está hecho (no lo rehagas)
+
+**Fases 0 y 1 COMPLETADAS** el 2026-09-04, commit `6f4d532` en la rama
+`feat/alineacion-gobernanza`. Sigue trabajando **en esa rama**. Ya existen:
+
+- `.claude/gobernanza/` con los ocho archivos. `GOBERNANZA.md` declara C1–C7 con la
+  numeración de secciones del template (§2 C1 … §8 C7, §9 principios, §11 verificación),
+  y cada control **apunta** al documento de `businessos/gobernanza/` que lo desarrolla.
+- `REGISTRO-RIESGO.md` de proyecto con **dos entradas SIN FIRMAR** (capa B de C2
+  pendiente; alcance por fases con revisión el 2026-12-04). Las firmas son de la dueña:
+  **no las rellenes**.
+- `BITACORA-CDC.md` con la entrada de apertura (radio: plantilla), la tabla de modelo
+  pineado marcada honestamente como **pendiente**, y su aprobación humana sin firmar.
+- `INCIDENTES.md` vacío. Las tres plantillas reconciliadas con el catálogo vivo.
+- `golden-sets/contratos.json` **esqueleto**: `todos_los_skills` con los tres contratos
+  universales y el mapa `skills` **vacío a propósito**, con el checklist de la Fase 3
+  dentro (los seis contratos que arrancan en rojo, y el material ya escrito que abarata
+  los propios de Hermes). **Poblarlo es tu Fase 3.**
+
+**Tu alcance es Fases 2 a 7.** No reescribas lo de arriba salvo que encuentres un error;
+si lo encuentras, corrígelo y **dilo**.
+
+Decisión ya tomada y registrada: el espacio de identificadores del corpus es **`HT-nn`**.
+
+---
+
 ## MISION
 
 Que Hermes opere bajo los siete controles de gobernanza **C1–C7**, cableados a **su** flujo
