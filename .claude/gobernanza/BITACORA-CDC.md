@@ -213,4 +213,30 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 - **Runtime**: n/a
 - **Aprobado por**: _pendiente de firma_
 
+### 2026-09-04 — C7 y C5 cerrados hasta donde se puede sin decidir por la dueña — radio: plantilla
+- **Cambio**: (a) `superficies-service-role.json` — la lista **congelada** de todo punto del
+  repo que toca la llave de servicio, con clase y motivo, más el bloque 7b del verificador
+  que la compara contra la realidad en los dos sentidos (superficie nueva sin declarar →
+  rojo; declaración fantasma → rojo); (b) `scripts/detector-segundo-tenant.mjs`, cableado
+  como paso del workflow de tenencia; (c) el registro de riesgo del buzón queda **migrado
+  por referencia** al de proyecto, conservando su constraint de base de datos.
+- **Motivo**: `decision-service-role.md` exige desde el 2026-08-05 un test de arquitectura
+  que no existía, y su condición de incumplimiento se comprobaba **a mano** — que es como
+  decir que no se comprobaba. El disparador no es una fecha: es el alta del segundo tenant.
+- **Cifra remedida**: **20 referencias en 11 archivos** (7 superficies de negocio, 1 auth de
+  plataforma, 2 menciones en texto, 1 config de test). El plan decía 48 en 33; se remide, no
+  se copia.
+- **Línea base contra producción (2026-09-04)**: `organizaciones` = 1, `tenants` = 1. **El
+  disparador de C7 no ha ocurrido**; el trabajo sigue siendo preventivo.
+- **Lo que este cambio NO hace**: no migra las siete superficies. Migrarlas es un rediseño
+  con su propio disparador, ya decidido. Lo que compra es que **la lista no crezca en
+  silencio**: añadir una superficie con la llave que bypassa RLS deja de ser un `import` y
+  pasa a ser una decisión que alguien firma.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo ☑
+- **Regresión**: verificador **93/93**. Detector probado en sus dos desenlaces contra un
+  servidor de prueba: un tenant → verde; dos tenants con superficies de negocio → **rojo**
+  nombrando las siete y enrutando al registro de riesgo.
+- **Runtime**: n/a
+- **Aprobado por**: _pendiente de firma_
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->

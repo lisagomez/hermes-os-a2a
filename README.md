@@ -166,7 +166,8 @@ ISO/IEC 42001, ciclo de vida, `service_role`, correo agéntico, incidentes de in
 **[`.claude/gobernanza/`](.claude/gobernanza/GOBERNANZA.md)**, que declara los siete
 controles **C1–C7**, apunta a los documentos anteriores y —lo que faltaba— los **cablea al
 flujo**: reglas inline en `CLAUDE.md`, secciones fijas en `prp-base.md`, y un verificador
-que corre en cada PR.
+que corre en cada PR — `npm run verify:gobernanza`, 96 comprobaciones, más la regresión
+de los 35 skills y el corpus de inyecciones del buzón.
 
 
 ---

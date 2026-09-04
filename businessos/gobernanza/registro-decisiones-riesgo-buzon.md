@@ -4,6 +4,14 @@
 > ISO/IEC 42001 A.5 (evaluación de impacto) y A.9 (uso responsable).
 > Estado: **vivo** — se añade una entrada por cada decisión, nunca se edita una pasada.
 
+> **Migrado por referencia el 2026-09-04.** Existe ahora un registro de riesgo **de
+> proyecto** en [`.claude/gobernanza/REGISTRO-RIESGO.md`](../../.claude/gobernanza/REGISTRO-RIESGO.md),
+> control **C5** de la capa de gobernanza. Ese registro **supersede en ALCANCE** a este —
+> cubre todo el repositorio— pero **no lo reemplaza ni lo vacía**: este conserva su
+> mecanismo, que es lo único que hace real a un registro. La tabla `buzones` **rechaza**
+> una fila en modo `abierto` sin `riesgo_firmado_por`; ningún archivo markdown puede hacer
+> eso. Las decisiones del buzón se siguen escribiendo **aquí**.
+
 ## Para qué existe
 
 Un buzón en modo `abierto` acepta procesamiento por agente de correo de

@@ -548,6 +548,62 @@ comprueba(
   `flotante(s): ${flotantesVivos.join(' | ')} — los esquemas que se pagan en CADA sesion pueden cambiar sin gate`,
 );
 
+// --- 7b. C7: la lista de superficies con `service_role` esta CONGELADA -------
+// El test de arquitectura que `businessos/gobernanza/decision-service-role.md` exige desde
+// el 2026-08-05 y que no existia. No prohibe —migrar las siete superficies de negocio es un
+// rediseño con su propio disparador, el alta del segundo tenant— sino que CONGELA: anadir
+// una superficie nueva deja de ser un `import` y pasa a ser una decision que alguien firma.
+{
+  const decl = lee(`${GOB}/superficies-service-role.json`);
+  comprueba(
+    `existe ${GOB}/superficies-service-role.json (declaracion de C7)`,
+    decl !== null,
+    'sin la declaracion, "cada uso declarado" es una frase del documento, no un control',
+  );
+  if (decl !== null) {
+    let superficies = [];
+    try { superficies = JSON.parse(decl).superficies ?? []; } catch { superficies = null; }
+    comprueba(
+      'la declaracion de C7 es JSON valido con superficies',
+      Array.isArray(superficies) && superficies.length > 0,
+      'la declaracion se corrompio o quedo vacia',
+    );
+    if (Array.isArray(superficies)) {
+      const declarados = new Set(superficies.map((x) => x.archivo));
+      const USA = /SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY/;
+      const reales = new Set();
+      for (const archivo of versionadosTexto()) {
+        if (!/\.(ts|tsx|js|mjs|jsx)$/.test(archivo)) continue;
+        if (archivo.startsWith('scripts/')) continue; // este verificador nombra la variable
+        const contenido = lee(archivo);
+        if (contenido !== null && USA.test(contenido)) reales.add(archivo);
+      }
+      const sinDeclarar = [...reales].filter((f) => !declarados.has(f));
+      const fantasmas = [...declarados].filter((f) => !reales.has(f));
+      comprueba(
+        `toda superficie que toca service_role esta declarada (${reales.size} reales)`,
+        sinDeclarar.length === 0,
+        `sin declarar: ${sinDeclarar.join(', ')} — una superficie nueva con la llave que bypassa RLS `
+          + `no entra por un import: se declara en ${GOB}/superficies-service-role.json y se firma`,
+      );
+      comprueba(
+        'ninguna superficie declarada dejo de existir (declaracion sin fantasmas)',
+        fantasmas.length === 0,
+        `ya no tocan service_role: ${fantasmas.join(', ')} — retirarlas de la declaracion es parte `
+          + 'del cambio, o la lista congelada empieza a mentir en la otra direccion',
+      );
+      const CLASES = new Set(['superficie-negocio', 'plataforma-auth', 'job-de-plataforma', 'mencion-en-texto', 'test']);
+      const malClasificadas = superficies.filter((x) => !CLASES.has(x.clase) || !x.porque);
+      comprueba(
+        'toda superficie declarada tiene clase valida y motivo',
+        malClasificadas.length === 0,
+        `${malClasificadas.map((x) => x.archivo).join(', ')} — "declarado" significa clasificado y `
+          + 'con motivo, no listado',
+      );
+    }
+  }
+}
+
 // --- 8. Ningun archivo versionado lleva una credencial viva -----------------
 const FIRMAS_CRED = [
   ['token de Supabase (sbp_)', /sbp_[A-Za-z0-9]{36,}/],

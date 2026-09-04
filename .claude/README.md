@@ -375,7 +375,7 @@ doctrina: cada control apunta al documento de `businessos/gobernanza/` que ya lo
 Se verifica sola:
 
 ```bash
-npm run verify:gobernanza   # el papel y el codigo dicen lo mismo
+npm run verify:gobernanza   # 96 comprobaciones: el papel y el codigo dicen lo mismo
 npm run regresion           # C2 capa A sobre los 35 skills
 npm run validate            # typecheck + lint + build + las dos anteriores
 ```

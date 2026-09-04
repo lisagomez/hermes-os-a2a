@@ -126,6 +126,32 @@ que una firma bastaría.
 - **Vigencia / próxima revisión**: **antes de activar el envío real** del buzón (hoy exige 7
   días y 20 borradores). Ese es el momento en que los 40 casos de gate dejan de ser teoría.
 
+### 2026-09-04 — C7 — el detector del segundo tenant existe pero NO está verificando
+- **Decisión**: entregar el detector cableado al workflow de tenencia con
+  `continue-on-error: true` y **sin los secretos configurados**, en vez de (a) dejarlo sin
+  cablear o (b) meter la llave de servicio en los secretos del repositorio por iniciativa
+  del agente.
+- **Riesgo aceptado**: mientras `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` no estén en los
+  secretos, **el detector devuelve "no se pudo comprobar" en cada corrida y la condición de
+  incumplimiento de C7 sigue sin vigilarse**. Si mañana se da de alta un segundo tenant, el
+  sistema no avisa: exactamente el estado que este control venía a corregir. La diferencia
+  con ayer es que ahora el hueco tiene nombre, salida ruidosa en CI y esta entrada — pero un
+  control que no puede mirar no informa, y eso no cambia por estar declarado.
+- **Por qué no lo decide el agente**: poner la llave que **bypassa RLS** en los secretos de
+  un repositorio con cuatro colaboradores con permiso de escritura amplía el radio de esa
+  credencial. Es una decisión de alcance de credencial de la dueña, no una tarea pendiente.
+  Alternativas que ella puede preferir: una llave de solo lectura acotada a `organizaciones`,
+  o correrlo como host-job en el servidor (hoy incomunicado) en vez de en CI.
+- **Mitigaciones vigentes**: la línea base está tomada contra producción (**1 tenant**, hoy),
+  así que el estado de partida es conocido y no supuesto; el alta de un tenant no es un
+  accidente silencioso —hay que crearlo— y el ROADMAP ya lista la tenencia entre las
+  decisiones abiertas; la lista de superficies queda **congelada** por el bloque 7b, así que
+  la exposición no crece mientras tanto; y activar el detector es quitar una línea
+  (`continue-on-error`) una vez exista el secreto.
+- **Firmado por** (nombre y rol): _pendiente de firma_
+- **Vigencia / próxima revisión**: **antes de dar de alta el segundo tenant** — o al decidir
+  el alcance de la credencial, lo que ocurra primero.
+
 <!-- Añadir aquí las decisiones siguientes. NO editar las anteriores. -->
 
 ---
