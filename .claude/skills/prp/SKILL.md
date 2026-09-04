@@ -70,7 +70,19 @@ Donde `{feature-name}` es el nombre de la feature en kebab-case.
 - Comportamiento Esperado (happy path)
 - Contexto (referencias, arquitectura propuesta, modelo de datos)
 - Blueprint (SOLO fases, sin subtareas)
+- **Modelo de amenazas** (C3) — activos que toca, fronteras que cruza, atacante relevante
+  (O1-O6), controles y la brecha que queda abierta. Plantilla:
+  `.claude/gobernanza/plantillas/modelo-amenazas.md`; catalogo vivo:
+  `businessos/gobernanza/modelo-amenazas-v1.md`
+- **Evaluacion de impacto — AISIA** (C4) — a quien podemos dañar SIN atacante, con el
+  sistema operando bien. Plantilla: `.claude/gobernanza/plantillas/aisia.md`
+- **Declaracion de CDC aplicable** (C1) — ¿este PRP cambia comportamiento de agentes
+  (modelo, skill, subagente, SOUL/AGENTS, plantilla, config)? si/no, y que gate toca
 - Secciones vacias de Aprendizajes, Gotchas, y Anti-Patrones
+
+> Las tres ya viven en `prp-base.md`: un PRP que las omita no esta completo. Este skill las
+> pide explicitamente porque tenerlas en la plantilla no basta — el skill no las nombraba y
+> un PRP generado podia saltarselas sin que nada fallara.
 
 ### Paso 5: Presentar al usuario
 
@@ -94,7 +106,8 @@ Los aprendizajes descubiertos durante la implementacion se documentan de vuelta 
 
 ## Reglas
 
-- SIEMPRE leer `prp-base.md` antes de generar
+- SIEMPRE leer `prp-base.md` antes de generar, y las plantillas de
+  `.claude/gobernanza/plantillas/` antes de llenar amenazas e impacto
 - NUNCA generar subtareas dentro de las fases (eso lo hace Blueprint)
 - NUNCA implementar codigo en este skill (solo generar el documento)
 - SIEMPRE investigar el codebase antes de proponer arquitectura

@@ -160,11 +160,12 @@ Conectado via `/_next/mcp`. Ve errores build/runtime en tiempo real.
 
 ### Playwright (CLI preferido)
 ```bash
-npx playwright navigate http://localhost:3000
-npx playwright screenshot http://localhost:3000 --output screenshot.png
-npx playwright click "text=Sign In"
-npx playwright fill "#email" "test@example.com"
+# url y archivo POSICIONALES (`--output` NO existe). Verificado en Playwright 1.61.1
+npx playwright screenshot http://localhost:3000 captura.png
+npx playwright test -c playwright.e2e.config.ts
 ```
+⛔ El CLI no tiene verbos de interaccion: son del MCP. Los flujos con login o formularios
+van en un script `node` con la API. Ver `CLAUDE.md` y el skill `playwright-cli`.
 
 ### Supabase MCP
 ```

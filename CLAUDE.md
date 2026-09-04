@@ -223,14 +223,18 @@ Conectado via `/_next/mcp`. Ve errores build/runtime en tiempo real.
 
 ### Playwright (Tus Ojos)
 
-**CLI** (preferido, menos tokens):
+**CLI** (preferido, menos tokens) — verificado contra Playwright **1.61.1**:
 ```bash
-npx playwright navigate http://localhost:3000
-npx playwright screenshot http://localhost:3000 --output screenshot.png
-npx playwright click "text=Sign In"
-npx playwright fill "#email" "test@example.com"
-npx playwright snapshot http://localhost:3000
+# url y archivo POSICIONALES (`--output` NO existe)
+npx playwright screenshot http://localhost:3000 captura.png
+npx playwright screenshot --full-page --device "iPhone 11" http://localhost:3000 movil.png
+npx playwright pdf http://localhost:3000/reporte reporte.pdf
+npx playwright test -c playwright.e2e.config.ts     # == npm run smoke
 ```
+⛔ El CLI **no tiene** verbos de interaccion (`navigate`, `click`, `fill`, `snapshot`): son
+del MCP. Un flujo con login o formularios va en un script `node` con la API
+(`page.goto/fill/click`), que ademas conserva la sesion. Detalle en el skill
+`playwright-cli`. Comprueba siempre con `npx playwright --help` antes de escribir un comando.
 
 **MCP** (cuando necesitas explorar UI desconocida):
 ```
