@@ -222,3 +222,29 @@ businessos/
 4. **Eficiencia por routing, no por recorte** — lo barato a modelos baratos.
 5. **Arreglar lo compartido, no el caso aislado** — el arreglo va en el común.
 6. **Verificar antes de confiar** — nada que mueva dinero/datos/reglas sin verificación.
+
+---
+
+## 8. Gobernanza (controles C4 y C7)
+
+> Capa completa en [`.claude/gobernanza/GOBERNANZA.md`](.claude/gobernanza/GOBERNANZA.md).
+> Esta sección existe para que la evaluación de impacto **nazca con el negocio**, no se
+> añada después — que es nunca.
+
+**C4 · ¿a quién podemos dañar sin que nadie nos ataque?** Las partes afectadas de este
+sistema no son solo la dueña: son los **leads** cuyos datos entran por formularios, chat y
+enriquecimiento sin haber hablado nunca con el sistema; los **destinatarios de correo** que
+reciben texto redactado por un agente en nombre del negocio; los **terceros mencionados** en
+reuniones que se transcriben; y los **clientes de las verticales** y sus propios clientes
+finales. La AISIA completa, con sus ocho daños posibles y sus mitigaciones, está en
+[`.claude/gobernanza/plantillas/aisia.md`](.claude/gobernanza/plantillas/aisia.md).
+
+**C7 · `service_role` no protege.** Mission Control renderiza todo el negocio con
+`SUPABASE_SERVICE_ROLE_KEY` y los host-jobs escriben con la misma llave: `BYPASSRLS` por
+diseño, así que hoy el aislamiento vive **exclusivamente en el código de la aplicación**.
+Habilitar RLS sigue siendo obligatorio —etiqueta el dato y deja las políticas probadas— pero
+no compra aislamiento por sí solo. El disparador de la migración no es una fecha: es **el
+alta del segundo tenant**. Detalle en `businessos/gobernanza/decision-service-role.md`.
+
+**Lo que no se firma**: los daños que recaen sobre terceros que nunca firmaron no se aceptan
+con una entrada del registro de riesgo. Se rediseñan o no se hacen.

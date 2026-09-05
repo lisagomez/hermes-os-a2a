@@ -1,0 +1,82 @@
+{
+  "_comentario": "Control C7. Declaracion CONGELADA de todo punto del repo que toca SUPABASE_SERVICE_ROLE_KEY. La exige `businessos/gobernanza/decision-service-role.md`, que la pide desde el 2026-08-05 y no existia. El verificador compara esta declaracion contra la realidad: una superficie nueva sin declarar pone el gate en ROJO, y una declaracion que ya no corresponde a nada tambien.",
+
+  "_por_que_congelar_y_no_prohibir": "En Supabase `service_role` tiene BYPASSRLS: ninguna politica lo detiene. Hoy siete superficies de negocio lo usan y migrarlas no es trabajo de gobernanza — es un rediseño con su propio disparador, ya decidido: EL ALTA DEL SEGUNDO TENANT, no una fecha. Lo que esta declaracion compra mientras tanto es que la lista NO CREZCA en silencio: anadir una superficie nueva deja de ser un `import` y pasa a ser una decision que alguien firma.",
+
+  "_medido": "2026-09-04 — 20 referencias en 11 archivos. (El plan de alineacion decia 48 en 33: se remide, no se copia.)",
+
+  "clasificaciones": {
+    "superficie-negocio": "Renderiza o escribe dato de negocio. Es lo que C7 prohibe en estado objetivo: el aislamiento vive solo en el codigo de la app.",
+    "plataforma-auth": "Opera SOBRE los usuarios (leer rol, allowlist), no dentro del dato de un cliente. C7 lo permite si esta declarado.",
+    "job-de-plataforma": "Migraciones, webhooks verificados y jobs que operan sobre todos los usuarios. C7 lo permite si esta declarado.",
+    "mencion-en-texto": "Solo nombra la variable (comentario o mensaje de UI). No construye cliente.",
+    "test": "Configuracion de pruebas. No construye cliente contra datos reales."
+  },
+
+  "superficies": [
+    {
+      "archivo": "src/features/dashboard/services/real.ts",
+      "clase": "superficie-negocio",
+      "porque": "Mission Control: fuente real del panel. Renderiza revenue, facturas, contratos, cobros, leads y gasto IA con la llave de servicio.",
+      "mitigacion": "Magic link + allowlist fail-closed en middleware (PANEL_ALLOWED_EMAILS vacio = nadie entra). El candado es de aplicacion, no de base."
+    },
+    {
+      "archivo": "src/features/dashboard/services/index.ts",
+      "clase": "superficie-negocio",
+      "porque": "Selector mock/real del panel: decide por la PRESENCIA de la llave de servicio.",
+      "mitigacion": "Mismo candado de aplicacion que real.ts."
+    },
+    {
+      "archivo": "businessos/frontends/cliente-web2/src/lib/supabase/service.ts",
+      "clase": "superficie-negocio",
+      "porque": "Landing publica de marca propia: escribe leads con la llave de servicio.",
+      "mitigacion": "Solo server-side; origen propio `web2` (un escritor por origen). Superficie PUBLICA: es la de mayor exposicion de esta lista."
+    },
+    {
+      "archivo": "businessos/frontends/control-interno/src/lib/supabase/service.ts",
+      "clase": "superficie-negocio",
+      "porque": "Cabina interna del equipo: helper de cliente con llave de servicio.",
+      "mitigacion": "Cabina con auth propia (profiles + rol)."
+    },
+    {
+      "archivo": "businessos/frontends/meeting-copilot/src/features/crm/data.ts",
+      "clase": "superficie-negocio",
+      "porque": "CRM: lee y mueve etapas de leads con la llave de servicio.",
+      "mitigacion": "Canal auditado de movimientos (mover_lead_etapa + leads_movimientos) y login con allowlist."
+    },
+    {
+      "archivo": "businessos/frontends/meeting-copilot/src/app/api/pre-discovery/enriquecer/route.ts",
+      "clase": "superficie-negocio",
+      "porque": "Puente server-side al waterfall de enriquecimiento; escribe resultado por lead.",
+      "mitigacion": "Token Bearer server-only hacia el gate; gate LFPDPPP fail-closed aguas abajo."
+    },
+    {
+      "archivo": "businessos/frontends/meeting-copilot/src/app/api/reservar/route.ts",
+      "clase": "superficie-negocio",
+      "porque": "Reserva PUBLICA, deliberadamente FUERA del gate de auth. Es la superficie mas expuesta del repo que usa la llave de servicio.",
+      "mitigacion": "Valida su propio payload con limites duros; sin Supabase responde 503; enlaces de reserva de un solo uso.",
+      "atencion": "Si alguna vez hay un segundo tenant, esta es la primera que hay que migrar."
+    },
+    {
+      "archivo": "businessos/frontends/control-interno/src/lib/auth-utils.ts",
+      "clase": "plataforma-auth",
+      "porque": "Lee el rol del profile para autorizar. Opera SOBRE los usuarios, no dentro del dato de un cliente.",
+      "mitigacion": "Cache in-memory con TTL; no expone la llave al cliente."
+    },
+    {
+      "archivo": "businessos/frontends/meeting-copilot/src/app/crm/page.tsx",
+      "clase": "mencion-en-texto",
+      "porque": "Solo nombra la variable en un mensaje de la UI que explica como configurar el entorno. No construye cliente."
+    },
+    {
+      "archivo": "src/lib/auth/allowlist.ts",
+      "clase": "mencion-en-texto",
+      "porque": "Solo la nombra en el comentario que explica por que la allowlist es fail-closed. No construye cliente."
+    },
+    {
+      "archivo": "businessos/frontends/meeting-copilot/playwright.config.ts",
+      "clase": "test",
+      "porque": "Fija la variable VACIA a proposito para que el smoke verifique el camino sin Supabase conectado."
+    }
+  ]
+}

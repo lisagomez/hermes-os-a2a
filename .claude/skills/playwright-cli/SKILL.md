@@ -36,22 +36,67 @@ npx playwright install chromium
 
 ## Comandos Core de Playwright CLI
 
+> ⛔ **`npx playwright` NO tiene los verbos `navigate`, `click`, `fill` ni `snapshot`.** Son nombres de
+> herramientas del **MCP**, no del CLI, y este skill los daba por buenos desde su creacion.
+> Verificado contra el binario instalado (**1.61.1**, `npx playwright --help`): los unicos
+> subcomandos son `open`, `cr`/`ff`/`wk`, `codegen`, `screenshot`, `pdf`, `test`,
+> `show-trace`, `show-report`, `install`. Tampoco existe `playwright cli`.
+> Y `screenshot` toma el archivo **POSICIONAL**: `--output` no existe.
+>
+> Doctrina del repo: **manda el binario instalado, no el blog** — comprueba con `--help`
+> antes de escribir un comando en un skill.
+
+Lo que el CLI SI hace, y es su mejor uso: **evidencia de una URL, sin escribir codigo.**
+
 ```bash
-# Navegar a una pagina
-npx playwright navigate http://localhost:3000
+# Screenshot de una pagina (url y archivo POSICIONALES, en ese orden)
+npx playwright screenshot http://localhost:3000 captura.png
 
-# Tomar screenshot
-npx playwright screenshot http://localhost:3000 --output screenshot.png
+# Con espera, pagina completa y tema oscuro
+npx playwright screenshot --full-page --wait-for-selector "main" \
+  --color-scheme dark http://localhost:3000/dashboard captura.png
 
-# Click en un elemento
-npx playwright click "text=Sign In"
+# Emular un movil (paridad con `npm run smoke`)
+npx playwright screenshot --device "iPhone 11" http://localhost:3000 movil.png
 
-# Llenar un campo de formulario
-npx playwright fill "#email" "test@example.com"
-
-# Obtener snapshot de pagina (accessibility tree como YAML)
-npx playwright snapshot http://localhost:3000
+# PDF de una pagina
+npx playwright pdf http://localhost:3000/reporte reporte.pdf
 ```
+
+### Interaccion (login, formularios, flujos): un SCRIPT, no el CLI
+
+El CLI **no sabe** hacer click ni llenar campos: eso es la API. Se hace con un script de
+Node que escribe sus artefactos a disco — el argumento de tokens del skill se mantiene
+intacto, porque lo que llena el contexto es volcar el DOM, no ejecutar un script.
+
+```javascript
+// .qa-reports/flujo.mjs  ·  correr con: node .qa-reports/flujo.mjs
+import { chromium } from 'playwright';
+
+const dir = '.qa-reports/2026-09-04-login/screenshots';
+const navegador = await chromium.launch();
+const pagina = await navegador.newPage();
+
+await pagina.goto('http://localhost:3000/login');       // navigate == goto
+await pagina.screenshot({ path: `${dir}/01-login.png` });
+
+await pagina.fill('#email', 'test@example.com');
+await pagina.fill('#password', 'testpassword');
+await pagina.click('text=Sign In');
+await pagina.waitForURL('**/dashboard');
+
+await pagina.screenshot({ path: `${dir}/02-dashboard.png` });
+
+// El "snapshot" del MCP es el arbol de accesibilidad: a disco, nunca al contexto
+const { writeFileSync } = await import('node:fs');
+writeFileSync(`${dir}/../arbol.json`,
+  JSON.stringify(await pagina.accessibility.snapshot(), null, 2));
+
+await navegador.close();
+```
+
+Para un flujo que se va a repetir, mejor un spec y `npx playwright test`: este repo ya tiene
+`playwright.config.ts`, `tests/`, `tests-e2e/` y `npm run smoke`.
 
 ---
 
@@ -90,21 +135,29 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
 Abrir la app y navegar a las paginas relevantes.
 
 ```bash
-# Screenshot inicial de la pagina
-npx playwright screenshot http://localhost:3000/[ruta] --output .qa-reports/[fecha]-[nombre]/screenshots/01-inicio.png
+# Screenshot inicial de la pagina (url y archivo POSICIONALES)
+npx playwright screenshot http://localhost:3000/[ruta] \
+  .qa-reports/[fecha]-[nombre]/screenshots/01-inicio.png
 ```
 
 ### Fase 4: TEST
 
 Ejecutar los pasos del test. Llenar formularios, hacer clicks, verificar resultados.
 
+Un flujo con clicks y formularios **no cabe en el CLI**: va en un script (ver
+*Comandos Core*), que ademas mantiene una sola sesion de navegador — encadenar comandos
+sueltos abriria un navegador nuevo cada vez y perderia la sesion del login.
+
 ```bash
-# Ejemplo: test de login
-npx playwright screenshot http://localhost:3000/login --output .qa-reports/[fecha]-[nombre]/screenshots/02-login-page.png
-npx playwright fill "#email" "test@example.com"
-npx playwright fill "#password" "testpassword"
-npx playwright click "text=Sign In"
-npx playwright screenshot http://localhost:3000/dashboard --output .qa-reports/[fecha]-[nombre]/screenshots/03-after-login.png
+node .qa-reports/[fecha]-[nombre]/flujo.mjs
+```
+
+El script toma screenshot ANTES y DESPUES de cada accion critica. Para una pagina suelta
+que no requiere sesion, el CLI sigue siendo lo mas barato:
+
+```bash
+npx playwright screenshot http://localhost:3000/login \
+  .qa-reports/[fecha]-[nombre]/screenshots/02-login-page.png
 ```
 
 Tomar screenshot ANTES y DESPUES de cada accion critica.
@@ -113,9 +166,10 @@ Tomar screenshot ANTES y DESPUES de cada accion critica.
 
 Guardar snapshots de pagina solo cuando se necesite inspeccionar estructura.
 
-```bash
-# Solo si necesitas ver la estructura del DOM
-npx playwright snapshot http://localhost:3000/[ruta] > .qa-reports/[fecha]-[nombre]/snapshot-[paso].yaml
+```javascript
+// Solo si necesitas ver la estructura: arbol de accesibilidad A DISCO
+writeFileSync('.qa-reports/[fecha]-[nombre]/snapshot-[paso].json',
+  JSON.stringify(await pagina.accessibility.snapshot(), null, 2));
 ```
 
 **Principio sticky-notes**: NO volcar snapshots completos al contexto. Leer el archivo YAML solo cuando se necesite inspeccionar algo especifico. Resumen primero, detalles on-demand.
@@ -190,7 +244,7 @@ Todos los artefactos de QA se guardan en:
       01-nombre.png
       02-nombre.png
       ...
-    snapshot-[paso].yaml  (solo si se necesito)
+    snapshot-[paso].json  (arbol de accesibilidad, solo si se necesito)
 ```
 
 ---
@@ -199,7 +253,8 @@ Todos los artefactos de QA se guardan en:
 
 - SIEMPRE crear el directorio de artefactos antes de empezar
 - SIEMPRE tomar screenshots en cada paso critico
-- NUNCA volcar snapshots YAML completos al contexto (leerlos on-demand)
+- NUNCA volcar snapshots completos al contexto (leerlos on-demand)
+- NUNCA inventar subcomandos del CLI: comprobar con `npx playwright --help`
 - SIEMPRE generar el reporte al final, incluso si todo paso
 - Si el servidor no esta corriendo, avisar al usuario en vez de fallar silenciosamente
 - Los screenshots se guardan en disco, NO se insertan inline en el reporte (solo paths)

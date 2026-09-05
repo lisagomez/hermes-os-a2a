@@ -34,3 +34,22 @@ jobs:
       # que el ciclo lo cace. Un verde que nunca se ha visto en rojo no informa.
       - name: Control de reversión
         run: businessos/tenancy/control-reversion.sh
+
+      # C7 · detector del SEGUNDO TENANT. `decision-service-role.md` cierra con la
+      # condición de incumplimiento escrita en SQL y hasta hoy se comprobaba a mano,
+      # que es como decir que no se comprobaba: el disparador de la migración no es una
+      # fecha, es el alta del segundo tenant, y si nadie mira nadie se entera el día que
+      # ocurra. Vive aquí porque es el job que ya piensa en tenencia.
+      #
+      # ⚠️ Salidas: 0 = un solo tenant · 1 = INCUMPLIMIENTO · 2 = no se pudo comprobar.
+      # Sin los secretos configurados devuelve 2 y lo dice a gritos — "no se pudo mirar"
+      # no es "está limpio". `continue-on-error` está en true SOLO mientras los secretos
+      # no existan: activarlos es una decisión de alcance de credencial de la dueña, no
+      # una tarea (registrada en BITACORA-CDC.md y REGISTRO-RIESGO.md, 2026-09-04).
+      # Cuando se configuren, quitar `continue-on-error` es una línea.
+      - name: C7 · detector del segundo tenant
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/detector-segundo-tenant.mjs

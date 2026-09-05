@@ -176,7 +176,23 @@ src/features/
 4. [ ] Feature: [feature-1]
 5. [ ] Feature: [feature-2]
 6. [ ] Testing E2E
-7. [ ] Deploy Vercel
+7. [ ] `npm run validate` en verde (incluye gobernanza y regresion de skills)
+8. [ ] Deploy Vercel
+
+## 7. Gobernanza (controles C4 y C7)
+
+**C4 - AISIA. ¿A quien podemos dañar SIN que nadie nos ataque?**
+[Partes afectadas, incluidas las que NO son usuarios: terceros cuyos datos entran, personas
+sobre las que el sistema decide, clientes del cliente. Un daño por fila, con severidad y si
+es reversible. Plantilla: `.claude/gobernanza/plantillas/aisia.md`]
+
+**C7 - `service_role` / RLS.** Toda tabla nace con RLS habilitada. Las superficies de
+negocio NO usan `service_role` para dato de negocio: usan la llave anonima con sesion de
+usuario. `service_role` queda para migraciones, webhooks verificados y jobs de plataforma,
+cada uno declarado. Nunca con prefijo `NEXT_PUBLIC_`.
+
+**Lo que no se firma**: si el daño recae sobre terceros que nunca firmaron, no se acepta con
+una entrada de riesgo — se rediseña o no se hace.
 ```
 
 ---
@@ -188,5 +204,7 @@ src/features/
 - **No asumas:** Valida cada suposicion con el usuario
 - **Traduce a tecnico:** El BUSINESS_LOGIC.md es para que TU (el agente) puedas ejecutar despues
 - **Auth default:** Siempre Email/Password (evita OAuth para testing)
+- **Gobernanza:** el BUSINESS_LOGIC.md nace con su seccion 7 (C4 y C7). La evaluacion
+  de impacto se hace al definir el negocio, no despues — despues es nunca.
 
 *"Primero entiende el negocio. Despues escribe codigo."*

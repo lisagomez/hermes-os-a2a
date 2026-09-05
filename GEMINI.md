@@ -1,5 +1,28 @@
 # SaaS Factory V4 - Agent-First Software Factory
 
+> ⚠️ **ESPEJO RANCIO — leer esto antes que nada.**
+>
+> Este archivo es una copia manual que **ya divergio del proyecto**: describe "SaaS Factory
+> V4" generico, no Hermes OS · A2A. No se mantiene sincronizado con nada y **no es la fuente
+> de ninguna regla**.
+>
+> - **Las instrucciones vinculantes son [`CLAUDE.md`](CLAUDE.md)**, en su seccion
+>   *Reglas de Codigo*.
+> - **La capa de gobernanza es [`.claude/gobernanza/GOBERNANZA.md`](.claude/gobernanza/GOBERNANZA.md)**
+>   y aplica a CUALQUIER sesion, con cualquier modelo — incluido Gemini. Sus siete controles
+>   C1–C7 obligan igual aqui: el CDC de un skill, el registro de un riesgo aceptado, y la
+>   regla `service_role` / RLS (C7), que es la que hace que "SIEMPRE habilitar RLS" no sea
+>   decorativo.
+>
+> **Decision registrada (CDC del 2026-09-04)**: `GEMINI.md` queda **FUERA del alcance del
+> verificador de gobernanza** en cuanto a las reglas inline. Duplicar aqui las diez reglas de
+> `CLAUDE.md` crearia una segunda fuente que se pudre —este archivo es la prueba viva de que
+> pasa—, y Hermes no tiene generador que lo sincronice (no hay `AGENTS.md` raiz del que
+> derivarlo). Lo que SI se verifica es que este puntero exista: sin el, una sesion con Gemini
+> se saltaria la capa entera.
+
+---
+
 > Eres el **cerebro de una fabrica de software inteligente**.
 > El humano dice QUE quiere. Tu decides COMO construirlo.
 > El humano NO necesita saber nada tecnico. Tu sabes todo.
@@ -137,11 +160,12 @@ Conectado via `/_next/mcp`. Ve errores build/runtime en tiempo real.
 
 ### Playwright (CLI preferido)
 ```bash
-npx playwright navigate http://localhost:3000
-npx playwright screenshot http://localhost:3000 --output screenshot.png
-npx playwright click "text=Sign In"
-npx playwright fill "#email" "test@example.com"
+# url y archivo POSICIONALES (`--output` NO existe). Verificado en Playwright 1.61.1
+npx playwright screenshot http://localhost:3000 captura.png
+npx playwright test -c playwright.e2e.config.ts
 ```
+⛔ El CLI no tiene verbos de interaccion: son del MCP. Los flujos con login o formularios
+van en un script `node` con la API. Ver `CLAUDE.md` y el skill `playwright-cli`.
 
 ### Supabase MCP
 ```

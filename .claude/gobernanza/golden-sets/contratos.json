@@ -1,0 +1,143 @@
+{
+  "_comentario": "Capa A del control C2: contratos estructurales de cada skill. Se comparan contra SKILL.md sin invocar al modelo, asi que son deterministas y corren en cada build y en cada PR. Un contrato roto = un skill que perdio una regla no negociable. Anadir un contrato es barato; quitarlo exige justificarlo en BITACORA-CDC.md.",
+
+  "_como_se_escribe_un_contrato": "Ancla la regla que NO se negocia, no una palabra bonita. Si el patron pasa con la regla borrada, no es un contrato: es cebo. Todos los de aqui se probaron contra el SKILL.md real antes de escribirlos, y el control negativo (borrar RLS de supabase) los pone en rojo.",
+
+  "_cobertura_minima": 31,
+  "_contratos_minimos": 61,
+  "_contratos_minimos_porque": "Contar CLAVES no basta: `\"supabase\": []` deja la clave puesta, la cobertura intacta y el skill sin una sola regla vigilada. Este minimo cuenta los CONTRATOS.",
+
+  "_cobertura_porque": "Numero de skills con contrato ESPECIFICO. El runner falla si baja, para que borrar un contrato sea un acto visible y no una reduccion silenciosa del numero de comprobaciones (el gemelo del bucle que recorre menos filas). Subirlo es libre; bajarlo exige justificarlo en el CDC.",
+
+  "todos_los_skills": [
+    { "patron": "^---\\s*$", "porque": "frontmatter YAML presente" },
+    { "patron": "^name:\\s*\\S+", "porque": "el skill declara su nombre" },
+    { "patron": "^description:", "porque": "sin description el agente no sabe cuando activarlo" }
+  ],
+
+  "skills": {
+    "new-app": [
+      { "patron": "Gobernanza", "porque": "C4: todo BUSINESS_LOGIC.md nace con su evaluacion de impacto, no se le anade despues" },
+      { "patron": "service_role", "porque": "C7: la regla de aislamiento se declara desde el contrato de negocio" },
+      { "patron": "BUSINESS_LOGIC\\.md", "porque": "es el artefacto que este skill existe para producir" }
+    ],
+    "prp": [
+      { "patron": "prp-base\\.md", "porque": "el PRP se genera desde el template, no de memoria" },
+      { "patron": "[Mm]odelo de [Aa]menazas", "porque": "C3: todo PRP responde quien nos ataca" },
+      { "patron": "[Ee]valuaci[oó]n de [Ii]mpacto", "porque": "C4: todo PRP responde a quien dañamos sin atacante" },
+      { "patron": "CDC", "porque": "C1: el PRP declara si cambia comportamiento de agentes" }
+    ],
+    "supabase": [
+      { "patron": "RLS|[Rr]ow [Ll]evel [Ss]ecurity", "porque": "ninguna tabla se crea sin RLS" },
+      { "patron": "service_role", "porque": "C7: RLS sin la regla de service_role es decorativa" }
+    ],
+    "add-login": [
+      { "patron": "RLS|[Rr]ow [Ll]evel [Ss]ecurity", "porque": "auth sin RLS es auth decorativa" }
+    ],
+    "add-payments": [
+      { "patron": "webhook", "porque": "el cobro se confirma por webhook, no por redireccion del cliente" },
+      { "patron": "[Ss]ignature|[Vv]erif|firma", "porque": "un webhook sin verificar su firma es un endpoint abierto" }
+    ],
+    "add-emails": [
+      { "patron": "Resend", "porque": "Golden Path: el proveedor de correo no se improvisa por feature" },
+      { "patron": "[Uu]nsubscribe|baja", "porque": "correo masivo sin baja es correo que no se puede parar" }
+    ],
+    "add-mobile": [
+      { "patron": "service worker|[Ss]ervice [Ww]orker", "porque": "sin SW no hay PWA: es la pieza que se olvida registrar" },
+      { "patron": "iOS|VAPID", "porque": "push sin las llaves VAPID y sin el caso iOS no funciona donde mas duele" }
+    ],
+    "bucle-agentico": [
+      { "patron": "[Ff]ase", "porque": "la ejecucion es por fases, no de un tiron" },
+      { "patron": "[Vv]alidaci", "porque": "cada fase cierra con validacion, no con buena voluntad" }
+    ],
+    "eject-sf": [
+      { "patron": "DESTRUCTIVO|destructiv", "porque": "una accion irreversible se anuncia como tal" },
+      { "patron": "[Cc]onfirmar|[Cc]onfirmacion", "porque": "gate humano antes de borrar" }
+    ],
+    "ai": [
+      { "patron": "OpenRouter", "porque": "Golden Path: el proveedor no se improvisa por feature" }
+    ],
+    "image-generation": [
+      { "patron": "OpenRouter", "porque": "Golden Path del proveedor de imagen" },
+      { "patron": "modelo|model", "porque": "el modelo por defecto caduca cuando el proveedor lo retira (2026-08-31): el skill lo nombra y dice como listar los vigentes" }
+    ],
+    "playwright-cli": [
+      { "patron": "screenshot", "porque": "la evidencia visual es el producto de este skill" },
+      { "prohibido": "npx playwright (navigate|click|fill|snapshot)\\b", "porque": "verbos del MCP que NUNCA existieron en el CLI; verificado contra playwright 1.61.1 el 2026-09-04" },
+      { "prohibido": "playwright screenshot[^\\n]*--output", "porque": "`screenshot` toma <url> <filename> POSICIONALES: --output no existe en ninguna version" }
+    ],
+    "orquestar-agentes": [
+      { "patron": "fail-closed|PROHIBID|prohibid", "porque": "capa 1 del ruteo: primero que modelo esta PROHIBIDO para este dato, despues cual es el mejor" },
+      { "patron": "blast radius", "porque": "capa 2: el ruteo se decide por radio de daño, no por precio" },
+      { "patron": "[Ff]able", "porque": "la exclusion nombra a los modelos vetados para seguridad y datos sensibles" }
+    ],
+    "orquestar-agentes-fable": [
+      { "patron": "orquestar-agentes", "porque": "es un DELTA, no es autosuficiente: sin leer la madre, sus reglas quedan colgando" }
+    ],
+    "session-lifecycle": [
+      { "patron": "PR\\b", "porque": "el push va por PR: jamas directo a master" },
+      { "patron": "gate", "porque": "el cierre de sesion pasa por gates, no por buena memoria" }
+    ],
+    "pipeline-comercial": [
+      { "patron": "canonico|canónico", "porque": "un solo destino canonico: sin el, los leads se pierden entre superficies" },
+      { "patron": "huerfan|huérfan", "porque": "el valor del skill es encontrar las superficies que no escriben en ningun lado" }
+    ],
+    "memory-manager": [
+      { "patron": "MEMORY\\.md", "porque": "el indice es lo que se carga al inicio: sin el, la memoria no se recupera" }
+    ],
+    "consejo": [
+      { "patron": "Chairman", "porque": "sin sintesis final son cinco opiniones sueltas, no un consejo" }
+    ],
+    "ingesta-reunion": [
+      { "patron": "tareas_reunion", "porque": "un escritor por tabla: este skill alimenta esa y solo esa" }
+    ],
+    "skill-creator": [
+      { "patron": "SKILL\\.md", "porque": "es el artefacto que este skill existe para producir" }
+    ],
+    "primer": [
+      { "patron": "BUSINESS_LOGIC", "porque": "el contexto arranca por la logica de negocio, no por el codigo" }
+    ],
+    "update-sf": [
+      { "patron": "CDC", "porque": "actualizar el template cambia el comportamiento de todo lo que la fabrica produzca: es un CDC de radio sistema" },
+      { "patron": "regresion", "porque": "una actualizacion sin C2 en verde no se promueve" }
+    ],
+    "autoresearch": [
+      { "patron": "eval", "porque": "el loop se apoya en evals binarias: sin ellas es mutacion a ciegas" }
+    ],
+    "website-3d": [
+      { "patron": "scroll", "porque": "el scroll-driven es la tecnica que este skill existe para aplicar" }
+    ],
+    "hermes-source-compilation": [
+      { "patron": "no negociables", "porque": "la familia de inteligencia comercial declara sus reglas duras" },
+      { "patron": "[Cc]ontrato de evidencia", "porque": "cada afirmacion clasificada y con procedencia visible" },
+      { "patron": "declara|bloquead", "porque": "lo bloqueado se DECLARA, jamas se oculta: es el nucleo de este skill" }
+    ],
+    "hermes-claims-audit": [
+      { "patron": "no negociables", "porque": "reglas duras declaradas" },
+      { "patron": "[Cc]ontrato de evidencia", "porque": "un claim auditado sin procedencia no es una auditoria" }
+    ],
+    "hermes-competitive-deep-research": [
+      { "patron": "no negociables", "porque": "reglas duras declaradas" },
+      { "patron": "[Cc]ontrato de evidencia", "porque": "competidor sin fuente viva es invencion" }
+    ],
+    "hermes-tech-stack-scan": [
+      { "patron": "no negociables", "porque": "reglas duras declaradas" },
+      { "patron": "[Cc]ontrato de evidencia", "porque": "el stack observado se distingue del esperado por su evidencia" }
+    ],
+    "hermes-advisor-brief": [
+      { "patron": "no negociables", "porque": "reglas duras declaradas" },
+      { "patron": "[Cc]ontrato de evidencia", "porque": "cada angulo del brief referencia su hallazgo" }
+    ],
+    "hermes-regulatory-scan": [
+      { "patron": "no negociables", "porque": "reglas duras declaradas" },
+      { "patron": "grafo", "porque": "el dictamen sale del grafo, no de la opinion del modelo" },
+      { "patron": "fuente", "porque": "regla de oro del grafo: nada normativo sin fuente citable" },
+      { "patron": "PROPUESTA", "porque": "las reglas nuevas se emiten en modo propuesta: sembrar el grafo es acto humano" }
+    ],
+    "hermes-design-integrity": [
+      { "patron": "token", "porque": "la integridad se mide contra los tokens, no contra el gusto" },
+      { "patron": "Tailwind", "porque": "las colisiones de utilidades son el fallo que este skill existe para cazar" },
+      { "patron": "dual", "porque": "el tema dual es requisito de las superficies panel-adm" }
+    ]
+  }
+}

@@ -8,6 +8,20 @@ allowed-tools: Read, Bash
 
 Este skill actualiza las herramientas de desarrollo (carpeta `.claude/`) a la ultima version disponible.
 
+> ⚠️ **Actualizar el template es un CDC de radio SISTEMA (control C1).** Cambia los skills,
+> y con ellos el comportamiento de todo lo que la fabrica produzca despues. Antes de
+> promover una actualizacion:
+>
+> 1. **Diff revisado** — que entra, que se va, que cambia de forma. Nunca "actualizar y ver".
+> 2. **`npm run regresion` en verde** (C2 capa A) DESPUES de actualizar: si un skill perdio
+>    una regla no negociable, el gate lo caza. Rojo = no se promueve.
+> 3. **Entrada en `.claude/gobernanza/BITACORA-CDC.md`** con radio, gate aplicado y
+>    aprobacion humana.
+> 4. Si la actualizacion toca modelos o `.mcp.json`, **pinear** lo nuevo: nada de `latest`
+>    ni alias de familia.
+>
+> Detalle en `.claude/gobernanza/GOBERNANZA.md` §2.
+
 ## Proceso
 
 ### Paso 1: Buscar el alias saas-factory
