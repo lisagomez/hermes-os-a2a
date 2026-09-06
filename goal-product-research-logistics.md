@@ -1,0 +1,12 @@
+/goal Construye lo descrito en el spec completo: /home/gsore/code/a2aboths/spec-product-research-logistics.md. Leelo ENTERO antes de empezar y reafirma el objetivo en una linea antes de cada edicion grande.
+Outcome: Construir una plataforma que transforme fuentes regulatorias públicas y casos de estudio logísticos en oportunidades de producto validadas para logística internacional.
+Libertad tecnica total: tu eliges stack, arquitectura y librerias; las tecnologias del spec son sugerencias descartables salvo su seccion RESTRICCIONES. Investiga 2-3 referencias world-class antes de codear.
+VALIDA: declara tu comando de validacion en el primer checkpoint (build/test/lint en uno) y correlo tras cada cambio grande, surfeando su output en la conversacion.
+HECHO cuando (el evaluador solo ve esta conversacion, no corre comandos: surfea evidencia):
+- la app corre, sin errores de consola
+- el ultimo output del comando de validacion pegado, en verde
+- con Playwright abres la pagina y pegas screenshots de: flujo de investigación de fuentes mostrando extracción de información del documento logístico; flujo de journey mapping mostrando mapa de los seis roles a través de la cadena de valor; flujo de extracción y rankeo de palabras mostrando matriz de riesgo UX aplicada a términos regulatorios
+- reporte de decisiones (que stack elegiste y por que, incluyendo cómo abordaste escalabilidad, arquitectura de microservicios, seguridad por diseño, trazabilidad end-to-end, análisis de datos predictivo, compliance automático y adaptación a constraints legales como reglas de origen T-MEC)
+- lista las formas en que podria estar mal/incompleto y resuelvelas (ej. si solo genera investigación académica sin output accionable para product leader, agregaría templates de presentación ejecutiva; si ignora las diferencias por corredor USA/China/LATAM, añadría módulos específicos por región)
+RESTRICCIONES: app web que corre con un comando estándar de la fábrica (npm run dev); sin APIs de pago para funcionalidad básica; debe generar evidencia visible en la conversación para cada flujo del Definicion de Hecho; debe considerar escalabilidad, arquitectura, seguridad, trazabilidad, data analysis, compliance y legal constraints en el prototipo; el output debe ser accionable para un product leader en el contexto logístico específico; debe trabajar con el documento de caso de estudio logístico proporcionado como fuente primaria de información.
+RED DE SEGURIDAD: si tras 15 turnos no convergues, detente y reporta el bloqueo.

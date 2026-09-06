@@ -1,0 +1,33 @@
+# Plataforma de Descubrimiento de Oportunidades de Producto para Logística — Spec
+
+## MISION
+Una plataforma integral de descubrimiento de oportunidades de producto para logística que combina investigación regulatoria automatizada, análisis de journey del cliente basado en fuentes públicas como el documento de caso de estudio logístico proporcionado, mapeo de riesgos UX-regulatorio y generación de prototipos validados considerando escalabilidad enterprise-grade, arquitectura de microservicios, seguridad por diseño, trazabilidad completa, analítica de datos en tiempo real, compliance automático y adaptación a constraints legales evolutivos. El product leader podrá identificar áreas de oportunidad en proyectos logísticos mediante: (1) investigación en fuentes disponibles como SAT y documentos regulatorios para recrear procesos mediante ingeniería inversa, (2) mapeo del journey del cliente a través de la cadena de valor logística identificando los seis roles distintos (comercializadora, importador de registro, freight forwarder, agente aduanal, operador logístico, manufactura bajo programa), (3) extracción y rankeo de palabras clave por matriz de riesgo enfocada en experiencia de usuario considerando las siete familias de riesgo documental, clasificación, valoración, origen, contraparte, tránsito y cumplimiento, (4) relación de estas palabras con el marco regulatorio específico (Ley Aduanera, Ley de Comercio Exterior, LCPAF, Ley de Aviación Civil, T-MEC) y casos de uso/escenarios basados en los corridors (USA, China, LATAM), y (5) generación de prototipos de producto considerando escalabilidad, arquitectura de microservicios, seguridad por diseño, trazabilidad end-to-end, análisis de datos predictivo, compliance automático y adaptación a constraints legales como las reglas de origen del T-MEC y cuotas compensatorias.
+
+## LIBERTAD TECNICA
+Tu eliges arquitectura, stack, librerias, motores y estrategia: probablemente sabes mejor que yo que conviene. Cualquier tecnologia que aparezca aqui es sugerencia descartable, NO requisito, salvo la seccion RESTRICCIONES. Optimiza por el mejor resultado posible, no por el camino mas corto.
+
+## INVESTIGA ANTES DE CONSTRUIR
+Investiga 2-3 referencias world-class de product discovery con metodología Marty Calagan ("Escala", "Producto que vale la pena construir", "Entrega y aprendizaje constante") y plataformas de investigación regulatoria. Datos reales aplicables: el documento de caso de estudio logístico proporcionado (que incluye niveles 1-7 de análisis logístico mexicano), fuentes SAT mexicanas, estándares logísticos internacionales (ISO 28000, C-TPAT), frameworks de journey mapping (Service Blueprinting, Experience Mapping). Reafirma el objetivo en una linea antes de cada edicion grande para no driftar: "Construir una plataforma que transforme fuentes regulatorias públicas y casos de estudio logísticos en oportunidades de producto validadas para logística internacional".
+
+## DEFINICION DE HECHO (evidencia visible en la conversacion)
+La versión expandida y detallada de la DoF: cada flujo interactivo del dominio que debe ser demostrable en la conversación:
+1. Flujo de investigación de fuentes: El agente demuestra haber consultado el documento de caso de estudio logístico proporcionado y extraído información relevante sobre los seis roles logísticos, los tres flujos (físico, documental, dinero) y el marco regulatorio por niveles
+2. Flujo de ingeniería inversa de procesos: Se muestra evidencia de mapeo de pipeline logístico identificado mediante análisis de los tres flujos que deben reconciliar (mercancía, documentos, dinero) y sus velocidades distintas (semanas, días, instantáneo)
+3. Flujo de journey mapping: Se presenta un mapa del journey del cliente a través de la cadena de valor logística identificando touchpoints específicos para cada uno de los seis roles y cómo varían por corredor (USA, China, LATAM)
+4. Flujo de extracción y rankeo de palabras: Se demuestra extracción de términos clave de fuentes regulatorias y su priorización mediante matriz de riesgo UX considerando las siete familias de riesgo y su nivel de severidad (alta, media)
+5. Flujo de mapeo regulatorio: Se evidencia la relación entre palabras identificadas y requisitos regulatorios específicos por nivel (Habilitación, Producto, Operación aduanera, Contrato y logística, Dinero, Cumplimiento) y por tratado (T-MEC)
+6. Flujo de generación de escenarios: Se crean casos de uso/escenarios basados en la combinación de insights de investigación (como las desalineaciones que producen incidentes: dinero antes que mercancía, mercancía antes que documento, cobro después que todo) y requisitos regulatorios específicos por rol
+7. Flujo de prototipado de producto: Se generan especificaciones de prototipo considerando todos los aspectos técnicos y de compliance mencionados, incluyendo cómo abordar las consecuencias de diseño (acortar días vale más que mejorar precio) y las erosiones de margen (almacenaje y demoras, diferencias de criterio, tipo de cambio, calidad y merma, costo financiero del ciclo)
+8. Flujo de validación de requisitos no funcionales: Se documenta cómo el prototipo aborda escalabilidad (manejo de múltiples corredores simultáneos), arquitectura (microservicios por flujo logístico), seguridad (manejo de datos sensibles como RFC, información de contrapartes), trazabilidad (documental y física), data analysis (predictivo de demoras y riesgos), compliance (automatizado basado en reglas regulatorias) y legal constraints (adaptación a cambios en Reglas Generales de Comercio Exterior y T-MEC)
+
+## COMANDO DE VALIDACION
+Infra conocida: El proyecto es una aplicación Next.js estándar de la fábrica, por lo tanto el comando de validacion es: `npm run build && npm run typecheck && npm run lint`
+Stack libre: Declara tu comando de validacion en el primer checkpoint (build/test/lint en uno) y correlo tras cada cambio grande, surfeando el output en la conversacion.
+
+## RESTRICCIONES REALES
+- App web que corre con un comando estándar de la fábrica (npm run dev)
+- Sin APIs de pago para funcionalidad básica (puede usar APIs públicas como las del SAT o procesar documentos locales proporcionados)
+- Debe generar evidencia visible en la conversación para cada flujo del Definicion de Hecho
+- Debe considerar escalabilidad, arquitectura, seguridad, trazabilidad, data analysis, compliance y legal constraints en el prototipo
+- El output debe ser accionable para un product leader en el contexto logístico específico (no solo investigación genérica)
+- Debe trabajar con el documento de caso de estudio logístico proporcionado como fuente primaria de información
