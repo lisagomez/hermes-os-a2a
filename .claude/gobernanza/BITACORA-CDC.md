@@ -310,4 +310,17 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 > no se toca. La cifra vigente es la que lista el verificador en cada corrida, que es
 > justamente por qué se lista.
 
+### 2026-09-07 — aprendizaje de CI en CLAUDE.md (gate rojo por razón ajena) — radio: menor
+- **Cambio**: se añade un aprendizaje al final de `CLAUDE.md` (sección Auto-Blindaje): un job
+  cuyo nombre promete un alcance necesita un gate que lo sostenga, y un rojo ajeno al cambio
+  entrena al equipo a ignorar el rojo. No toca reglas, skills, subagentes ni configuración.
+- **Motivo**: `CLAUDE.md` está siempre en contexto, así que ampliarlo es material de CDC
+  aunque el añadido sea un gotcha y no una regla nueva. Se declara en vez de usar la
+  escapatoria del gate de docs vivos.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo n/a
+- **Regresión**: `npm run regresion` + `npm run verify:gobernanza` verdes; gate `tests`
+  46/46 (antes 45/4 en rojo). Control de reversión: devolver el spec a `tests/` → 5 rojos.
+- **Runtime**: repo ☑ (no hay volumen que sincronizar: es doctrina de este repo)
+- **Aprobado por**: _pendiente de firma_
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->
