@@ -1953,5 +1953,28 @@ npm run lint         # ESLint
 - **Aplicar en**: todo skill que documente comandos de una herramienta externa, y toda
   doctrina heredada de otro repo — portarla no la vuelve cierta aquí.
 
+### 2026-09-07: Un rojo por razón AJENA al cambio entrena al equipo a ignorar el rojo
+- **Error**: `tests/logistica-product-research.spec.ts` entró a master (c85359a) dentro de
+  `tests/`, el directorio del job **"Tests (specs sin navegador)"**, usando el fixture `page`
+  (goto, click, screenshot) contra un `localhost:3001` que solo existía en la máquina del
+  autor. En CI no hay binario de chromium ni servidor: 4 casos en rojo, 45 en verde, exit 1
+  — **en TODOS los PRs del repo**, incluidos los de solo documentación (verificado en el
+  PR #313, cero código). El commit afirmaba "Todas las pruebas de Playwright pasando (4/4)":
+  cierto en su máquina, falso en el único sitio donde el gate decide.
+- **Por qué es peor que un gate roto**: un rojo que no tiene nada que ver con el cambio que
+  se está revisando le enseña al equipo que el rojo es ruido. A partir de ahí el gate deja
+  de proteger aunque siga corriendo — y el día que se ponga rojo por un motivo real, nadie
+  lo va a mirar. Un gate ignorado es peor que no tener gate: cuesta lo mismo y miente.
+- **Fix**: el spec se movió a `tests-e2e/` (su hogar: config con `webServer` y navegador
+  real, se corre con `npm run smoke`) y su URL pasó a ser relativa al `baseURL`, no al
+  puerto de una máquina. La separación `tests/` ↔ `tests-e2e/` estaba escrita en los dos
+  configs y era solo una **costumbre**; ahora tiene gate: `tests/sin-navegador.spec.ts`
+  recorre los specs de `tests/` y falla nombrando al infractor si alguno pide `page`,
+  `browser` o `context`. Control de reversión: devolver el spec a `tests/` pone 5 en rojo
+  (los 4 suyos + la guardia, que además dice a dónde moverlo).
+- **Aplicar en**: todo job de CI cuyo nombre prometa un alcance ("sin navegador", "sin red",
+  "sin BD") — si nada impide meterle un caso fuera de ese alcance, el nombre es aspiracional.
+  Y ante un gate rojo: antes de asumir que es ruido, mirar si el rojo pertenece al cambio.
+
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
