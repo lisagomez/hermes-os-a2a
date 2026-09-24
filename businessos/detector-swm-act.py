@@ -49,7 +49,10 @@ SALIDA = Path(os.environ.get("SWM_ACT_SALIDA", "/home/hermes/state/hallazgos-swm
 ENV_NEGOCIO = "/home/hermes/businessos/negocio/.hermes/.env"
 REPO_TEMPLATE = os.environ.get("REPO_TEMPLATE", "")
 _ARGS = sys.argv[1:]
-CATALOGO_JSON = _ARGS[_ARGS.index("--catalogo-json") + 1] if "--catalogo-json" in _ARGS else ""
+_i = _ARGS.index("--catalogo-json") if "--catalogo-json" in _ARGS else -1
+if _i >= 0 and (_i + 1 >= len(_ARGS) or _ARGS[_i + 1].startswith("--")):
+    sys.exit("--catalogo-json necesita la ruta de un JSON {ubicacion: {folio, hash, estado}}")
+CATALOGO_JSON = _ARGS[_i + 1] if _i >= 0 else ""
 DRY = "--dry-run" in _ARGS or bool(CATALOGO_JSON)
 
 DIRS_ERP = ("erp/bin", "erp/reglas", "erp/packs", "erp/migrations")
@@ -181,7 +184,13 @@ def escanear_template(cat: dict[str, dict]) -> list[dict]:
     if not script.is_file():
         print(f"AVISO: REPO_TEMPLATE={REPO_TEMPLATE} sin scripts/inventario/detecta.mjs — se omite")
         return []
-    r = subprocess.run(["node", str(script), "--json"], capture_output=True, text=True, timeout=120)
+    # Best-effort que IMPRIME: sin node o con el detector colgado se omite esta fuente,
+    # jamás se tumba la corrida semanal de las demás.
+    try:
+        r = subprocess.run(["node", str(script), "--json"], capture_output=True, text=True, timeout=120)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        print(f"AVISO: no pude correr el detector del template ({type(e).__name__}) — se omite")
+        return []
     try:
         estado = json.loads(r.stdout)
     except json.JSONDecodeError:
