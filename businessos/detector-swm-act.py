@@ -10,6 +10,9 @@ compara las FUENTES REALES contra `erp.act_activo`:
     de binarios solo existe en la máquina que imprime — doctrina cli-audit 2026-07-12:
     el índice viaja en el repo, que es donde este job corre)
   · activos catalogados con origen en ramas del trío (deriva de hash / rama borrada)
+  · el template de la fábrica (`REPO_TEMPLATE`): su propio detector (spec 014 del template,
+    `scripts/inventario/detecta.mjs --json`) entrega identidad + hash por activo, con
+    ubicación `template/<ruta>`. No se reimplementa su cobertura aquí: una sola lógica.
 
 Hallazgos (mismo vocabulario del maestro):
   NUEVO    — existe en la fuente y no está catalogado
@@ -24,6 +27,8 @@ Salida: stdout + ~/state/hallazgos-swm-act.jsonl (append, una corrida por línea
 resumen a Slack. Cadencia: semanal + al cierre de fase (D-09).
 
 Uso:  cd ~/repo/businessos && set -a && . ./.env && set +a && python3 detector-swm-act.py [--dry-run]
+      [--catalogo-json RUTA]   catálogo desde un JSON {ubicacion: {folio, hash, estado}} en vez
+                               de la BD: prueba en frío, sin ERP_DB_URL (implica --dry-run)
 """
 import hashlib
 import json
@@ -42,7 +47,13 @@ REPO_BUSINESSOS = Path(os.environ.get("REPO_BUSINESSOS", "/home/hermes/repo/busi
 REPO_TRIO = os.environ.get("TRIO_REPO_DIR", "/home/hermes/trio/hermes-os-a2a")
 SALIDA = Path(os.environ.get("SWM_ACT_SALIDA", "/home/hermes/state/hallazgos-swm-act.jsonl"))
 ENV_NEGOCIO = "/home/hermes/businessos/negocio/.hermes/.env"
-DRY = "--dry-run" in sys.argv[1:]
+REPO_TEMPLATE = os.environ.get("REPO_TEMPLATE", "")
+_ARGS = sys.argv[1:]
+_i = _ARGS.index("--catalogo-json") if "--catalogo-json" in _ARGS else -1
+if _i >= 0 and (_i + 1 >= len(_ARGS) or _ARGS[_i + 1].startswith("--")):
+    sys.exit("--catalogo-json necesita la ruta de un JSON {ubicacion: {folio, hash, estado}}")
+CATALOGO_JSON = _ARGS[_i + 1] if _i >= 0 else ""
+DRY = "--dry-run" in _ARGS or bool(CATALOGO_JSON)
 
 DIRS_ERP = ("erp/bin", "erp/reglas", "erp/packs", "erp/migrations")
 
@@ -68,6 +79,8 @@ def sha256(p: Path) -> str:
 
 def catalogo() -> dict[str, dict]:
     """{ubicacion: {folio, hash, estado}} de act_activo del tenant de la casa."""
+    if CATALOGO_JSON:
+        return json.loads(Path(CATALOGO_JSON).read_text())
     ok, filas = sql_lectura(
         "select folio || '|' || coalesce(hash_vigente,'') || '|' || estado || '|' || ubicacion "
         "from erp.act_activo;")
@@ -162,6 +175,56 @@ def escanear_ramas() -> list[dict]:
     return hallazgos
 
 
+def escanear_template(cat: dict[str, dict]) -> list[dict]:
+    """Activos del template según SU detector (índice de identidad; costo y clasificación
+    no viajan por aquí: salen del export del template, fuera de git — repo público)."""
+    if not REPO_TEMPLATE:
+        return []
+    script = Path(REPO_TEMPLATE) / "scripts/inventario/detecta.mjs"
+    if not script.is_file():
+        print(f"AVISO: REPO_TEMPLATE={REPO_TEMPLATE} sin scripts/inventario/detecta.mjs — se omite")
+        return []
+    # Best-effort que IMPRIME: sin node o con el detector colgado se omite esta fuente,
+    # jamás se tumba la corrida semanal de las demás.
+    try:
+        r = subprocess.run(["node", str(script), "--json"], capture_output=True, text=True, timeout=120)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        print(f"AVISO: no pude correr el detector del template ({type(e).__name__}) — se omite")
+        return []
+    try:
+        estado = json.loads(r.stdout)
+    except json.JSONDecodeError:
+        print(f"AVISO: el detector del template no devolvió JSON (rc={r.returncode}) — se omite")
+        return []
+    if estado.get("hallazgos") or estado.get("errores"):
+        # Un índice divergente no se cosecha: su propio gate ya está en rojo y lo dice.
+        return [{"tipo": "TEMPLATE-DIVERGENTE", "ubicacion": "template/inventario/activos.json",
+                 "nota": f"{len(estado.get('hallazgos', []))} hallazgo(s), "
+                         f"{len(estado.get('errores', []))} error(es): corre verifica:inventario allí"}]
+    hallazgos, vistos = [], set()
+    for a in estado.get("activos", []):
+        if a.get("externo"):
+            continue  # un escritor por origen: los CLIs los cataloga escanear_clis
+        ubic = a["ubicacion"]
+        vistos.add(ubic)
+        reg = cat.get(ubic)
+        if reg is None:
+            hallazgos.append({
+                "tipo": "NUEVO", "ubicacion": ubic, "hash": a.get("hash"), "ref_template": a["id"],
+                "propuesta": {"tipo_activo": a["tipo"], "clase": a["clase"], "estado": a["estado"],
+                              "defensibilidad": "reemplazable",
+                              "nota": "alta con inventario/salida/erp-act.sql del template "
+                                      "(eje D+I heredado del origen y costo con fuente); "
+                                      "repo público ⇒ reemplazable (D-12); ratificación humana"}})
+        elif reg["estado"] == "activo" and reg["hash"] and a.get("hash") and reg["hash"] != a["hash"]:
+            hallazgos.append({"tipo": "CAMBIADO", "ubicacion": ubic, "folio": reg["folio"],
+                              "hash_catalogo": reg["hash"], "hash_fuente": a["hash"]})
+    for ubic, reg in cat.items():
+        if reg["estado"] == "activo" and ubic.startswith("template/") and ubic not in vistos:
+            hallazgos.append({"tipo": "HUERFANO", "ubicacion": ubic, "folio": reg["folio"]})
+    return hallazgos
+
+
 def avisar(texto: str) -> None:
     if DRY:
         print("[dry-run] Slack:", texto.replace("\n", " | ")[:200])
@@ -189,7 +252,7 @@ def avisar(texto: str) -> None:
 
 def main() -> None:
     cat = catalogo()
-    hallazgos = escanear_erp_dirs(cat) + escanear_clis(cat) + escanear_ramas()
+    hallazgos = escanear_erp_dirs(cat) + escanear_clis(cat) + escanear_ramas() + escanear_template(cat)
     corrida = {"corrida": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                "catalogados": len(cat), "hallazgos": hallazgos}
     for h in hallazgos:
