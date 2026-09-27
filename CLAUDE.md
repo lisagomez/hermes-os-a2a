@@ -1984,5 +1984,37 @@ npm run lint         # ESLint
   (`gh pr list --search "<archivo o check>"`). Y el rojo ya no se puede ignorar: `verify` y
   `grafo-congelado` son checks **obligatorios** en master desde ese día.
 
+### 2026-09-27: Un check obligatorio exige CI en TODA punta de PR — y un push de `GITHUB_TOKEN` no la tiene
+- **Error evitado**: hacer obligatorios `verify` y `grafo-congelado` tal cual habría bloqueado
+  cada PR de colaborador. `reauthor-tip-vercel.yml` empuja un commit vacío con `GITHUB_TOKEN`, y
+  GitHub **no dispara workflows** por esos pushes: la punta queda sin checks, en *Expected —
+  Waiting for status* para siempre (ya pasaba en #315). Nadie lo notaba porque hasta ese día
+  ningún check era obligatorio.
+- **Fix**: `reauthor` relanza `ci.yml` con `gh workflow run --ref <rama>`. `workflow_dispatch` sí
+  se permite con `GITHUB_TOKEN`, y no hay bucle porque el CI no empuja. Se probó con una rama
+  desechable a nombre de un colaborador de prueba ANTES de activar nada. Los checks van fijados a
+  `app_id` 15368 (GitHub Actions) para que otra integración no los falsifique con el mismo nombre.
+  El dispatch usa el `ci.yml` **de la rama**: un PR anterior a un job obligatorio nuevo tiene que
+  actualizarse con master.
+- **Gotcha de la API**: con los checks apagados, `PATCH .../required_status_checks` da 404 ("not
+  enabled"). Hay que hacer `PUT` de la protección COMPLETA, reconstruida desde un `GET`, y diffear
+  después: solo debe cambiar `required_status_checks`.
+- **Aplicar en**: todo check que se vuelva obligatorio (si vive en otro workflow, como
+  `tenencia.yml`, `reauthor` tiene que relanzarlo también) y todo workflow que empuje con
+  `GITHUB_TOKEN`.
+
+### 2026-09-27: Un host-job que ejecuta código de OTRO repo le hereda todos sus secretos
+- **Error (PR #316)**: `detector-swm-act.py` carga todo `businessos/.env` y corría
+  `node <template>/detecta.mjs` con `subprocess.run` sin `env=`. El código de otro repo veía
+  `ERP_DB_URL`, llaves y tokens (probado con un stub que lista los NOMBRES de las variables). Y un
+  cambio de forma en su salida (`KeyError`) tumbaba la corrida semanal entera, con los hallazgos de
+  las demás fuentes.
+- **Fix**: `env` con solo `PATH`/`HOME`/`LANG`, lo mínimo para leer archivos y correr git. Contrato
+  explícito (`version: 1`): cualquier desvío omite SOLO esa fuente con AVISO, sin resultados
+  parciales (un HUÉRFANO sobre una lectura a medias sería falso).
+- **Aplicar en**: todo `subprocess` de un host-job que ejecute código ajeno (otro repo, un CLI de
+  terceros, un script del volumen): el entorno se declara, no se hereda. Y toda fuente de un job
+  multi-fuente: su fallo se aísla.
+
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

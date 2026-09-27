@@ -42,7 +42,8 @@ la pregunta entera:
 | 6 | **Tenencia: ¿convertir las 17 tablas con `tenant_id` slug a uuid?** Tocaría CancioBot, la guardia de presupuesto, agendamiento y el buzón | Sección *"Propuestas en revisión"* de este roadmap, punto 1 | Unificar los 3 modelos de tenencia que hoy conviven |
 | 7 | **Techo formal de gasto de infra** (los $30/mes son de tokens; el hosting ~$9/mes no tiene techo declarado) | Sección *"Línea Reuniones (App B)"*, paso 0 | Que la alerta de presupuesto cubra el gasto completo, no solo tokens |
 | 8 | **Dictamen legal del caso Baker (grafo)**: revisar el bloque "Marco regulatorio" regenerado con la categoría nueva `SERVICIOS_LEGALES` (cédula profesional + evaluación PLD/LFPIORPI) antes de usarlo con el lead — es contenido regulatorio de cara al cliente | Sección *"Línea Grafo"* de este roadmap (entrada 2026-08-08) + `.claude/memory/project/fase8-grafo-regulatorio.md` | Usar el Pre-Discovery del caso Baker en la conversación real. *El seed de 68 reglas ya se aplicó al runtime el 2026-08-20; queda regenerar el caso* |
-| 9 | **Administración del repositorio: ¿es "Tenencia" un check obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo avisa y no bloquea, es una red que informa pero no detiene | Consultar la protección de rama (devuelve 404 sin permiso de administración) | Que el gate de tenencia detenga de verdad lo que hoy solo señala |
+| 9 | **Administración del repositorio: ¿es "Tenencia" un check obligatorio de `master`?** El reparto de verificación de la Fase A se apoya en él; si solo avisa y no bloquea, es una red que informa pero no detiene — *Verificado 2026-09-27: **no** lo es. Hasta ese día `master` no tenía NINGÚN check obligatorio; ahora lo son `verify` y `grafo-congelado`. Hacerla obligatoria es añadir `aislamiento` a la protección y que `reauthor` relance también `tenencia.yml` (ya admite `workflow_dispatch`).* | Consultar la protección de rama (devuelve 404 sin permiso de administración) | Que el gate de tenencia detenga de verdad lo que hoy solo señala |
+| 10 | **D-12 del template de la fábrica: ¿`lisagomez/template` es público o privado?** El detector swm-act (PR #316) propone sus activos como `reemplazable` porque el PR lo da por público; GitHub lo reporta **privado** (2026-09-27) | `.claude/memory/project/erp-modulo-act.md` §Detector + cuerpo del PR #316 | Activar la fuente template en el servidor (`REPO_TEMPLATE`) |
 
 Insumo compartido pendiente: el **`docker stats` del servidor** (pedido en el paso 0 de
 App B) alimenta a la vez las filas 2 y 3 (fase de capacidad de OCR y STT).
@@ -1772,6 +1773,15 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   🚫 **Bloqueado**: el servidor de Hetzner tiene la red cortada por el proveedor desde
   ~27-28 de agosto (`ipv4.blocked` e `ipv6.blocked` en su API; la máquina corre, pero
   está incomunicada). `drift-runtime.py` lo marcará como deriva en cuanto vuelva.
+- [x] **Seed CONGELADO desde el corte `97d9f9e`** (2026-09-27, decisión del laboratorio, PR #317):
+  `reglas.json` y `02-seed.sql` ya no cambian aquí; el conocimiento nuevo se investiga y siembra
+  en la **fuente única** (PRP-005, monorepo privado de la fábrica), y Hermes leerá de ella en un
+  PRP aparte con firma. Lo hace cumplir el job `grafo-congelado` —**check obligatorio** de
+  `master`— contra `seed/CONGELADO.sha256`, y exige que la huella cubra los dos archivos. El skill
+  `hermes-regulatory-scan` y `CLAUDE.md` ya apuntan a la fuente única. **No bloquea** aplicar al
+  runtime este mismo seed de 98 reglas (el pendiente de arriba). Resta: `meeting-copilot` sigue
+  etiquetando sus propuestas con `destino: grafo/seed/reglas.json` (`escaneo-regulatorio.ts`);
+  va en su propio PR.
 - [x] **Puente Vercel→grafo VIVO** (`grafo-gate`, 2026-08-07, PR #259): gate con token
   Bearer fail-closed (solo `POST /evaluaciones`) desplegado en Hetzner y publicado por
   el edge en `grafo.167-233-233-56.sslip.io` (TLS ACME; sin puertos nuevos). Smokes:
@@ -1899,6 +1909,11 @@ ledger del cliente) con el esquema de costeo de `activos/CATALOGO.md`
   humanas con --confirmar). Puente `cli_fin`+SET ROLE (jamás service_role).
 - [x] **Detector swm-act v1** (semanal, D-09): NUEVO/CAMBIADO/HUÉRFANO, solo
   propone — gate del ciclo dummy completo verificado en el servidor.
+- [x] **Detector swm-act: fuente template** (PR #316, 2026-09-27): con `REPO_TEMPLATE` definido,
+  compara el inventario del template de la fábrica (`detecta.mjs --json`, contrato `version: 1`)
+  contra `act_activo`. Corre el script con entorno mínimo (sin los secretos del job) y una forma
+  desconocida omite solo esa fuente. **Inactivo en el servidor** hasta clonar ahí el template
+  (repo PRIVADO, credencial propia) y resolver D-12 (bandeja de Elisa, fila 10).
 - [x] **Cosecha inicial**: los 23 A2A-NNN del catálogo → ACT-0003..0025;
   $36.32 acumulado = exactamente lo medido; 9 defendibles como PROPUESTA.
 - [x] **Política contable D-07 (borrador)** + `exportar-polizas.py` con gate duro:
@@ -2127,6 +2142,17 @@ abandone `service_role` y adopte `app_tenant`.
   copias de `~/bin`. Solo LEE y NOMBRA: desplegar sigue siendo decisión humana.
   Snapshot en `negocio:/opt/data/workspace/drift-runtime.json`. 11 pruebas con control
   de reversión (4 sabotajes).
+
+- [x] **Checks obligatorios en `master`** (2026-09-27): `verify` y `grafo-congelado` (app GitHub
+  Actions fija, `strict: false`). Hasta ese día **no había ninguno**: el PR #312 se mezcló con
+  `verify` en rojo y lo dejó rojo en todos los PRs durante 3 semanas (una prueba con navegador
+  dentro del gate sin navegador; la arreglaron el #314 de Johann y el #318, que lo duplicó sin
+  verlo). Antes de activarlos, `reauthor-tip-vercel.yml` aprendió a relanzar el CI sobre su commit
+  vacío (PR #319): un push con `GITHUB_TOKEN` no dispara workflows y la punta de cada PR de
+  colaborador se habría quedado esperando para siempre.
+- [x] **npm espera 3 días antes de instalar una versión nueva** (`min-release-age=3` en los 8
+  `.npmrc`, PR #315 de Johann): defensa ante paquetes comprometidos. Parche urgente:
+  `--min-release-age=0` solo en ese comando (`min-release-age-exclude` no existe en npm).
 
 ## Línea Avatares Legales (prototipo del plan bufete) 🧪 fases 1–7 de 8 construidas (2026-08-10)
 
