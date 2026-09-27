@@ -97,6 +97,8 @@ línea CRM arrancó. En corto:
   Anexo 5-A, verificación, envíos de entrega rápida y resoluciones anticipadas —
   con las reglas por producto del Anexo 4-B declaradas como hueco, no adivinadas.
   🚧 **Pendiente de aplicar al runtime** (el servidor está incomunicado).
+  Desde el 2026-09-27 ese seed está **congelado**: lo nuevo va a la fuente única de la
+  fábrica (PRP-005), y un check obligatorio de `master` impide cambiarlo aquí.
 - **Fases 4–5** ✅ — dashboard **Mission Control** (skin ejecutiva light+dark
   compartida con Meeting Copilot desde 2026-08-08; 5 vistas: Pantheon, AI Spend,
   Grafo, Desarrollo y **Contratos SC** — paquete de revisión con banderas G1;

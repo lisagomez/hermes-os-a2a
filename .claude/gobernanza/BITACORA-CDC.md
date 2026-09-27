@@ -347,4 +347,17 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 > fixtures tipados y subcarpetas) más la aserción de este PR de que recorrió al menos un
 > spec; las capturas del smoke van a `test-results/` y el aprendizaje de `CLAUDE.md` es este.
 
+### 2026-09-27 — dos aprendizajes de la sesión de merges en CLAUDE.md — radio: menor
+- **Cambio**: dos aprendizajes al final de `CLAUDE.md`: (a) un check obligatorio exige CI en toda
+  punta de PR, y el push de `GITHUB_TOKEN` de `reauthor` no la tenía; (b) un host-job que ejecuta
+  código de otro repo le heredaba todos sus secretos. No toca reglas, skills, subagentes ni
+  configuración.
+- **Motivo**: `CLAUDE.md` está siempre en contexto; ampliarlo es CDC aunque sean gotchas. Los dos
+  aplican a más de una feature (cualquier check que se vuelva obligatorio; cualquier host-job que
+  lance código ajeno).
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo n/a
+- **Regresión**: `verify:gobernanza` **96/96**; C2 capa A **201/201**.
+- **Runtime**: n/a (doctrina de este repo)
+- **Aprobado por**: _pendiente de firma_
+
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->
