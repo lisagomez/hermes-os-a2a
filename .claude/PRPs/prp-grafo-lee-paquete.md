@@ -5,8 +5,10 @@
 > **Proyecto:** Hermes OS · A2A · **Servicio:** `businessos/grafo/`
 > **Origen:** el congelamiento del seed (PR #317) anunciaba este PRP: «Hermes pasará a leer de ese paquete
 > en un PRP aparte, con firma».
-> **CDC aplicable:** **sí**, acotado a la Fase 3 (`CLAUDE.md` y el skill `hermes-regulatory-scan` dejan de
-> decir «congelado» y pasan a decir «generado desde el paquete»).
+> **CDC aplicable:** **sí**, acotado a la Fase 3 (`CLAUDE.md` y una frase del skill `hermes-regulatory-scan`
+> dejan de decir «congelado» y pasan a decir «generado desde el paquete»).
+> **Coordinación:** con `prp-cola-huecos-regulatorios.md` (#321), la mitad de salida. Los dos usan **una sola
+> identidad del conocimiento servido** (§Identidad, más abajo), y los textos del copiloto son del #321.
 
 ---
 
@@ -36,6 +38,8 @@ historial de solo añadir.
 - [ ] El pin (nombre, versión y sha256 del `conocimiento.json` del paquete) vive en el repo, y la huella se
       comprueba en cada PR
 - [ ] `gen_seed_sql.py --check` en verde con el seed generado: **99 reglas** en la versión 0.2.0
+- [ ] `_meta.source_version` del seed generado es exactamente `<nombre>@<versión> sha256:<huella del pin>`: es la
+      identidad del conocimiento servido que lee la cola del #321 (§Identidad)
 - [ ] **Diferencias exactas y declaradas.** El motor de aquí, corrido sobre el seed viejo y sobre el generado, cambia
       de contenido **solo** en los casos de las dos correcciones firmadas: 10 de `INTERESES` y 2 de confidencialidad
       antes de 2025. **Ningún estado cambia en ningún caso.** Lo demás es idéntico o igual salvo el orden de sus
@@ -63,15 +67,17 @@ mide las diferencias y se firma. Después se aplica en runtime.
   (`veredicto_base`, `fuente_cita`, `vigente_desde`…). Ya se midió en la fábrica: este motor lee el paquete **sin
   adaptador** y da las mismas respuestas salvo las dos correcciones firmadas.
 - Consumidores del seed que deben seguir funcionando: `gen_seed_sql.py`; las pruebas de `grafo/`, `grafo-a2a/` y
-  `flujos-a2a/`; `drift-runtime.py`, que compara la BD viva con el seed; `revisar-vigencias.py`; y los textos de
-  `escaneo-regulatorio.ts` (meeting-copilot) que dicen dónde se siembra.
+  `flujos-a2a/`; `drift-runtime.py`, que compara la BD viva con el seed; y `revisar-vigencias.py`.
+- `prp-cola-huecos-regulatorios.md` (#321): registra huecos solo contra el conocimiento que el grafo declara servir.
+  Es dueño de los textos de `escaneo-regulatorio.ts` y `SPEC.md` del copiloto, y del paso 4 del skill
+  `hermes-regulatory-scan` (destino de las propuestas). Este PRP no los toca.
 - `.claude/memory/project/fase8-grafo-regulatorio.md`: el PENDIENTE de runtime, porque la red del servidor está
   cortada desde ~27-28 de agosto.
 
 ### Arquitectura Propuesta
 ```
 businessos/grafo/seed/
-├── paquete/conocimiento.json   # el `dist/conocimiento.json` del paquete, VENDORIZADO tal cual (no se edita)
+├── paquete/conocimiento.json   # el JSON ensamblado que publica el paquete, VENDORIZADO tal cual (no se edita)
 ├── paquete/PIN.json            # { nombre, version, sha256 } — lo único que se cambia para subir de versión
 ├── desde_paquete.py            # paquete → reglas.json en el formato de siempre (añade _meta; ignora dominios)
 ├── actualiza_paquete.py        # sube el pin: extrae, comprueba la huella, regenera, mide diferencias
@@ -79,12 +85,34 @@ businessos/grafo/seed/
 ├── 02-seed.sql                 # generado, como siempre
 └── CONGELADO.sha256            # pasa a fijar reglas.json + 02-seed.sql GENERADOS del pin (misma mecánica)
 ```
-- `desde_paquete.py` construye `_meta` (con `source_version` = procedencia del paquete + versión, y
+- `desde_paquete.py` construye `_meta` (con `source_version` = `<nombre>@<versión> sha256:<huella del pin>`, y
   `regimen_default`), copia jurisdicciones, dimensiones, categorías y reglas, y **no** emite `_bajas`: el paquete no
-  borra, cierra vigencias. Los campos que el paquete añade (`vocabulario`, `frases`, `reemplaza`, dominios) los ignora
-  este motor, como ya se midió.
+  borra, cierra vigencias. Los campos que el paquete añade para otros consumidores los ignora este motor, como ya se
+  midió.
 - El job `grafo-congelado` gana un paso: regenera `reglas.json` desde `paquete/` y exige igualdad byte a byte con el
   versionado, además de la huella del pin.
+
+### Identidad del conocimiento servido (contrato común con el #321)
+Una sola respuesta a «¿qué conocimiento sirve este grafo?», para operar y para la cola de huecos:
+- **Qué es:** la `source_version` de las reglas cargadas. `02-seed.sql` la escribe en **cada** regla de la BD y el
+  servicio la lee de ahí. Hoy es el texto de procedencia del seed congelado. Cada siembra lo cambió: medido sobre 12
+  versiones del seed (de 45 a 98 reglas), dan 12 textos distintos. Así, el runtime de 68 reglas ya se distingue del
+  corte congelado. Con este PRP pasa a ser `<nombre>@<versión> sha256:<huella del pin>`.
+- **Cómo se declara:** el servicio la calcula sobre lo que cargó, junto con el conteo de reglas. Si lo cargado tiene
+  más de una `source_version` (un seed a medio aplicar, o reglas viejas que el upsert no tocó), la identidad es
+  **mixta** y no coincide con ninguna. Va en la respuesta de `POST /evaluaciones`, porque es la única ruta que el
+  gate público proxya (el copiloto en Vercel **no** alcanza `/health`), y también en `/health`, para operar.
+- **Contra qué se compara:** contra la que el repo genera del seed versionado, **no** contra un `97d9f9e` fijo. El
+  copiloto la toma del mismo monorepo. Así, el PR que sube el pin mueve también lo esperado, y la cola no deja de
+  registrar en silencio.
+- **Fail-safe:** si es «mixta», falta o es distinta de la esperada, la cola **no registra**. Es lo que ya separa al
+  runtime de 68 reglas y evita demanda falsa.
+- **Pausa, no error:** tras desplegar el copiloto con un pin nuevo, mientras el runtime siga con el viejo, la cola
+  queda en pausa hasta que se aplique el seed (Fase 4). La UI lo dice así: «cola en pausa: el grafo sirve X, se
+  espera Y».
+- **Quién lo construye:** la Fase 2 del #321. Es un cambio de API, que el congelamiento permite. Este PRP solo fija
+  el formato de `source_version` desde el pin. Sirve igual en cualquier orden: si el #321 corre primero, declara la
+  identidad del seed congelado, y al ejecutar este PRP cambia el valor, no el contrato.
 
 ### Modelo de Datos
 Sin cambios de esquema. En la BD viva, el upsert de `02-seed.sql` **re-inserta** la regla de 2010, ya cerrada, que
@@ -139,7 +167,9 @@ Justificación: el puente sigue siendo determinista y opaco; lo único que cambi
 **Objetivo:** cerrar lo que no decide un agente:
 1. **Visibilidad.** Este repo es **público**: vendorizar `conocimiento.json` lo publica. El contenido sale de este
    mismo seed (ya público) y de leyes publicadas, más las dos correcciones firmadas y la procedencia partida por
-   dominio. ¿Se acepta publicarlo aquí?
+   dominio. ¿Se acepta publicarlo aquí? Ojo: la primera versión de este PRP (#322) ya nombró aquí la ruta del JSON
+   ensamblado y tres campos del paquete. Son nombres de estructura, no contenido. Se quitaron del texto, pero siguen
+   en el historial: si la decisión es no publicar, quitarlos de aquí no los despublica.
 2. **Canal.** Vendorizar el JSON con su pin (recomendado mientras el paquete no esté en un registro) o esperar a
    publicarlo en un registro y consumirlo desde ahí.
 3. **El check obligatorio.** Conservar el nombre `grafo-congelado` (recomendado: la protección de `master` no se toca)
@@ -166,10 +196,14 @@ sean exactamente los generados. `CONGELADO.sha256` se regenera con ellos.
 `conocimiento.json` vendorizado sin cambiar el pin, también. Con todo en su sitio, verde.
 
 ### Fase 3: Textos de agentes — CDC
-**Objetivo:** `CLAUDE.md` (sección del grafo), el skill `hermes-regulatory-scan`, la memoria
-`fase8-grafo-regulatorio.md` y los textos de `escaneo-regulatorio.ts` dicen dónde se siembra ahora y cómo se sube
-el pin.
-**Validación:** diff, regresión y entrada en `BITACORA-CDC.md`, firmada; `verify:gobernanza` en verde.
+**Objetivo:** documentar cómo se sube el pin y dónde se siembra ahora, en `CLAUDE.md` (sección del grafo),
+`businessos/grafo/README.md` y la memoria `fase8-grafo-regulatorio.md`. Del skill `hermes-regulatory-scan` se toca
+**una sola frase**: la del paso 4 que dice que `reglas.json` está congelado desde `97d9f9e`, porque deja de ser cierta.
+**No se tocan** (son del #321): el resto del paso 4 y el *Uso manual* del skill, `escaneo-regulatorio.ts` y el
+`SPEC.md` del copiloto. Si este PRP se ejecuta antes que la Fase 1 del #321, el `destino` viejo del copiloto sigue
+como pendiente declarado en `BITACORA-CDC.md` (anotado el 2026-09-27). No se arregla aquí.
+**Validación:** diff, regresión y entrada en `BITACORA-CDC.md`, firmada; `verify:gobernanza` en verde. Quien mezcle
+segundo rebasa la frase del paso 4, sin duplicarla.
 
 ### Fase 4: Runtime — GATE HUMANO (bloqueada mientras la red del servidor siga cortada)
 **Objetivo:** aplicar el `02-seed.sql` generado en `grafo-db` con psql (idempotente) y reiniciar `grafo`.
@@ -178,6 +212,8 @@ el pin.
 - `drift-runtime.py`, sin deriva del grafo;
 - en vivo por `POST /evaluaciones`: intereses → `dudoso` sin la bandera de conflicto; confidencialidad con un hecho de
   2024 → la ley de 2010;
+- si la Fase 2 del #321 ya corrió: el dictamen declara la identidad del pin (no «mixta») y el copiloto vuelve a
+  registrar huecos;
 - `evaluaciones` intactas.
 
 ### Fase 5: Validación Final
@@ -195,7 +231,11 @@ el pin.
 - **`_bajas` desaparece del seed generado.** El mecanismo sigue en `gen_seed_sql.py`, pero el paquete retira cerrando
   `vigente_hasta`. `test_bajas.py` pasa a comprobar eso.
 - **La procedencia cambia de forma.** `_meta.source_version` deja de ser un solo texto largo: la procedencia viene
-  del paquete, partida por dominio, y aquí se resume con la versión del paquete.
+  del paquete, partida por dominio, y aquí se resume como `<nombre>@<versión> sha256:<huella del pin>`. Ese valor es
+  también la identidad del conocimiento servido: cambiarle el formato sin avisar al #321 rompe la comparación de la
+  cola.
+- **El upsert no borra.** Una regla que salga del seed se queda en la BD con su `source_version` vieja, y la identidad
+  pasa a «mixta». Es la señal correcta: el runtime no sirve exactamente lo fijado.
 - **No se toca `evaluador.py`.** Si hiciera falta, este PRP estaría mal planteado: el paquete se diseñó para que este
   motor lo lea tal cual.
 
