@@ -93,6 +93,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Las reglas del grafo no cambian (congeladas)
         run: |
+          # La huella debe cubrir los DOS archivos: borrar una línea no puede descongelar uno en
+          # silencio (test_congelado.py lo comprueba, pero este CI no corre los pytest del grafo).
+          for f in businessos/grafo/seed/reglas.json businessos/grafo/seed/02-seed.sql; do
+            if ! grep -qE "^[0-9a-f]{64}  $f\$" businessos/grafo/seed/CONGELADO.sha256; then
+              echo "::error::CONGELADO.sha256 ya no cubre $f. Quitar su huella lo descongela: requiere firma del laboratorio."
+              exit 1
+            fi
+          done
           if ! grep -v '^#' businessos/grafo/seed/CONGELADO.sha256 | sha256sum -c -; then
             echo "::error::Reglas del grafo CONGELADAS desde 97d9f9e: reglas.json / 02-seed.sql cambiaron. Las reglas nuevas se investigan y siembran en la fuente única (PRP-005). No actualices CONGELADO.sha256 para ponerlo verde: descongelar requiere firma del laboratorio."
             exit 1
