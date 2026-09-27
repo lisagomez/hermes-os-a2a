@@ -9,6 +9,7 @@ import { join } from 'node:path'
  * playwright.config.ts). Una sola prueba con el fixture `page` rompe el gate para todos: pasó el
  * 2026-09-06 con logistica-product-research (PR #312) y `verify` quedó en rojo en cada PR desde
  * entonces. Las pruebas con navegador van a `tests-e2e/` (`npm run smoke`, playwright.e2e.config.ts).
+ * El arreglo llegó dos veces (PR #314 de Johann, luego #318): esta guarda junta las dos.
  */
 const DIR = __dirname
 const ESTE_ARCHIVO = 'sin-navegador.spec.ts'
@@ -38,9 +39,12 @@ test('la guarda reconoce las formas de fixture de navegador y no las llamadas pu
 })
 
 test('ninguna prueba del gate tests usa el navegador (page, browser, context)', () => {
-  const culpables = readdirSync(DIR, { recursive: true, encoding: 'utf-8' })
+  const pruebas = readdirSync(DIR, { recursive: true, encoding: 'utf-8' })
     .filter((f) => ES_PRUEBA.test(f) && f !== ESTE_ARCHIVO)
-    .filter((f) => USA_NAVEGADOR.test(readFileSync(join(DIR, f), 'utf-8')))
+  // Sin esta aserción, un filtro roto dejaría la guarda verde sin haber mirado nada (2026-09-04:
+  // contar la caja, no el contenido). Aporte del PR #314.
+  expect(pruebas.length, 'no se encontró ninguna prueba en tests/').toBeGreaterThan(0)
+  const culpables = pruebas.filter((f) => USA_NAVEGADOR.test(readFileSync(join(DIR, f), 'utf-8')))
   expect(
     culpables,
     `Estas pruebas usan navegador y el gate tests corre sin chromium; muévelas a tests-e2e/ (npm run smoke): ${culpables.join(', ')}`,
