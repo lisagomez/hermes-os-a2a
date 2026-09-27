@@ -1,6 +1,6 @@
 # Protección de `master` y flujo de merge (repo lisagomez/hermes-os-a2a)
 
-Estado verificado 2026-07-18. Este archivo es el detalle que referencia el aprendizaje
+Estado verificado 2026-07-18; checks obligatorios añadidos 2026-09-27. Este archivo es el detalle que referencia el aprendizaje
 2026-07-14/2026-07-18 de `CLAUDE.md` (antes era una referencia rota: el archivo no existía).
 
 ## Configuración vigente
@@ -13,6 +13,17 @@ Estado verificado 2026-07-18. Este archivo es el detalle que referencia el apren
   `ZELANDIAIO`, `makeflowia-lab`) sí pueden aprobar.
 - Contexto (2026-07-12): en un repo de cuenta personal TODO colaborador es `write`
   (los roles finos son de Organizaciones) y la protección de rama requiere plan Pro.
+- **Checks obligatorios (desde 2026-09-27)**: `verify` y `grafo-congelado`, fijados a la app
+  GitHub Actions (`app_id` 15368, para que otra integración no pueda falsificarlos con el
+  mismo nombre) y con `strict: false` (no exige que la rama esté al día con master). La
+  ventana de bypass **no** los salta: baja las revisiones, no los checks. Un PR en rojo no
+  se mezcla.
+  - **Colaboradores**: `reauthor-tip-vercel.yml` empuja un commit vacío con `GITHUB_TOKEN`,
+    que no dispara workflows. Por eso el mismo job relanza el CI (`gh workflow run ci.yml
+    --ref <rama>`) sobre ese commit. Si un PR muestra un check obligatorio como *Expected —
+    Waiting for status to be reported*: relanzar a mano con ese comando, o **actualizar la
+    rama con master** si su `ci.yml` es anterior al job (el dispatch usa el `ci.yml` de la
+    rama; un PR abierto antes del 2026-09-27 no trae `grafo-congelado`).
 
 ## Flujo de merge ESTÁNDAR del agente (autorización permanente de Elisa, 2026-07-18)
 El agente ejecuta los merges a master con la ventana de bypass, sin pedir OK por-merge:
@@ -54,3 +65,8 @@ Reglas duras del flujo:
   integer") SIN aplicar nada. Usar `gh api -F`. Señal sana: si el primer PATCH
   falla, la protección nunca llegó a bajarse (el merge también falla; no queda
   ventana abierta).
+- 2026-09-27: `verify` y `grafo-congelado` pasan a ser checks obligatorios. Motivo: el PR
+  #312 se mezcló con `verify` en rojo y lo dejó rojo en todos los PR durante 3 semanas; y el
+  congelamiento del grafo (#317) solo avisaba, no impedía. Se activó DESPUÉS de que
+  `reauthor` aprendiera a relanzar el CI: activarlo antes habría bloqueado cada PR de
+  colaborador (cuya punta es el commit vacío sin CI; se vio en #315).
