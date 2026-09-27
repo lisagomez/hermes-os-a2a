@@ -26,6 +26,8 @@ on:
 
 permissions:
   contents: write
+  # Para relanzar el CI sobre el commit vacío (ver el último paso).
+  actions: write
 
 concurrency:
   group: reauthor-${{ github.ref }}
@@ -44,6 +46,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Commit vacio autorado por la dueña si el tip es de un colaborador
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           AUTOR=$(git log -1 --pretty=%ae)
           if [ "$AUTOR" = "lisagomez967@gmail.com" ]; then
@@ -55,3 +59,10 @@ jobs:
           git config user.email "lisagomez967@gmail.com"
           git commit --allow-empty -m "chore(vercel): reauthor tip para desbloquear el deploy (Hobby)"
           git push
+          # Ese push lo hace GITHUB_TOKEN y NO dispara workflows: el tip nuevo del PR quedaría sin
+          # `verify` ni `grafo-congelado`, que son checks OBLIGATORIOS en master, y el PR no se
+          # podría mezclar. workflow_dispatch sí se permite con GITHUB_TOKEN, y no hay bucle: el CI
+          # no hace push. Usa el ci.yml de la rama: una rama anterior a un job obligatorio nuevo
+          # necesita actualizarse con master para reportarlo.
+          gh workflow run ci.yml --ref "$GITHUB_REF_NAME"
+          echo "CI relanzado sobre $(git rev-parse --short HEAD) en $GITHUB_REF_NAME."

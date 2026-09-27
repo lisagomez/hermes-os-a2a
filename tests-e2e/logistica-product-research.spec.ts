@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Logistics Product Research Platform', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3001/logistica-product-research');
+    // baseURL y servidor los pone playwright.e2e.config.ts (`npm run smoke`); antes: localhost:3001 fijo.
+    await page.goto('/logistica-product-research');
     // Wait for the page to be fully loaded
     await page.waitForLoadState('networkidle');
   });
