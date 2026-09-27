@@ -1,5 +1,12 @@
 # Plantilla de investigación → seed del grafo Hermes (logística / exportación)
 
+> ## ⛔ Congelada desde 2026-09-27
+>
+> Las reglas del grafo están **congeladas** en este repo (ver `README.md`, «Reglas CONGELADAS»).
+> Esta plantilla sigue valiendo **como método**, pero su salida ya no se siembra en
+> `seed/reglas.json`: va a la fuente única del conocimiento (PRP-005 del monorepo privado de la
+> fábrica).
+
 > Versión corregida del prompt de investigación logística para que su **salida
 > estructurada sea *drop-in* del grafo real** (`seed/reglas.json`, validado por
 > `gen_seed_sql.py --check`). Reemplaza las plantillas de esquema inventadas del
