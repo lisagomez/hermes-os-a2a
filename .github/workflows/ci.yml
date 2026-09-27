@@ -81,6 +81,23 @@ jobs:
         working-directory: businessos/buzon-a2a
         run: python -m pytest tests/test_corpus.py -q -rs
 
+  # Reglas del grafo CONGELADAS desde el corte 97d9f9e (2026-09-27, decisión del laboratorio).
+  # El conocimiento se mueve a una fuente única versionada (PRP-005 del monorepo privado de la
+  # fábrica). Sembrar aquí una regla nueva crearía una segunda fuente que se desvía de la única.
+  # Hace falta como job propio porque este CI no corre los pytest del grafo (ver cabecera): una
+  # prueba sola no dispararía. Sin dependencias: sha256sum viene en el runner.
+  # Descongelar = cambiar businessos/grafo/seed/CONGELADO.sha256 en un PR con firma del laboratorio.
+  grafo-congelado:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Las reglas del grafo no cambian (congeladas)
+        run: |
+          if ! grep -v '^#' businessos/grafo/seed/CONGELADO.sha256 | sha256sum -c -; then
+            echo "::error::Reglas del grafo CONGELADAS desde 97d9f9e: reglas.json / 02-seed.sql cambiaron. Las reglas nuevas se investigan y siembran en la fuente única (PRP-005). No actualices CONGELADO.sha256 para ponerlo verde: descongelar requiere firma del laboratorio."
+            exit 1
+          fi
+
   # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
   # (ROADMAP / CLAUDE.md / DECISIONES / README / memoria / BUSINESS_LOGIC).
   # Origen: 13 PRs seguidos (2026-07-30 → 08-02) dejaron el mapa de ruta congelado

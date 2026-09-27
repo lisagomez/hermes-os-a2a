@@ -1,0 +1,16 @@
+# CONGELADO desde el corte 97d9f9e (2026-09-27), por decisión del laboratorio.
+#
+# El conocimiento del grafo (reglas.json y su 02-seed.sql generado) se mueve a una FUENTE ÚNICA
+# versionada en el monorepo privado de la fábrica (PRP-005). Hasta que este repo lea de ese paquete
+# (un PRP aparte, con firma), estas reglas NO cambian: una regla nueva sembrada aquí nacería como
+# segunda fuente y se desviaría de la única.
+#
+# Lo vigilan el job `grafo-congelado` de .github/workflows/ci.yml y
+# businessos/grafo/tests/test_congelado.py. Si alguno se pone rojo, NO se actualiza esta huella
+# para "arreglarlo": la regla nueva se investiga y se siembra en la fuente única.
+#
+# DESCONGELAR = cambiar estas huellas, a la vista en el diff del PR y con firma del laboratorio.
+# Comprobar a mano desde la raíz del repo:
+#   grep -v '^#' businessos/grafo/seed/CONGELADO.sha256 | sha256sum -c -
+c068719e20c01f59da342ce731381382a4eae85dc4efdcfb1b99f4b50c8aa7a8  businessos/grafo/seed/reglas.json
+08afac6cfa03d5070e3f8683f2dcc0f89879b6958c30a4575b80ea8127c665e5  businessos/grafo/seed/02-seed.sql

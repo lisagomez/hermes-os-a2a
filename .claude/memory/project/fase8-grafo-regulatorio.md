@@ -663,3 +663,18 @@ vitest del copiloto (+2).
 **PENDIENTE runtime:** se suma a la cola de comercio exterior y logística, bloqueada por la
 red cortada del servidor (Hetzner, `ipv4.blocked` desde ~27-28 de agosto). Esperado al
 aplicar: **98 reglas / 61 categorías**, `evaluaciones` intactas.
+
+## CONGELADO — 2026-09-27 (decisión del laboratorio)
+
+Desde el corte `97d9f9e`, `businessos/grafo/seed/reglas.json` y `02-seed.sql` **no cambian**. El
+conocimiento del grafo pasa a una **fuente única**: un paquete de datos por dominio, versionado, en
+el monorepo privado de la fábrica (PRP-005). Allí se investiga y se siembra cada regla nueva, con un
+gate que además caza lo que el de aquí no ve: conflictos de veredicto, vocabulario por dimensión y
+bajas que borraban el pasado.
+
+Hermes pasará a leer de ese paquete en un **PRP aparte, con firma**. Hasta entonces:
+- el job `grafo-congelado` del CI y `grafo/tests/test_congelado.py` se ponen rojos si el seed cambia
+  frente a `seed/CONGELADO.sha256`;
+- **no se actualiza la huella para ponerlo verde**, porque descongelar requiere firma del laboratorio;
+- **no bloquea** aplicar en runtime este mismo seed de 98 reglas (el PENDIENTE de arriba) ni tocar el
+  motor, la API o el puente A2A.
