@@ -9,6 +9,10 @@ import { defineConfig } from '@playwright/test'
  * puros bajo el runner de @playwright/test, sin binarios de chromium
  * (que no existen en el contenedor del Supervisor). Por eso no hay `projects`
  * ni `webServer`: el runner basta.
+ *
+ * Lo hace cumplir `tests/sin-navegador.spec.ts`: si una prueba de `tests/` usa `page`,
+ * `browser` o `context`, el gate se pone rojo con el nombre del archivo. Las pruebas con
+ * navegador van a `tests-e2e/` (`npm run smoke`, playwright.e2e.config.ts).
  */
 export default defineConfig({
   testDir: './tests',

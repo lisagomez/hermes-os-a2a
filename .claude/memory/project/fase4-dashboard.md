@@ -147,3 +147,15 @@ Acceso: `127.0.0.1:9200` + túnel SSH. Sin auth de usuarios (YAGNI: una usuaria)
   Pendiente menor: verificar el path real del health del gateway (antes mockeado).
 - ~~**Dev**: screenshots Playwright de las 3 vistas~~ → HECHO 2026-07-04
   (`businessos/dashboard-screenshots/`, modo mock).
+
+## Gate `tests` sin navegador: roto desde el PR #312, arreglado (2026-09-27)
+- **Qué pasó**: `tests/logistica-product-research.spec.ts` (PR #312, 2026-09-06) usaba `page`,
+  abría `localhost:3001` y guardaba capturas, **dentro del gate puro**. El job `verify` quedó en
+  rojo en **cada PR** desde entonces (4 fallos: «Executable doesn't exist … chromium»). Se mezcló
+  en rojo porque `verify` no es check obligatorio.
+- **Arreglo**: la prueba se movió a `tests-e2e/`, donde corre con `npm run smoke`
+  (playwright.e2e.config.ts, servidor de producción, `AUTH_DISABLED=1`, `DASHBOARD_DATA=mock`),
+  con la URL fija cambiada a `baseURL`. No se pudo portar al estilo puro porque sus componentes
+  usan hooks y la prueba ejercita clics.
+- **Guarda**: `tests/sin-navegador.spec.ts` pone rojo el gate si alguna prueba de `tests/` usa
+  `page`, `browser` o `context`, y nombra el archivo. **Regla**: prueba con navegador → `tests-e2e/`.
