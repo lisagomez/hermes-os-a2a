@@ -1781,7 +1781,8 @@ Consulting" exige dictamen de frontera (LMV/CNBV, asesor de inversiones) ANTES d
   `hermes-regulatory-scan` y `CLAUDE.md` ya apuntan a la fuente única. **No bloquea** aplicar al
   runtime este mismo seed de 98 reglas (el pendiente de arriba). Resta: `meeting-copilot` sigue
   etiquetando sus propuestas con `destino: grafo/seed/reglas.json` (`escaneo-regulatorio.ts`);
-  va en su propio PR.
+  lo cubre `.claude/PRPs/prp-cola-huecos-regulatorios.md` (PENDIENTE, decisiones D1–D6): los
+  huecos del Pre-Discovery pasan a una cola desidentificada que el laboratorio lee por pull.
 - [x] **Puente Vercel→grafo VIVO** (`grafo-gate`, 2026-08-07, PR #259): gate con token
   Bearer fail-closed (solo `POST /evaluaciones`) desplegado en Hetzner y publicado por
   el edge en `grafo.167-233-233-56.sslip.io` (TLS ACME; sin puertos nuevos). Smokes:
