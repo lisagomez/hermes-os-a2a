@@ -42,8 +42,10 @@ IATA 672 + Montreal + info anticipada aunque su sitio no diga "e-AWB").
 4. **Retroalimentación al grafo, SOLO en modo PROPUESTA** —
    `escaneo-regulatorio.ts::propuestasSeed` exporta JSONL (`estado: PROPOSED`,
    evidencia con URL, tipos `nueva_senal | validar_regla | nuevo_ambito`).
-   Destino: revisión humana → `businessos/grafo/seed/reglas.json` →
-   `gen_seed_sql.py` (gate de procedencia). **Nunca** escritura directa al grafo.
+   Destino: revisión humana → la **fuente única** del conocimiento (PRP-005 del
+   monorepo privado de la fábrica), con su gate de procedencia. **Nunca** escritura
+   directa al grafo. `businessos/grafo/seed/reglas.json` está **congelado** desde
+   `97d9f9e` (ver `businessos/grafo/README.md`): ahí ya no se siembra.
 
 ## Reglas de diseño (no negociables)
 

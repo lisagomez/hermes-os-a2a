@@ -1,49 +1,52 @@
 import { test, expect } from '@playwright/test'
 import { readdirSync, readFileSync } from 'node:fs'
-import { basename, join } from 'node:path'
+import { join } from 'node:path'
 
 /**
- * Guardia de la frontera tests/ ↔ tests-e2e/.
+ * Guarda del gate `tests`: ninguna prueba de esta carpeta usa navegador.
  *
- * `tests/` es el gate barato de CI ("specs sin navegador"): sus specs renderizan
- * componentes con react-dom/server y el runner basta. `tests-e2e/` son los smokes
- * con navegador real, que se corren con `npm run smoke`.
- *
- * Esa separación era una COSTUMBRE, y falló: un spec con `page.goto` entró a
- * tests/ (commit c85359a) y dejó el job en rojo para TODOS los PRs del repo,
- * incluidos los de solo documentación — un rojo por razón ajena al cambio, que
- * es lo que entrena al equipo a ignorar el rojo. Ahora la frontera tiene gate.
+ * El Supervisor re-corre `npx playwright test` en un contenedor sin chromium (ver
+ * playwright.config.ts). Una sola prueba con el fixture `page` rompe el gate para todos: pasó el
+ * 2026-09-06 con logistica-product-research (PR #312) y `verify` quedó en rojo en cada PR desde
+ * entonces. Las pruebas con navegador van a `tests-e2e/` (`npm run smoke`, playwright.e2e.config.ts).
+ * El arreglo llegó dos veces (PR #314 de Johann, luego #318): esta guarda junta las dos.
  */
+const DIR = __dirname
+const ESTE_ARCHIVO = 'sin-navegador.spec.ts'
+// Mismos archivos que corre el runner (testMatch por omisión de Playwright), en cualquier subcarpeta.
+const ES_PRUEBA = /\.(spec|test)\.[cm]?[jt]sx?$/
+// Un fixture de navegador desestructurado en un callback: `({ page }) =>`, `({ page }, testInfo) =>`,
+// `({ page }: Tipo) =>`. Exigir el `=>` (o `{` de `function`) tras el `)` distingue el parámetro de
+// una llamada pura como `listar({ page: 2 })`, que no debe marcarse.
+const USA_NAVEGADOR = /\(\s*\{[^}]*\b(page|browser|context)\b[^}]*\}[^)]*\)\s*(=>|\{)/
 
-// Fixtures que exigen un binario de navegador en el runner. `request`
-// (APIRequestContext) no está: no lanza navegador.
-const FIXTURES_CON_NAVEGADOR = ['page', 'browser', 'context']
-
-const DIR = join(process.cwd(), 'tests')
-
-// Firma de un test/hook que desestructura fixtures: `async ({ page }) => {`.
-const DESESTRUCTURA_FIXTURES = /(?:async\s+)?\(\s*\{([^}]*)\}\s*\)\s*=>/g
-
-test('ningún spec de tests/ pide un navegador (esos viven en tests-e2e/)', () => {
-  const specs = readdirSync(DIR).filter((f) => f.endsWith('.spec.ts') && f !== basename(__filename))
-
-  // Sin esta aserción, un tests/ vacío o un filtro roto dejarían el gate verde
-  // sin haber mirado nada (2026-09-04: contar la caja, no el contenido).
-  expect(specs.length, 'no se encontró ningún spec en tests/').toBeGreaterThan(0)
-
-  const infractores: string[] = []
-  for (const spec of specs) {
-    const fuente = readFileSync(join(DIR, spec), 'utf8')
-    for (const m of fuente.matchAll(DESESTRUCTURA_FIXTURES)) {
-      const pedidos = m[1].split(',').map((f) => f.split(':')[0].trim())
-      const conNavegador = pedidos.filter((f) => FIXTURES_CON_NAVEGADOR.includes(f))
-      if (conNavegador.length > 0) infractores.push(`${spec} → { ${conNavegador.join(', ')} }`)
-    }
+test('la guarda reconoce las formas de fixture de navegador y no las llamadas puras', () => {
+  const casos: Array<[string, boolean]> = [
+    ['async ({ page }) => {', true],
+    ['async ({ page, context }) => {', true],
+    ['async ({\n  page,\n}) => {', true],
+    ['async ({ page }, testInfo) => {', true],
+    ['async ({ page }: { page: Page }) => {', true],
+    ['async ({ browser }, info) => {', true],
+    ['async function ({ page }) {', true],
+    ['const r = listar({ page: 2 })', false],
+    ['expect(render({ context: ctx })).toContain("x")', false],
+    ['async ({ request }) => {', false],
+  ]
+  for (const [codigo, esperado] of casos) {
+    expect(USA_NAVEGADOR.test(codigo), JSON.stringify(codigo)).toBe(esperado)
   }
+})
 
+test('ninguna prueba del gate tests usa el navegador (page, browser, context)', () => {
+  const pruebas = readdirSync(DIR, { recursive: true, encoding: 'utf-8' })
+    .filter((f) => ES_PRUEBA.test(f) && f !== ESTE_ARCHIVO)
+  // Sin esta aserción, un filtro roto dejaría la guarda verde sin haber mirado nada (2026-09-04:
+  // contar la caja, no el contenido). Aporte del PR #314.
+  expect(pruebas.length, 'no se encontró ninguna prueba en tests/').toBeGreaterThan(0)
+  const culpables = pruebas.filter((f) => USA_NAVEGADOR.test(readFileSync(join(DIR, f), 'utf-8')))
   expect(
-    infractores,
-    `Estos specs de tests/ piden fixtures de navegador y el job "specs sin navegador" no instala chromium.\n` +
-      `Muévelos a tests-e2e/ (se corren con \`npm run smoke\`):\n  ${infractores.join('\n  ')}`
+    culpables,
+    `Estas pruebas usan navegador y el gate tests corre sin chromium; muévelas a tests-e2e/ (npm run smoke): ${culpables.join(', ')}`,
   ).toEqual([])
 })

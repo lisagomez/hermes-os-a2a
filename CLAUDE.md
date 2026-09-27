@@ -454,6 +454,10 @@ npm run lint         # ESLint
 - **Aplicar en**: todos los host-jobs y cualquier integración HTTP nueva.
 
 ### 2026-07-02: Grafo (Fase 2) construido + gotchas de toolchain local
+> ⚠️ **ACTUALIZADO el 2026-09-27**: las reglas del grafo están **CONGELADAS** desde `97d9f9e`
+> (decisión del laboratorio). Una regla nueva ya NO se siembra en `seed/reglas.json`: va a la
+> fuente única (PRP-005). Lo vigilan el job `grafo-congelado` y `seed/CONGELADO.sha256`; ver
+> `businessos/grafo/README.md`. Aplicar en runtime el seed congelado sigue pendiente y permitido.
 - **Aprendizaje**: el cerebro regulatorio vive en `businessos/grafo/` (FastAPI + postgres propio,
   `http://grafo:3000` en hermes-net). Regla de oro cumplida por diseño: fail-safe `dudoso`
   "sin regla aplicable", disclaimer siempre, y TODO lo que aporta al output cita su fuente
@@ -1975,6 +1979,10 @@ npm run lint         # ESLint
 - **Aplicar en**: todo job de CI cuyo nombre prometa un alcance ("sin navegador", "sin red",
   "sin BD") — si nada impide meterle un caso fuera de ese alcance, el nombre es aspiracional.
   Y ante un gate rojo: antes de asumir que es ruido, mirar si el rojo pertenece al cambio.
+- **Epílogo (2026-09-27)**: este arreglo esperó 19 días en el PR #314 y el #318 lo **duplicó**
+  sin verlo. Antes de arreglar un rojo compartido, buscar si un PR abierto ya lo arregla
+  (`gh pr list --search "<archivo o check>"`). Y el rojo ya no se puede ignorar: `verify` y
+  `grafo-congelado` son checks **obligatorios** en master desde ese día.
 
 
 *V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*

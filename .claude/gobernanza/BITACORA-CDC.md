@@ -310,6 +310,26 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 > no se toca. La cifra vigente es la que lista el verificador en cada corrida, que es
 > justamente por qué se lista.
 
+### 2026-09-27 — el congelamiento del grafo alcanza a la doctrina que mandaba sembrar en `reglas.json` — radio: skill
+- **Cambio**: (a) `hermes-regulatory-scan`, paso 4: el destino de las propuestas aprobadas
+  pasa de `businessos/grafo/seed/reglas.json` a la fuente única (PRP-005), y dice que
+  `reglas.json` está congelado; (b) `CLAUDE.md`, aprendizaje 2026-07-02 del grafo: nota de
+  ACTUALIZADO sobre "el seed se edita SOLO en `seed/reglas.json`".
+- **Motivo**: el PR #317 congela las reglas del grafo desde `97d9f9e`, pero dos instrucciones
+  que los agentes leen seguían mandando a sembrar en el archivo congelado: el skill, que se
+  invoca al analizar un lead, y `CLAUDE.md`, que está siempre en contexto y le gana a un skill.
+  El job `grafo-congelado` habría frenado la escritura, pero una doctrina que contradice su
+  propio gate manda a los agentes a chocar contra él.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☐ · pineo n/a
+- **Regresión**: C2 capa A **201/201**; los cuatro contratos del skill (`no negociables`,
+  `grafo`, `fuente`, `PROPUESTA`) siguen en el texto. `verify:gobernanza` **96/96**.
+- **Runtime**: n/a (el skill corre en Claude Code; ningún volumen lo lleva).
+- **Pendiente fuera de este cambio**: `meeting-copilot` sigue emitiendo
+  `destino: 'grafo/seed/reglas.json'` en `escaneo-regulatorio.ts::propuestasSeed` (y su SPEC lo
+  repite). Es código de producto con sus pruebas: va en su propio PR, junto al PRP que haga
+  leer a Hermes de la fuente única.
+- **Aprobado por**: _pendiente de firma_
+
 ### 2026-09-07 — aprendizaje de CI en CLAUDE.md (gate rojo por razón ajena) — radio: menor
 - **Cambio**: se añade un aprendizaje al final de `CLAUDE.md` (sección Auto-Blindaje): un job
   cuyo nombre promete un alcance necesita un gate que lo sostenga, y un rojo ajeno al cambio
@@ -322,5 +342,9 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
   46/46 (antes 45/4 en rojo). Control de reversión: devolver el spec a `tests/` → 5 rojos.
 - **Runtime**: repo ☑ (no hay volumen que sincronizar: es doctrina de este repo)
 - **Aprobado por**: _pendiente de firma_
+> Registrada el 2026-09-27, al mezclar el PR #314 con master: el PR esperó 19 días y el
+> #318 duplicó su arreglo. La guarda que queda es la del #318 (caza `({ page }, testInfo)`,
+> fixtures tipados y subcarpetas) más la aserción de este PR de que recorrió al menos un
+> spec; las capturas del smoke van a `test-results/` y el aprendizaje de `CLAUDE.md` es este.
 
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->
