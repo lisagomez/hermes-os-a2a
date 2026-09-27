@@ -175,34 +175,62 @@ def escanear_ramas() -> list[dict]:
     return hallazgos
 
 
+def _salida_template() -> dict | None:
+    """Corre el detector del template y devuelve su salida v1, o None si hay que omitir la
+    fuente. Best-effort que IMPRIME: sin node, con el detector colgado o con una forma que no
+    es la del contrato se omite esta fuente; jamás se tumba la corrida semanal de las demás."""
+    script = Path(REPO_TEMPLATE) / "scripts/inventario/detecta.mjs"
+    if not script.is_file():
+        print(f"AVISO: REPO_TEMPLATE={REPO_TEMPLATE} sin scripts/inventario/detecta.mjs — se omite")
+        return None
+    # Entorno MÍNIMO: el job carga todo businessos/.env y esto es código de OTRO repo. Solo lee
+    # archivos y corre git; ningún secreto del job tiene por qué llegarle.
+    env = {k: os.environ[k] for k in ("PATH", "HOME", "LANG") if k in os.environ}
+    try:
+        r = subprocess.run(["node", str(script), "--json"], capture_output=True, text=True,
+                           timeout=120, env=env)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        print(f"AVISO: no pude correr el detector del template ({type(e).__name__}) — se omite")
+        return None
+    try:
+        estado = json.loads(r.stdout)
+    except json.JSONDecodeError:
+        print(f"AVISO: el detector del template no devolvió JSON (rc={r.returncode}) — se omite")
+        return None
+    # Contrato explícito: si el template cambia la forma, se avisa y se omite; no se adivina.
+    version = estado.get("version") if isinstance(estado, dict) else None
+    if version != 1:
+        print(f"AVISO: el detector del template devolvió una forma desconocida "
+              f"(version={version!r}, se espera 1) — se omite")
+        return None
+    return estado
+
+
 def escanear_template(cat: dict[str, dict]) -> list[dict]:
     """Activos del template según SU detector (índice de identidad; costo y clasificación
     no viajan por aquí: salen del export del template, fuera de git — repo público)."""
     if not REPO_TEMPLATE:
         return []
-    script = Path(REPO_TEMPLATE) / "scripts/inventario/detecta.mjs"
-    if not script.is_file():
-        print(f"AVISO: REPO_TEMPLATE={REPO_TEMPLATE} sin scripts/inventario/detecta.mjs — se omite")
-        return []
-    # Best-effort que IMPRIME: sin node o con el detector colgado se omite esta fuente,
-    # jamás se tumba la corrida semanal de las demás.
-    try:
-        r = subprocess.run(["node", str(script), "--json"], capture_output=True, text=True, timeout=120)
-    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
-        print(f"AVISO: no pude correr el detector del template ({type(e).__name__}) — se omite")
+    estado = _salida_template()
+    if estado is None:
         return []
     try:
-        estado = json.loads(r.stdout)
-    except json.JSONDecodeError:
-        print(f"AVISO: el detector del template no devolvió JSON (rc={r.returncode}) — se omite")
+        if estado.get("hallazgos") or estado.get("errores"):
+            # Un índice divergente no se cosecha: su propio gate ya está en rojo y lo dice.
+            return [{"tipo": "TEMPLATE-DIVERGENTE", "ubicacion": "template/inventario/activos.json",
+                     "nota": f"{len(estado.get('hallazgos', []))} hallazgo(s), "
+                             f"{len(estado.get('errores', []))} error(es): corre verifica:inventario allí"}]
+        return _comparar_template(estado["activos"], cat)
+    except (KeyError, TypeError, AttributeError) as e:
+        # Sin resultados parciales: un HUÉRFANO sobre una lectura a medias sería falso.
+        print(f"AVISO: la salida del template no trae los campos esperados "
+              f"({type(e).__name__}: {e}) — se omite")
         return []
-    if estado.get("hallazgos") or estado.get("errores"):
-        # Un índice divergente no se cosecha: su propio gate ya está en rojo y lo dice.
-        return [{"tipo": "TEMPLATE-DIVERGENTE", "ubicacion": "template/inventario/activos.json",
-                 "nota": f"{len(estado.get('hallazgos', []))} hallazgo(s), "
-                         f"{len(estado.get('errores', []))} error(es): corre verifica:inventario allí"}]
+
+
+def _comparar_template(activos: list[dict], cat: dict[str, dict]) -> list[dict]:
     hallazgos, vistos = [], set()
-    for a in estado.get("activos", []):
+    for a in activos:
         if a.get("externo"):
             continue  # un escritor por origen: los CLIs los cataloga escanear_clis
         ubic = a["ubicacion"]
