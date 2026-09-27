@@ -1,5 +1,19 @@
 # grafo — cerebro regulatorio multi-ámbito (Fase 2/3/8)
 
+> ## ⛔ Reglas CONGELADAS desde el corte `97d9f9e` (2026-09-27, decisión del laboratorio)
+>
+> `seed/reglas.json` y su `seed/02-seed.sql` **no cambian**. El conocimiento se mueve a una
+> **fuente única** versionada, un paquete de datos por dominio en el monorepo privado de la
+> fábrica (PRP-005). Hasta que este servicio lea de ese paquete, que será un PRP aparte con firma,
+> una regla nueva sembrada aquí sería una segunda fuente que se desvía de la única.
+>
+> - **Lo vigila**: el job `grafo-congelado` del CI y `tests/test_congelado.py`, contra
+>   `seed/CONGELADO.sha256`.
+> - **Una regla nueva**: se investiga y se siembra en la fuente única, no aquí.
+> - **Descongelar**: cambiar `seed/CONGELADO.sha256` en un PR, con firma del laboratorio.
+> - **Lo que NO bloquea**: aplicar en runtime este mismo seed congelado (98 reglas, pendiente por
+>   la red del servidor), y todo lo que no sea el conocimiento (motor, API, puente A2A).
+
 Servicio Docker en `hermes-net` que evalúa conceptos contra reglas citadas y devuelve
 veredicto por concepto **con fuente**, banderas rojas y checklist. **Señala riesgos; NO asesora.**
 Ámbitos: **fiscal MX** (deducibilidad, PM Título II), **fiscal CO** (Estatuto Tributario),
