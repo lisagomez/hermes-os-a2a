@@ -24,6 +24,14 @@ el crontab; NO `~/businessos/.env`), cabecera de `005_activos.sql`, y aquí.
    `exportar-polizas.py aprobar --confirmar` (capitalización/gasto, D-07).
 5. **Detector**: `detector-swm-act.py` (semanal, D-09) propone NUEVO/CAMBIADO/
    HUÉRFANO como `rol_swm` — jamás escribe.
+   Fuente opcional **template de la fábrica** (`REPO_TEMPLATE`, PR #316): corre su
+   `scripts/inventario/detecta.mjs --json` con entorno MÍNIMO (PATH/HOME/LANG: el job
+   carga todo `businessos/.env` y ese es código de otro repo) y exige `version: 1`.
+   Una forma desconocida omite solo esa fuente con AVISO, sin tumbar la corrida ni
+   emitir HUÉRFANOS sobre una lectura a medias. Pendientes (2026-09-27): clonar el
+   template en el servidor (el repo es PRIVADO: necesita su propia credencial) y
+   decidir D-12 — la propuesta dice "repo público ⇒ reemplazable", pero hoy GitHub
+   reporta `lisagomez/template` como privado. Lo decide Elisa.
 
 ## Puente de acceso (interino hasta el CLI act de ERP-1/D-03)
 
