@@ -11,7 +11,12 @@
 > *"`meeting-copilot` sigue etiquetando sus propuestas con `destino: grafo/seed/reglas.json`; va en
 > su propio PR, junto al PRP que haga leer a Hermes de la fuente única"*. Este PRP cubre la mitad
 > de **salida** (Hermes → laboratorio). La mitad de **entrada** (Hermes lee la fuente única) sigue
-> siendo un PRP aparte, con firma.
+> siendo un PRP aparte, con firma: `prp-grafo-lee-paquete.md` (#322).
+> **Coordinación con el #322**: los dos usan **una sola identidad del conocimiento servido**, definida
+> en su §Identidad. Donde este PRP dice «corte congelado», léase «la identidad que el repo fija»: hoy
+> `97d9f9e`, y tras ejecutar el #322, la del pin del paquete. Los textos del copiloto
+> (`escaneo-regulatorio.ts`, su `SPEC.md`) y el paso 4 del skill son de **este** PRP; el #322 solo
+> cambia la frase del paso 4 que dice que `reglas.json` está congelado.
 
 ---
 
@@ -114,7 +119,7 @@ salen del perímetro de Hermes para lograrlo.
 
 - El consumidor del laboratorio (su job de pull, su investigación y su siembra). Es un PRP del repo
   privado.
-- Que Hermes lea de la fuente única o descongele su seed. PRP aparte, con firma del laboratorio.
+- Que Hermes lea de la fuente única o descongele su seed: el #322, con firma del laboratorio.
 - Aplicar el seed de 98 reglas al runtime. Es un pendiente existente, bloqueado por la red del
   servidor, y lo detecta `drift-runtime.py`.
 - Reescribir el mapa `SECTORES` para cubrir las 61 categorías. Aquí solo se deja de confundir su
@@ -255,7 +260,7 @@ espejo o las señales del escaneo están generando demanda falsa.
 |---|---|---|---|
 | D1 | ¿Registro automático o con botón? | **Automático**, idempotente y visible. Un conteo manual mide cuántas veces alguien se acordó, no la demanda | Botón: menos piezas, conteo sesgado. Es la costumbre que la doctrina desaconseja |
 | D2 | ¿`validar_regla` viaja al laboratorio? | **Sí, con prioridad baja**: no es un hueco de conocimiento, pero su conteo dice qué reglas conviene re-verificar primero | Que quede interno: menos ruido para el laboratorio, se pierde esa señal |
-| D3 | ¿Cómo se sabe contra qué conocimiento se observó? | **El grafo declara la huella de lo que sirve** en `POST /evaluaciones`, calculada por el servicio sobre lo que cargó (el seed no se puede tocar: está congelado). El copiloto la compara con el corte congelado; si no coincide o falta, **no registra**. Es cambio de API, no de conocimiento: el README del congelamiento lo permite | Registrar con `corte: desconocido` y que el laboratorio descarte a mano: ruido, fatiga (O3) y demanda falsa de las categorías que el runtime aún no tiene |
+| D3 | ¿Cómo se sabe contra qué conocimiento se observó? | **El grafo declara la identidad de lo que sirve** en `POST /evaluaciones`: la `source_version` única de las reglas cargadas, más su conteo, o «mixta» si hay más de una (contrato común con el #322, §Identidad). La calcula el servicio sobre lo que cargó; el seed no se toca. El copiloto la compara con la que el repo genera del seed versionado, **no** con `97d9f9e` fijo: cuando el #322 suba el pin, lo esperado se mueve en el mismo PR. Si no coincide o falta, **no registra**. Es cambio de API, no de conocimiento: el README del congelamiento lo permite | Registrar con `corte: desconocido` y que el laboratorio descarte a mano: ruido, fatiga (O3) y demanda falsa de las categorías que el runtime aún no tiene |
 | D4 | La credencial del laboratorio: ¿quién la custodia, dónde vive y cada cuánto rota? | Login de Postgres por el pooler, patrón `cli_fin`. Vive **solo** en el entorno del laboratorio: nunca en este repo, nunca en Vercel, nunca en `businessos/.env`. Rotación declarada; si no se declara, va a C5 | PostgREST con JWT propio: exige firmar con el secreto del proyecto, que es una llave maestra. **Descartado** |
 | D5 | El vocabulario de etiquetas de sector para el triage de `nuevo_ambito` | Lista corta que mantiene el equipo, extensible desde la bandeja | Texto libre del equipo: fragmenta la demanda ("Aduanas" vs "aduanero") |
 | D6 | Granularidad temporal de la salida | **Semana ISO** | Día exacto: mejor para el laboratorio, correlacionable con el CRM |
@@ -339,8 +344,8 @@ espejo o las señales del escaneo están generando demanda falsa.
 
 - **Mitigaciones**:
   1. Los filtros de registro (espejo, corte, mock, demo), cada uno con su control de reversión.
-  2. El copy obligatorio de *sembrada vX*: *"sembrada en la fuente única vX; Hermes sirve el corte
-     `97d9f9e` hasta leer esa versión"*.
+  2. El copy obligatorio de *sembrada vX*: *"sembrada en la fuente única vX; Hermes sirve
+     <identidad servida> hasta leer esa versión"*. La identidad sale del dictamen, no de un texto fijo.
   3. Idempotencia por caso.
   4. Contador visible de pendientes de triage en el módulo.
   5. `casos_desde_ultimo_estado` como vía de apelación automática.
@@ -398,13 +403,14 @@ D4 queda sin rotación, hay entrada en `REGISTRO-RIESGO.md`.
 la lista de claves de lo que viaja. Si borro el filtro, la prueba se pone en rojo.
 
 ### Fase 2: Identidad del conocimiento observado (según D3)
-**Objetivo**: el dictamen del grafo declara qué conocimiento sirve, y el copiloto lo compara con el
-corte congelado. Si falta o no coincide, no registra y dice por qué.
+**Objetivo**: el dictamen del grafo declara qué conocimiento sirve, con el contrato común del #322
+(§Identidad), y el copiloto lo compara con la identidad que el repo genera del seed versionado. Si
+falta, es «mixta» o no coincide, no registra y dice por qué.
 **Validación**:
 - pruebas del grafo y del contrato del copiloto (`validarRespuestaGrafo` tolera el campo nuevo);
 - `grafo-congelado` en verde, con **cero diff** en `seed/`;
-- la prueba cubre los dos casos: un runtime con otra huella no registra, y uno con la huella
-  congelada sí.
+- la prueba cubre los tres casos: un runtime con otra identidad no registra, uno «mixto» tampoco,
+  y uno con la identidad fijada sí.
 
 ### Fase 3: Esquema, funciones y rol (migración)
 **Objetivo**:
