@@ -109,8 +109,10 @@ salen del perímetro de Hermes para lograrlo.
 
 - Dictamen desde el mock → *"no se registró: el dictamen salió del mock"*. Es lo que ocurre
   **hoy**: el servidor tiene la red cortada y el copiloto cae al mock.
-- Runtime con otro corte, o sin declarar el suyo → *"no se registró: el grafo en runtime no sirve
-  el corte congelado"*. Esto además revela la deriva de despliegue desde el propio caso.
+- Runtime con otra identidad, «mixta» o sin declarar la suya → **no se registra** (fail-safe), y la UI
+  lo muestra como pausa, no como error: *"cola en pausa: el grafo sirve X, se espera Y"*. Pasa también,
+  y es correcto, entre desplegar el copiloto con un pin nuevo del #322 y aplicar ese seed en runtime.
+  Además revela la deriva de despliegue desde el propio caso.
 - Caso demo → no se registra, y la UI no ofrece hacerlo.
 - Supabase no configurado → 503 declarado. Falla la RPC → chip de error en el caso y `console.error`
   en el servidor: un best-effort que nadie loguea es un fallo invisible.
@@ -410,7 +412,10 @@ falta, es «mixta» o no coincide, no registra y dice por qué.
 - pruebas del grafo y del contrato del copiloto (`validarRespuestaGrafo` tolera el campo nuevo);
 - `grafo-congelado` en verde, con **cero diff** en `seed/`;
 - la prueba cubre los tres casos: un runtime con otra identidad no registra, uno «mixto» tampoco,
-  y uno con la identidad fijada sí.
+  y uno con la identidad fijada sí;
+- la identidad se verifica **a través del gate público** (el Caddy que solo proxya
+  `POST /evaluaciones`), no solo contra el grafo directo: si el gate la perdiera, el copiloto nunca
+  registraría.
 
 ### Fase 3: Esquema, funciones y rol (migración)
 **Objetivo**:

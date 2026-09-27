@@ -102,9 +102,14 @@ Una sola respuesta a «¿qué conocimiento sirve este grafo?», para operar y pa
   más de una `source_version` (un seed a medio aplicar, o reglas viejas que el upsert no tocó), la identidad es
   **mixta** y no coincide con ninguna. Va en la respuesta de `POST /evaluaciones`, porque es la única ruta que el
   gate público proxya (el copiloto en Vercel **no** alcanza `/health`), y también en `/health`, para operar.
-- **Contra qué se compara:** contra la que el repo genera del seed versionado, **no** contra un `97d9f9e` fijo. Así,
-  el PR que sube el pin mueve también lo esperado y la cola no deja de registrar en silencio. Un runtime atrasado se
-  ve como «el runtime no sirve lo fijado», que es justo el caso que el #321 quiere excluir.
+- **Contra qué se compara:** contra la que el repo genera del seed versionado, **no** contra un `97d9f9e` fijo. El
+  copiloto la toma del mismo monorepo. Así, el PR que sube el pin mueve también lo esperado, y la cola no deja de
+  registrar en silencio.
+- **Fail-safe:** si es «mixta», falta o es distinta de la esperada, la cola **no registra**. Es lo que ya separa al
+  runtime de 68 reglas y evita demanda falsa.
+- **Pausa, no error:** tras desplegar el copiloto con un pin nuevo, mientras el runtime siga con el viejo, la cola
+  queda en pausa hasta que se aplique el seed (Fase 4). La UI lo dice así: «cola en pausa: el grafo sirve X, se
+  espera Y».
 - **Quién lo construye:** la Fase 2 del #321. Es un cambio de API, que el congelamiento permite. Este PRP solo fija
   el formato de `source_version` desde el pin. Sirve igual en cualquier orden: si el #321 corre primero, declara la
   identidad del seed congelado, y al ejecutar este PRP cambia el valor, no el contrato.
