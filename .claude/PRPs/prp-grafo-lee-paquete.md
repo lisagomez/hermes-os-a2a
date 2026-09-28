@@ -319,6 +319,15 @@ segundo rebasa la frase del paso 4, sin duplicarla.
 - **Aplicar en**: cualquier consumidor del paquete que tenga una alarma por fecha. Con solo-añadir, cerrar es la
   forma normal de retirar.
 
+### 2026-09-28: el paso de la firma se saltaba en la corrida que relanza reauthor
+- **Error**: el paso tenía `if: github.event_name == 'pull_request'`. En un PR de colaborador,
+  `reauthor-tip-vercel.yml` relanza `ci.yml` con `workflow_dispatch` sobre la punta. Ahí el paso se saltaba y
+  `grafo-congelado` salía verde: se podía cambiar `PIN.json` sin firma. Lo encontró la revisión del #325.
+- **Fix**: sin `if:`. Sin PR, la base es `git merge-base origin/master HEAD`. Ensayado con un `workflow_dispatch`
+  sobre una rama con el pin sin firmar: rojo.
+- **Aplicar en**: todo paso de un check obligatorio que lea la base del PR. Con reauthor, el check también se
+  gana en una corrida sin PR, y un paso condicionado a `pull_request` deja un hueco.
+
 ### 2026-09-28: el generador de casos, portado, da los mismos ids
 - `seed/diferencias.py` porta `medicion/casos.mjs` de la fuente única. Sobre el seed del corte da los 782 casos de su
   corpus de paridad con los mismos ids y las mismas entradas (medido caso a caso). Así, los 12 casos firmados allá

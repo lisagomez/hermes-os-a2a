@@ -119,12 +119,14 @@ jobs:
             exit 1
           fi
       - name: Subir el pin exige la firma del laboratorio
-        if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          export CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
-          export BITACORA_DIFF="$(git diff "$BASE_SHA"...HEAD -- .claude/gobernanza/BITACORA-CDC.md)"
+          # También sin PR (workflow_dispatch): reauthor-tip-vercel.yml relanza este CI sobre la punta de
+          # los PR de colaboradores, y un `if: pull_request` dejaba este paso fuera y el check en verde.
+          BASE="${BASE_SHA:-$(git merge-base origin/master HEAD)}"
+          export CHANGED_FILES="$(git diff --name-only "$BASE"...HEAD)"
+          export BITACORA_DIFF="$(git diff "$BASE"...HEAD -- .claude/gobernanza/BITACORA-CDC.md)"
           bash scripts/gate-pin-grafo.sh
 
   # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
