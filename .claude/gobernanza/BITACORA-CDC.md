@@ -384,5 +384,4 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
   - controles negativos (rojo): editar `reglas.json` a mano, tocar el recorte, y subir el pin sin entrada, con
     `_pendiente de firma_` o sin nombrar el pin.
 - **Runtime**: PENDIENTE, Fase 4 con gate humano (red del servidor cortada). Al aplicar: 99 reglas.
-- **Aprobado por**: Elisa Gómez Quäly (laboratorio), 2026-09-28. Firmó en sesión con el agente («Firmo») tras ver las
-  diferencias medidas; el agente solo transcribe la firma.
+- **Aprobado por**: _pendiente de firma_
