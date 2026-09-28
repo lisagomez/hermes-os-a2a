@@ -361,3 +361,28 @@ cerrado hasta que el volumen lo refleje**: el repo es fuente, no despliegue
 - **Aprobado por**: _pendiente de firma_
 
 <!-- Añadir aquí las entradas siguientes. NO editar las anteriores. -->
+
+### 2026-09-28 — el grafo lee el paquete de conocimiento: pin `@tu-scope/conocimiento@0.2.0` — radio: sistema
+- **Cambio**: `businessos/grafo/seed/reglas.json` y `02-seed.sql` dejan de ser el seed congelado en `97d9f9e`. Pasan
+  a **generarse** del recorte de `@tu-scope/conocimiento@0.2.0`, con los 17 dominios de Hermes, que fija
+  `seed/paquete/PIN.json`. `grafo-congelado` conserva su nombre, rehace el seed desde el pin y exige una entrada
+  como esta, firmada, en cada subida (`scripts/gate-pin-grafo.sh`). `salud_conocimiento` distingue una regla
+  cerrada con reemplazo de un hueco (`sin_reemplazo`); `evaluar` no cambia.
+- **Motivo**: `prp-grafo-lee-paquete.md`, Fases 1 y 2 (APROBADO; Fase 0 cerrada el 2026-09-27): una sola fuente del
+  conocimiento, y la decisión 4 (el pin lo prepara un agente y lo firma el laboratorio).
+- **Diferencias medidas**: `seed/paquete/DIFERENCIAS.json`, `evaluador.py` sobre el seed viejo y el nuevo.
+  - 784 casos: 575 idénticos, 196 solo de orden, 13 de contenido y **0 cambios de estado**.
+  - Los 13 son los 12 firmados en la fuente única el 2026-09-27 y uno más de la misma clase:
+    - 10 de `INTERESES`: 28-XXVII rectora, sigue en dudoso, sin la bandera de conflicto;
+    - 2 de confidencialidad antes de 2025: la ley de 2010 en vez de «sin regla aplicable»;
+    - `nuevo-vigencia-0676`: la misma clase, en la fecha de entrada en vigor de la ley de 2010.
+- **Gate aplicado**: diff revisado ☑ · regresión verde ☑ · aprobación humana ☑ · pineo ☑ (versión exacta y huellas en
+  `PIN.json`)
+- **Regresión**:
+  - pytest: grafo **149/149**, grafo-a2a **17/17**, flujos-a2a **18/18**, grafo-gate **10/10**;
+  - `verify:gobernanza` **96/96**;
+  - controles negativos (rojo): editar `reglas.json` a mano, tocar el recorte, y subir el pin sin entrada, con
+    `_pendiente de firma_` o sin nombrar el pin.
+- **Runtime**: PENDIENTE, Fase 4 con gate humano (red del servidor cortada). Al aplicar: 99 reglas.
+- **Aprobado por**: Elisa Gómez Quäly (laboratorio), 2026-09-28. Firmó en sesión con el agente («Firmo») tras ver las
+  diferencias medidas; el agente solo transcribe la firma.

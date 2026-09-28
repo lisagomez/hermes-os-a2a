@@ -81,30 +81,51 @@ jobs:
         working-directory: businessos/buzon-a2a
         run: python -m pytest tests/test_corpus.py -q -rs
 
-  # Reglas del grafo CONGELADAS desde el corte 97d9f9e (2026-09-27, decisión del laboratorio).
-  # El conocimiento se mueve a una fuente única versionada (PRP-005 del monorepo privado de la
-  # fábrica). Sembrar aquí una regla nueva crearía una segunda fuente que se desvía de la única.
+  # Reglas del grafo FIJADAS al paquete de conocimiento (prp-grafo-lee-paquete.md). Congeladas
+  # desde el corte 97d9f9e (2026-09-27); desde 2026-09-28 reglas.json y 02-seed.sql se GENERAN del
+  # recorte vendorizado en seed/paquete/, que fija PIN.json. Sembrar aquí una regla crearía una
+  # segunda fuente que se desvía de la única (PRP-005, monorepo privado de la fábrica).
+  # Conserva el nombre `grafo-congelado` porque es check OBLIGATORIO de master (decisión 3 de la
+  # Fase 0): renombrarlo exigiría tocar la protección en el mismo paso.
   # Hace falta como job propio porque este CI no corre los pytest del grafo (ver cabecera): una
-  # prueba sola no dispararía. Sin dependencias: sha256sum viene en el runner.
-  # Descongelar = cambiar businessos/grafo/seed/CONGELADO.sha256 en un PR con firma del laboratorio.
+  # prueba sola no dispararía. Sin dependencias: sha256sum y python3 vienen en el runner.
   grafo-congelado:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Las reglas del grafo no cambian (congeladas)
+        with:
+          fetch-depth: 0
+      - name: Las reglas del grafo no cambian a mano (huellas)
         run: |
-          # La huella debe cubrir los DOS archivos: borrar una línea no puede descongelar uno en
+          # La huella debe cubrir los DOS archivos: borrar una línea no puede soltar uno en
           # silencio (test_congelado.py lo comprueba, pero este CI no corre los pytest del grafo).
           for f in businessos/grafo/seed/reglas.json businessos/grafo/seed/02-seed.sql; do
             if ! grep -qE "^[0-9a-f]{64}  $f\$" businessos/grafo/seed/CONGELADO.sha256; then
-              echo "::error::CONGELADO.sha256 ya no cubre $f. Quitar su huella lo descongela: requiere firma del laboratorio."
+              echo "::error::CONGELADO.sha256 ya no cubre $f. Quitar su huella lo suelta: se sube el pin con seed/actualiza_paquete.py."
               exit 1
             fi
           done
           if ! grep -v '^#' businessos/grafo/seed/CONGELADO.sha256 | sha256sum -c -; then
-            echo "::error::Reglas del grafo CONGELADAS desde 97d9f9e: reglas.json / 02-seed.sql cambiaron. Las reglas nuevas se investigan y siembran en la fuente única (PRP-005). No actualices CONGELADO.sha256 para ponerlo verde: descongelar requiere firma del laboratorio."
+            echo "::error::reglas.json / 02-seed.sql no son los fijados. Las reglas nuevas se siembran en la fuente única (PRP-005) y aquí se sube el pin con seed/actualiza_paquete.py, que reescribe las huellas; a mano no se actualizan."
             exit 1
           fi
+      - name: El seed es exactamente el generado del paquete fijado
+        run: |
+          # Recorte con la huella de PIN.json, y reglas.json / 02-seed.sql rehechos desde él, byte a byte.
+          python3 businessos/grafo/seed/desde_paquete.py --check
+          python3 businessos/grafo/seed/gen_seed_sql.py --out "$RUNNER_TEMP/02-seed.sql" > /dev/null
+          if ! cmp -s "$RUNNER_TEMP/02-seed.sql" businessos/grafo/seed/02-seed.sql; then
+            echo "::error::02-seed.sql no es el generado de reglas.json: se regenera con seed/actualiza_paquete.py, no a mano."
+            exit 1
+          fi
+      - name: Subir el pin exige la firma del laboratorio
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          export CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
+          export BITACORA_DIFF="$(git diff "$BASE_SHA"...HEAD -- .claude/gobernanza/BITACORA-CDC.md)"
+          bash scripts/gate-pin-grafo.sh
 
   # Un PR que cambia código sustantivo debe dejar rastro en un documento vivo
   # (ROADMAP / CLAUDE.md / DECISIONES / README / memoria / BUSINESS_LOGIC).

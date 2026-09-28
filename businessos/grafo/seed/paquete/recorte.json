@@ -1,8 +1,6 @@
 {
-  "_meta": {
-    "descripcion": "GENERADO desde @tu-scope/conocimiento@0.2.0, recorte de 17 dominios (seed/paquete/PIN.json). No se edita a mano: las reglas se siembran en la fuente unica y aqui se sube el pin con seed/actualiza_paquete.py.",
-    "source_version": "@tu-scope/conocimiento@0.2.0 sha256:73023d9638ea300ea30f0273def9bdbc06512908ada0426fc04e8e12e42909bf"
-  },
+  "version": "0.2.0",
+  "procedencia": "Fuente única del conocimiento del grafo (PRP-005). Importada una vez de lisagomez/hermes-os-a2a@97d9f9e (reglas.json sha256:c068719e20c01f59da342ce731381382a4eae85dc4efdcfb1b99f4b50c8aa7a8) con su historial, en tools/conocimiento/origen/. Seed del grafo v4 (Fase 8 + datos-personales): fiscal MX + fiscal CO + contable MX + contractual MX + regulatorio MX (RPAS/drones, intermediacion de seguros) + datos-personales MX (LFPDPPP 2025, prospeccion B2B) + corporativo-mercantil MX (Fase A: LGSM, CFF beneficiario controlador, LFCE concentraciones) + fiduciario/sucesorio/inmobiliario MX (Fase B: LGTOC, CCF, LIE zona restringida) + ambiental MX (Fase C: LGEEPA, LGPGIR, LFRA) + cabildeo/politico MX (Fase D: Reglamentos de las Camaras, LGPP, LGIPE) + frontera financiera MX (LMV 225: asesor en inversiones). FUENTE DE VERDAD del seed; 02-seed.sql se genera de aqui con gen_seed_sql.py. Las reglas retiradas van en _bajas (el upsert del seed NO borra solo). + propiedad industrial MX (LFPPI: marcas y patentes) + comercio exterior MX (Ley Aduanera y Ley de Comercio Exterior: padron, despacho, representacion, valor en aduana, origen, clasificacion, regulaciones no arancelarias, practicas desleales, regimenes e infracciones) + logistica MX (autotransporte federal de carga y carga aerea). + T-MEC (Capitulos 4, 5 y 7: reglas de origen, certificacion y procedimientos de origen, verificacion, envios de entrega rapida y resoluciones anticipadas). DATOS DE TRABAJO: los articulos citados son reales pero las cifras/topes DEBEN validarse contra la fuente oficial (DOF) antes de usarse en produccion. Cada parametro con 'verificar: true' esta pendiente de cotejo. El cron de revision de vigencias es Fase 3.",
   "jurisdicciones": [
     {
       "codigo": "MX",
@@ -16,23 +14,301 @@
   "dimensiones": [
     {
       "codigo": "fiscal",
-      "nombre": "Fiscal (deducibilidad de gastos)"
+      "nombre": "Fiscal (deducibilidad de gastos)",
+      "vocabulario": [
+        "deducible",
+        "no_deducible",
+        "dudoso"
+      ]
     },
     {
       "codigo": "contable",
-      "nombre": "Contable (registro y normas de informacion financiera)"
+      "nombre": "Contable (registro y normas de informacion financiera)",
+      "vocabulario": [
+        "deducible",
+        "no_deducible",
+        "dudoso"
+      ]
     },
     {
       "codigo": "contractual",
-      "nombre": "Contractual (clausulas de acuerdos comerciales)"
+      "nombre": "Contractual (clausulas de acuerdos comerciales)",
+      "vocabulario": [
+        "deducible",
+        "no_deducible",
+        "dudoso"
+      ]
     },
     {
       "codigo": "regulatorio",
-      "nombre": "Regulatorio (permisos y cumplimiento operativo)"
+      "nombre": "Regulatorio (permisos y cumplimiento operativo)",
+      "vocabulario": [
+        "permitido",
+        "no_permitido",
+        "dudoso"
+      ]
     },
     {
       "codigo": "datos-personales",
-      "nombre": "Datos personales (licitud de tratamiento y prospeccion B2B)"
+      "nombre": "Datos personales (licitud de tratamiento y prospeccion B2B)",
+      "vocabulario": [
+        "permitido",
+        "no_permitido",
+        "dudoso"
+      ]
+    }
+  ],
+  "dominios": [
+    {
+      "clave": "co-deducibilidad",
+      "nombre": "Deducibilidad de gastos (CO)",
+      "jurisdiccion": "CO",
+      "dimension": "fiscal",
+      "cita": "publica",
+      "corte": "2026-07-30",
+      "procedencia": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion;",
+      "categorias": [
+        "SERVICIOS_PROFESIONALES"
+      ]
+    },
+    {
+      "clave": "mx-agentes-de-seguros",
+      "nombre": "Intermediación de seguros",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-07-10",
+      "procedencia": "regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros.\n\nFase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal).",
+      "categorias": [
+        "AGENTES_SEGUROS"
+      ]
+    },
+    {
+      "clave": "mx-ambiental",
+      "nombre": "Ambiental",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-07",
+      "procedencia": "ambiental MX 2026-08-07 (Fase C): LGEEPA texto vigente (ultima reforma DOF 19-01-2026, Arts. 28/30 EIA con las 10 fracciones leidas del PDF, 38-38 Bis auditoria voluntaria, 111 Bis fuentes fijas federales con su lista de industrias), LGPGIR (ultima reforma DOF 19-01-2026, categorias de generador del Art. 5 fr. XII/XIX/XX: micro <=400 kg/ano, pequeno 400 kg-<10 t, gran >=10 t; Arts. 42/44/46) y LFRA (ultima reforma DOF 14-11-2025, Arts. 1o/10: reparacion prioritaria, compensacion subsidiaria, responsabilidad por dano indirecto). Todo leido de los PDF de Diputados (LeyesBiblio). El veredicto de RESPONSABILIDAD_AMBIENTAL es no_permitido (ocasionar dano ambiental genera responsabilidad objetiva), unico en su categoria — sin conflicto de veredictos.",
+      "categorias": [
+        "AUDITORIA_AMBIENTAL",
+        "EMISIONES_ATMOSFERA",
+        "IMPACTO_AMBIENTAL",
+        "RESIDUOS_PELIGROSOS",
+        "RESPONSABILIDAD_AMBIENTAL"
+      ]
+    },
+    {
+      "clave": "mx-cabildeo-y-politica",
+      "nombre": "Cabildeo y política",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-07",
+      "procedencia": "cabildeo/politico MX 2026-08-07 (Fase D): Reglamento de la Camara de Diputados (ultima reforma DOF 07-05-2025, Arts. 263-268: registro por legislatura, cupos 20 por comision / 2 por persona moral, veto a servidores publicos y parientes 4o grado, archivo publico), Reglamento del Senado (ultima reforma DOF 06-12-2024, Arts. 298-299: informes a la Mesa, sin dadivas), LGPP (ultima reforma DOF 02-03-2023, Art. 54-1-f/g: personas morales y residentes en el extranjero NO aportan — con la nota de la sentencia SCJN DOF 24-11-2023 sobre incisos reformados) y LGIPE (ultima reforma DOF 02-06-2026, Art. 159-4/5: prohibida la contratacion de propaganda en radio/TV por cualquier persona fisica o moral). Todo leido de los PDF de Diputados. Los dos no_permitido (aportaciones, propaganda) van unicos en su categoria — sin conflicto de veredictos (leccion Fase B).",
+      "categorias": [
+        "APORTACIONES_POLITICAS",
+        "CABILDEO_CONGRESO",
+        "PROPAGANDA_ELECTORAL"
+      ]
+    },
+    {
+      "clave": "mx-clausulas-contractuales",
+      "nombre": "Cláusulas de contratos comerciales",
+      "jurisdiccion": "MX",
+      "dimension": "contractual",
+      "cita": "publica",
+      "corte": "2026-07-30",
+      "procedencia": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion;\n\ndatos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD.",
+      "categorias": [
+        "CLAUSULA_CONFIDENCIALIDAD",
+        "CLAUSULA_PAGO",
+        "CLAUSULA_PENAL",
+        "CLAUSULA_TERMINACION"
+      ]
+    },
+    {
+      "clave": "mx-comercio-exterior",
+      "nombre": "Comercio exterior y aduanas",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-09-03",
+      "procedencia": "comercio exterior MX 2026-09-02: Ley Aduanera (texto vigente, ultima reforma DOF 19-11-2025, Ley publicada DOF 15-12-1995 y en vigor el 01-01-1996 por su Transitorio Primero) y Ley de Comercio Exterior (texto vigente, ultima reforma DOF 01-05-2026, Ley publicada DOF 27-07-1993 y en vigor al dia siguiente). Arts. 36-A, 40, 59, 64, 90 y 176 de la Ley Aduanera y Arts. 15, 16, 17, 21, 23, 24, 26, 28, 62 y 63 de la Ley de Comercio Exterior leidos del PDF oficial de Diputados (LeyesBiblio) extraido con pypdf, no de memoria ni de resumenes: el indice HTML del sitio daba 27-12-2025 como ultima reforma de la Ley Aduanera, pero esa fecha es la actualizacion de cantidades por Reglas Generales de Comercio Exterior y el texto vigente es DOF 19-11-2025. Dos veredictos son dudoso por fail-safe declarado: CLASIFICACION_ARANCELARIA (la Tarifa de la LIGIE no esta sembrada) y PRACTICAS_DESLEALES (la resolucion de cuota compensatoria por producto y origen vive en el DOF, no aqui). INFRACCIONES_ADUANERAS es la unica categoria con veredicto no_permitido y va sola en su categoria, sin conflicto de veredictos (leccion Fase B). Fuera de alcance a proposito: Reglas Generales de Comercio Exterior (cambian cada ano), Tarifa de la LIGIE, reglas de origen de los tratados y jurisdicciones extranjeras.\n\nT-MEC 2026-09-03: textos finales del Tratado entre Mexico, Estados Unidos y Canada publicados por la Secretaria de Economia (gob.mx), promulgado por decreto DOF 29-06-2020 y en vigor el 01-07-2020. Capitulo 4 (Reglas de Origen), Capitulo 5 (Procedimientos de Origen) y Capitulo 7 (Administracion Aduanera y Facilitacion del Comercio) leidos de los PDF oficiales con pypdf, no de memoria ni de resumenes: la numeracion real desmiente la de los blogs (5.2 es Solicitudes de Trato Preferencial, 5.3 Bases de la Certificacion, 5.5 Excepciones y 5.11 Devoluciones; no la del TLCAN). Seis categorias nuevas TMEC_* mas un impacto del Art. 7.20 en la categoria existente REPRESENTACION_ADUANAL. Convencion de veredictos respetada: una sola regla rectora por categoria y las complementarias con veredicto_base null (solo aportan requisitos, banderas y fuente), porque el motor reporta CONTRADICCION cuando dos veredictos distintos viven en la misma categoria. Dos veredictos dudoso por fail-safe declarado: TMEC_REGLAS_ORIGEN (el Anexo 4-B, reglas especificas por producto, NO esta sembrado, de modo que el grafo no puede decir si una mercancia concreta califica) y TMEC_ENVIOS_ENTREGA_RAPIDA (el Art. 7.8 obliga a Mexico a un PISO de 117 USD para aranceles y 50 USD para impuestos, pero lo que paga un envio concreto lo fija el ordenamiento domestico vigente, que cambia). Fuera de alcance a proposito: Anexo 4-B y su apendice automotriz, Capitulo 6 (textiles), Reglamentaciones Uniformes, Reglas Generales de Comercio Exterior y los demas tratados de los que Mexico es parte.",
+      "categorias": [
+        "CLASIFICACION_ARANCELARIA",
+        "DESPACHO_ADUANERO",
+        "INFRACCIONES_ADUANERAS",
+        "ORIGEN_MERCANCIAS",
+        "PADRON_IMPORTADORES",
+        "PRACTICAS_DESLEALES",
+        "REGIMENES_ADUANEROS",
+        "REGULACIONES_NO_ARANCELARIAS",
+        "REPRESENTACION_ADUANAL",
+        "VALOR_ADUANA"
+      ]
+    },
+    {
+      "clave": "mx-corporativo-mercantil",
+      "nombre": "Corporativo y mercantil",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-06",
+      "procedencia": "corporativo-mercantil MX 2026-08-06 (Fase A): LGSM texto vigente (ultima reforma DOF 20-10-2023, cantidades actualizadas por Acuerdo DOF 26-12-2025 — tope SAS $7,678,849.94 leido del PDF oficial), CFF (ultima reforma DOF 09-04-2026, Arts. 32-B Ter/84-M cotejados) y LFCE (ultima reforma DOF 14-11-2025; umbrales del Art. 86 REFORMADOS DOF 16-07-2025 a 16M/30%+16M/7.4M+40M UMA, leidos del PDF oficial — los umbrales pre-reforma 18M/48M/8.4M quedan obsoletos). Arts. 2, 5, 6, 10, 19, 20, 128, 129, 178, 180-182, 186, 222-225, 228 Bis y 260-263 LGSM verificados contra el PDF de Diputados (LeyesBiblio), no contra blogs ni memoria.",
+      "categorias": [
+        "ASAMBLEAS_SOCIETARIAS",
+        "CONCENTRACIONES_COFECE",
+        "CONSTITUCION_SOCIEDADES",
+        "DIVIDENDOS_UTILIDADES",
+        "FUSION_ESCISION",
+        "GRUPOS_HOLDING",
+        "PODERES_REPRESENTACION",
+        "REGISTRO_ACCIONES_BC",
+        "SAS_CONSTITUCION"
+      ]
+    },
+    {
+      "clave": "mx-datos-personales-prospeccion",
+      "nombre": "Datos personales en prospección B2B",
+      "jurisdiccion": "MX",
+      "dimension": "datos-personales",
+      "cita": "publica",
+      "corte": "2026-07-30",
+      "procedencia": "datos-personales MX 2026-07-30: LFPDPPP NUEVA LEY (publicada DOF 20-03-2025, vigente 21-03-2025, texto vigente con ultima reforma DOF 14-11-2025; la ley de 2010 quedo ABROGADA por el Transitorio Segundo del Decreto; autoridad de proteccion de datos: Secretaria Anticorrupcion y Buen Gobierno — INAI extinto, Art. 3 fraccion XV). Arts. 3-X, 5, 6, 9-II, 14, 15, 16, 17, 20, 35 y 36 verificados contra el PDF oficial de Diputados (LeyesBiblio), no contra blogs. La regla MX-LFPDPPP-21-CONFIDENCIALIDAD (ley 2010) se retira via _bajas y la sustituye MX-LFPDPPP2025-20-CONFIDENCIALIDAD.",
+      "categorias": [
+        "DATOS_CONTACTO_CORPORATIVO",
+        "DATOS_CONTACTO_PERSONA_FISICA",
+        "DATOS_FUENTE_PUBLICA",
+        "DATOS_TRANSFERENCIA_INTL"
+      ]
+    },
+    {
+      "clave": "mx-deducibilidad",
+      "nombre": "Deducibilidad de gastos (MX)",
+      "jurisdiccion": "MX",
+      "dimension": "fiscal",
+      "cita": "publica",
+      "corte": "2026-07-30",
+      "procedencia": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion;",
+      "categorias": [
+        "ARRENDAMIENTO",
+        "COMBUSTIBLES",
+        "DONATIVOS",
+        "EQUIPO_DE_COMPUTO",
+        "INTERESES",
+        "SERVICIOS_PROFESIONALES",
+        "VIATICOS"
+      ]
+    },
+    {
+      "clave": "mx-drones-de-reparto",
+      "nombre": "Drones de reparto (RPAS)",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-07-10",
+      "procedencia": "regulatorio MX 2026-07: Ley de Aviacion Civil (reforma consolidada DOF 14-11-2025) + NOM-107-SCT3-2019, Ley de Instituciones de Seguros y de Fianzas (texto vigente DOF 14-11-2025, Art. 91/93/94 sin evidencia de reforma posterior a su publicacion original DOF 04-04-2013) — verificado contra texto primario, no contra blogs de terceros.\n\nFase 8b (2026-07-10): categoria AGENTES_SEGUROS + exclusiones en el clasificador para que no colisione con DRONES_DELIVERY (incidente real en #dep-legal).",
+      "categorias": [
+        "DRONES_DELIVERY"
+      ]
+    },
+    {
+      "clave": "mx-fiduciario-inmobiliario-sucesorio",
+      "nombre": "Fiduciario, inmobiliario y sucesorio",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-08",
+      "procedencia": "fiduciario/sucesorio/inmobiliario MX 2026-08-07 (Fase B): LGTOC texto vigente (ultima reforma DOF 26-03-2024, Arts. 381-394 cotejados — prohibiciones del 394 incl. limite de 50 anos con excepcion de museos), CCF (ultima reforma DOF 14-11-2025, Arts. 1295-1296/1500-1501/1511, 1599/1602, 2317/2320 con umbral de 365 salarios minimos pendiente de conversion UMA, 3007-3009) y LIE (ultima reforma DOF 27-05-2024, Arts. 2-VI y 10-14: zona restringida 100/50 km, fideicomiso 50 anos prorrogable, permiso SRE). Todo leido de los PDF de Diputados (LeyesBiblio), no de memoria. Bandera transversal: la materia civil es LOCAL — el CCF es referencia federal, cotejar el codigo del estado.\n\nvocabulario 2026-08-08: se amplian keywords de TESTAMENTOS_SUCESIONES e COMPRAVENTA_INMUEBLES con formas derivadas y traducciones EQUIVALENTES (plural/genero y 'property law'), porque la frontera de palabra rechazaba 'juicios sucesorios' teniendo 'juicio sucesorio', e 'inmobiliario' teniendo 'inmueble'. NO se anaden etiquetas amplias de area de practica ('derecho corporativo', 'environmental consulting'): abarcan varias categorias y el clasificador devuelve UNA — forzarlas daria un dictamen seguro de si mismo sobre una pregunta que nadie hizo. Ademas 'inmueble'/'inmuebles' a secas: el sitio de un despacho dice 'Abogados Especialistas En Inmuebles' y solo existian las formas compuestas ('bien inmueble').",
+      "categorias": [
+        "COMPRAVENTA_INMUEBLES",
+        "FIDEICOMISO_CONSTITUCION",
+        "FIDEICOMISO_ZONA_RESTRINGIDA",
+        "REGISTRO_PROPIEDAD",
+        "TESTAMENTOS_SUCESIONES"
+      ]
+    },
+    {
+      "clave": "mx-logistica-carga",
+      "nombre": "Logística de carga (autotransporte y aérea)",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-09-02",
+      "procedencia": "logistica MX 2026-09-02: Ley de Caminos, Puentes y Autotransporte Federal (texto vigente, ultima reforma DOF 14-11-2025, Ley publicada DOF 22-12-1993 y en vigor al dia siguiente) y Ley de Aviacion Civil (texto vigente, ultima reforma DOF 14-11-2025, publicada DOF 12-05-1995 y en vigor al dia siguiente), Arts. 8o./50/66/68 LCPAF y 11/55/56 LAC leidos del PDF oficial de Diputados con pypdf. Cierran las dos categorias que el escaneo regulatorio del Pre-Discovery esperaba y el seed no tenia (AUTOTRANSPORTE_CARGA y CARGA_AEREA_EAWB), cuyo mock las dictaminaba con fuente IATA sin anclaje nacional. La base mexicana de la guia aerea es el Art. 55 LAC —el contrato DEBE constar en carta de porte o guia de carga aerea— y el formato lo fija una NOM que NO esta sembrada: por eso la forma ELECTRONICA (e-AWB) queda como bandera y la Resolucion 672 de IATA se declara estandar sectorial, no exigencia de autoridad. Fuera de alcance: reglamentos de materiales peligrosos, la NOM del formato de la guia, el Convenio de Montreal y las Reglas Generales de Comercio Exterior.",
+      "categorias": [
+        "AUTOTRANSPORTE_CARGA",
+        "CARGA_AEREA_EAWB"
+      ]
+    },
+    {
+      "clave": "mx-propiedad-industrial",
+      "nombre": "Propiedad industrial",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-08",
+      "procedencia": "propiedad industrial MX 2026-08-08: LFPPI (nueva ley DOF 01-07-2020, en vigor 05-11-2020 por su Transitorio PRIMERO —90 dias habiles, computados—; texto vigente ultima reforma DOF 03-04-2026). Arts. 53, 62, 78, 79, 87, 170, 174, 178, 204, 233, 235, 236, 237, 238 y Transitorio DECIMO PRIMERO leidos del PDF oficial de Diputados (LeyesBiblio), no de memoria. Los tres impactos son 'permitido' y las dos categorias son nuevas — sin conflicto de veredictos.",
+      "categorias": [
+        "MARCAS_REGISTRO",
+        "PATENTES_INVENCIONES"
+      ]
+    },
+    {
+      "clave": "mx-registro-contable",
+      "nombre": "Registro contable (NIF)",
+      "jurisdiccion": "MX",
+      "dimension": "contable",
+      "cita": "publica",
+      "corte": "2026-07-30",
+      "procedencia": "seed v4 2026-07-30 — LISR/CFF (MX), ET (CO), NIF CINIF, CCF/CCom (MX); verificar contra fuente oficial (DOF/DIAN) antes de produccion;",
+      "categorias": [
+        "ARRENDAMIENTO",
+        "EQUIPO_DE_COMPUTO"
+      ]
+    },
+    {
+      "clave": "mx-servicios-financieros",
+      "nombre": "Asesoría en inversiones (frontera LMV)",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-07",
+      "procedencia": "frontera financiera MX 2026-08-07 (dictamen Financial Consulting): LMV texto vigente (ultima reforma DOF 14-11-2025), Arts. 225 (definicion y registro CNBV; parrafo de personas morales reformado DOF 28-12-2023: SC/SA/S de RL con objeto y establecimientos exclusivos), 226 y 227 Bis, leidos del PDF de Diputados. La consultoria financiera general NO es reservada; el gatillo es habitual+profesional+valores+individualizada. Dictamen completo en grafo/DICTAMEN-FRONTERA-FINANCIAL-CONSULTING.md.",
+      "categorias": [
+        "ASESORIA_INVERSIONES"
+      ]
+    },
+    {
+      "clave": "mx-servicios-legales",
+      "nombre": "Operar como despacho legal",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-08-08",
+      "procedencia": "servicios legales transversal 2026-08-08: categoria SERVICIOS_LEGALES (operar como despacho — transversal, NO area de practica: las areas siguen en sus categorias propias conforme a la doctrina del vocabulario 2026-08-08) + Ley Reglamentaria del Art. 5o. Constitucional CDMX (texto vigente, ultima reforma DOF 19-01-2018), Arts. 24/25/26 leidos del PDF oficial de Diputados (pdf_mov), con bandera de materia LOCAL; + LFPIORPI (texto vigente, ultima reforma DOF 16-07-2025), Arts. 17-XI (incisos a-e y parrafo de Aviso) y 18 (fracciones I-III) y Transitorio Primero (vigor a los nueve meses de la publicacion del 17-10-2012 = 2013-07-17) leidos del PDF oficial, no de memoria. Ambos impactos 'permitido' sobre la misma categoria — sin conflicto de veredictos. Keyword 'de legal' (NO 'legal' desnuda: el ataque adversarial 2026-08-08 mostro que 'legal' adjetival sobre-clasifica — 'capacidad legal', 'domicilio legal', 'validez legal del contrato' recibirian dictamen de despacho; el uso SUSTANTIVO de la practica legal casi siempre viene como 'de legal', que es el patron del concepto del pre-discovery 'Operacion de Legal en Mexico'), mas exclusiones de bigramas adjetivales frecuentes; 'abogado' y 'notario' singulares quedan en SERVICIOS_PROFESIONALES (fiscal) por unicidad global de keywords. vigente_desde de LRArt5 = 2018-01-19 (fecha de la ultima reforma del texto citado — el parrafo primero del Art. 25 fue reformado DOF 19-01-2018; mismo criterio que la regla de la Ley de Aviacion Civil), lo que ademas hace rectora del dictamen a la regla de titulo profesional (la barrera universal), no a la de lavado.",
+      "categorias": [
+        "SERVICIOS_LEGALES"
+      ]
+    },
+    {
+      "clave": "mx-t-mec",
+      "nombre": "T-MEC: origen, certificación y facilitación",
+      "jurisdiccion": "MX",
+      "dimension": "regulatorio",
+      "cita": "publica",
+      "corte": "2026-09-03",
+      "procedencia": "T-MEC 2026-09-03: textos finales del Tratado entre Mexico, Estados Unidos y Canada publicados por la Secretaria de Economia (gob.mx), promulgado por decreto DOF 29-06-2020 y en vigor el 01-07-2020. Capitulo 4 (Reglas de Origen), Capitulo 5 (Procedimientos de Origen) y Capitulo 7 (Administracion Aduanera y Facilitacion del Comercio) leidos de los PDF oficiales con pypdf, no de memoria ni de resumenes: la numeracion real desmiente la de los blogs (5.2 es Solicitudes de Trato Preferencial, 5.3 Bases de la Certificacion, 5.5 Excepciones y 5.11 Devoluciones; no la del TLCAN). Seis categorias nuevas TMEC_* mas un impacto del Art. 7.20 en la categoria existente REPRESENTACION_ADUANAL. Convencion de veredictos respetada: una sola regla rectora por categoria y las complementarias con veredicto_base null (solo aportan requisitos, banderas y fuente), porque el motor reporta CONTRADICCION cuando dos veredictos distintos viven en la misma categoria. Dos veredictos dudoso por fail-safe declarado: TMEC_REGLAS_ORIGEN (el Anexo 4-B, reglas especificas por producto, NO esta sembrado, de modo que el grafo no puede decir si una mercancia concreta califica) y TMEC_ENVIOS_ENTREGA_RAPIDA (el Art. 7.8 obliga a Mexico a un PISO de 117 USD para aranceles y 50 USD para impuestos, pero lo que paga un envio concreto lo fija el ordenamiento domestico vigente, que cambia). Fuera de alcance a proposito: Anexo 4-B y su apendice automotriz, Capitulo 6 (textiles), Reglamentaciones Uniformes, Reglas Generales de Comercio Exterior y los demas tratados de los que Mexico es parte.",
+      "categorias": [
+        "TMEC_CERTIFICACION_ORIGEN",
+        "TMEC_ENVIOS_ENTREGA_RAPIDA",
+        "TMEC_REGLAS_ORIGEN",
+        "TMEC_RESOLUCIONES_ANTICIPADAS",
+        "TMEC_TRATO_PREFERENCIAL",
+        "TMEC_VERIFICACION_ORIGEN"
+      ]
     }
   ],
   "categorias": [
@@ -2105,6 +2381,7 @@
       "fuente_url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
       "vigente_desde": "2025-03-21",
       "vigente_hasta": null,
+      "reemplaza": "MX-LFPDPPP-21-CONFIDENCIALIDAD",
       "impactos": [
         {
           "categoria": "CLAUSULA_CONFIDENCIALIDAD",

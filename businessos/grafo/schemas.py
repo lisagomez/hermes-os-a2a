@@ -162,6 +162,10 @@ class ReglaListada(BaseModel):
 class ReglaVencida(BaseModel):
     clave: str
     vigente_hasta: date
+    sin_reemplazo: list[str] = Field(
+        default_factory=list,
+        description="Categorias que ninguna regla viva del ambito cubre hoy (el hueco real); vacia = cerrada con reemplazo",
+    )
 
 
 class VerificarPendiente(BaseModel):
@@ -183,7 +187,9 @@ class SaludConocimiento(BaseModel):
     generado: date
     source_versions: list[str]
     reglas_total: int
-    reglas_vencidas: list[ReglaVencida] = Field(..., description="Derogadas que siguen en el seed")
+    reglas_vencidas: list[ReglaVencida] = Field(
+        ..., description="Cerradas (vigente_hasta ya paso): no sirven hechos de hoy; el hueco es sin_reemplazo"
+    )
     verificar_pendientes: list[VerificarPendiente] = Field(
         ..., description="Montos/topes con verificar:true (cotejo contra fuente oficial pendiente)"
     )

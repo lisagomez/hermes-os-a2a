@@ -1,0 +1,441 @@
+{
+  "_que_es": "Lo que cambia al subir el pin: evaluador.py sobre el seed anterior y el nuevo (diferencias.py). Se declara y se firma en BITACORA-CDC.md; se regenera en cada subida.",
+  "hacia": {
+    "version": "0.2.0",
+    "sha256_recorte": "sha256:73023d9638ea300ea30f0273def9bdbc06512908ada0426fc04e8e12e42909bf"
+  },
+  "desde": {
+    "sha256_reglas": "sha256:c068719e20c01f59da342ce731381382a4eae85dc4efdcfb1b99f4b50c8aa7a8",
+    "reglas": 98
+  },
+  "fecha_casos": "2026-09-06",
+  "casos": 784,
+  "identicos": 575,
+  "solo_orden": 196,
+  "contenido": [
+    {
+      "id": "keyword-0324",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "interes"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "keyword-0325",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "intereses"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "keyword-0326",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "interes moratorio"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "keyword-0327",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "financiamiento"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "keyword-0328",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "credito"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "keyword-0329",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "prestamo"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "vigencia-0677",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "confidencialidad"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "contractual",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2025-03-20"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "sin regla aplicable"
+        ],
+        "banderas": []
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Deber de confidencialidad (datos personales) (LFPDPPP Art. 21)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "vigencia-0738",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "interes"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2014-01-01"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "vigencia-0743",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "interes"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2019-12-31"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "vigencia-0744",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "interes"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2020-01-01"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "incidente-0780",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "Intereses del credito bancario"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "fiscal",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2026-09-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "contradiccion entre reglas vigentes; rectora: LISR Art. 27, fraccion VII"
+        ],
+        "banderas": [
+          "Reglas vigentes en conflicto: MX-LISR-27-VII=deducible, MX-LISR-28-XXVII=dudoso — requiere revision"
+        ]
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Capitalizacion delgada (partes relacionadas extranjeras) (LISR Art. 28, fraccion XXVII)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "incidente-0781",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "clausula de confidencialidad"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "contractual",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2024-06-01"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "sin regla aplicable"
+        ],
+        "banderas": []
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Deber de confidencialidad (datos personales) (LFPDPPP Art. 21)"
+        ],
+        "banderas": []
+      }
+    },
+    {
+      "id": "nuevo-vigencia-0676",
+      "entrada": {
+        "conceptos": [
+          {
+            "descripcion": "confidencialidad"
+          }
+        ],
+        "contexto": {
+          "jurisdiccion": "MX",
+          "dimension": "contractual",
+          "regimen": "PM_TITULO_II",
+          "fecha": "2010-07-06"
+        }
+      },
+      "cambia_estado": false,
+      "antes": {
+        "estado": "dudoso",
+        "razon": [
+          "sin regla aplicable"
+        ],
+        "banderas": []
+      },
+      "despues": {
+        "estado": "dudoso",
+        "razon": [
+          "Deber de confidencialidad (datos personales) (LFPDPPP Art. 21)"
+        ],
+        "banderas": []
+      }
+    }
+  ],
+  "cambian_estado": []
+}

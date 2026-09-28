@@ -1,7 +1,7 @@
 # PRP: El grafo lee el paquete de conocimiento (deja de ser fuente propia)
 
-> **Estado:** APROBADO. El laboratorio cerró la Fase 0 el 2026-09-27. Se ejecuta por fases, y la Fase 4 sigue siendo
-> gate humano.
+> **Estado:** EN EJECUCIÓN. Fase 0 cerrada por el laboratorio el 2026-09-27. Fases 1 y 2 hechas el 2026-09-28, en
+> un mismo PR (ver Aprendizajes). Pendientes: la Fase 3 (CDC) y la Fase 4 (runtime, gate humano).
 > **Fecha:** 2026-09-27
 > **Proyecto:** Hermes OS · A2A · **Servicio:** `businessos/grafo/`
 > **Origen:** el congelamiento del seed (PR #317) anunciaba este PRP: «Hermes pasará a leer de ese paquete
@@ -41,8 +41,8 @@ historial de solo añadir.
       recorte. La huella del recorte se comprueba en cada PR
 - [ ] Solo se publica aquí el **recorte** de los dominios de Hermes, nunca el paquete entero. Hoy, con los 17
       dominios, el recorte es idéntico al paquete (medido el 2026-09-27)
-- [ ] Un PR que cambia `PIN.json` sin entrada nueva en `BITACORA-CDC.md` pone rojo `grafo-congelado` (control negativo
-      medido)
+- [ ] Un PR que cambia `PIN.json` sin una entrada nueva **firmada** en `BITACORA-CDC.md` pone rojo `grafo-congelado`.
+      La entrada tiene que nombrar el pin, y `_pendiente de firma_` no vale (control negativo medido)
 - [ ] `gen_seed_sql.py --check` en verde con el seed generado: **99 reglas** en la versión 0.2.0
 - [ ] `_meta.source_version` del seed generado es exactamente `<nombre>@<versión> sha256:<huella del recorte>`: es la
       identidad del conocimiento servido que lee la cola del #321 (§Identidad)
@@ -221,21 +221,24 @@ Decisiones del laboratorio:
 - `gen_seed_sql.py --check` da 99 reglas;
 - el script de diferencias, que corre este motor sobre el seed viejo y sobre el nuevo con las familias de casos del
   corpus de paridad (cada keyword, exclusiones, vigencias, régimen, incidentes), da como contenido distinto
-  **exactamente** los 12 casos declarados, y ningún cambio de estado;
+  **exactamente** los 12 casos declarados, y ningún cambio de estado. Medido el 2026-09-28: los mismos 12 ids que en
+  la fuente única, más `nuevo-vigencia-0676`, de la misma clase; ver Aprendizajes;
 - pytest verde, con los ajustes declarados (conteo 99, `test_bajas`, pruebas de orden si las hay).
 
 ### Fase 2: El CI fija el seed al paquete
 **Objetivo:** `grafo-congelado`, con el mismo nombre, comprueba:
 - la huella del recorte;
 - que `reglas.json` y `02-seed.sql` sean exactamente los generados;
-- que un cambio de `PIN.json` traiga una entrada nueva en `BITACORA-CDC.md`.
+- que un cambio de `PIN.json` traiga una entrada nueva en `BITACORA-CDC.md`, que nombre el pin y esté **firmada**.
+  La bitácora acepta entradas `_pendiente de firma_` (hay 12), así que exigir solo «entrada nueva» dejaría pasar un
+  pin sin firmar. Nota de la revisión del #324.
 
 `CONGELADO.sha256` se regenera con ellos.
 
 **Validación:** controles negativos en un PR de ensayo. Cada uno de estos cambios pone rojo:
 - editar `reglas.json` a mano;
 - tocar el recorte vendorizado sin cambiar el pin;
-- cambiar el pin sin entrada en la bitácora.
+- cambiar el pin sin entrada en la bitácora, o con la entrada `_pendiente de firma_`.
 
 Con todo en su sitio, verde.
 
@@ -280,10 +283,11 @@ segundo rebasa la frase del paso 4, sin duplicarla.
   cola.
 - **El upsert no borra.** Una regla que salga del seed se queda en la BD con su `source_version` vieja, y la identidad
   pasa a «mixta». Es la señal correcta: el runtime no sirve exactamente lo fijado.
-- **Hoy el recorte es idéntico al paquete, y mañana no.** Con los 17 dominios coinciden byte a byte. Dejará de
+- **Hoy el recorte es idéntico al paquete, y mañana no.** Con los 17 dominios tienen el mismo contenido: el recorte
+  solo se escribe con sangría, para que se pueda revisar en un diff. Dejará de
   pasar en cuanto la fuente única siembre un dominio de otro proyecto, y eso es justo lo que el recorte deja fuera.
-- **No se toca `evaluador.py`.** Si hiciera falta, este PRP estaría mal planteado: el paquete se diseñó para que este
-  motor lo lea tal cual.
+- **`evaluar` no cambia; `salud_conocimiento` sí.** El motor lee el paquete tal cual: si hiciera falta tocar cómo
+  evalúa, este PRP estaría mal planteado. Lo que sí cambió es el reporte de salud (ver Aprendizajes).
 
 ## Anti-Patrones
 - NO editar `reglas.json` ni `paquete/recorte.json` a mano: se genera y se vendoriza.
@@ -295,3 +299,32 @@ segundo rebasa la frase del paso 4, sin duplicarla.
 
 ## Aprendizajes (Self-Annealing)
 > Crece con cada error encontrado al ejecutar este PRP.
+
+### 2026-09-28: las Fases 1 y 2 no se pueden separar en dos PR
+- **Error evitado**: un PR solo con la Fase 1 cambia `reglas.json` y `02-seed.sql`, así que el job obligatorio
+  `grafo-congelado` (aún con las huellas del corte) queda rojo. Mezclarlo exigiría actualizar las huellas a mano, que
+  es justo lo que ese job prohíbe.
+- **Fix**: las dos fases van en el mismo PR. El job pasa a comprobar el seed contra el pin en el mismo cambio que
+  pasa el seed al pin.
+- **Aplicar en**: todo cambio de un artefacto que vigila un check obligatorio. El cambio y su nuevo vigilante viajan
+  juntos.
+
+### 2026-09-28: `salud_conocimiento` llamaba «vencida sirviendo» a una regla cerrada
+- **Error evitado**: la LFPDPPP de 2010 vuelve cerrada al 2025-03-20. `revisar-vigencias.py` sale con 1 ante
+  cualquier `vigente_hasta` pasado («mentir con certeza: reseedear»), así que habría alarmado cada lunes. Pero
+  `_vigente` ya la descarta para hechos de hoy: no sirve nada, y juzga hechos anteriores a su cierre, que es la
+  decisión RF-13 de la fuente única.
+- **Fix**: cada vencida trae `sin_reemplazo`, las categorías suyas que ninguna regla viva del ámbito cubre hoy. El
+  cron alerta solo ante un hueco real. Un grafo sin ese campo se sigue alertando como antes. `evaluar` no cambió.
+- **Aplicar en**: cualquier consumidor del paquete que tenga una alarma por fecha. Con solo-añadir, cerrar es la
+  forma normal de retirar.
+
+### 2026-09-28: el generador de casos, portado, da los mismos ids
+- `seed/diferencias.py` porta `medicion/casos.mjs` de la fuente única. Sobre el seed del corte da los 782 casos de su
+  corpus de paridad con los mismos ids y las mismas entradas (medido caso a caso). Así, los 12 casos firmados allá
+  son los mismos 12 ids aquí.
+- Medido al subir a 0.2.0 (784 casos, 2 nuevos del seed nuevo):
+  - 575 idénticos y 196 solo de orden;
+  - 13 de contenido: los 12 firmados y `nuevo-vigencia-0676`, la ley de 2010 en su fecha de entrada en vigor, de la
+    misma clase «confidencialidad antes de 2025»;
+  - **0 cambios de estado**.

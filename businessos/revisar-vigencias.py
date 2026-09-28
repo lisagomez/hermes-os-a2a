@@ -7,8 +7,11 @@ Consulta GET /salud-conocimiento del grafo y:
      para que el agente LO LEA y lo incluya en el cierre/reportes (patrón host-job:
      el agente no consulta nada con secretos; aquí ni secretos hay, pero el snapshot
      evita que cada reporte re-consulte y da una marca de tiempo auditable);
-  3. sale con código 1 si hay reglas VENCIDAS aún sirviendo (eso es mentir con
-     certeza: hay que reseedear) — así el cron alerta.
+  3. sale con código 1 si una regla cerrada deja SIN REEMPLAZO alguna de sus
+     categorías: un hecho de hoy de esa categoría cae al fail-safe — así el cron
+     alerta. Una cerrada CON reemplazo no es error: el motor juzga a la fecha del
+     hecho y la fuente única retira cerrando `vigente_hasta`, no borrando (la
+     conserva para hechos anteriores a su cierre).
 
 Los montos con `verificar:true` NO son error (el seed nace pendiente de cotejo
 DOF/DIAN): se listan para que Elisa/contador los vayan cerrando.
@@ -44,9 +47,17 @@ for sv in salud["source_versions"]:
     print(f"seed: {sv}")
 
 vencidas = salud["reglas_vencidas"]
-if vencidas:
-    print(f"\n!! {len(vencidas)} reglas VENCIDAS sirviendo (reseedear el grafo):")
-    for v in vencidas:
+# Un grafo sin `sin_reemplazo` (anterior a leer el paquete) no distingue: se alerta como antes.
+huecos = [v for v in vencidas if v.get("sin_reemplazo") is None or v["sin_reemplazo"]]
+cerradas = [v for v in vencidas if v not in huecos]
+if huecos:
+    print(f"\n!! {len(huecos)} reglas cerradas SIN reemplazo vivo (sembrar el reemplazo en la fuente única):")
+    for v in huecos:
+        cats = ", ".join(v.get("sin_reemplazo") or ["?"])
+        print(f"   - {v['clave']} (vigente_hasta {v['vigente_hasta']}; sin cubrir: {cats})")
+if cerradas:
+    print(f"\n{len(cerradas)} reglas cerradas con reemplazo (juzgan hechos anteriores a su cierre; no es error):")
+    for v in cerradas:
         print(f"   - {v['clave']} (vigente_hasta {v['vigente_hasta']})")
 
 pend = salud["verificar_pendientes"]
@@ -65,4 +76,4 @@ if not DRY:
     else:
         print(f"\nWARN: no se pudo escribir el snapshot ({res.stderr.strip()[:120]})")
 
-sys.exit(1 if vencidas else 0)
+sys.exit(1 if huecos else 0)
