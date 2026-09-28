@@ -1,0 +1,25 @@
+{
+  "nombre": "@tu-scope/conocimiento",
+  "version": "0.2.0",
+  "sha256_paquete": "sha256:1482c1b39abf7b7997654c7313d2f38be4cb6905268cd7514792b56415d3133f",
+  "dominios": [
+    "co-deducibilidad",
+    "mx-agentes-de-seguros",
+    "mx-ambiental",
+    "mx-cabildeo-y-politica",
+    "mx-clausulas-contractuales",
+    "mx-comercio-exterior",
+    "mx-corporativo-mercantil",
+    "mx-datos-personales-prospeccion",
+    "mx-deducibilidad",
+    "mx-drones-de-reparto",
+    "mx-fiduciario-inmobiliario-sucesorio",
+    "mx-logistica-carga",
+    "mx-propiedad-industrial",
+    "mx-registro-contable",
+    "mx-servicios-financieros",
+    "mx-servicios-legales",
+    "mx-t-mec"
+  ],
+  "sha256_recorte": "sha256:73023d9638ea300ea30f0273def9bdbc06512908ada0426fc04e8e12e42909bf"
+}

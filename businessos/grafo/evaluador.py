@@ -188,21 +188,38 @@ def evaluar_concepto(
 def salud_conocimiento(reglas: list[dict], hoy: date | None = None) -> dict:
     """Radiografia del conocimiento (Fase 3): un grafo desactualizado miente con certeza.
 
-    Reporta reglas vencidas (derogadas que siguen en el seed), montos con
+    Reporta reglas vencidas (vigente_hasta ya paso), montos con
     parametros.verificar=true (pendientes de cotejo contra fuente oficial) y el
     tamano por ambito. La consume GET /salud-conocimiento y el cron
     revisar-vigencias.py.
+
+    Una vencida NO sirve hechos de hoy (_vigente la descarta): la fuente unica
+    retira cerrando vigente_hasta y la conserva para juzgar hechos anteriores. El
+    hueco real es `sin_reemplazo`: categorias suyas que ninguna regla viva del
+    mismo ambito cubre hoy, donde un hecho de hoy cae al fail-safe.
     """
     hoy = hoy or date.today()
     vencidas = []
     verificar_pendientes = []
     ambitos: dict[tuple[str, str], int] = {}
+    cubiertas: dict[tuple[str, str], set[str]] = {}
+    for r in reglas:
+        if _vigente(r, hoy):
+            llave = (r.get("jurisdiccion", "MX"), r.get("dimension", "fiscal"))
+            cubiertas.setdefault(llave, set()).update(
+                i["categoria"] for i in r.get("impactos", []) if i.get("categoria")
+            )
     for r in reglas:
         llave = (r.get("jurisdiccion", "MX"), r.get("dimension", "fiscal"))
         ambitos[llave] = ambitos.get(llave, 0) + 1
         hasta = r.get("vigente_hasta")
         if hasta is not None and date.fromisoformat(str(hasta)) < hoy:
-            vencidas.append({"clave": r["clave"], "vigente_hasta": str(hasta)})
+            propias = {i["categoria"] for i in r.get("impactos", []) if i.get("categoria")}
+            vencidas.append({
+                "clave": r["clave"],
+                "vigente_hasta": str(hasta),
+                "sin_reemplazo": sorted(propias - cubiertas.get(llave, set())),
+            })
         for imp in r.get("impactos", []):
             if imp.get("parametros", {}).get("verificar") is True:
                 verificar_pendientes.append({

@@ -4,8 +4,14 @@ Por que existe: el 02-seed.sql es upsert puro — retirar una regla del JSON la
 dejaba VIVA en grafo-db (caso real: MX-LFPDPPP-21-CONFIDENCIALIDAD citando la
 ley 2010 abrogada, sin disparar la bandera de contradiccion porque su reemplazo
 comparte veredicto). El bloque _bajas emite un DELETE idempotente antes de los
-upserts. Estos tests se ponen ROJOS si alguien quita el DELETE del generador o
-el retiro de la regla vieja del reglas.json.
+upserts. Estos tests se ponen ROJOS si alguien quita el DELETE del generador.
+
+Desde que reglas.json se GENERA del paquete de conocimiento (prp-grafo-lee-paquete.md,
+2026-09-28), el seed real ya no usa _bajas: la fuente unica retira CERRANDO vigente_hasta
+y conserva la regla para juzgar hechos anteriores a su cierre (juicio a la fecha del
+hecho). La regla de 2010 vuelve, cerrada al 2025-03-20: un hecho de 2024 encuentra su ley
+en vez de "sin regla aplicable". El mecanismo de _bajas sigue en el generador y sus
+pruebas con fixtures, para quien lo necesite.
 """
 import importlib.util
 import json
@@ -80,16 +86,18 @@ def test_sin_bajas_no_emite_delete():
 
 # --- regresion sobre el seed REAL -----------------------------------------------
 
-def test_seed_real_retira_la_lfpdppp_2010():
-    """La regla de la ley abrogada DEBE estar en _bajas y NO en reglas."""
-    claves = {r["clave"] for r in SEED["reglas"]}
-    assert "MX-LFPDPPP-21-CONFIDENCIALIDAD" in SEED.get("_bajas", [])
-    assert "MX-LFPDPPP-21-CONFIDENCIALIDAD" not in claves
-    assert "MX-LFPDPPP2025-20-CONFIDENCIALIDAD" in claves
+def test_seed_real_retira_la_lfpdppp_2010_cerrandola():
+    """La ley abrogada se retira CERRANDO su vigencia el dia antes de la nueva, sin _bajas."""
+    reglas = {r["clave"]: r for r in SEED["reglas"]}
+    assert "_bajas" not in SEED
+    vieja = reglas["MX-LFPDPPP-21-CONFIDENCIALIDAD"]
+    nueva = reglas["MX-LFPDPPP2025-20-CONFIDENCIALIDAD"]
+    assert vieja["vigente_hasta"] == "2025-03-20"
+    assert nueva["vigente_desde"] == "2025-03-21" and nueva["vigente_hasta"] is None
 
 
-def test_02_seed_generado_contiene_la_purga():
-    """El SQL versionado (el que corre en prod) trae el DELETE de la clave vieja."""
+def test_02_seed_generado_no_purga():
+    """Sin _bajas, el SQL versionado no borra: re-inserta la regla de 2010 ya cerrada."""
     sql = (SEED_DIR / "02-seed.sql").read_text(encoding="utf-8")
-    assert "delete from reglas" in sql
-    assert "MX-LFPDPPP-21-CONFIDENCIALIDAD" in sql.split("insert into reglas")[0]
+    assert "delete from reglas" not in sql
+    assert "'MX-LFPDPPP-21-CONFIDENCIALIDAD'" in sql

@@ -1,12 +1,14 @@
-"""Las reglas del grafo estan CONGELADAS desde el corte 97d9f9e (2026-09-27).
+"""Las reglas del grafo estan FIJADAS al paquete de conocimiento de seed/paquete/PIN.json.
 
-El conocimiento se mueve a una fuente unica versionada (PRP-005 del monorepo privado de la
-fabrica). Sembrar aqui una regla nueva crearia una segunda fuente que se desvia de la unica.
-En CI lo vigila el job `grafo-congelado`; esta prueba hace que tambien se ponga rojo al correr
-el pytest del grafo en local, que es lo que se hace al tocar el seed (README, "Tests").
+Congeladas desde el corte 97d9f9e (2026-09-27); desde 2026-09-28 se GENERAN del recorte del
+paquete (prp-grafo-lee-paquete.md). Sembrar aqui una regla nueva crearia una segunda fuente que
+se desvia de la unica. En CI lo vigila el job `grafo-congelado`; esta prueba hace que tambien se
+ponga rojo al correr el pytest del grafo en local (README, "Tests"). test_paquete.py comprueba
+que reglas.json sea el generado del pin.
 
-Si esta prueba falla, NO se actualiza CONGELADO.sha256 para ponerla verde: la regla nueva se
-siembra en la fuente unica. Descongelar = cambiar las huellas con firma del laboratorio.
+Si esta prueba falla, NO se actualiza CONGELADO.sha256 a mano para ponerla verde: la regla nueva
+se siembra en la fuente unica y aqui se sube el pin (seed/actualiza_paquete.py), con firma del
+laboratorio.
 """
 import hashlib
 from pathlib import Path
@@ -37,7 +39,7 @@ def test_reglas_sin_cambios_desde_el_corte():
     for esperado, ruta in _huellas():
         real = hashlib.sha256((RAIZ / ruta).read_bytes()).hexdigest()
         assert real == esperado, (
-            f"{ruta} cambio: las reglas del grafo estan CONGELADAS desde 97d9f9e. "
-            "Las reglas nuevas se siembran en la fuente unica (PRP-005); "
-            "descongelar requiere firma del laboratorio."
+            f"{ruta} cambio: las reglas del grafo estan FIJADAS al paquete de seed/paquete/PIN.json. "
+            "Las reglas nuevas se siembran en la fuente unica (PRP-005) y aqui se sube el pin "
+            "con seed/actualiza_paquete.py, con firma del laboratorio."
         )

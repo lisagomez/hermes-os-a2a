@@ -678,3 +678,22 @@ Hermes pasará a leer de ese paquete en un **PRP aparte, con firma**. Hasta ento
 - **no se actualiza la huella para ponerlo verde**, porque descongelar requiere firma del laboratorio;
 - **no bloquea** aplicar en runtime este mismo seed de 98 reglas (el PENDIENTE de arriba) ni tocar el
   motor, la API o el puente A2A.
+
+## LEE EL PAQUETE — 2026-09-28 (prp-grafo-lee-paquete.md, Fases 1 y 2)
+
+El congelamiento se sustituye por **fijado al paquete**: `seed/reglas.json` y `02-seed.sql` se
+**generan** (`seed/desde_paquete.py`) del recorte vendorizado en `seed/paquete/`. Ese recorte trae
+solo los 17 dominios que Hermes registra, de `@tu-scope/conocimiento@0.2.0`, y `PIN.json` fija su
+versión y sus huellas.
+- **Diferencias medidas** (`seed/paquete/DIFERENCIAS.json`), 784 casos:
+  - 575 idénticos y 196 solo de orden;
+  - 13 de contenido: los 12 firmados en la fuente única (10 de INTERESES, 2 de confidencialidad
+    antes de 2025) y 1 más de la misma clase (la ley de 2010 en su fecha de entrada en vigor);
+  - **0 cambios de estado**.
+- Esperado al aplicar en runtime: **99 reglas** (98 del corte + la LFPDPPP 2010, de vuelta y cerrada
+  al 2025-03-20). Sigue PENDIENTE, bloqueado por la red del servidor.
+- `salud_conocimiento` distingue una regla cerrada **con reemplazo** (no es error: juzga hechos
+  anteriores a su cierre) de una que deja categorías **sin reemplazo** (`sin_reemplazo`). Sin ese
+  cambio, `revisar-vigencias.py` habría alarmado cada lunes por la regla de 2010.
+- Subir el pin: `seed/actualiza_paquete.py`. `grafo-congelado` exige una entrada firmada en
+  `BITACORA-CDC.md` cuando cambia el pin (`scripts/gate-pin-grafo.sh`).
